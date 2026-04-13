@@ -1,0 +1,395 @@
+/* ANIMATION PAGE */
+
+.fade-in{
+    animation:fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes fadeIn{
+    from{
+    opacity:0;
+    transform:translateY(20px);
+    }
+    to{
+    opacity:1;
+    transform:translateY(0);
+    }
+    }
+    
+    /* RETOUR */
+    
+    .back-link a{
+    cursor:pointer;
+    color:#555;
+    margin-bottom:50px;
+    display:inline-block;
+    transition:0.3s;
+    text-decoration: none;
+    }
+    
+    .back-link:hover{
+    color:#ff5a00;
+    transform:translateX(-5px);
+    }
+    
+    /* HEADER */
+    
+    .aide-header h2{
+    font-weight:700;
+    }
+    
+    .aide-header p{
+    color:#777;
+    }
+    
+    /* FAQ */
+    
+    .faq-box{
+    background:#fff;
+    padding:25px;
+    border-radius:10px;
+    margin-bottom:30px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .faq-cards{
+    display:flex;
+    gap:20px;
+    margin-top:15px;
+    }
+    
+    .faq-card{
+    flex:1;
+    padding:15px;
+    border:2px solid #f2d4b96f;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
+    }
+    
+    .faq-card:hover{
+    transform:translateY(-5px) scale(1.02);
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .faq-card span{
+    color:#ff5a00;
+    }
+    
+    /* CONTACT */
+    
+    .contact-section{
+    display:flex;
+    gap:30px;
+    }
+    
+    /* LEFT */
+    
+    .contact-left{
+    width:35%;
+    }
+
+   /* Cover Telephone   */
+   .info-card-T{
+    display:flex;
+    gap:15px;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(0,0,0,0.05);
+    border:2px solid rgba(50, 97, 238, 0.13);
+    bottom:12px;
+    right:12px;
+    border-radius:6px;
+    color:rgb(14, 10, 10);
+    cursor:pointer;
+
+    transition:all 0.3s ease;
+    }
+
+    .info-card-T:hover{
+    transform:translateY(-5px);
+    }
+    
+    .info-card-T i{
+    font-size:20px;
+    background:rgba(50, 97, 238, 0.13);
+    border:none;
+    width:30px;
+    height:34px;
+    border-radius:6px;
+    color:rgb(50, 97, 238);
+    cursor:pointer;
+    text-align: center;
+
+    transition:all 0.3s ease;
+    }
+   
+    /* Cover mail */
+    .info-card-M{
+        display:flex;
+        gap:15px;
+        padding:15px;
+        margin-bottom:15px;
+        border-radius:10px;
+        background:#fff;
+        box-shadow:0 5px 15px rgba(0,0,0,0.05);
+        border:2px solid rgba(4, 159, 14, 0.13);
+        bottom:12px;
+        right:12px;
+        border-radius:6px;
+        color:rgb(14, 10, 10);
+        cursor:pointer;
+    
+        transition:all 0.3s ease;
+        }
+    
+    .info-card-M:hover{
+        transform:translateY(-5px);
+        }
+        
+    .info-card-M i{
+        font-size:20px;
+        background:rgba(4, 159, 14, 0.13);
+        border:none;
+        width:30px;
+        height:34px;
+        border-radius:6px;
+        color:rgb(15, 177, 63);
+        cursor:pointer;
+        text-align: center;
+    
+        transition:all 0.3s ease;
+        }
+    /* cover chat */
+    .info-card-C{
+        display:flex;
+        gap:15px;
+        padding:15px;
+        margin-bottom:15px;
+        border-radius:10px;
+        background:#fff;
+        box-shadow:0 5px 15px rgba(0,0,0,0.05);
+        border:2px solid rgba(231, 127, 24, 0.13);
+        bottom:12px;
+        right:12px;
+        border-radius:6px;
+        color:rgb(14, 10, 10);
+        cursor:pointer;
+    
+        transition:all 0.3s ease;
+        }
+    
+    .info-card-C:hover{
+        transform:translateY(-5px);
+        }
+        
+    .info-card-C i{
+        font-size:20px;
+        background:rgba(231, 127, 24, 0.13);
+        border:none;
+        width:30px;
+        height:34px;
+        border-radius:6px;
+        color:rgb(231, 128, 24);
+        cursor:pointer;
+        text-align: center;
+    
+        transition:all 0.3s ease;
+        }
+
+    /* cover adresse */
+    .info-card-A{
+        display:flex;
+        gap:15px;
+        padding:15px;
+        margin-bottom:15px;
+        border-radius:10px;
+        background:#fff;
+        box-shadow:0 5px 15px rgba(0,0,0,0.05);
+        border:2px solid rgba(155, 5, 236, 0.13);
+        bottom:12px;
+        right:12px;
+        border-radius:6px;
+        color:rgb(14, 10, 10);
+        cursor:pointer;
+    
+        transition:all 0.3s ease;
+        }
+    
+    .info-card-A:hover{
+        transform:translateY(-5px);
+        }
+        
+    .info-card-A i{
+        font-size:20px;
+        background:rgba(155, 5, 236, 0.13);
+        border:none;
+        width:30px;
+        height:34px;
+        border-radius:6px;
+        color:rgb(155, 5, 236);
+        cursor:pointer;
+        text-align: center;
+    
+        transition:all 0.3s ease;
+        }
+        
+    /* Cover horaire */
+    .info-card-horaires {
+        display:flex;
+        gap:15px;
+        padding:15px;
+        margin-bottom:15px;
+        border-radius:10px;
+        background:#fff;
+        box-shadow:0 5px 15px rgba(0,0,0,0.05);
+        border:2px solid rgba(13, 11, 14, 0.13);
+        bottom:12px;
+        right:12px;
+        border-radius:6px;
+        color:rgb(14, 10, 10);
+        cursor:pointer;
+    
+        transition:all 0.3s ease;
+        }
+    
+    .info-card-horaires:hover{
+        transform:translateY(-5px);
+        }
+        
+    .info-card-horaires i{
+        font-size:20px;
+        background:rgba(13, 11, 14, 0.13);
+        border:none;
+        width:30px;
+        height:34px;
+        border-radius:6px;
+        color:rgb(13, 12, 13);
+        cursor:pointer;
+        text-align: center;
+    
+        transition:all 0.3s ease;
+        }    
+
+     /* RIGHT */
+    .contact-right{
+    width:65%;
+    background:#fff;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    /* FORM */
+    
+    .form-row{
+    display:flex;
+    gap:15px;
+    margin-bottom:15px;
+    }
+    
+    input, select, textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    outline:none;
+    transition:0.3s;
+    }
+    
+    input:focus, textarea:focus{
+    border-color:#ff5a00;
+    box-shadow:0 0 5px rgba(255,90,0,0.3);
+    }
+    
+    textarea{
+    height:120px;
+    }
+    
+    .text{
+        padding-top: 5px; 
+        font-size: 12px;
+        color:#777;
+    }
+    /* BUTTON */
+    
+    .form-buttons{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+    }
+    
+    .btn-send{
+    flex:1;
+     background:linear-gradient(135deg,#ff7a18,#ff3d00,#802002);
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:0.3s;
+    }
+    
+    .btn-send:hover{
+    transform:scale(1.05);
+    box-shadow:0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .btn-reset{
+    background:#eee;
+    border:none;
+    padding:12px;
+    border-radius:6px;
+    }
+    
+    /* AUTRES CONTACT */
+    
+    .other-contact{
+    margin-top:25px;
+    }
+    
+    .other-box{
+    display:flex;
+    gap:15px;
+    margin-top:10px;
+    }
+    
+    .other-item{
+    flex:1;
+    display:flex;
+    gap:10px;
+    padding:10px;
+    border:1px solid #eee;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
+    }
+    
+    .other-item:hover{
+    transform:translateY(-3px);
+    background:#fff3eb;
+    }
+    
+    .other-item i{
+    color:#ff5a00;
+    }
+    
+    /* RESPONSIVE */
+    
+    @media(max-width:768px){
+    
+    .contact-section{
+    flex-direction:column;
+    }
+    
+    .contact-left,
+    .contact-right{
+    width:100%;
+    }
+    
+    .faq-cards{
+    flex-direction:column;
+    }
+    
+    }

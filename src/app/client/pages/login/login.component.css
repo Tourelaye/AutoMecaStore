@@ -1,0 +1,280 @@
+.container-main{
+    animation:fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes fadeIn{
+    from{
+    opacity:0;
+    transform:translateY(20px);
+    }
+    to{
+    opacity:1;
+    transform:translateY(0);
+    }
+    }
+    
+
+.login-page{
+    background:#f6f3ef;
+    min-height:100vh;
+    font-family: "Segoe UI", sans-serif;
+    }
+    
+    /* HEADER */
+    
+    .header{
+    display:flex;
+    justify-content:space-between;
+    padding:25px 80px;
+    }
+    
+    .logo{
+    font-size:24px;
+    font-weight:700;
+    color:#ff5a00;
+    }
+    
+    .logo-img{
+        display:block;
+        height:35px;
+        width:auto;
+        object-fit:contain;
+        }
+    
+    .register a{
+    color:#ff5a00;
+    text-decoration:none;
+    font-weight:500;
+    }
+    
+    
+    /* MAIN */
+    
+    .container-main{
+    display:flex;
+    justify-content:space-between;
+    padding:40px 80px;
+    }
+    
+    /* LEFT SECTION */
+    
+    .left-section{
+    width:58%;
+    }
+    
+    .title{
+    font-size:38px;
+    font-weight:700;
+    margin-bottom:10px;
+    }
+    
+    .title span{
+    color:#ff5a00;
+    }
+    
+    .subtitle{
+    color:#6c757d;
+    margin-bottom:30px;
+    text-align:center;
+    }
+    
+    /* FEATURE CARDS */
+    
+    .features{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+    }
+    
+    .feature-card{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.05);
+    }
+    
+    .icon-box{
+    width:42px;
+    height:42px;
+    background:#ff5a00;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    font-size:20px;
+    }
+    
+    .feature-text h4{
+    font-size:16px;
+    font-weight:600;
+    margin:0;
+    }
+    
+    .feature-text p{
+    margin:0;
+    color:#6c757d;
+    font-size:14px;
+    }
+    
+    
+    /* DEMO ACCOUNTS */
+    
+    .demo-accounts{
+    margin-top:40px;
+    }
+    
+    .demo-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+    margin-bottom:15px;
+    }
+    
+    .demo-title i{
+    color:#ff5a00;
+    }
+    
+    .demo-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:white;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 5px 12px rgba(0,0,0,0.05);
+    }
+    
+    .demo-icon{
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    border-radius:8px;
+    font-weight:bold;
+    }
+    
+    .admin{
+    background:#e74c3c;
+    }
+    
+    .client{
+    background:#ff5a00;
+    }
+    
+    .demo-info{
+    flex:1;
+    margin-left:10px;
+    }
+    
+    .demo-info p{
+    margin:0;
+    font-size:13px;
+    color:#6c757d;
+    }
+    
+    .demo-card i{
+    color:#888;
+    }
+    
+    
+    /* LOGIN CARD */
+    
+    .login-card{
+    width:380px;
+    background:white;
+    padding:35px;
+    border-radius:14px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.08);
+    }
+    
+    .login-card h3{
+    font-weight:700;
+    }
+    
+    .login-subtitle{
+    font-size:14px;
+    color:#6c757d;
+    margin-bottom:25px;
+    }
+    
+    /* INPUTS */
+    
+    .input-group{
+    display:flex;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:15px;
+    }
+    
+    .input-group i{
+    color:#999;
+    margin-right:8px;
+    }
+    
+    .input-group input{
+    border:none;
+    outline:none;
+    width:100%;
+    }
+    
+    
+    /* OPTIONS */
+    
+    .login-options{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    margin-bottom:20px;
+    }
+    
+    .login-options a{
+    color:#ff5a00;
+    text-decoration:none;
+    }
+    
+    
+    /* BUTTON */
+    
+    .login-btn{
+    width:100%;
+    background:#ff5a00;
+    border:none;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+    }
+    
+    .login-btn i{
+    margin-right:6px;
+    }
+    
+    .login-btn:hover{
+    background:#e14f00;
+    }
+    
+    
+    /* CREATE ACCOUNT */
+    
+    .create-account{
+    text-align:center;
+    margin-top:20px;
+    font-size:14px;
+    }
+    
+    .create-account a{
+    color:#ff5a00;
+    font-weight:500;
+    text-decoration:none;
+    }

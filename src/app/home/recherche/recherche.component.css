@@ -1,0 +1,67 @@
+/* SECTION */
+.search-populaire {
+    padding: 60px 20px;
+    background: #ffffff;
+    text-align: center;
+}
+
+/* TITRE */
+.search-populaire .top-title {
+    color: #f97316;
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.search-populaire h2 {
+    font-size: 28px;
+    margin: 10px 0;
+}
+
+.search-populaire .desc {
+    color: gray;
+    font-size: 14px;
+    margin-bottom: 40px;
+}
+
+/* LISTE */
+.search-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+/* ITEM */
+.search-item {
+    background: white;
+    padding: 14px 18px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+/* FLÈCHE */
+.search-item span {
+    transition: 0.3s;
+}
+
+/* 🔥 HOVER ORANGE + ZOOM */
+.search-item:hover {
+    background: #fff7ed;
+    border-color: #f97316;
+    color: #f97316;
+    transform: scale(1.05);
+}
+
+/* FLÈCHE ANIMATION */
+.search-item:hover span {
+    transform: translateX(5px);
+    color: #f97316;
+}

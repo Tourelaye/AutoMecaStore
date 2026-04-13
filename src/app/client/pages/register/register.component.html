@@ -1,0 +1,419 @@
+<div class="register-page">
+
+    <!-- HEADER -->
+    
+    <div class="register-header">
+    
+    <div class="container d-flex justify-content-between align-items-center">
+    
+    <div class="logo">
+            <img class="logo-img" src="/assets/image/logo.jpeg" alt="AutoMecaStore">
+    </div>
+    
+    <div class="login-link">
+    Déjà inscrit ?
+    <a href="login">Se connecter</a>
+    </div>
+    
+    </div>
+    
+    </div>
+    
+    
+    <div class="container">
+    
+    <!-- STEPPER -->
+    
+    <div class="stepper">
+    
+    <div class="step" [class.active]="step >= 1">
+    
+    <div class="circle">
+    <i class="bi bi-person"></i>
+    </div>
+    
+    <span>Informations</span>
+    
+    </div>
+    
+    <div class="line"></div>
+    
+    <div class="step" [class.active]="step >= 2">
+    
+    <div class="circle">
+    <i class="bi bi-lock"></i>
+    </div>
+    
+    <span>Compte</span>
+    
+    </div>
+    
+    <div class="line"></div>
+    
+    <div class="step" [class.active]="step >= 3">
+    
+    <div class="circle">
+    <i class="bi bi-check"></i>
+    </div>
+    
+    <span>Finalisation</span>
+    
+    </div>
+    
+    </div>
+    
+    
+    <div class="register-box">
+    
+    <!-- LEFT CARD -->
+    
+    <div class="benefits">
+    
+    <h4 class="benefit-title">
+    <i class="bi bi-star"></i>
+    Pourquoi nous rejoindre ?
+    </h4>
+    
+    <ul>
+    
+    <li>
+    
+    <div class="benefit-icon">
+    <i class="bi bi-star-fill"></i>
+    </div>
+    
+    <div>
+    <strong>Accès privilégié</strong>
+    <p>Nouveautés et offres exclusives</p>
+    </div>
+    
+    </li>
+    
+    <li>
+    
+    <div class="benefit-icon">
+    <i class="bi bi-truck"></i>
+    </div>
+    
+    <div>
+    <strong>Livraison express</strong>
+    <p>Gratuite dès 50€ d'achat</p>
+    </div>
+    
+    </li>
+    
+    <li>
+    
+    <div class="benefit-icon">
+    <i class="bi bi-shield-check"></i>
+    </div>
+    
+    <div>
+    <strong>Garantie qualité</strong>
+    <p>Pièces certifiées</p>
+    </div>
+    
+    </li>
+    
+    <li>
+    
+    <div class="benefit-icon">
+    <i class="bi bi-gift"></i>
+    </div>
+    
+    <div>
+    <strong>Programme fidélité</strong>
+    <p>Points et récompenses</p>
+    </div>
+    
+    </li>
+    
+    </ul>
+    
+    </div>
+    
+    
+    <!-- FORM CARD -->
+    
+    <div class="form-card">
+
+    <form [formGroup]="registerForm">
+    
+    <div class="text-center">
+    
+    <h3>Créez votre compte client</h3>
+    
+    <p class="subtitle">Rejoignez des milliers de clients satisfaits et accédez à notre catalogue</p>
+    
+    </div>
+    
+    
+    <!-- STEP 1 -->
+    
+    <div *ngIf="step === 1">
+    
+    <h4 class="text-center">Vos informations personnelles</h4>
+    <p class="subtitle">Commencons par quelques informations de base</p>
+    
+    <div class="row">
+    
+    <div class="col-md-6">
+    
+    <label>Prénom *</label>
+    
+    <div class="input-group custom-input">
+    
+    <span class="input-group-text">
+    <i class="bi bi-person"></i>
+    </span>
+    
+    <input type="text" class="form-control" placeholder="" formControlName="prenom">
+    
+    </div>
+    
+    </div>
+    
+    
+    <div class="col-md-6">
+    
+    <label>Nom *</label>
+    
+    <div class="input-group custom-input">
+    
+    <span class="input-group-text">
+    <i class="bi bi-person-badge"></i>
+    </span>
+    
+    <input type="text" class="form-control" placeholder="" formControlName="nom">
+    
+    </div>
+    
+    </div>
+    
+    </div>
+    
+    
+    <label>Téléphone</label>
+    
+    <div class="input-group custom-input">
+    
+    <span class="input-group-text">
+    <i class="bi bi-telephone"></i>
+    </span>
+    
+    <input type="tel" class="form-control" placeholder="" formControlName="telephone">
+    
+    </div>
+    
+    
+    <div class="account-info">
+    
+    <i class="bi bi-person-circle"></i>
+    
+    <div>
+    
+    <strong>Compte Client</strong>
+    
+    <p class="subtitle">Accédez à notre catalogue et passez vos commandes</p>
+    
+    </div>
+    
+    </div>
+    
+    
+    <div class="form-error" *ngIf="stepError">
+    {{ stepError }}
+    </div>
+    
+    <div class="form-error" *ngIf="stepError">
+    {{ stepError }}
+    </div>
+    
+    <div class="form-error" *ngIf="stepError">
+    {{ stepError }}
+    </div>
+    
+    <div class="buttons">
+    
+    <button class="btn-main" type="button" (click)="next()">
+    
+    Suivant
+    <i class="bi bi-arrow-right"></i>
+    
+    </button>
+    
+    </div>
+    
+    </div>
+    
+    
+    
+    <!-- STEP 2 -->
+    
+    <div *ngIf="step === 2">
+    
+    <h5 class="text-center">Informations de connexion</h5>
+    <p class="subtitle">Securisez votre compte avec un mot de passe</p>
+    
+    <label>Email *</label>
+    
+    <div class="input-group custom-input">
+    
+    <span class="input-group-text">
+    <i class="bi bi-envelope"></i>
+    </span>
+    
+    <input type="email" class="form-control" placeholder="" formControlName="email">
+    
+    </div>
+    
+    
+    <label>Mot de passe *</label>
+    
+    <div class="input-group custom-input">
+    
+    <span class="input-group-text">
+    <i class="bi bi-lock"></i>
+    </span>
+    
+    <input type="password" class="form-control" placeholder="********" formControlName="password">
+    
+    </div>
+    
+    
+    <label>Confirmer mot de passe *</label>
+    
+    <div class="input-group custom-input">
+    
+    <span class="input-group-text">
+    <i class="bi bi-shield-lock"></i>
+    </span>
+    
+    <input type="password" class="form-control" formControlName="confirmPassword">
+    
+    </div>
+    
+    
+    <div class="buttons">
+    
+    <button class="btn-light" type="button" (click)="prev()">Précédent</button>
+    
+    <button class="btn-main" type="button" (click)="next()">
+    Suivant
+    <i class="bi bi-arrow-right"></i>
+    </button>
+    
+    </div>
+    
+    </div>
+    
+    
+    
+    <!-- STEP 3 -->
+    
+<!-- STEP 3 -->
+
+<div *ngIf="step === 3">
+
+    <h5 class="text-center">Finalisation</h5>
+    <p class="subtitle">Plus qu'une étape pour rejoindre AutoMecaStore !</p>
+    
+    <!-- Résumé client -->
+    
+    <div class="summary-card">
+    
+    <h6 class="summary-title">
+    <i class="bi bi-file-earmark-text"></i>
+    Récapitulatif de votre inscription
+    </h6>
+    
+    <div class="summary-info">
+    
+    <div class="summary-row">
+    <span>Nom :</span>
+    <strong>Toure</strong>
+    </div>
+    
+    <div class="summary-row">
+    <span>Prénom :</span>
+    <strong>Mouhamed</strong>
+    </div>
+    
+    <div class="summary-row">
+    <span>Email :</span>
+    <strong>emailcloud.com</strong>
+    </div>
+    
+    <div class="summary-row">
+    <span>Type de compte :</span>
+    <strong>Client</strong>
+    </div>
+    
+    </div>
+    
+    </div>
+    
+    
+    <!-- Conditions -->
+    
+    <div class="conditions">
+    
+    <label class="condition-item">
+    
+    <input type="checkbox" formControlName="conditionsAccepted">
+    
+    <span>
+    J'accepte les
+    <a href="#">conditions d'utilisation</a>
+    et la
+    <a href="#">politique de confidentialité</a>
+    d'AutoMecaStore
+    </span>
+    
+    </label>
+    
+    <label class="condition-item">
+    
+    <input type="checkbox" formControlName="marketingOptIn">
+    
+    <span>
+    Je souhaite recevoir les offres promotionnelles et actualités
+    d'AutoMecaStore par email
+    </span>
+    
+    </label>
+    
+    </div>
+    
+    
+    <div class="buttons">
+    
+    <button class="btn-light" type="button" (click)="prev()">Précédent</button>
+    
+    <button class="btn-main" type="button" (click)="createAccount()">
+    Créer mon compte
+    <i class="bi bi-person-plus"></i>
+    </button>
+    
+    </div>
+    
+    </div>
+    
+    
+    <div class="already">
+    
+    Déjà inscrit ?
+    
+    <a href="#">Connectez-vous ici</a>
+    
+    </div>
+
+    </form>
+    
+    </div>
+    
+    </div>
+    
+    </div>
+    
+    </div>

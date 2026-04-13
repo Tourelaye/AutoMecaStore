@@ -1,3 +1,64 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { ProduitsComponent } from './client/pages/produits/produits.component';
+import { LoginComponent } from './client/pages/login/login.component';
+import { RegisterComponent } from './client/pages/register/register.component';
+import { AutoListComponent } from './client/pages/catalog/auto/auto-list/auto-list.component';
+import { MotoListComponent } from './client/pages/catalog/moto/moto-list/moto-list.component';
+import { PoidLourdsListComponen} from './client/pages/catalog/poidLourds/poid-lourds-list/poid-lourds-list.component';
+import { VeloListComponen } from './client/pages/catalog/velo/velo-list/velo-list.component';
+import { AideComponent } from './client/pages/aide/aide.component';
+import { FaqComponent } from './client/pages/faq/faq.component';
+import { PanierComponent } from './client/pages/panier/panier.component';
 
-export const routes: Routes = [];
+
+export const routes: Routes = [
+  { 
+    path: '',
+     component: HomeComponent 
+  },
+  {
+    path: 'catalog/auto',
+    component: AutoListComponent
+  },
+  {
+    path: 'catalog/moto',
+    component: MotoListComponent
+  },
+  {
+    path: 'catalog/poidLourds',
+    component: PoidLourdsListComponen
+  },
+  {
+    path: 'catalog/velo',
+    component: VeloListComponen
+  },
+  {
+    path: 'login',
+    component: LoginComponent
+  },
+  {
+    path: 'register',
+    component: RegisterComponent
+  },
+  {
+    path: 'aide',
+    component: AideComponent
+  },
+  {
+    path: 'faq',
+    component: FaqComponent
+  },
+  {
+    path: 'panier',
+    component: PanierComponent
+  },
+  {
+    path: 'produits',
+    component: ProduitsComponent
+  },
+  { 
+    path: '**', 
+    redirectTo: '' 
+  }
+];

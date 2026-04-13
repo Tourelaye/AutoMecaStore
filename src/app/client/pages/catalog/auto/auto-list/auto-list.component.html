@@ -1,0 +1,178 @@
+<div class="catalog-page container">
+
+    <!-- HEADER -->
+    <div class="catalog-header">
+  
+      <div class="catalog-title">
+        <span class="catalog-tag">CATALOGUE</span>
+  
+        <h1>Pièces détachées voiture</h1>
+  
+        <p class="catalog-count">
+          <span class="highlight-count">6</span> produits disponibles
+        </p>
+  
+        <div class="catalog-features">
+          <span><i class="bi bi-check-circle text-success"></i> Pièces d'origine</span>
+          <span><i class="bi bi-truck text-primary"></i> Livraison 24-48h</span>
+          <span><i class="bi bi-headset"></i> Support 24/7</span>
+        </div>
+      </div>
+  
+      <div class="catalog-actions">
+  
+        <select class="form-select">
+          <option>Pertinence</option>
+          <option>Popularité</option>
+          <option>Prix croissant</option>
+          <option>Prix décroissant</option>
+        </select>
+  
+        <div class="view-buttons">
+          <button class="btn-view"
+            (click)="setGrid()"
+            [class.active]="viewMode === 'grid'">
+            <i class="bi bi-grid"></i>
+          </button>
+  
+          <button class="btn-view"
+            (click)="setList()"
+            [class.active]="viewMode === 'list'">
+            <i class="bi bi-list"></i>
+          </button>
+        </div>
+  
+        <button class="btn-viewF" (click)="toggleFilters()">
+          <i class="bi bi-sliders"></i> Filtres
+        </button>
+  
+      </div>
+    </div>
+  
+    <div class="catalog-layout">
+  
+      <!-- FILTERS -->
+      <div class="filters" [class.hide-filters]="!showFilters">
+  
+        <div class="filter-header text-center">
+          <i class="bi bi-sliders"></i> Filtres
+          <p class="subtitle">Affinez votre recherche</p>
+        </div>
+  
+        <div class="filter-section">
+          <h6><i class="bi bi-lightning-charge"></i> Filtres rapides</h6>
+  
+          <div class="quick-filter">
+            <span class="cards"><i class="bi bi-truck"></i></span>
+            Livraison
+            <span class="badge">156</span>
+          </div>
+  
+          <div class="quick-filter">
+            <span class="cards"><i class="bi bi-percent"></i></span>
+            En promotion
+            <span class="badge">89</span>
+          </div>
+  
+          <div class="quick-filter">
+            <span class="cards"><i class="bi bi-star"></i></span>
+            Nouveautés
+            <span class="badge">67</span>
+          </div>
+        </div>
+  
+      </div>
+  
+      <!-- PRODUCTS -->
+      <div class="products">
+  
+        <div class="daily-offers">
+          <div>
+            <h4>Offres du jour</h4>
+            <p>Découvrez nos meilleures réductions</p>
+          </div>
+          <div><strong>6</strong> Produits</div>
+        </div>
+  
+        <!-- GRID -->
+        <div *ngIf="viewMode === 'grid'" class="product-grid fade-switch">
+  
+          <div class="product-card" *ngFor="let p of [1,2,3]">
+  
+            <span class="badge-discount">-20%</span>
+  
+            <div class="product-img"></div>
+  
+            <div class="product-actions">
+              <button class="btn-fav"><i class="bi bi-heart"></i>Favoris</button>
+              <button class="btn-v" (click)="goToProduits()"><i class="bi bi-eye"></i>Voir</button>
+            </div>
+  
+            <h6 class="brand">BREMBO</h6>
+  
+            <p class="product-name">Plaquettes de frein Renault Clio</p>
+  
+            <div class="etoile">⭐⭐⭐⭐☆ <span>4.6</span></div>
+  
+            <div class="price">
+              <span class="new-price">59.99 €</span>
+              <span class="old-price">79.99 €</span>
+            </div>
+  
+            <button class="btn-cart">
+              <i class="bi bi-cart"></i> Ajouter au panier
+            </button>
+
+  
+          </div>
+  
+        </div>
+  
+        <!-- LIST -->
+        <div *ngIf="viewMode === 'list'" class="product-list fade-switch">
+  
+          <div class="product-list-card" *ngFor="let p of [1,2,3]">
+  
+            <div class="product-img"></div>
+  
+            <div class="product-middle">
+              <h6 class="brand">MANN-FILTER</h6>
+              <h5 class="product-title">Filtre à huile BMW E90</h5>
+              <p class="product-desc">Filtre haute qualité</p>
+              <div class="etoile">⭐⭐⭐⭐☆ <span>4.8</span></div>
+            </div>
+  
+            <div class="product-right">
+              <div class="price-box">
+                <div class="new-price">12.99€</div>
+                <div class="old-price">18.99€</div>
+              </div>
+
+              <div class="btnns">
+
+                <button class="btn-cart">
+                  <i class="bi bi-cart"></i> Ajouter
+                </button>
+              
+                <div class="btn-row">
+                  <button class="btn-fav">
+                    <i class="bi bi-heart"></i> Favoris
+                  </button>
+              
+                  <button class="btn-v" (click)="goToProduits()">
+                    <i class="bi bi-eye"></i> Voir
+                  </button>
+                </div>
+              
+              </div>
+
+            </div>
+  
+          </div>
+  
+        </div>
+  
+      </div>
+  
+    </div>
+  </div>

@@ -1,0 +1,144 @@
+<section class="panier-page">
+  <div class="container" [@pageAnimation]>
+
+    <!-- HEADER -->
+    <div class="panier-header">
+      <a routerLink="/" class="back">
+        <i class="bi bi-arrow-left"></i> Continuer mes achats
+      </a>
+
+
+    </div>
+
+    <!-- PANIER VIDE -->
+    <div class="empty-container" *ngIf="items.length === 0">
+      <i class="bi bi-cart3 empty-icon"></i>
+      <h3>Votre panier est vide</h3>
+      <p>Découvrez notre catalogue de pièces détachées</p>
+      <a routerLink="/" class="btn-shop">
+        <i class="bi bi-shop"></i> Parcourir le catalogue
+      </a>
+    </div>
+
+    <!-- PANIER REMPLI -->
+    <div class="panier-layout" *ngIf="items.length > 0">
+      <!-- LEFT -->
+      <div class="panier-left">
+
+        <div class="panier-item"
+             *ngFor="let item of items"
+             [@itemAnimation]>
+
+          <img [src]="item.produit.image" class="item-img">
+
+          <div class="item-info">
+            <h4>{{ item.produit.nom }}</h4>
+            <p class="ref">Ref: {{ item.produit.reference }}</p>
+            <small class="delay">
+              <i class="bi bi-clock"></i> 24-48h
+            </small>
+
+            <div class="qty-control">
+              <button (click)="decreaseQty(item)">
+                <i class="bi bi-dash"></i>
+              </button>
+
+              <span>{{ item.quantite }}</span>
+
+              <button (click)="increaseQty(item)">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="item-actions">
+
+            <span class="price">
+              {{ item.produit.prix * item.quantite | number:'1.0-2' }} €
+            </span>
+
+            <div class="actions-icons">
+
+              <!-- FAVORIS -->
+              <button class="fav" (click)="toggleFavorite(item)">
+                <i class="bi"
+                   [ngClass]="item.favori ? 'bi-heart-fill' : 'bi-heart'">
+                </i>
+              </button>
+
+              <!-- DELETE -->
+              <button class="delete" (click)="removeItem(item)">
+                <i class="bi bi-trash"></i>
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="panier-right">
+
+        <!-- CODE PROMO -->
+        <div class="card">
+          <h4><i class="bi bi-gift"></i> Code promo</h4>
+
+          <div class="promo-box">
+            <input type="text" placeholder="Entrer votre code">
+            <button>Appliquer</button>
+          </div>
+        </div>
+
+        <!-- LIVRAISON -->
+        <div class="card-l">
+          <h4><i class="bi bi-truck"></i> Livraison</h4>
+
+          <select class="option">
+            <option>Livraison standard 4.99€</option>
+            <option>Livraison express 9.99€</option>
+            <option>Retrait en magasin gratuite</option>
+          </select>
+
+          <small >3-5 jours <small class="livraison"><br > livraison gratuite partout a dakar</small></small>
+        </div>
+
+        <!-- TOTAL -->
+        <div class="card-T total-box">
+
+          <div class="line">
+            <span>Sous-total</span>
+            <span>{{ total | number:'1.0-2' }} €</span>
+          </div>
+
+          <div class="line">
+            <span>Livraison</span>
+            <span>4.99 €</span>
+          </div>
+
+          <div class="line total">
+            <span>Total</span>
+            <span>{{ total + 4.99 | number:'1.0-2' }} €</span>
+          </div>
+
+          <button class="checkout">
+            <i class="bi bi-credit-card"></i>
+            Passer la commande
+          </button>
+
+          <div class="secure">
+            <i class="bi bi-shield-lock"></i> Paiement sécurisé •
+            <i class="bi bi-lightning-charge"></i> Livraison rapide
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,372 @@
+.container{
+    animation:fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes fadeIn{
+    from{
+    opacity:0;
+    transform:translateY(20px);
+    }
+    to{
+    opacity:1;
+    transform:translateY(0);
+    }
+    }
+    
+.register-page{
+
+    background:#fff4ec;
+    min-height:100vh;
+    padding-bottom:60px;
+       
+    }
+    
+    /* HEADER */
+    
+    .register-header{
+    
+    background:white;
+    padding:15px 0;
+    border-bottom:1px solid #eee;
+    
+    }
+    .subtitle{
+        color:#6c757d;
+        margin-bottom:30px;
+        text-align:center;
+        }
+    
+    .logo{
+    
+    color:#ff5a00;
+    font-weight:700;
+    
+    }
+
+    .logo-img{
+        display:block;
+        height:35px;
+        width:auto;
+        object-fit:contain;
+        }
+    
+    .login-link a{
+    
+    color:#ff5a00;
+    font-weight:500;
+    margin-left:5px;
+    
+    }
+    
+    /* STEPPER */
+    
+    .stepper{
+    
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:40px 0;
+    
+    }
+    
+    .step{
+    
+    text-align:center;
+    
+    }
+    
+    .circle{
+    
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    background:#ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:auto;
+    
+    }
+    
+    .step.active .circle{
+    
+    background:linear-gradient(90deg,#d32f2f,#ff5a00,#ff8c42);
+    color:white;
+    
+    }
+    
+    .line{
+    
+    width:80px;
+    height:3px;
+    background:#ddd;
+    margin:0 15px;
+    
+    }
+    
+    .step.active + .line{
+    
+    background:#ff5a00;
+    
+    }
+    
+    /* LAYOUT */
+    
+    .register-box{
+    
+    display:flex;
+    gap:30px;
+    
+    }
+    
+    /* BENEFITS */
+    
+    .benefits{
+    
+    width:30%;
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    border:1px solid #ffe1d2;
+    
+    }
+    
+    .benefit-title{
+    
+    color:#ff5a00;
+    margin-bottom:20px;
+    
+    }
+    
+    .benefits ul{
+    
+    list-style:none;
+    padding:0;
+    
+    }
+    
+    .benefits li{
+    
+    display:flex;
+    gap:15px;
+    margin-bottom:20px;
+    
+    }
+    
+    .benefit-icon{
+    
+    width:40px;
+    height:40px;
+    background:#fff1e8;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    
+    }
+    
+    .benefit-icon i{
+    
+    color:#ff5a00;
+    
+    }
+    
+    /* FORM */
+    
+    .form-card{
+    
+    width:70%;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    border:2px solid #ff5a00;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    
+    }
+    
+    .custom-input{
+    
+    margin-bottom:15px;
+    
+    }
+    
+    .input-group-text{
+    
+    background:#fff3e8;
+    border:1px solid #ff5a00;
+    color:#ff5a00;
+    
+    }
+    
+    .form-control{
+    
+    border:1px solid #b8b6b6ba;
+    
+    }
+    
+    .form-control:focus{
+    
+    box-shadow:none;
+    border-color:#ff5a00;
+    
+    }
+    
+    /* ACCOUNT INFO */
+    
+    .account-info{
+    
+    background:#fff3e8;
+    padding:15px;
+    border-radius:8px;
+    display:flex;
+    gap:15px;
+    align-items:center;
+    margin-top:15px;
+    
+    }
+    
+    .account-info i{
+    
+    font-size:24px;
+    color:#ff5a00;
+    
+    }
+    
+    /* BUTTONS */
+    
+    .buttons{
+    
+    display:flex;
+    justify-content:space-between;
+    margin-top:20px;
+    
+    }
+    
+    .btn-main{
+    
+    background:linear-gradient(90deg,#d32f2f,#ff5a00,#ff8c42);
+    border:none;
+    color:white;
+    padding:10px 20px;
+    border-radius:6px;
+    
+    }
+    
+    .btn-light{
+    
+    background:white;
+    border:1px solid #ddd;
+    padding:10px 20px;
+    border-radius:6px;
+    
+    }
+    
+    .already{
+    
+    text-align:center;
+    margin-top:20px;
+    
+    }
+    
+    .already a{
+    
+    color:#ff5a00;
+    
+    }
+
+    /* SUMMARY CARD */
+
+.summary-card{
+
+    background:#fff3e8;
+    border:1px solid #ffd6bf;
+    padding:20px;
+    border-radius:8px;
+    margin-top:20px;
+    
+    }
+    
+    .summary-title{
+    
+    color:#ff5a00;
+    margin-bottom:15px;
+    font-weight:600;
+    
+    }
+    
+    .summary-info{
+    
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    
+    }
+    
+    .summary-row{
+    
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px dashed #ffd6bf;
+    padding-bottom:5px;
+    
+    }
+    
+    .summary-row span{
+    
+    color:#555;
+    
+    }
+    
+    /* CONDITIONS */
+    
+    .conditions{
+    
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    
+    }
+    
+    .condition-item{
+    
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:14px;
+    color:#444;
+    
+    }
+    
+    .condition-item input{
+    
+    margin-top:4px;
+    
+    }
+    
+    .condition-item a{
+    
+    color:#ff5a00;
+    text-decoration:none;
+    font-weight:500;
+    
+    }
+    
+    .condition-item a:hover{
+    
+    text-decoration:underline;
+    
+    }
+
+    /* Erreur validation wizard */
+    .form-error{
+        color:#d32f2f;
+        background:#fff1f1;
+        border:1px solid #ffb3b3;
+        padding:10px 12px;
+        border-radius:8px;
+        margin: 10px 0 0;
+        font-size:14px;
+        text-align:center;
+        font-weight:600;
+    }

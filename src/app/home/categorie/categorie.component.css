@@ -1,0 +1,139 @@
+.categories{
+  padding:60px 0;
+  background:#f8fafc;
+  text-align:left;
+}
+
+.title{
+  font-size:32px;
+  font-weight:700;
+}
+
+.subtitle{
+  color:#6b7280;
+  margin-bottom:40px;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:25px;
+}
+
+/* CARD */
+
+.card{
+  background:white;
+  padding:50px 20px;
+  border-radius:12px;
+  text-align:center;
+  position:relative;
+  transition:all 0.35s ease;
+  border:2px solid transparent;
+}
+
+/* Animation quand hover */
+
+.card:hover{
+  transform:translateY(-8px) scale(1.02);
+  box-shadow:0 15px 35px rgba(0,0,0,0.12);
+}
+
+/* ICON */
+
+.icon{
+  width:60px;
+  height:60px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  font-size:24px;
+  color:white;
+  margin-bottom:15px;
+
+  transition:all 0.35s ease;
+}
+
+/* ZOOM ICON */
+
+.card:hover .icon{
+  transform:scale(1.2) rotate(5deg);
+}
+
+/* COULEURS */
+
+.auto{
+  border-color:#bfdbfe;
+}
+
+.auto .icon{
+  background:#3b82f6;
+}
+
+.moto{
+  border-color:#fde68a;
+}
+
+.moto .icon{
+  background:#f59e0b;
+}
+
+.truck{
+  border-color:#a7f3d0;
+}
+
+.truck .icon{
+  background:#10b981;
+}
+
+.bike{
+  border-color:#c4b5fd;
+}
+
+.bike .icon{
+  background:#8b5cf6;
+}
+
+/* TEXT */
+
+h3{
+  font-size:18px;
+  font-weight:600;
+}
+
+p{
+  color:#6b7280;
+  font-size:14px;
+}
+
+.count{
+  color:#ef4444;
+  font-weight:700;
+  margin-top:10px;
+}
+
+.badge{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#fee2e2;
+  color:#dc2626;
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .categories { padding: 44px 0; }
+  .title { font-size: 24px; }
+  .subtitle { margin-bottom: 24px; }
+  .card { padding: 34px 18px; }
+}
+
+@media (max-width: 576px) {
+  .title { font-size: 22px; }
+  .cards { gap: 16px; }
+}

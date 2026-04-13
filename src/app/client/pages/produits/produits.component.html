@@ -1,0 +1,130 @@
+<div class="container my-4">
+
+  <div class="row">
+    <!-- IMAGE -->
+    <div class="col-md-6">
+      <div class="main-image"></div>
+
+      <div class="d-flex gap-2 mt-3">
+        <div class="thumb active"></div>
+        <div class="thumb"></div>
+        <div class="thumb"></div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="col-md-6">
+      <p class="text-muted">Mann-Filter</p>
+
+      <h3>{{produit.nom}}</h3>
+
+      <div class="text-warning">
+        <i class="bi bi-star-fill"></i>
+        <i class="bi bi-star-fill"></i>
+        <i class="bi bi-star-fill"></i>
+        <i class="bi bi-star-fill"></i>
+        <span class="text-dark ms-2">4.8 (156 avis)</span>
+      </div>
+
+      <h4 class="text-orange">{{produit.prix / 100}}€</h4>
+
+      <p class="text-success">
+        <i class="bi bi-check-circle"></i>
+        En stock ({{produit.stock}})
+      </p>
+
+      <!-- QUANTITY -->
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-outline-secondary" (click)="decrease()">-</button>
+        <input class="form-control text-center qty-input" [value]="quantity">
+        <button class="btn btn-outline-secondary" (click)="increase()">+</button>
+      </div>
+
+      <!-- ACTION -->
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-orange flex-grow-1" (click)="addToCart(produit)">
+          <i class="bi bi-cart"></i> Ajouter au panier
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-container mt-5">
+    <button class="tab-btn" [class.active]="activeTab==='description'" (click)="setTab('description')">
+      Description
+    </button>
+
+    <button class="tab-btn" [class.active]="activeTab==='caracteristiques'" (click)="setTab('caracteristiques')">
+      Caractéristiques
+    </button>
+
+    <button class="tab-btn" [class.active]="activeTab==='comptabilite'" (click)="setTab('comptabilite')">
+      Comptabilite
+    </button>
+
+    <button class="tab-btn" [class.active]="activeTab==='avis'" (click)="setTab('avis')">
+      Avis
+    </button>
+  </div>
+
+  <!-- DESCRIPTION -->
+  <div *ngIf="activeTab==='description'" @fadeSlide class="card p-4 mt-3">
+    <h5>Description</h5>
+    <p>{{produit.description}}</p>
+  </div>
+
+  <!-- CARACTERISTIQUES -->
+  <div *ngIf="activeTab==='caracteristiques'" @fadeSlide class="card p-4 mt-3">
+    <h5>Spécifications</h5>
+
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Référence:</strong> MF-HU925/4X</p>
+        <p><strong>EAN:</strong> 4011558290000</p>
+      </div>
+
+      <div class="col-md-6">
+        <p><strong>Type:</strong> Filtre à cartouche</p>
+        <p><strong>Température:</strong> 150°C</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVIS -->
+  <div *ngIf="activeTab==='avis'" @fadeSlide class="card p-4 mt-3">
+    <h5>Avis clients</h5>
+    <p>Aucun avis pour le moment</p>
+  </div>
+
+  <!-- PRODUITS SIMILAIRES -->
+  <div class="mt-5">
+    <h5>Produits similaires</h5>
+
+    <div class="row">
+      <div class="col-md-4" *ngFor="let p of produits">
+        <div class="product-card">
+
+          <div class="product-img"></div>
+
+          <div class="p-3">
+            <h6>{{p.nom}}</h6>
+
+            <div class="text-warning">★ 4.5</div>
+
+            <div class="d-flex justify-content-between mt-2">
+              <span class="price">{{p.prix / 100}}€</span>
+
+              <button class="btn btn-orange btn-sm">
+                <i class="bi bi-cart"></i>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

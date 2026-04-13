@@ -1,0 +1,164 @@
+/* SECTION */
+.partenaires { 
+    padding: 60px 20px;
+    background: #f5f7fb;
+    text-align: center;
+}
+
+/* HEADER */
+.top-title {
+    color: #f97316;
+    font-size: 12px;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.header h2 {
+    font-size: 28px;
+    margin: 10px 0;
+}
+
+.desc {
+    color: gray;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+/* BRANDS */
+.brands {
+    display: flex;
+    justify-content: center;
+    gap: 48px; /* 🔽 réduit */
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+}
+
+/* CARD COMPACTE */
+.brand-card {
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 16px;
+    width: 100px;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    border: 2px solid transparent;
+}
+
+/* HOVER STYLE (comme image) */
+.brand-card:hover {
+    background: #fff7ed;
+    border: 2px solid #f974167c;
+    transform: translateY(-5px);
+}
+
+/* LOGO */
+.logo {
+    width: 45px;
+    height: 45px;
+    margin: auto;
+    border-radius: 12px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.35s ease;
+}
+
+/* LOGO LIFT */
+.brand-card:hover .logo {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+/* TEXTE */
+.brand-card p {
+    margin-top: 8px;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+/* TEXTE ORANGE */
+.brand-card:hover p {
+    color: #f97316;
+    font-weight: 600;
+}
+
+/* COLORS */
+.red { background: #ef4444; }
+.blue { background: #3b82f6; }
+.yellow { background: #facc15; color: black; }
+.purple { background: #a855f7; }
+
+/* CTA */
+.cta {
+    background: linear-gradient(90deg, #f97316, #ef4444);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px auto;
+    max-width: 850px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.cta h3 {
+    margin: 10;
+    font-size: 28px;
+}
+
+.cta p {
+    font-size: 13px;
+}
+
+.cta button {
+    background: white;
+    color: #f97316;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+/* BUTTON HOVER */
+.cta button:hover {
+    transform: scale(1.1);
+    background: #fff7ed;
+}
+
+/* STATS */
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    width: 255px;
+}
+
+/* HOVER STATS */
+.stat:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+    border: 2px solid #f9741685;
+}
+
+.stat h3 {
+    color: #ef4444;
+    font-size: 25px;
+}
+
+.stat p {
+    font-size: 15px;
+    color: gray;
+}
