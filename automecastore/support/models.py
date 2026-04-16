@@ -43,7 +43,7 @@ class Ticket(models.Model):
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='OUVERT')
     priorite = models.CharField(max_length=20, choices=PRIORITE_CHOICES, default='MOYENNE')
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="tickets")
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="tickets",null=True, blank=True)
     agent_support_client = models.ForeignKey(
         AgentSupportClient,
         on_delete=models.SET_NULL,
@@ -70,7 +70,7 @@ class MessageSupport(models.Model):
     date_envoi = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='ENVOYE')
 
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="messages")
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="messages", null=True, blank=True)
     client = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True)
     agent_support_client = models.ForeignKey(AgentSupportClient, on_delete=models.CASCADE, null=True, blank=True)
 
@@ -93,8 +93,8 @@ class Reclamation(models.Model):
     statut = models.CharField(max_length=30, choices=STATUT_CHOICES, default='EN_ATTENTE')
     date_soumission = models.DateTimeField(auto_now_add=True)
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    commande = models.ForeignKey(Commande, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True )
+    commande = models.ForeignKey(Commande, on_delete=models.CASCADE, null=True, blank=True)
     agent_support_client = models.ForeignKey(AgentSupportClient, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -109,7 +109,7 @@ class Avis(models.Model):
     commentaire = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, null=True, blank=True  )
     produit = models.ForeignKey(Produit, on_delete=models.CASCADE, null=True, blank=True)
     livreur = models.ForeignKey(Livreur, on_delete=models.CASCADE, null=True, blank=True)
 

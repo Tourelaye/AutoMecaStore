@@ -52,6 +52,14 @@ class Produit(models.Model):
     categorie = models.ForeignKey(Categorie, on_delete=models.SET_NULL, null=True, blank=True, related_name='produits')
     gestionnaire_stock = models.ForeignKey(GestionnaireStock, on_delete=models.SET_NULL, null=True, blank=True)
 
+    # Champs pour les ventes flash
+    image           = models.ImageField(upload_to='produits/', blank=True, null=True)
+    est_en_promo    = models.BooleanField(default=False)
+    prix_promo      = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    date_fin_promo  = models.DateTimeField(blank=True, null=True)
+    reference       = models.CharField(max_length=50, blank=True, null=True)
+    marque          = models.CharField(max_length=100, blank=True, null=True)
+
     def __str__(self):
         return self.nom
 

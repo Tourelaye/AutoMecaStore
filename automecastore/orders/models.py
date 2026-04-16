@@ -75,3 +75,19 @@ class PanierItem(models.Model):
 
     def __str__(self):
         return f"{self.quantite} x {self.produit.nom}"
+
+
+#         export interface Panier {
+#   id?: number;
+#   items: PanierItem[];
+# }
+
+# export interface PanierItem {
+#   id?: number;
+#   produit: Produit;
+#   nom: string;
+#   prix: number;
+#   quantite: number;
+#   image?: string;
+#   favori?: boolean;
+# }
