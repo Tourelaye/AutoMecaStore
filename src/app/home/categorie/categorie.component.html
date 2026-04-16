@@ -4,62 +4,63 @@
     <h2 class="title">Acheter par catégorie</h2>
     <p class="subtitle">Explorez nos catégories de produits premium</p>
 
-    <div class="cards">
+    <!-- SKELETON LOADING -->
+    <div class="cards" *ngIf="isLoading">
+      <div class="card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-icon"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line count"></div>
+      </div>
+    </div>
 
-      <!-- Automobile -->
-      <div class="card auto" routerLink="/catalog/auto">
-        <span class="badge">🔥 Tendance</span>
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    </div>
 
+    <!-- CARDS CATEGORIES -->
+    <div class="cards" *ngIf="!isLoading && !errorMessage">
+
+      <div
+        class="card {{ cat.visuel.cssClass }}"
+        *ngFor="let cat of categories"
+        [routerLink]="cat.visuel.route"
+        style="cursor: pointer;"
+      >
+        <!-- BADGE (ex: 🔥 Tendance) -->
+        <span class="badge" *ngIf="cat.visuel.badge">
+          {{ cat.visuel.badge }}
+        </span>
+
+        <!-- ICON -->
         <div class="icon">
-          <i class="fa-solid fa-car"></i>
+          <i [class]="cat.visuel.icon"></i>
         </div>
 
-        <h3>Automobile</h3>
-        <p>Pièces & Accessoires</p>
+        <!-- NOM -->
+        <h3>{{ cat.nom }}</h3>
 
-        <div class="count">10,500+</div>
+        <!-- SOUS-TITRE -->
+        <p>{{ cat.visuel.sousTitre }}</p>
+
+        <!-- COMPTEUR -->
+        <div class="count">{{ cat.visuel.mockCount }}</div>
         <small>produits disponibles</small>
-      </div>
 
-      <!-- Moto -->
-      <div class="card moto">
-        <div class="icon">
-          <i class="fa-solid fa-motorcycle"></i>
+        <!-- ÉTAT (désactivé si etat = false) -->
+        <div class="inactive-overlay" *ngIf="cat.etat === 'false'">
+          <i class="bi bi-lock"></i> Indisponible
         </div>
 
-        <h3>Moto & Scooter</h3>
-        <p>Équipements & Pièces</p>
-
-        <div class="count">3,200+</div>
-        <small>produits disponibles</small>
       </div>
 
-      <!-- Poids lourds -->
-      <div class="card truck">
-        <div class="icon">
-          <i class="fa-solid fa-truck"></i>
-        </div>
+    </div>
 
-        <h3>Poids Lourds</h3>
-        <p>Pièces Industrielles</p>
-
-        <div class="count">1,800+</div>
-        <small>produits disponibles</small>
-      </div>
-
-      <!-- Vélo -->
-      <div class="card bike">
-        <div class="icon">
-          <i class="fa-solid fa-bicycle"></i>
-        </div>
-
-        <h3>Vélo & E-bike</h3>
-        <p>Composants & Accessoires</p>
-
-        <div class="count">800+</div>
-        <small>produits disponibles</small>
-      </div>
-
+    <!-- AUCUNE CATEGORIE -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && categories.length === 0">
+      <i class="bi bi-folder-x"></i>
+      <p>Aucune catégorie disponible pour le moment.</p>
     </div>
 
   </div>

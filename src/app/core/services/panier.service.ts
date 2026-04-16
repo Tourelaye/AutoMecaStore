@@ -1,104 +1,196 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { PanierItem } from '../../models/panier.model';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 import { Produit } from '../../models/produit.model';
+import { PanierItem } from '../../models/panier.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PanierService {
-  private readonly storageKey = 'automeca_panier_items';
-  private readonly itemsSubject = new BehaviorSubject<PanierItem[]>(this.loadItems());
-  private readonly lastAddedSubject = new BehaviorSubject<string | null>(null);
 
-  readonly items$ = this.itemsSubject.asObservable();
-  readonly lastAdded$ = this.lastAddedSubject.asObservable();
+  private apiUrl = 'http://localhost:8000/api';
 
-  get items(): PanierItem[] {
+  private itemsSubject = new BehaviorSubject<PanierItem[]>([]);
+  public items$ = this.itemsSubject.asObservable();
+
+  private lastAddedSubject = new BehaviorSubject<string | null>(null);
+  public lastAdded$ = this.lastAddedSubject.asObservable();
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {
+    this.loadFromStorage();
+  }
+
+  // =========================
+  // STORAGE
+  // =========================
+  private loadFromStorage(): void {
+    const stored = localStorage.getItem('panier_items');
+    if (stored) {
+      try {
+        this.itemsSubject.next(JSON.parse(stored));
+      } catch {
+        this.itemsSubject.next([]);
+      }
+    }
+  }
+
+  private saveToStorage(items: PanierItem[]): void {
+    localStorage.setItem('panier_items', JSON.stringify(items));
+  }
+
+  // =========================
+  // GET ITEMS
+  // =========================
+  private get items(): PanierItem[] {
     return this.itemsSubject.value;
   }
 
-  get totalItems(): number {
-    return this.items.reduce((total, item) => total + item.quantite, 0);
+  private save(items: PanierItem[]) {
+    this.itemsSubject.next(items);
+    this.saveToStorage(items);
   }
 
-  constructor() {}
+  // =========================
+  // ADD PRODUCT
+  // =========================
+  ajouterAuPanier(item: PanierItem): void {
 
-  ajouterProduit(produit: Produit): void {
     const items = [...this.items];
-    const existingItem = items.find((item) => item.produit.id === produit.id);
 
-    if (existingItem) {
-      existingItem.quantite += 1;
+    const index = items.findIndex(i => i.produit.id === item.produit.id);
+
+    if (index !== -1) {
+      items[index].quantite += item.quantite;
     } else {
-      const nextId = items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1;
       items.push({
-        id: nextId,
-        panier: 1,
-        produit,
-        quantite: 1
+        ...item,
+        favori: false
       });
     }
 
-    this.updateItems(items);
-    this.lastAddedSubject.next(produit.nom);
+    this.save(items);
+
+    this.lastAddedSubject.next(item.nom);
+  }
+
+  // =========================
+  // ADD PRODUCT (alias propre)
+  // =========================
+  ajouterProduit(data: Produit & { quantite: number }): void {
+
+    const item: PanierItem = {
+      produit: data,
+      nom: data.nom,
+      prix: data.prix,
+      quantite: data.quantite,
+      favori: false
+    };
+
+    this.ajouterAuPanier(item);
+  }
+
+  // =========================
+  // QUANTITE +
+  // =========================
+  augmenterQuantite(item: PanierItem) {
+    const items = this.items.map(i =>
+      i.produit.id === item.produit.id
+        ? { ...i, quantite: i.quantite + 1 }
+        : i
+    );
+    this.save(items);
+  }
+
+  // =========================
+  // QUANTITE -
+  // =========================
+  diminuerQuantite(item: PanierItem) {
+    const items = this.items.map(i => {
+      if (i.produit.id === item.produit.id) {
+        const q = i.quantite - 1;
+        return q > 0 ? { ...i, quantite: q } : i;
+      }
+      return i;
+    });
+
+    this.save(items);
+  }
+
+  // =========================
+  // DELETE ITEM
+  // =========================
+  supprimerLigne(item: PanierItem) {
+    const items = this.items.filter(i => i.produit.id !== item.produit.id);
+    this.save(items);
+  }
+
+  supprimerDuPanier(produitId: number): void {
+    const items = this.items.filter(i => i.produit.id !== produitId);
+    this.save(items);
+  }
+
+  // =========================
+  // FAVORI
+  // =========================
+  toggleFavori(item: PanierItem) {
+    const items = this.items.map(i =>
+      i.produit.id === item.produit.id
+        ? { ...i, favori: !i.favori }
+        : i
+    );
+    this.save(items);
+  }
+
+  // =========================
+  // CLEAR
+  // =========================
+  viderPanier(): void {
+    this.save([]);
   }
 
   clearNotification(): void {
     this.lastAddedSubject.next(null);
   }
 
-  augmenterQuantite(item: PanierItem): void {
-    const items = this.items.map((line) =>
-      line.id === item.id ? { ...line, quantite: line.quantite + 1 } : line
+  // =========================
+  // TOTALS
+  // =========================
+  getTotalArticles(): number {
+    return this.items.reduce((t, i) => t + i.quantite, 0);
+  }
+
+  getMontantTotal(): number {
+    return this.items.reduce(
+      (t, i) => t + i.prix * i.quantite,
+      0
     );
-    this.updateItems(items);
   }
 
-  diminuerQuantite(item: PanierItem): void {
-    const line = this.items.find((i) => i.id === item.id);
-    if (!line) {
-      return;
-    }
-    if (line.quantite <= 1) {
-      this.supprimerLigne(item);
-      return;
-    }
-    const items = this.items.map((l) =>
-      l.id === item.id ? { ...l, quantite: l.quantite - 1 } : l
+  getTotal(): number {
+    return this.getMontantTotal();
+  }
+
+  // =========================
+  // API
+  // =========================
+  private getHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
+  syncAvecServeur(): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/panier/sync/`,
+      { items: this.items },
+      { headers: this.getHeaders() }
     );
-    this.updateItems(items);
-  }
-
-  supprimerLigne(item: PanierItem): void {
-    this.updateItems(this.items.filter((l) => l.id !== item.id));
-  }
-
-  toggleFavori(item: PanierItem): void {
-    const items = this.items.map((line) =>
-      line.id === item.id
-        ? { ...line, favori: !line.favori }
-        : line
-    );
-    this.updateItems(items);
-  }
-
-  private loadItems(): PanierItem[] {
-    const raw = localStorage.getItem(this.storageKey);
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as PanierItem[];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private updateItems(items: PanierItem[]): void {
-    this.itemsSubject.next(items);
-    localStorage.setItem(this.storageKey, JSON.stringify(items));
   }
 }

@@ -1,133 +1,160 @@
-<section class="offers">
+<section class="plus-vendus">
+  <div class="container">
 
-    <div class="container">
-  
-      <div class="offers-header">
-  
-        <div>
-            <span class="cards"><i class="bi bi-star">POPULAIRE</i></span>
-               
-            <h2>Les plus vendus</h2>
-            <p>Les produits preferees de nos clients avec les meilleures notes</p>
-        </div>
-  
-        <a class="see-all" href="/catalog/auto">Voir tout Bestsellers →</a>
-  
+    <!-- HEADER -->
+    <div class="offers-header">
+      <div>
+        <span class="section-tag">
+          <i class="bi bi-bar-chart-fill"></i> POPULAIRE
+        </span>
+        <h2>Les plus vendus</h2>
+        <p>Les produits préférés de nos clients avec les meilleures notes</p>
       </div>
-  
-  
-      <div class="offers-grid">
-  
-        <!-- CARD -->
-        <div class="product-card">
-  
-          <div class="product-image">
-  
-            <span class="badge badge-orange">⭐ Top ventes</span>
-            <span class="badge badge-red"><i class="bi bi-clock-fill rotating">12h45mn <br> restantes</i></span>
-  
-            <img src="assets/products/filter.png">
-  
-          </div>
-  
-          <div class="product-info">
-  
-            <span class="brand">CASTROL</span>
-  
-            <h3>Huile moteur castrol SW30</h3>
-  
-            <div class="etoile">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i> 
-              <i class="bi bi-star-fill"></i>           
-            </div>
-
-            <div class="price">
-              <span class="new-price">12.99€</span>
-              <span class="old-price">18.99€</span>
-            </div>
-  
-            <button class="button-r"><i class="bi bi-cart"></i>Ajouter au panier</button>
-          </div>
-  
-        </div>
-
-        <!-- CARD 2 -->
-        <div class="product-card">
-  
-          <div class="product-image">
-  
-            <span class="badge badge-orange">⭐ Populaire</span>
-            <span class="badge badge-red"><i class="bi bi-clock-fill rotating">12h45mn <br> restantes</i></span>
-  
-            <img src="assets/products/filter.png">
-  
-          </div>
-  
-          <div class="product-info">
-  
-            <span class="brand">CASTROL</span>
-  
-            <h3>Huile moteur castrol SW30</h3>
-  
-            <div class="etoile">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i> 
-              <i class="bi bi-star-fill"></i>           
-            </div>
-            
-            <div class="price">
-              <span class="new-price">12.99€</span>
-              <span class="old-price">18.99€</span>
-            </div>
-  
-            <button class="button-r"><i class="bi bi-cart"></i>Ajouter au panier</button>
-          </div>
-  
-        </div>
-        <!-- CARD 3 -->
-        <div class="product-card">
-  
-          <div class="product-image">
-  
-            <span class="badge badge-orange">⭐ Recommande</span>
-            <span class="badge badge-red"><i class="bi bi-clock-fill rotating">12h45mn <br> restantes</i></span>
-  
-            <img src="assets/products/filter.png">
-  
-          </div>
-  
-          <div class="product-info">
-  
-            <span class="brand">CASTROL</span>
-  
-            <h3>Huile moteur castrol SW30</h3>
-  
-            <div class="etoile">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i> 
-              <i class="bi bi-star-fill"></i>           
-            </div>
-            
-            <div class="price">
-              <span class="new-price">12.99€</span>
-              <span class="old-price">18.99€</span>
-            </div>
-  
-            <button class="button-r"><i class="bi bi-cart"></i>Ajouter au panier</button>
-          </div>
-  
-        </div>
-  
- 
-      </div>
-  
+      <a class="see-all" routerLink="/catalog/auto">
+        Voir tout Bestsellers <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
-  
-  </section>
+
+    <!-- SKELETON -->
+    <div class="offers-grid" *ngIf="isLoading">
+      <div class="product-card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    </div>
+
+    <!-- GRILLE PRODUITS -->
+    <div class="offers-grid" *ngIf="!isLoading && !errorMessage">
+
+      <div
+        class="product-card"
+        *ngFor="let produit of produits; let i = index"
+        [class.card-gold]="produit.rang === 1"
+        [class.out-of-stock]="produit.stock === 0"
+        routerLink="/produits"
+        [queryParams]="{ id: produit.id }"
+      >
+
+        <!-- IMAGE ZONE -->
+        <div class="product-image">
+
+          <!-- MÉDAILLE RANG -->
+          <div class="medaille">{{ getMedaille(produit.rang) }}</div>
+
+          <!-- BADGES -->
+          <div class="badges-top">
+            <span class="badge badge-orange">{{ produit.badge }}</span>
+          </div>
+
+          <!-- TIMER -->
+          <div class="timer-badge" *ngIf="timers[i] && !timers[i].expired">
+            <i class="bi bi-clock-fill"></i>
+            {{ timers[i].heures }}h {{ timers[i].minutes }}m {{ timers[i].secondes }}s
+          </div>
+          <div class="timer-badge expired" *ngIf="timers[i]?.expired">
+            <i class="bi bi-clock-history"></i> Expiré
+          </div>
+
+          <!-- STOCK FAIBLE -->
+          <div class="stock-faible" *ngIf="isStockFaible(produit)">
+            <i class="bi bi-fire"></i> Plus que {{ produit.stock }} en stock !
+          </div>
+
+          <!-- RUPTURE -->
+          <div class="rupture-overlay" *ngIf="produit.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture de stock
+          </div>
+
+          <!-- IMAGE -->
+          <img
+            *ngIf="produit.image; else placeholder"
+            [src]="produit.image"
+            [alt]="produit.nom"
+          >
+          <ng-template #placeholder>
+            <div class="img-placeholder">
+              <i class="bi bi-gear-wide-connected"></i>
+            </div>
+          </ng-template>
+
+        </div>
+
+        <!-- INFOS -->
+        <div class="product-info">
+
+          <span class="brand">{{ produit.marque }}</span>
+          <h3>{{ produit.nom }}</h3>
+
+          <!-- ÉTOILES -->
+          <div class="etoile">
+            <span class="stars">
+              <i
+                *ngFor="let star of getEtoiles(produit.note)"
+                [class]="isPleine(star, produit.note)
+                  ? 'bi bi-star-fill'
+                  : isDemi(star, produit.note)
+                    ? 'bi bi-star-half'
+                    : 'bi bi-star'"
+              ></i>
+            </span>
+            <span class="note-val">{{ produit.note }}/5</span>
+            <span class="avis-count">({{ produit.avis }})</span>
+          </div>
+
+          <!-- VENTES SEMAINE -->
+          <div class="ventes-semaine">
+            <i class="bi bi-graph-up-arrow"></i>
+            {{ produit.ventesSemaine }} ventes cette semaine
+          </div>
+
+          <!-- PRIX -->
+          <div class="price">
+            <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <span class="old-price" *ngIf="produit.prixAncien">
+              {{ produit.prixAncien | number:'1.2-2' }} FCFA
+            </span>
+          </div>
+
+          <!-- LIVRAISON -->
+          <p class="delivery" *ngIf="produit.livraison">
+            <i class="bi bi-truck"></i> Livraison gratuite
+          </p>
+
+          <!-- BOUTON PANIER -->
+          <button
+            class="button-r"
+            [class.added]="produitAjoute === produit.id"
+            [disabled]="produit.stock === 0 || timers[i].expired"
+            (click)="ajouterAuPanier(produit, $event)"
+          >
+            <i
+              class="bi"
+              [class.bi-cart-plus]="produitAjoute !== produit.id"
+              [class.bi-check-lg]="produitAjoute === produit.id"
+            ></i>
+            {{ produitAjoute === produit.id ? 'Ajouté !' : 'Ajouter au panier' }}
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && produits.length === 0">
+      <i class="bi bi-box-seam"></i>
+      <p>Aucun produit populaire pour le moment.</p>
+    </div>
+
+  </div>
+</section>

@@ -1,139 +1,239 @@
-.categories{
-  padding:60px 0;
-  background:#f8fafc;
-  text-align:left;
-}
+/* ================================================
+   CATEGORIES — AutoMecaStore
+   ================================================ */
 
-.title{
-  font-size:32px;
-  font-weight:700;
-}
-
-.subtitle{
-  color:#6b7280;
-  margin-bottom:40px;
-}
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-  gap:25px;
-}
-
-/* CARD */
-
-.card{
-  background:white;
-  padding:50px 20px;
-  border-radius:12px;
-  text-align:center;
-  position:relative;
-  transition:all 0.35s ease;
-  border:2px solid transparent;
-}
-
-/* Animation quand hover */
-
-.card:hover{
-  transform:translateY(-8px) scale(1.02);
-  box-shadow:0 15px 35px rgba(0,0,0,0.12);
-}
-
-/* ICON */
-
-.icon{
-  width:60px;
-  height:60px;
-  margin:auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:14px;
-  font-size:24px;
-  color:white;
-  margin-bottom:15px;
-
-  transition:all 0.35s ease;
-}
-
-/* ZOOM ICON */
-
-.card:hover .icon{
-  transform:scale(1.2) rotate(5deg);
-}
-
-/* COULEURS */
-
-.auto{
-  border-color:#bfdbfe;
-}
-
-.auto .icon{
-  background:#3b82f6;
-}
-
-.moto{
-  border-color:#fde68a;
-}
-
-.moto .icon{
-  background:#f59e0b;
-}
-
-.truck{
-  border-color:#a7f3d0;
-}
-
-.truck .icon{
-  background:#10b981;
-}
-
-.bike{
-  border-color:#c4b5fd;
-}
-
-.bike .icon{
-  background:#8b5cf6;
-}
-
-/* TEXT */
-
-h3{
-  font-size:18px;
-  font-weight:600;
-}
-
-p{
-  color:#6b7280;
-  font-size:14px;
-}
-
-.count{
-  color:#ef4444;
-  font-weight:700;
-  margin-top:10px;
-}
-
-.badge{
-  position:absolute;
-  top:10px;
-  left:10px;
-  background:#fee2e2;
-  color:#dc2626;
-  font-size:12px;
-  padding:4px 10px;
-  border-radius:20px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .categories { padding: 44px 0; }
-  .title { font-size: 24px; }
-  .subtitle { margin-bottom: 24px; }
-  .card { padding: 34px 18px; }
-}
-
-@media (max-width: 576px) {
-  .title { font-size: 22px; }
-  .cards { gap: 16px; }
-}
+   .categories {
+    padding: 60px 0;
+    background: #f8fafc;
+    text-align: left;
+  }
+  
+  .title {
+    font-size: 32px;
+    font-weight: 700;
+  }
+  
+  .subtitle {
+    color: #6b7280;
+    margin-bottom: 40px;
+  }
+  
+  /* ---------------------------------
+     CARDS GRID
+  --------------------------------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 25px;
+  }
+  
+  /* ---------------------------------
+     CARD
+  --------------------------------- */
+  .card {
+    background: white;
+    padding: 50px 20px;
+    border-radius: 12px;
+    text-align: center;
+    position: relative;
+    transition: all 0.35s ease;
+    border: 2px solid transparent;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  }
+  
+  /* ---------------------------------
+     COULEURS PAR CATÉGORIE
+  --------------------------------- */
+  .auto   { border-color: #bfdbfe; }
+  .auto .icon { background: #3b82f6; }
+  
+  .moto   { border-color: #fde68a; }
+  .moto .icon { background: #f59e0b; }
+  
+  .truck  { border-color: #a7f3d0; }
+  .truck .icon { background: #10b981; }
+  
+  .bike   { border-color: #c4b5fd; }
+  .bike .icon { background: #8b5cf6; }
+  
+  /* ---------------------------------
+     ICON
+  --------------------------------- */
+  .icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 24px;
+    color: white;
+    transition: all 0.35s ease;
+  }
+  
+  .card:hover .icon {
+    transform: scale(1.2) rotate(5deg);
+  }
+  
+  /* ---------------------------------
+     TEXTE
+  --------------------------------- */
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  
+  p {
+    color: #6b7280;
+    font-size: 14px;
+  }
+  
+  .count {
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 20px;
+    margin-top: 10px;
+  }
+  
+  small {
+    color: #9ca3af;
+    font-size: 12px;
+  }
+  
+  /* ---------------------------------
+     BADGE
+  --------------------------------- */
+  .badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  
+  /* ---------------------------------
+     OVERLAY CATÉGORIE INACTIVE
+  --------------------------------- */
+  .inactive-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #9ca3af;
+    border-radius: 12px;
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+  }
+  
+  /* ---------------------------------
+     SKELETON LOADING
+  --------------------------------- */
+  .card.skeleton {
+    pointer-events: none;
+    border-color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 40px 20px;
+  }
+  
+  .skeleton-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: #e5e7eb;
+    animation: shimmer 1.4s infinite;
+  }
+  
+  .skeleton-line {
+    width: 80%;
+    height: 14px;
+    border-radius: 6px;
+    background: #e5e7eb;
+    animation: shimmer 1.4s infinite;
+  }
+  
+  .skeleton-line.short {
+    width: 55%;
+    height: 12px;
+  }
+  
+  .skeleton-line.count {
+    width: 40%;
+    height: 18px;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+  }
+  
+  /* ---------------------------------
+     ERREUR
+  --------------------------------- */
+  .error-state {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* ---------------------------------
+     EMPTY STATE
+  --------------------------------- */
+  .empty-state {
+    text-align: center;
+    padding: 50px 0;
+    color: #9ca3af;
+  }
+  
+  .empty-state i {
+    font-size: 48px;
+    margin-bottom: 14px;
+    display: block;
+  }
+  
+  .empty-state p {
+    font-size: 15px;
+    color: #9ca3af;
+  }
+  
+  /* ---------------------------------
+     RESPONSIVE
+  --------------------------------- */
+  @media (max-width: 768px) {
+    .categories { padding: 44px 0; }
+    .title { font-size: 24px; }
+    .subtitle { margin-bottom: 24px; }
+    .card { padding: 34px 18px; }
+  }
+  
+  @media (max-width: 576px) {
+    .title { font-size: 22px; }
+    .cards { gap: 16px; }
+  }

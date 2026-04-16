@@ -104,5 +104,6 @@ export class ProduitsComponent {
       ...produit,
       quantite: this.quantity
     });
+  
   }
 }

@@ -5,7 +5,12 @@ import { PanierService } from '../../../core/services/panier.service';
 import { PanierItem } from '../../../models/panier.model';
 import { Subscription } from 'rxjs';
 
-import { trigger, transition, style, animate } from '@angular/animations';
+import {
+  trigger,
+  transition,
+  style,
+  animate
+} from '@angular/animations';
 
 @Component({
   selector: 'app-panier',
@@ -13,28 +18,14 @@ import { trigger, transition, style, animate } from '@angular/animations';
   imports: [CommonModule, RouterLink],
   templateUrl: './panier.component.html',
   styleUrls: ['./panier.component.css'],
-
   animations: [
-    // 🎬 Animation page
-    trigger('pageAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(30px)' }),
-        animate('600ms ease-out',
-          style({ opacity: 1, transform: 'translateY(0)' })
-        )
-      ])
-    ]),
-
-    // ⚡ Animation items
     trigger('itemAnimation', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(-20px)' }),
-        animate('300ms ease-out')
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
       ]),
       transition(':leave', [
-        animate('300ms ease-in',
-          style({ opacity: 0, transform: 'translateX(20px)' })
-        )
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateX(20px)' }))
       ])
     ])
   ]
@@ -42,15 +33,15 @@ import { trigger, transition, style, animate } from '@angular/animations';
 export class PanierComponent implements OnDestroy {
 
   items: PanierItem[] = [];
-  private sub!: Subscription;
+  sub: Subscription;
 
   constructor(private panierService: PanierService) {
-    this.sub = this.panierService.items$.subscribe((items) => {
+    this.sub = this.panierService.items$.subscribe(items => {
       this.items = items;
     });
   }
 
-  // 🧮 TOTAL
+  // 💰 TOTAL
   get total(): number {
     return this.items.reduce(
       (sum, item) => sum + item.produit.prix * item.quantite,
@@ -59,31 +50,30 @@ export class PanierComponent implements OnDestroy {
   }
 
   // ➕
-  increaseQty(item: PanierItem): void {
+  increaseQty(item: PanierItem) {
     this.panierService.augmenterQuantite(item);
   }
 
   // ➖
-  decreaseQty(item: PanierItem): void {
+  decreaseQty(item: PanierItem) {
     this.panierService.diminuerQuantite(item);
   }
 
   // ❌
-  removeItem(item: PanierItem): void {
+  removeItem(item: PanierItem) {
     this.panierService.supprimerLigne(item);
   }
 
-  toggleFavorite(item: PanierItem): void {
+  // ⭐
+  toggleFavorite(item: PanierItem) {
     this.panierService.toggleFavori(item);
   }
 
-  // ⚡ PERFORMANCE
   trackById(index: number, item: PanierItem) {
     return item.produit.id;
   }
 
-  // 🧹 CLEAN
-  ngOnDestroy(): void {
-    if (this.sub) this.sub.unsubscribe();
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 }

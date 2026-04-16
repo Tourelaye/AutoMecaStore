@@ -22,7 +22,8 @@ export class AppComponent {
 
   hideLayout = false;
   hideFooter = false;
-
+  
+  quantite: number = 1; 
   constructor(
     private router: Router,
     private panierService: PanierService
@@ -68,7 +69,11 @@ export class AppComponent {
     }
 
     const produit = this.buildProduitFromCard(button);
-    this.panierService.ajouterProduit(produit);
+    this.panierService.ajouterProduit({
+      ...produit,
+      quantite: this.quantite ?? 1
+      
+    });
   }
 
   private isAddToCartButton(button: Element): boolean {

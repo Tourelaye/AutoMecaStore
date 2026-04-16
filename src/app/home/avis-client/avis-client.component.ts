@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-avis-client',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './avis-client.component.html',
-  styleUrl: './avis-client.component.css'
+  styleUrls: ['./avis-client.component.css']
 })
 export class AvisClientComponent {
 

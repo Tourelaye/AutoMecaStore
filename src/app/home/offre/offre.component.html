@@ -1,164 +1,148 @@
 <section class="offers">
-
   <div class="container">
 
+    <!-- HEADER -->
     <div class="offers-header">
-
       <div>
         <h2>Meilleures offres</h2>
         <p>Découvrez nos produits sélectionnés avec les meilleurs prix</p>
       </div>
-
-      <a class="see-all" href="/catalog/auto">Voir tout →</a>
-
+      <a class="see-all" routerLink="/catalog/auto">
+        Voir tout <i class="bi bi-arrow-right"></i>
+      </a>
     </div>
 
+    <!-- SKELETON LOADING -->
+    <div class="offers-grid" *ngIf="isLoading">
+      <div class="product-card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>
+    </div>
 
-    <div class="offers-grid">
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    </div>
 
-      <!-- CARD -->
-      <div class="product-card">
+    <!-- GRILLE PRODUITS -->
+    <div class="offers-grid" *ngIf="!isLoading && !errorMessage">
 
+      <div
+        class="product-card"
+        *ngFor="let produit of produits"
+        [class.out-of-stock]="produit.stock === 0"
+        routerLink="/produits"
+        [queryParams]="{ id: produit.id }"
+      >
+
+        <!-- IMAGE ZONE -->
         <div class="product-image">
 
-          <span class="badge badge-orange">🔥 Bestseller</span>
-          <span class="badge badge-red">-32%</span>
+          <!-- BADGES -->
+          <div class="badges-top">
+            <span
+              class="badge"
+              [class.badge-orange]="produit.badge.type === 'orange'"
+              [class.badge-green]="produit.badge.type === 'green'"
+              [class.badge-blue]="produit.badge.type === 'blue'"
+              *ngIf="produit.badge"
+            >
+              {{ produit.badge!.label }}
+            </span>
+            <span class="badge badge-red" *ngIf="produit.discount">
+              -{{ produit.discount }}%
+            </span>
+          </div>
 
-          <img src="assets/products/filter.png">
+          <!-- RUPTURE -->
+          <div class="rupture-overlay" *ngIf="produit.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture de stock
+          </div>
 
-          <button class="cart-btn">
-            <i class="fa-solid fa-cart-shopping"></i>
+          <!-- STOCK FAIBLE -->
+          <div class="stock-faible" *ngIf="isStockFaible(produit)">
+            <i class="bi bi-fire"></i> Plus que {{ produit.stock }} en stock !
+          </div>
+
+          <!-- IMAGE ou PLACEHOLDER -->
+          <img
+            *ngIf="produit.image; else placeholder"
+            [src]="produit.image"
+            [alt]="produit.nom"
+          >
+          <ng-template #placeholder>
+            <div class="img-placeholder">
+              <i class="bi bi-gear-wide-connected"></i>
+            </div>
+          </ng-template>
+
+          <!-- BOUTON PANIER -->
+          <button
+            class="cart-btn"
+            [class.added]="produitAjoute === produit.id"
+            [disabled]="produit.stock === 0"
+            (click)="ajouterAuPanier(produit, $event)"
+          >
+            <i
+              class="fa-solid"
+              [class.fa-cart-shopping]="produitAjoute !== produit.id"
+              [class.fa-check]="produitAjoute === produit.id"
+            ></i>
           </button>
 
         </div>
 
+        <!-- INFOS PRODUIT -->
         <div class="product-info">
 
-          <span class="brand">MANN-FILTER</span>
+          <span class="brand">{{ produit.marque }}</span>
+          <h3>{{ produit.nom }}</h3>
 
-          <h3>Filtre à huile BMW</h3>
-
+          <!-- ÉTOILES -->
           <div class="rating">
-            ⭐ 4.8 <span>(159)</span>
+            <span class="stars">
+              <i
+                *ngFor="let i of getEtoiles(produit.note)"
+                class="fa-star"
+                [class.fa-solid]="isEtoilePleine(i, produit.note)"
+                [class.fa-regular]="!isEtoilePleine(i, produit.note) && !isEtoileDemi(i, produit.note)"
+                [class.fa-duotone]="isEtoileDemi(i, produit.note)"
+              ></i>
+            </span>
+            <span class="note-val">{{ produit.note }}</span>
+            <span class="avis-count">({{ produit.avis }} avis)</span>
           </div>
 
+          <!-- PRIX -->
           <div class="price">
-            <span class="new-price">12.99€</span>
-            <span class="old-price">18.99€</span>
+            <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <span class="old-price" *ngIf="produit.prixAncien">
+              {{ produit.prixAncien | number:'1.2-2' }} FCFA
+            </span>
           </div>
 
-          <p class="delivery">✔ Livraison gratuite</p>
+          <!-- LIVRAISON -->
+          <p class="delivery" *ngIf="produit.livraison">
+            <i class="bi bi-truck"></i> Livraison gratuite
+          </p>
 
-        </div>
-
-      </div>
-
-
-      <!-- CARD 2 -->
-      <div class="product-card">
-
-        <div class="product-image">
-
-          <span class="badge badge-orange">⭐ Choice</span>
-          <span class="badge badge-red">-29%</span>
-
-          <img src="assets/products/brake.png">
-
-          <button class="cart-btn">
-            <i class="fa-solid fa-cart-shopping"></i>
-          </button>
-
-        </div>
-
-        <div class="product-info">
-
-          <span class="brand">BREMBO</span>
-
-          <h3>Plaquettes frein avant</h3>
-
-          <div class="rating">
-            ⭐ 4.9 <span>(234)</span>
-          </div>
-
-          <div class="price">
-            <span class="new-price">49.99€</span>
-            <span class="old-price">69.99€</span>
-          </div>
-
-          <p class="delivery">✔ Livraison gratuite</p>
-
-        </div>
-
-      </div>
-
-    <div class="product-card">
-
-      <div class="product-image">
-
-        <img src="assets/products/shock.png">
-
-        <button class="cart-btn">
-          <i class="fa-solid fa-cart-shopping"></i>
-        </button>
-
-      </div>
-
-      <div class="product-info">
-
-        <span class="brand">MONROE</span>
-
-        <h3>Amortisseur arrière</h3>
-
-        <div class="rating">
-          ⭐ 4.7 <span>(124)</span>
-        </div>
-
-        <div class="price">
-          <span class="new">78.99€</span>
         </div>
 
       </div>
 
     </div>
-    
-    <div class="product-card">
 
-      <div class="product-image">
-
-        <span class="badge orange">💰 Best Price</span>
-        <span class="badge red">-24%</span>
-
-        <img src="assets/products/kit.png">
-
-        <button class="cart-btn">
-          <i class="fa-solid fa-cart-shopping"></i>
-        </button>
-
-      </div>
-
-      <div class="product-info">
-
-        <span class="brand">GATES</span>
-
-        <h3>Kit distribution</h3>
-
-        <div class="rating">
-          ⭐ 4.6 <span>(89)</span>
-        </div>
-
-        <div class="price">
-          <span class="new">189.99€</span>
-          <span class="old">249.99€</span>
-        </div>
-
-        <p class="delivery">✔ Livraison gratuite</p>
-
-      </div>
-
-    </div>    
-
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && produits.length === 0">
+      <i class="bi bi-box-seam"></i>
+      <p>Aucune offre disponible pour le moment.</p>
     </div>
 
   </div>
-
 </section>

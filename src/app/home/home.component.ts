@@ -11,16 +11,18 @@ import { PartenaireComponent } from './partenaire/partenaire.component';
 import { RechercheComponent } from './recherche/recherche.component';
 import { FooterComponent } from '../shared/components/footer/footer.component';
 import { FaqsComponent } from './faqs/faqs.component';
+import { SlideComponent } from './slide/slide.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [PromotionComponent, CategorieComponent, OffreComponent,PlusVendusComponent,VogueComponent,AvisClientComponent, VenteEclairComponent
+  imports: [SlideComponent,PromotionComponent, CategorieComponent, OffreComponent,PlusVendusComponent,VogueComponent,AvisClientComponent, VenteEclairComponent
   , PartenaireComponent, ChooceComponent, RechercheComponent,FaqsComponent,FooterComponent],
   template: `
-    <app-promotion></app-promotion>
+    <app-slide></app-slide>  
     <app-categorie></app-categorie>
     <app-offre></app-offre>
+    <app-promotion></app-promotion>
     <app-plus-vendus></app-plus-vendus>
     <app-vogue></app-vogue>
     <app-avis-client></app-avis-client>
