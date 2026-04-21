@@ -1,0 +1,353 @@
+<div class="compte-page">
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="compte-header">
+      <div class="compte-hero">
+        <div class="hero-avatar" [style.background]="getAvatarColor()">
+          {{ getInitiales() }}
+        </div>
+        <div class="hero-info">
+          <h1>{{ utilisateur?.prenom }} {{ utilisateur?.nom }}</h1>
+          <p class="hero-email">{{ utilisateur?.email }}</p>
+          <span class="hero-role" [class.admin]="utilisateur?.role === 'admin'">
+            <i class="bi" [class.bi-shield-fill]="utilisateur?.role === 'admin'"
+               [class.bi-person-fill]="utilisateur?.role !== 'admin'"></i>
+            {{ getRoleLabel() }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="compte-layout">
+
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="compte-sidebar">
+        <nav class="sidebar-nav">
+
+          <button class="nav-item" [class.active]="ongletActif === 'profil'" (click)="setOnglet('profil')">
+            <div class="nav-icon icon-orange"><i class="bi bi-person-fill"></i></div>
+            <div class="nav-text"><span>Mon profil</span><small>Informations personnelles</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
+          <button class="nav-item" [class.active]="ongletActif === 'commandes'" (click)="setOnglet('commandes')">
+            <div class="nav-icon icon-blue"><i class="bi bi-box-seam-fill"></i></div>
+            <div class="nav-text"><span>Mes commandes</span><small>Suivi & historique</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
+          <button class="nav-item" [class.active]="ongletActif === 'favoris'" (click)="setOnglet('favoris')">
+            <div class="nav-icon icon-red"><i class="bi bi-heart-fill"></i></div>
+            <div class="nav-text"><span>Mes favoris</span><small>Pièces sauvegardées</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
+          <div class="nav-separator"></div>
+
+          <button class="nav-item" [class.active]="ongletActif === 'securite'" (click)="setOnglet('securite')">
+            <div class="nav-icon icon-green"><i class="bi bi-shield-lock-fill"></i></div>
+            <div class="nav-text"><span>Sécurité</span><small>Mot de passe & accès</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
+          <button class="nav-item" [class.active]="ongletActif === 'confidentialite'" (click)="setOnglet('confidentialite')">
+            <div class="nav-icon icon-purple"><i class="bi bi-eye-slash-fill"></i></div>
+            <div class="nav-text"><span>Confidentialité</span><small>Données & notifications</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
+          <div class="nav-separator"></div>
+
+          <a class="nav-item logout-item" routerLink="/login" (click)="setOnglet('profil')">
+            <div class="nav-icon icon-gray"><i class="bi bi-box-arrow-right"></i></div>
+            <div class="nav-text"><span>Déconnexion</span></div>
+          </a>
+
+        </nav>
+      </aside>
+
+      <!-- CONTENU PRINCIPAL -->
+      <main class="compte-content">
+
+        <!-- ====== PROFIL ====== -->
+        <div class="panel" *ngIf="ongletActif === 'profil'">
+          <div class="panel-header">
+            <h2><i class="bi bi-person-fill"></i> Informations personnelles</h2>
+            <p>Modifiez vos informations de profil</p>
+          </div>
+
+          <div class="success-banner" *ngIf="profilSuccess">
+            <i class="bi bi-check-circle-fill"></i> Profil mis à jour avec succès !
+          </div>
+          <div class="error-banner" *ngIf="profilError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ profilError }}
+          </div>
+
+          <form [formGroup]="profilForm" (ngSubmit)="saveProfil()" *ngIf="profilForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Prénom <span class="req">*</span></label>
+                <div class="field-wrap" [class.invalid]="profilForm.get('prenom')?.invalid && profilForm.get('prenom')?.touched">
+                  <i class="bi bi-person"></i>
+                  <input type="text" formControlName="prenom" placeholder="Votre prénom">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Nom <span class="req">*</span></label>
+                <div class="field-wrap" [class.invalid]="profilForm.get('nom')?.invalid && profilForm.get('nom')?.touched">
+                  <i class="bi bi-person-badge"></i>
+                  <input type="text" formControlName="nom" placeholder="Votre nom">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Email <span class="req">*</span></label>
+              <div class="field-wrap" [class.invalid]="profilForm.get('email')?.invalid && profilForm.get('email')?.touched">
+                <i class="bi bi-envelope"></i>
+                <input type="email" formControlName="email" placeholder="votre@email.com">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Téléphone</label>
+                <div class="field-wrap">
+                  <i class="bi bi-telephone"></i>
+                  <input type="tel" formControlName="telephone" placeholder="+221 7X XXX XX XX">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Adresse</label>
+                <div class="field-wrap">
+                  <i class="bi bi-geo-alt"></i>
+                  <input type="text" formControlName="adresse" placeholder="Votre adresse">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-save" [disabled]="profilSaving">
+                <span *ngIf="!profilSaving"><i class="bi bi-check-lg"></i> Enregistrer</span>
+                <span *ngIf="profilSaving"><i class="bi bi-hourglass-split spin"></i> Sauvegarde...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ====== SÉCURITÉ ====== -->
+        <div class="panel" *ngIf="ongletActif === 'securite'">
+          <div class="panel-header">
+            <h2><i class="bi bi-shield-lock-fill"></i> Sécurité du compte</h2>
+            <p>Gérez votre mot de passe et la sécurité de votre compte</p>
+          </div>
+
+          <!-- STATUT SÉCURITÉ -->
+          <div class="security-status">
+            <div class="sec-item">
+              <div class="sec-icon green"><i class="bi bi-check-circle-fill"></i></div>
+              <div class="sec-text">
+                <strong>Email vérifié</strong>
+                <small>{{ utilisateur?.email }}</small>
+              </div>
+              <span class="sec-badge green-badge">Vérifié</span>
+            </div>
+            <div class="sec-item">
+              <div class="sec-icon orange"><i class="bi bi-key-fill"></i></div>
+              <div class="sec-text">
+                <strong>Mot de passe</strong>
+                <small>Dernière modification : inconnue</small>
+              </div>
+              <span class="sec-badge orange-badge">À jour</span>
+            </div>
+          </div>
+
+          <div class="success-banner" *ngIf="securiteSuccess">
+            <i class="bi bi-check-circle-fill"></i> Mot de passe modifié avec succès !
+          </div>
+          <div class="error-banner" *ngIf="securiteError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ securiteError }}
+          </div>
+
+          <h4 class="subsection-title">Changer le mot de passe</h4>
+
+          <form [formGroup]="securiteForm" (ngSubmit)="saveSecurite()">
+            <div class="form-group">
+              <label>Mot de passe actuel <span class="req">*</span></label>
+              <div class="field-wrap pwd-wrap">
+                <i class="bi bi-lock"></i>
+                <input [type]="showCurrentPwd ? 'text' : 'password'" formControlName="currentPassword" placeholder="••••••••">
+                <button type="button" class="toggle-eye" (click)="showCurrentPwd = !showCurrentPwd">
+                  <i class="bi" [class.bi-eye]="!showCurrentPwd" [class.bi-eye-slash]="showCurrentPwd"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Nouveau mot de passe <span class="req">*</span></label>
+              <div class="field-wrap pwd-wrap">
+                <i class="bi bi-lock-fill"></i>
+                <input [type]="showNewPwd ? 'text' : 'password'" formControlName="newPassword" placeholder="••••••••">
+                <button type="button" class="toggle-eye" (click)="showNewPwd = !showNewPwd">
+                  <i class="bi" [class.bi-eye]="!showNewPwd" [class.bi-eye-slash]="showNewPwd"></i>
+                </button>
+              </div>
+              <!-- Jauge force -->
+              <div class="pwd-strength" *ngIf="securiteForm.get('newPassword')?.value">
+                <div class="strength-bars">
+                  <div class="bar" *ngFor="let i of [1,2,3,4]"
+                       [class.filled]="pwdStrength >= i"
+                       [class]="'bar bar-' + pwdStrengthClass"></div>
+                </div>
+                <span class="strength-label" [class]="pwdStrengthClass">{{ pwdStrengthLabel }}</span>
+              </div>
+              <small class="hint">8 car. min, 1 majuscule, 1 minuscule, 1 chiffre</small>
+            </div>
+
+            <div class="form-group">
+              <label>Confirmer le nouveau mot de passe <span class="req">*</span></label>
+              <div class="field-wrap pwd-wrap" [class.invalid]="securiteForm.errors?.['mismatch'] && securiteForm.get('confirmPassword')?.touched">
+                <i class="bi bi-shield-lock"></i>
+                <input [type]="showConfirmPwd ? 'text' : 'password'" formControlName="confirmPassword" placeholder="••••••••">
+                <button type="button" class="toggle-eye" (click)="showConfirmPwd = !showConfirmPwd">
+                  <i class="bi" [class.bi-eye]="!showConfirmPwd" [class.bi-eye-slash]="showConfirmPwd"></i>
+                </button>
+              </div>
+              <small class="field-err" *ngIf="securiteForm.errors?.['mismatch'] && securiteForm.get('confirmPassword')?.touched">
+                <i class="bi bi-exclamation-circle"></i> Les mots de passe ne correspondent pas
+              </small>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-save" [disabled]="securiteSaving">
+                <span *ngIf="!securiteSaving"><i class="bi bi-key-fill"></i> Modifier le mot de passe</span>
+                <span *ngIf="securiteSaving"><i class="bi bi-hourglass-split spin"></i> Modification...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ====== CONFIDENTIALITÉ ====== -->
+        <div class="panel" *ngIf="ongletActif === 'confidentialite'">
+          <div class="panel-header">
+            <h2><i class="bi bi-eye-slash-fill"></i> Confidentialité & Notifications</h2>
+            <p>Contrôlez vos préférences de confidentialité et de communication</p>
+          </div>
+
+          <div class="success-banner" *ngIf="confidSuccess">
+            <i class="bi bi-check-circle-fill"></i> Préférences sauvegardées !
+          </div>
+
+          <!-- NOTIFICATIONS -->
+          <h4 class="subsection-title">Notifications</h4>
+          <div class="toggle-list">
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <strong><i class="bi bi-envelope-fill"></i> Notifications par email</strong>
+                <small>Recevez vos confirmations de commande et mises à jour</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="notifEmail">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <strong><i class="bi bi-phone-fill"></i> Notifications SMS</strong>
+                <small>Recevez des alertes de livraison par SMS</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="notifSms">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <strong><i class="bi bi-megaphone-fill"></i> Offres promotionnelles</strong>
+                <small>Restez informé de nos meilleures offres et promotions</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="notifPromo">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+          </div>
+
+          <!-- DONNÉES -->
+          <h4 class="subsection-title" style="margin-top: 28px;">Données personnelles</h4>
+          <div class="toggle-list">
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <strong><i class="bi bi-bar-chart-fill"></i> Partage des données d'utilisation</strong>
+                <small>Aidez-nous à améliorer nos services en partageant des données anonymisées</small>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="partageData">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- ZONE DANGER -->
+          <h4 class="subsection-title danger-title" style="margin-top: 28px;">Zone critique</h4>
+          <div class="danger-zone">
+            <div class="danger-info">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <div>
+                <strong>Supprimer mon compte</strong>
+                <p>Cette action est irréversible. Toutes vos données seront définitivement supprimées.</p>
+              </div>
+            </div>
+            <button class="btn-danger">
+              <i class="bi bi-trash3-fill"></i> Supprimer mon compte
+            </button>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-save" (click)="saveConfidentialite()">
+              <i class="bi bi-check-lg"></i> Sauvegarder les préférences
+            </button>
+          </div>
+        </div>
+
+        <!-- ====== COMMANDES ====== -->
+        <div class="panel" *ngIf="ongletActif === 'commandes'">
+          <div class="panel-header">
+            <h2><i class="bi bi-box-seam-fill"></i> Mes commandes</h2>
+            <p>Retrouvez l'historique de toutes vos commandes</p>
+          </div>
+          <div class="empty-state">
+            <i class="bi bi-box-seam"></i>
+            <h3>Aucune commande pour le moment</h3>
+            <p>Vous n'avez pas encore passé de commande sur AutoMecaStore.</p>
+            <a routerLink="/" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+              <i class="bi bi-shop"></i> Parcourir le catalogue
+            </a>
+          </div>
+        </div>
+
+        <!-- ====== FAVORIS ====== -->
+        <div class="panel" *ngIf="ongletActif === 'favoris'">
+          <div class="panel-header">
+            <h2><i class="bi bi-heart-fill"></i> Mes favoris</h2>
+            <p>Les pièces que vous avez sauvegardées</p>
+          </div>
+          <div class="empty-state">
+            <i class="bi bi-heart"></i>
+            <h3>Aucun favori pour le moment</h3>
+            <p>Ajoutez des pièces à vos favoris depuis le catalogue.</p>
+            <a routerLink="/catalog/auto" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+              <i class="bi bi-grid"></i> Voir le catalogue
+            </a>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>

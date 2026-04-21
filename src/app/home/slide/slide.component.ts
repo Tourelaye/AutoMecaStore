@@ -5,7 +5,9 @@ import {
   OnDestroy,
   signal,
   computed,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  HostListener,
+  ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -21,6 +23,8 @@ export interface Slide {
   accentColor: string;
   urgencyText: string;
   bgImage: string;
+  tag: string;         // tag coloré en haut
+  stat: { value: string; label: string }; // stat chiffre mis en avant
 }
 
 @Component({
@@ -38,49 +42,71 @@ export class SlideComponent implements OnInit, OnDestroy {
       id: 1,
       badge: 'Promo -20% aujourd\'hui',
       badgeType: 'promo',
-      string:'Toutes vos pieces automobiles et mecaniques en un seul endroit',
-      subtitle: 'AutoMecaStore vous propose des pieces fiables pour automobile, moto, poids lourds et velo.',
-      features: ['Produits de qualite', 'Prix competitifs', 'Livraison rapide a Dakar'],
-      gradient: 'linear-gradient(135deg, #FF6B00 0%, #FF4500 50%, #FF8C00 100%)',
+      tag: '🔥 OFFRE DU JOUR',
+      string: 'Toutes vos pièces auto & mécaniques en un seul endroit',
+      subtitle: 'AutoMecaStore vous propose des pièces fiables pour automobile, moto, poids lourds et vélo.',
+      features: [
+        'Produits de qualité certifiée',
+        'Prix compétitifs garantis',
+        'Livraison rapide à Dakar'
+      ],
+      gradient: 'linear-gradient(135deg, #FF6B00 0%, #c0392b 50%, #FF8C00 100%)',
       accentColor: '#FF6B00',
-      urgencyText: 'Stock limite - Commandez maintenant',
-      bgImage: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200&q=80'
+      urgencyText: '⚡ Stock limité — Commandez maintenant',
+      bgImage: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1200&q=80',
+      stat: { value: '10 000+', label: 'pièces disponibles' }
     },
     {
       id: 2,
-      badge: 'Pieces certifiees d\'origine',
+      badge: 'Pièces certifiées d\'origine',
       badgeType: 'info',
-      string: 'Pièces d\'origine certifiées pour tous vos véhicules',  
-      subtitle: 'Decouvrez notre selection de pieces authentiques avec garantie de 2 ans.',
-      features: ['Produits authentiques', 'Garantie certifiee', 'Support technique gratuit'],
+      tag: '✅ CERTIFIÉ ORIGINE',
+      string: 'Pièces d\'origine certifiées pour tous vos véhicules',
+      subtitle: 'Découvrez notre sélection de pièces authentiques avec garantie constructeur de 2 ans.',
+      features: [
+        'Produits 100% authentiques',
+        'Garantie 2 ans incluse',
+        'Support technique gratuit'
+      ],
       gradient: 'linear-gradient(135deg, #1a6fd4 0%, #0a4fa0 50%, #2196F3 100%)',
       accentColor: '#1a6fd4',
-      urgencyText: 'Livraison gratuite des 50 000 FCFA',
-      bgImage: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80'
+      urgencyText: '🚚 Livraison gratuite dès 50 000 FCFA',
+      bgImage: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80',
+      stat: { value: '2 ans', label: 'de garantie' }
     },
     {
       id: 3,
       badge: 'Livraison Express 24h',
       badgeType: 'urgent',
-      string:'Livraison express a Dakar et regions',
-      subtitle: 'Commandez aujourd\'hui et recevez vos pieces demain. Service logistique fiable et securise.',
-      features: ['Livraison 24-48h', 'Suivi en temps reel', 'Paiement a la livraison'],
-      gradient: 'linear-gradient(135deg, #00897B 0%, #00695C 50%, #26A69A 100%)',
+      tag: '🚀 LIVRAISON EXPRESS',
+      string: 'Livraison express à Dakar et dans toutes les régions',
+      subtitle: 'Commandez aujourd\'hui et recevez vos pièces demain. Service logistique fiable et sécurisé.',
+      features: [
+        'Livraison 24-48h garantie',
+        'Suivi en temps réel',
+        'Paiement à la livraison'
+      ],
+      gradient: 'linear-gradient(135deg, #00897B 0%, #004D40 50%, #26A69A 100%)',
       accentColor: '#00897B',
-      urgencyText: 'Plus de 500 references disponibles',
-      bgImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80'
+      urgencyText: '📦 Plus de 500 références disponibles',
+      bgImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=80',
+      stat: { value: '24h', label: 'délai de livraison' }
     }
   ];
 
   currentIndex = signal<number>(0);
   isAnimating = signal<boolean>(false);
   isPlaying = signal<boolean>(true);
+  direction = signal<'next' | 'prev'>('next');
 
   currentSlide = computed(() => this.slides[this.currentIndex()]);
 
   private autoplayInterval: ReturnType<typeof setInterval> | null = null;
-  private readonly AUTOPLAY_DELAY = 5000;
+  private touchStartX = 0;
+  private readonly AUTOPLAY_DELAY = 5500;
   private readonly TRANSITION_DURATION = 700;
+
+  constructor(private el: ElementRef) {}
 
   ngOnInit(): void {
     this.startAutoplay();
@@ -90,20 +116,49 @@ export class SlideComponent implements OnInit, OnDestroy {
     this.stopAutoplay();
   }
 
+  // -------------------------------------------------------
+  // Navigation clavier
+  // -------------------------------------------------------
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(e: KeyboardEvent): void {
+    if (e.key === 'ArrowLeft')  this.prevSlide();
+    if (e.key === 'ArrowRight') this.nextSlide();
+  }
+
+  // -------------------------------------------------------
+  // Touch / swipe
+  // -------------------------------------------------------
+  onTouchStart(e: TouchEvent): void {
+    this.touchStartX = e.touches[0].clientX;
+  }
+
+  onTouchEnd(e: TouchEvent): void {
+    const diff = this.touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      diff > 0 ? this.nextSlide() : this.prevSlide();
+    }
+  }
+
+  // -------------------------------------------------------
+  // Slides
+  // -------------------------------------------------------
   goToSlide(index: number): void {
     if (this.isAnimating() || index === this.currentIndex()) return;
+    this.direction.set(index > this.currentIndex() ? 'next' : 'prev');
     this.isAnimating.set(true);
     this.currentIndex.set(index);
     setTimeout(() => this.isAnimating.set(false), this.TRANSITION_DURATION + 100);
   }
 
   nextSlide(): void {
+    this.direction.set('next');
     const next = (this.currentIndex() + 1) % this.slides.length;
     this.goToSlide(next);
     this.resetAutoplay();
   }
 
   prevSlide(): void {
+    this.direction.set('prev');
     const prev = (this.currentIndex() - 1 + this.slides.length) % this.slides.length;
     this.goToSlide(prev);
     this.resetAutoplay();
@@ -112,9 +167,7 @@ export class SlideComponent implements OnInit, OnDestroy {
   startAutoplay(): void {
     this.stopAutoplay();
     this.isPlaying.set(true);
-    this.autoplayInterval = setInterval(() => {
-      this.nextSlide();
-    }, this.AUTOPLAY_DELAY);
+    this.autoplayInterval = setInterval(() => this.nextSlide(), this.AUTOPLAY_DELAY);
   }
 
   stopAutoplay(): void {
@@ -125,13 +178,15 @@ export class SlideComponent implements OnInit, OnDestroy {
     this.isPlaying.set(false);
   }
 
-  toggleAutoplay(): void {
-    this.isPlaying() ? this.stopAutoplay() : this.startAutoplay();
+  private resetAutoplay(): void {
+    if (this.isPlaying()) this.startAutoplay();
   }
 
-  private resetAutoplay(): void {
-    if (this.isPlaying()) {
-      this.startAutoplay();
-    }
+  getSlideNumber(): string {
+    return String(this.currentIndex() + 1).padStart(2, '0');
+  }
+
+  getTotalSlides(): string {
+    return String(this.slides.length).padStart(2, '0');
   }
 }

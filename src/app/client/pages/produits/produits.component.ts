@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PanierService } from '../../../core/services/panier.service';
 import { Produit } from '../../../models/produit.model';
+import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 import {
   trigger,
   transition,
@@ -12,9 +13,9 @@ import {
 @Component({
   selector: 'app-produits',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ScrollRevealDirective],
   templateUrl: './produits.component.html',
-  styleUrls: ['./produits.component.css'],
+  styleUrls: ['./produits.component.css', '../../../shared/styles/scroll-reveal.css'],
   animations: [
     trigger('fadeSlide', [
       transition(':enter', [

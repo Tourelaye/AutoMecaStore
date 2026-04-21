@@ -60,6 +60,13 @@ export class AppComponent {
     return this.router.url.startsWith('/produits');
   }
 
+  isAdminPage(): boolean{
+    const isAdmin = this.router.url.startsWith('/admin');
+    console.log('URL actuelle:', this.router.url);
+    console.log('Est admin page?', isAdmin);
+    return isAdmin;
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;

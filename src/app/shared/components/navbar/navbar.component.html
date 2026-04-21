@@ -1,25 +1,17 @@
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="container d-flex justify-content-between align-items-center">
-
     <div class="top-left">
-      <i class="bi bi-geo-alt"></i>
-      Livraison partout au Sénégal
-      <span class="ms-3">
-        <i class="bi bi-telephone"></i>
-        +221 78 449 25 68
-      </span>
+      <i class="bi bi-geo-alt"></i> Livraison partout au Sénégal
+      <span class="ms-3"><i class="bi bi-telephone"></i> +221 78 449 25 68</span>
     </div>
-
     <div class="top-right">
       <a routerLink="/aide">Aide</a>
       <a class="ms-3" routerLink="/faq">FAQ</a>
       <a class="ms-3">Vendez sur AutoMecaStore</a>
     </div>
-
   </div>
 </div>
-
 
 <!-- MAIN HEADER -->
 <div class="main-header">
@@ -27,9 +19,7 @@
 
     <!-- LOGO -->
     <div class="logo">
-      <a routerLink="/">
-        <img class="logo-img" src="assets/image/logo.jpeg" alt="AutoMecaStore">
-      </a>
+      <a routerLink="/"><img class="logo-img" src="assets/image/logo.jpeg" alt="AutoMecaStore"></a>
     </div>
 
     <!-- SEARCH BAR -->
@@ -42,88 +32,158 @@
         (keyup.enter)="onSearchSubmit()"
         autocomplete="off"
       >
-      <button (click)="onSearchSubmit()">
-        <i class="bi bi-search"></i>
-      </button>
+      <button (click)="onSearchSubmit()"><i class="bi bi-search"></i></button>
 
-      <!-- RÉSULTATS DE RECHERCHE LIVE -->
       <div class="search-dropdown" *ngIf="showResults">
-
-        <!-- Chargement -->
         <div class="search-loading" *ngIf="isSearching">
           <i class="bi bi-hourglass-split"></i> Recherche en cours...
         </div>
-
-        <!-- Résultats -->
-        <div
-          class="search-item"
-          *ngFor="let produit of searchResults"
-          (click)="selectProduit(produit)"
-        >
+        <div class="search-item" *ngFor="let p of searchResults" (click)="selectProduit(p)">
           <div class="search-item-info">
-            <span class="search-item-nom">{{ produit.nom }}</span>
-            <span class="search-item-cat" *ngIf="produit.categorie">
-              {{ produit.categorie.nom }}
-            </span>
+            <span class="search-item-nom">{{ p.nom }}</span>
+            <span class="search-item-cat" *ngIf="p.categorie">{{ p.categorie.nom }}</span>
           </div>
-          <span class="search-item-prix">{{ produit.prix | number:'1.0-0' }} FCFA</span>
+          <span class="search-item-prix">{{ p.prix | number:'1.0-0' }} FCFA</span>
         </div>
-
-        <!-- Aucun résultat -->
         <div class="search-no-result" *ngIf="!isSearching && searchResults.length === 0">
           <i class="bi bi-emoji-frown"></i> Aucun produit trouvé
         </div>
-
-        <!-- Voir tous les résultats -->
         <div class="search-see-all" *ngIf="searchResults.length > 0" (click)="onSearchSubmit()">
           Voir tous les résultats pour "<strong>{{ searchQuery }}</strong>"
         </div>
-
       </div>
     </div>
 
     <!-- AUTH BUTTONS -->
     <div class="auth-buttons">
 
-      <!-- SI L'UTILISATEUR N'EST PAS CONNECTÉ -->
+      <!-- NON CONNECTÉ -->
       <ng-container *ngIf="!isLoggedIn">
-        <button class="btn btn-login" routerLink="/login">
-          Connexion
-        </button>
-        <button class="btn btn-register" routerLink="/register">
-          S'inscrire
-        </button>
+        <button class="btn btn-login" routerLink="/login">Connexion</button>
+        <button class="btn btn-register" routerLink="/register">S'inscrire</button>
       </ng-container>
 
-      <!-- SI L'UTILISATEUR EST CONNECTÉ -->
+      <!-- CONNECTÉ -->
       <ng-container *ngIf="isLoggedIn && utilisateur">
         <div class="user-menu-wrapper">
-          <button class="btn btn-user" (click)="toggleUserMenu()">
-            <i class="bi bi-person-circle"></i>
-            <span class="user-prenom">{{ utilisateur.prenom }}</span>
-            <i class="bi bi-chevron-down ms-1"></i>
+
+          <!-- BOUTON AVATAR -->
+          <button class="btn-avatar" (click)="toggleUserMenu()">
+            <div class="avatar-circle" [style.background]="getAvatarColor()">
+              {{ getInitiales() }}
+            </div>
+            <div class="avatar-info">
+              <span class="avatar-name">{{ utilisateur.prenom }}</span>
+              <span class="avatar-role">{{ getRoleLabel() }}</span>
+            </div>
+            <i class="bi bi-chevron-down chev" [class.chev-open]="showUserMenu"></i>
           </button>
 
-          <!-- DROPDOWN UTILISATEUR -->
+          <!-- ===== DROPDOWN PROFIL ===== -->
           <div class="user-dropdown" *ngIf="showUserMenu">
-            <div class="user-dropdown-header">
-              <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong>
-              <small>{{ utilisateur.email }}</small>
+
+            <!-- HEADER PROFIL -->
+            <div class="dropdown-profile-header">
+              <div class="dp-avatar" [style.background]="getAvatarColor()">
+                {{ getInitiales() }}
+              </div>
+              <div class="dp-info">
+                <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong>
+                <span class="dp-email">{{ utilisateur.email }}</span>
+                <span class="dp-role-badge" [class.admin-badge]="utilisateur.role === 'admin'">
+                  <i class="bi" [class.bi-shield-fill]="utilisateur.role === 'admin'" [class.bi-person-fill]="utilisateur.role !== 'admin'"></i>
+                  {{ getRoleLabel() }}
+                </span>
+              </div>
             </div>
-            <hr>
-            <a class="user-dropdown-item" routerLink="/mon-compte">
-              <i class="bi bi-person"></i> Mon compte
+
+            <!-- INFOS RAPIDES -->
+            <div class="dp-quick-info">
+              <div class="dp-quick-item" *ngIf="utilisateur.telephone">
+                <i class="bi bi-telephone-fill"></i>
+                <span>{{ utilisateur.telephone }}</span>
+              </div>
+              <div class="dp-quick-item" *ngIf="utilisateur.adresse">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>{{ utilisateur.adresse }}</span>
+              </div>
+              <div class="dp-quick-item" *ngIf="!utilisateur.telephone && !utilisateur.adresse">
+                <i class="bi bi-pencil-fill"></i>
+                <span class="text-muted-sm">Profil incomplet — <a routerLink="/mon-compte" (click)="showUserMenu=false">Compléter</a></span>
+              </div>
+            </div>
+
+            <div class="dp-divider"></div>
+
+            <!-- NAVIGATION -->
+            <div class="dp-section-label">Mon espace</div>
+
+            <a class="dp-item" (click)="navigateToProfile()">
+              <div class="dp-item-icon icon-orange">
+                <i class="bi bi-person-fill"></i>
+              </div>
+              <div class="dp-item-text">
+                <span>Mon profil</span>
+                <small>Informations personnelles</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
             </a>
-            <a class="user-dropdown-item" routerLink="/mes-commandes">
-              <i class="bi bi-box"></i> Mes commandes
+
+            <a class="dp-item" (click)="navigateToOrders()">
+              <div class="dp-item-icon icon-blue">
+                <i class="bi bi-box-seam-fill"></i>
+              </div>
+              <div class="dp-item-text">
+                <span>Mes commandes</span>
+                <small>Suivi & historique</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
             </a>
-            <a class="user-dropdown-item" routerLink="/mes-favoris">
-              <i class="bi bi-heart"></i> Mes favoris
+
+            <a class="dp-item" (click)="navigateToFavorites()">
+              <div class="dp-item-icon icon-red">
+                <i class="bi bi-heart-fill"></i>
+              </div>
+              <div class="dp-item-text">
+                <span>Mes favoris</span>
+                <small>Produits enregistrés</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
             </a>
-            <hr>
-            <button class="user-dropdown-item logout-btn" (click)="logout()">
-              <i class="bi bi-box-arrow-right"></i> Déconnexion
+
+            <div class="dp-divider"></div>
+            <div class="dp-section-label">Paramètres</div>
+
+            <a class="dp-item" (click)="navigateToSettings()">
+              <div class="dp-item-icon icon-green">
+                <i class="bi bi-shield-lock-fill"></i>
+              </div>
+              <div class="dp-item-text">
+                <span>Paramètres</span>
+                <small>Préférences & sécurité</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <a class="dp-item" (click)="navigateToHelp()">
+              <div class="dp-item-icon icon-purple">
+                <i class="bi bi-question-circle-fill"></i>
+              </div>
+              <div class="dp-item-text">
+                <span>Aide & Support</span>
+                <small>Centre d'assistance</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <div class="dp-divider"></div>
+
+            <!-- DÉCONNEXION -->
+            <button class="dp-logout" (click)="logout()">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Se déconnecter</span>
             </button>
+
           </div>
         </div>
       </ng-container>
@@ -139,10 +199,7 @@
 </div>
 
 <!-- NOTIFICATION PANIER -->
-<div class="cart-notification" *ngIf="notification">
-  {{ notification }}
-</div>
-
+<div class="cart-notification" *ngIf="notification">{{ notification }}</div>
 
 <!-- CATEGORY BAR -->
 <div class="category-bar">

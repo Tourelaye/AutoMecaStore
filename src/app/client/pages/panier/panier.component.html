@@ -6,13 +6,23 @@
       <a routerLink="/" class="back">
         <i class="bi bi-arrow-left"></i> Continuer mes achats
       </a>
-
-
+      <div class="panier-title">
+        <h2>
+          <i class="bi bi-cart3"></i> Mon Panier
+          <span class="nb-articles" *ngIf="nbArticles > 0">{{ nbArticles }}</span>
+        </h2>
+      </div>
+      <button class="btn-vider" (click)="viderPanier()" *ngIf="items.length > 0">
+        <i class="bi bi-trash3"></i> Vider
+      </button>
     </div>
 
     <!-- PANIER VIDE -->
     <div class="empty-container" *ngIf="items.length === 0">
-      <i class="bi bi-cart3 empty-icon"></i>
+      <div class="empty-icon-wrap">
+        <i class="bi bi-cart3 empty-icon"></i>
+        <div class="empty-sparkle">✨</div>
+      </div>
       <h3>Votre panier est vide</h3>
       <p>Découvrez notre catalogue de pièces détachées</p>
       <a routerLink="/" class="btn-shop">
@@ -22,122 +32,220 @@
 
     <!-- PANIER REMPLI -->
     <div class="panier-layout" *ngIf="items.length > 0">
-      <!-- LEFT -->
+
+      <!-- ========== LEFT ========== -->
       <div class="panier-left">
 
-        <div class="panier-item"
-             *ngFor="let item of items"
-             [@itemAnimation]>
-
-          <img [src]="item.produit.image" class="item-img">
-
-          <div class="item-info">
-            <h4>{{ item.produit.nom }}</h4>
-            <p class="ref">Ref: {{ item.produit.reference }}</p>
-            <small class="delay">
-              <i class="bi bi-clock"></i> 24-48h
-            </small>
-
-            <div class="qty-control">
-              <button (click)="decreaseQty(item)">
-                <i class="bi bi-dash"></i>
-              </button>
-
-              <span>{{ item.quantite }}</span>
-
-              <button (click)="increaseQty(item)">
-                <i class="bi bi-plus"></i>
-              </button>
-            </div>
+        <!-- BARRE LIVRAISON GRATUITE -->
+        <div class="livraison-progress-card" *ngIf="!livraisonGratuite">
+          <div class="lp-text">
+            <i class="bi bi-truck"></i>
+            Plus que
+            <strong>{{ (100 - sousTotal) | number:'1.2-2' }} FCFA</strong>
+            pour la livraison gratuite !
           </div>
+          <div class="lp-bar">
+            <div class="lp-fill" [style.width.%]="progressLivraisonGratuite"></div>
+          </div>
+        </div>
 
-          <!-- ACTIONS -->
-          <div class="item-actions">
+        <div class="livraison-offerte" *ngIf="livraisonGratuite">
+          <i class="bi bi-check-circle-fill"></i>
+          Félicitations ! Vous bénéficiez de la livraison gratuite 🎉
+        </div>
 
-            <span class="price">
-              {{ item.produit.prix * item.quantite | number:'1.0-2' }} €
-            </span>
+        <!-- ITEMS -->
+        <div [@listAnimation]="items.length">
+          <div
+            class="panier-item"
+            *ngFor="let item of items; trackBy: trackById"
+            [@itemAnimation]
+            [class.removing]="suppressionEnCours === item.produit.id"
+          >
 
-            <div class="actions-icons">
-
-              <!-- FAVORIS -->
-              <button class="fav" (click)="toggleFavorite(item)">
-                <i class="bi"
-                   [ngClass]="item.favori ? 'bi-heart-fill' : 'bi-heart'">
-                </i>
-              </button>
-
-              <!-- DELETE -->
-              <button class="delete" (click)="removeItem(item)">
-                <i class="bi bi-trash"></i>
-              </button>
-
+            <!-- IMAGE -->
+            <div class="item-img-wrap">
+              <img
+                *ngIf="item.image || item.produit?.image; else imgPlaceholder"
+                [src]="item.image || item.produit.image"
+                class="item-img"
+                [alt]="item.nom"
+              >
+              <ng-template #imgPlaceholder>
+                <div class="img-placeholder">
+                  <i class="bi bi-gear-wide-connected"></i>
+                </div>
+              </ng-template>
+              <span class="item-qty-badge">{{ item.quantite }}</span>
             </div>
 
-          </div>
+            <!-- INFO -->
+            <div class="item-info">
+              <span class="item-brand" *ngIf="item.produit?.nom">
+                {{ item.produit.nom | slice:0:15 }}...
+              </span>
+              <h4 class="item-nom">{{ item.nom }}</h4>
+              <p class="item-prix-unit">
+                {{ item.prix | number:'1.2-2' }} FCFA / unité
+              </p>
 
+              <!-- CONTRÔLE QUANTITÉ -->
+              <div class="qty-control">
+                <button
+                  class="qty-btn"
+                  (click)="decreaseQty(item)"
+                  [disabled]="item.quantite <= 1"
+                >
+                  <i class="bi bi-dash"></i>
+                </button>
+                <span class="qty-val">{{ item.quantite }}</span>
+                <button class="qty-btn" (click)="increaseQty(item)">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="item-actions">
+              <span class="item-total-price">
+                {{ item.prix * item.quantite | number:'1.2-2' }} FCFA
+              </span>
+
+              <div class="actions-icons">
+
+                <!-- FAVORIS -->
+                <button
+                  class="action-btn fav"
+                  (click)="toggleFavorite(item)"
+                  [class.is-fav]="item.favori"
+                  [title]="item.favori ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                >
+                  <i class="bi" [class.bi-heart-fill]="item.favori" [class.bi-heart]="!item.favori"></i>
+                </button>
+
+                <!-- SUPPRIMER -->
+                <button
+                  class="action-btn delete"
+                  (click)="removeItem(item)"
+                  title="Supprimer"
+                >
+                  <i class="bi bi-trash3"></i>
+                </button>
+
+              </div>
+            </div>
+
+          </div>
         </div>
 
       </div>
 
-      <!-- RIGHT -->
+      <!-- ========== RIGHT ========== -->
       <div class="panier-right">
 
         <!-- CODE PROMO -->
         <div class="card">
-          <h4><i class="bi bi-gift"></i> Code promo</h4>
+          <div class="card-title">
+            <i class="bi bi-gift"></i> Code promo
+          </div>
 
-          <div class="promo-box">
-            <input type="text" placeholder="Entrer votre code">
-            <button>Appliquer</button>
+          <div class="promo-box" *ngIf="!promoAppliquee">
+            <input
+              type="text"
+              placeholder="Ex: AUTO10"
+              [(ngModel)]="codePromo"
+              (keyup.enter)="appliquerPromo()"
+              [class.input-error]="promoErreur"
+            >
+            <button (click)="appliquerPromo()">Appliquer</button>
+          </div>
+
+          <div class="promo-error" *ngIf="promoErreur">
+            <i class="bi bi-x-circle"></i> Code invalide ou expiré
+          </div>
+
+          <div class="promo-success" *ngIf="promoAppliquee">
+            <i class="bi bi-check-circle-fill"></i>
+            Code <strong>{{ codePromo.toUpperCase() }}</strong> appliqué — -{{ remisePromo }}%
+            <button class="btn-retirer-promo" (click)="retirerPromo()">
+              <i class="bi bi-x"></i>
+            </button>
           </div>
         </div>
 
         <!-- LIVRAISON -->
-        <div class="card-l">
-          <h4><i class="bi bi-truck"></i> Livraison</h4>
+        <div class="card">
+          <div class="card-title">
+            <i class="bi bi-truck"></i> Mode de livraison
+          </div>
 
-          <select class="option">
-            <option>Livraison standard 4.99€</option>
-            <option>Livraison express 9.99€</option>
-            <option>Retrait en magasin gratuite</option>
-          </select>
-
-          <small >3-5 jours <small class="livraison"><br > livraison gratuite partout a dakar</small></small>
+          <div class="livraison-options">
+            <label
+              *ngFor="let opt of optionsLivraison"
+              class="livraison-option"
+              [class.selected]="modeLivraison === opt.key"
+            >
+              <input type="radio" [(ngModel)]="modeLivraison" [value]="opt.key" name="livraison">
+              <div class="opt-info">
+                <span class="opt-label">{{ opt.label }}</span>
+                <span class="opt-delai">{{ opt.delai }}</span>
+              </div>
+              <span class="opt-prix" [class.gratuit]="opt.prix === 0 || livraisonGratuite">
+                {{ (opt.prix === 0 || livraisonGratuite) ? 'Gratuit' : (opt.prix | number:'1.2-2') + ' FCFA' }}
+              </span>
+            </label>
+          </div>
         </div>
 
-        <!-- TOTAL -->
-        <div class="card-T total-box">
-
-          <div class="line">
-            <span>Sous-total</span>
-            <span>{{ total | number:'1.0-2' }} €</span>
+        <!-- RÉCAPITULATIF -->
+        <div class="card total-box">
+          <div class="card-title">
+            <i class="bi bi-receipt"></i> Récapitulatif
           </div>
 
-          <div class="line">
-            <span>Livraison</span>
-            <span>4.99 €</span>
+          <div class="total-lines">
+            <div class="line">
+              <span>Sous-total ({{ nbArticles }} article{{ nbArticles > 1 ? 's' : '' }})</span>
+              <span>{{ sousTotal | number:'1.2-2' }} FCFA</span>
+            </div>
+
+            <div class="line promo-line" *ngIf="promoAppliquee">
+              <span><i class="bi bi-tag-fill"></i> Remise ({{ remisePromo }}%)</span>
+              <span class="remise">- {{ montantRemise | number:'1.2-2' }} FCFA</span>
+            </div>
+
+            <div class="line">
+              <span>Livraison</span>
+              <span [class.gratuit]="fraisLivraison === 0 || livraisonGratuite">
+                {{ (fraisLivraison === 0 || livraisonGratuite)
+                  ? 'Gratuite 🎉'
+                  : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
+              </span>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="line total-final">
+              <span>Total TTC</span>
+              <span>{{ total | number:'1.2-2' }} FCFA</span>
+            </div>
           </div>
 
-          <div class="line total">
-            <span>Total</span>
-            <span>{{ total + 4.99 | number:'1.0-2' }} €</span>
-          </div>
-
-          <button class="checkout">
-            <i class="bi bi-credit-card"></i>
+          <button class="checkout" (click)="passerCommande()">
+            <i class="bi bi-credit-card-fill"></i>
             Passer la commande
+            <i class="bi bi-arrow-right"></i>
           </button>
 
           <div class="secure">
-            <i class="bi bi-shield-lock"></i> Paiement sécurisé •
-            <i class="bi bi-lightning-charge"></i> Livraison rapide
+            <span><i class="bi bi-shield-lock-fill"></i> Paiement sécurisé</span>
+            <span><i class="bi bi-lightning-charge-fill"></i> Livraison rapide</span>
+            <span><i class="bi bi-arrow-return-left"></i> Retour 30 jours</span>
           </div>
 
         </div>
 
       </div>
-
     </div>
 
   </div>

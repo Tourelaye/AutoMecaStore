@@ -9,7 +9,6 @@ import { AvisClientComponent } from './avis-client/avis-client.component';
 import { VenteEclairComponent } from './vente-eclair/vente-eclair.component';
 import { PartenaireComponent } from './partenaire/partenaire.component';
 import { RechercheComponent } from './recherche/recherche.component';
-import { FooterComponent } from '../shared/components/footer/footer.component';
 import { FaqsComponent } from './faqs/faqs.component';
 import { SlideComponent } from './slide/slide.component';
 
@@ -17,7 +16,7 @@ import { SlideComponent } from './slide/slide.component';
   selector: 'app-home',
   standalone: true,
   imports: [SlideComponent,PromotionComponent, CategorieComponent, OffreComponent,PlusVendusComponent,VogueComponent,AvisClientComponent, VenteEclairComponent
-  , PartenaireComponent, ChooceComponent, RechercheComponent,FaqsComponent,FooterComponent],
+  , PartenaireComponent, ChooceComponent, RechercheComponent,FaqsComponent],
   template: `
     <app-slide></app-slide>  
     <app-categorie></app-categorie>
@@ -31,7 +30,6 @@ import { SlideComponent } from './slide/slide.component';
     <app-chooce></app-chooce>
     <app-recherche></app-recherche>
     <app-faqs></app-faqs>
-    <app-footer></app-footer>
   `
 })
 export class HomeComponent {}

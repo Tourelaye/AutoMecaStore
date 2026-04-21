@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 export interface Utilisateur {
@@ -8,42 +8,33 @@ export interface Utilisateur {
   prenom: string;
   email: string;
   telephone?: string;
+  adresse: string; // Removed the optional operator (?)
   role?: string;
 }
 
 export interface LoginResponse {
   access: string;
   refresh: string;
-  user: Utilisateur;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8000/api';
+  private apiUrl = 'http://127.0.0.1:8000/account';
 
-  // BehaviorSubject qui contient l'utilisateur connecté (null si non connecté)
   private utilisateurSubject = new BehaviorSubject<Utilisateur | null>(null);
   public utilisateur$ = this.utilisateurSubject.asObservable();
 
-  // BehaviorSubject pour savoir si l'utilisateur est connecté
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.isLoggedInSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Au démarrage, on vérifie si un token est stocké
     this.checkTokenAtStartup();
   }
 
-  // ---------------------------------
-  // Vérification du token au démarrage
-  // ---------------------------------
   private checkTokenAtStartup(): void {
     const token = localStorage.getItem('access_token');
     const userStr = localStorage.getItem('user');
-
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr) as Utilisateur;
@@ -55,65 +46,89 @@ export class AuthService {
     }
   }
 
-  // ---------------------------------
-  // Connexion
-  // ---------------------------------
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login/`, { email, password }).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login/`, { email, password }).pipe(
       tap((response) => {
-        // Stockage des tokens
         localStorage.setItem('access_token', response.access);
         localStorage.setItem('refresh_token', response.refresh);
-        localStorage.setItem('user', JSON.stringify(response.user));
 
-        // Mise à jour des subjects
-        this.utilisateurSubject.next(response.user);
+        const payload = this.decodeToken(response.access);
+        const userFromToken: Utilisateur = {
+          id: payload.user_id ?? 0,
+          nom: payload.nom ?? '',
+          prenom: payload.prenom ?? '',
+          email: email,
+          adresse: '',
+          role: payload.role ?? 'client'
+        };
+        this.utilisateurSubject.next(userFromToken);
         this.isLoggedInSubject.next(true);
+        localStorage.setItem('user', JSON.stringify(userFromToken));
+
+        // Charge le profil complet depuis /me/
+        this.fetchProfil().subscribe();
       })
     );
   }
 
-  // ---------------------------------
-  // Inscription
-  // ---------------------------------
-  register(data: {
-    nom: string;
-    prenom: string;
-    email: string;
-    password: string;
-    telephone?: string;
-  }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/register/`, data);
+  fetchProfil(): Observable<Utilisateur> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    const user = this.utilisateurSubject.value;
+    const url = `${this.apiUrl}/me/${user?.id ?? ''}/`;
+    return this.http.get<Utilisateur>(url, { headers }).pipe(
+      tap((profil) => {
+        this.utilisateurSubject.next(profil);
+        localStorage.setItem('user', JSON.stringify(profil));
+      })
+    );
   }
 
-  // ---------------------------------
-  // Déconnexion
-  // ---------------------------------
+  updateProfil(data: Partial<Utilisateur>): Observable<Utilisateur> {
+    const token = this.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    const user = this.utilisateurSubject.value;
+    return this.http.patch<Utilisateur>(
+      `${this.apiUrl}/me/${user?.id}/`,
+      data,
+      { headers }
+    ).pipe(
+      tap((profil) => {
+        this.utilisateurSubject.next(profil);
+        localStorage.setItem('user', JSON.stringify(profil));
+      })
+    );
+  }
+
+  register(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register/`, data);
+  }
+
   logout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-
     this.utilisateurSubject.next(null);
     this.isLoggedInSubject.next(false);
   }
 
-  // ---------------------------------
-  // Getters utilitaires
-  // ---------------------------------
-  getToken(): string | null {
-    return localStorage.getItem('access_token');
+  getToken(): string | null { return localStorage.getItem('access_token'); }
+  getUtilisateur(): Utilisateur | null { return this.utilisateurSubject.value; }
+  isLoggedIn(): boolean { return this.isLoggedInSubject.value; }
+  getPrenom(): string { return this.utilisateurSubject.value?.prenom ?? ''; }
+
+  getInitiales(): string {
+    const u = this.utilisateurSubject.value;
+    if (!u) return '?';
+    return `${u.prenom.charAt(0)}${u.nom.charAt(0)}`.toUpperCase();
   }
 
-  getUtilisateur(): Utilisateur | null {
-    return this.utilisateurSubject.value;
-  }
-
-  isLoggedIn(): boolean {
-    return this.isLoggedInSubject.value;
-  }
-
-  getPrenom(): string {
-    return this.utilisateurSubject.value?.prenom ?? '';
+  private decodeToken(token: string): any {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch { return {}; }
   }
 }

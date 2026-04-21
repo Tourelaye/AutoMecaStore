@@ -1,0 +1,52 @@
+<div class="login-page">
+
+  <div class="login-card">
+
+    <!-- LOGO / TITRE -->
+    <div class="login-top">
+      <div class="shield-icon">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <h2>Administration</h2>
+      <p>AutoMecaStore</p>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-msg" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle-fill"></i> {{ errorMessage }}
+    </div>
+
+    <!-- FORM -->
+    <form (ngSubmit)="onSubmit()">
+
+      <div class="field">
+        <label>Email</label>
+        <div class="input-wrap">
+          <i class="bi bi-envelope"></i>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="admin@automeca.com" autocomplete="email">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Mot de passe</label>
+        <div class="input-wrap">
+          <i class="bi bi-lock"></i>
+          <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="eye-btn" (click)="showPassword = !showPassword">
+            <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isLoading">
+        <span *ngIf="!isLoading"><i class="bi bi-box-arrow-in-right"></i> Se connecter</span>
+        <span *ngIf="isLoading" class="spinner-row">
+          <span class="spinner"></span> Connexion...
+        </span>
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
