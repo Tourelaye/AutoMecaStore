@@ -67,6 +67,28 @@ class ProduitSerializer(serializers.ModelSerializer):
         ]
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # Les champs par défaut sont username et password, mais on utilise email
+    username_field = 'email'
+    
+    def validate(self, attrs):
+        print(f"DEBUG: Données reçues: {attrs}")
+        # Transformer email en username pour le serializer parent
+        email = attrs.get('email')
+        password = attrs.get('password')
+        print(f"DEBUG: Email: {email}, Password: {'*' * len(password) if password else 'None'}")
+        
+        # Pour le serializer parent, il faut username
+        attrs['username'] = email
+        print(f"DEBUG: Attributs après transformation: {attrs}")
+        
+        try:
+            result = super().validate(attrs)
+            print(f"DEBUG: Validation réussie")
+            return result
+        except Exception as e:
+            print(f"DEBUG: Erreur validation: {e}")
+            raise
+    
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -74,4 +96,5 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['role'] = user.role
         token['nom'] = user.nom
         token['prenom'] = user.prenom
+        token['user_id'] = user.id
         return token
