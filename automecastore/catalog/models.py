@@ -1,6 +1,20 @@
 from django.db import models
 from account.models import Utilisateur, Client, Administrateur, Invite
 
+
+# Manager personnalisé pour filtrer les produits actifs
+class ProduitActifManager(models.Manager):
+    def get_queryset(self):
+        from django.db.models import Q
+        return super().get_queryset().filter(Q(is_active=True) | Q(is_active__isnull=True))
+
+
+# Manager pour tous les produits (même inactifs)
+class ProduitTousManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+
 # -----------------------------
 # Categorie
 # -----------------------------
@@ -59,9 +73,30 @@ class Produit(models.Model):
     date_fin_promo  = models.DateTimeField(blank=True, null=True)
     reference       = models.CharField(max_length=50, blank=True, null=True)
     marque          = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Soft delete - champ pour désactiver le produit au lieu de le supprimer
+    is_active       = models.BooleanField(default=True)
+    date_suppression = models.DateTimeField(null=True, blank=True)
+    
+    # Managers
+    objects = ProduitActifManager()  # Par défaut, ne retourne que les actifs
+    all_objects = ProduitTousManager()  # Retourne tous les produits
 
     def __str__(self):
         return self.nom
+    
+    def soft_delete(self):
+        """Désactive le produit au lieu de le supprimer physiquement"""
+        from django.utils import timezone
+        self.is_active = False
+        self.date_suppression = timezone.now()
+        self.save()
+    
+    def restore(self):
+        """Réactive un produit supprimé"""
+        self.is_active = True
+        self.date_suppression = None
+        self.save()
 
 
 # -----------------------------

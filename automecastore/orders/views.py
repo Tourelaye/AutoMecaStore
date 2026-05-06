@@ -69,6 +69,11 @@ class AjouterAuPanierView(generics.CreateAPIView):
 # -----------------------------
 # Commande
 # -----------------------------
+class CommandeListView(generics.ListAPIView):
+    serializer_class = CommandeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Commande.objects.all().order_by('-date_commande')
+
 class CommandeCreateView(generics.CreateAPIView):
     serializer_class = CommandeSerializer
     permission_classes = [permissions.IsAuthenticated]

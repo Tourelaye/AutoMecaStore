@@ -4,7 +4,9 @@ from .views import (
     CategorieDetailView,
     ProduitListCreateView,
     ProduitDetailView,
-    ProduitFavorisListCreateView
+    ProduitFavorisListCreateView,
+    ProduitRestaurerView,
+    ProduitVerifierUtilisationView
 )
 
 urlpatterns = [
@@ -12,5 +14,7 @@ urlpatterns = [
     path('categories/<int:pk>/', CategorieDetailView.as_view(), name='categorie_detail'),
     path('produits/', ProduitListCreateView.as_view(), name='produit_list_create'),
     path('produits/<int:pk>/', ProduitDetailView.as_view(), name='produit_detail'),
+    path('produits/<int:pk>/restaurer/', ProduitRestaurerView.as_view(), name='produit_restaurer'),
+    path('produits/<int:pk>/verifier-utilisation/', ProduitVerifierUtilisationView.as_view(), name='produit_verifier_utilisation'),
     path('produits/favoris/', ProduitFavorisListCreateView.as_view(), name='produit_favoris_create'),
 ]
