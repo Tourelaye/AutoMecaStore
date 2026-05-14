@@ -1,0 +1,117 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <div class="main">
+    <app-header></app-header>
+
+    <div class="content">
+      <!-- MESSAGE -->
+      <div class="notification" *ngIf="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+        <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
+        {{ message }}
+      </div>
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Paramètres</h2>
+          <p>Configurez votre boutique</p>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab" [class.active]="activeTab === 'general'" (click)="setTab('general')">
+          <i class="bi bi-gear"></i> Général
+        </button>
+        <button class="tab" [class.active]="activeTab === 'livraison'" (click)="setTab('livraison')">
+          <i class="bi bi-truck"></i> Livraison
+        </button>
+        <button class="tab" [class.active]="activeTab === 'paiement'" (click)="setTab('paiement')">
+          <i class="bi bi-credit-card"></i> Paiement
+        </button>
+      </div>
+
+      <!-- PANEL -->
+      <div class="panel">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Rechercher un paramètre..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" />
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-add" (click)="openAddModal()">
+              <i class="bi bi-plus-lg"></i> Ajouter
+            </button>
+          </div>
+        </div>
+
+        <!-- PARAMETRES -->
+        <div class="parametres-list">
+          <div class="parametre-item" *ngFor="let param of getParametresByCategorie()">
+            <div class="parametre-info">
+              <h4>{{ param.nom }}</h4>
+              <p>{{ param.description }}</p>
+            </div>
+            <div class="parametre-value">
+              <input type="text" [(ngModel)]="param.valeur" name="valeur-{{ param.id }}" />
+            </div>
+            <div class="parametre-actions">
+              <button class="btn-icon" title="Sauvegarder">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="getParametresByCategorie().length === 0" class="empty-state">
+            <i class="bi bi-sliders"></i>
+            <p>Aucun paramètre dans cette catégorie</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Ajouter un paramètre</h3>
+      <button class="btn-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="saveParametre()">
+        <div class="form-group">
+          <label>Nom du paramètre *</label>
+          <input type="text" [(ngModel)]="parametreForm.nom" name="nom" placeholder="Ex: Nom du site" required />
+        </div>
+        <div class="form-group">
+          <label>Valeur *</label>
+          <input type="text" [(ngModel)]="parametreForm.valeur" name="valeur" placeholder="Valeur..." required />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="parametreForm.description" name="description" rows="2" placeholder="Description du paramètre..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Catégorie</label>
+          <select [(ngModel)]="parametreForm.categorie" name="categorie">
+            <option value="general">Général</option>
+            <option value="livraison">Livraison</option>
+            <option value="paiement">Paiement</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-save">
+            <i class="bi bi-check-lg"></i> Ajouter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

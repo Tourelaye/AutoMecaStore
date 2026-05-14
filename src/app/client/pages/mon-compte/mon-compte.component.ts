@@ -4,6 +4,9 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService, Utilisateur } from '../../../core/services/auth.service';
+import { MonCompteService, ClientInfo, CommandesResponse, FavorisResponse, Commande, Favori } from '../../../core/services/mon-compte.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { PanierService } from '../../../core/services/panier.service';
 
 type OngletType = 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris';
 
@@ -18,6 +21,21 @@ export class MonCompteComponent implements OnInit, OnDestroy {
 
   utilisateur: Utilisateur | null = null;
   ongletActif: OngletType = 'profil';
+
+  // Données dynamiques
+  clientInfo: ClientInfo | null = null;
+  commandesResponse: CommandesResponse | null = null;
+  favorisResponse: FavorisResponse | null = null;
+  
+  // États de chargement
+  isLoadingClient = false;
+  isLoadingCommandes = false;
+  isLoadingFavoris = false;
+  
+  // Erreurs
+  clientError: string | null = null;
+  commandesError: string | null = null;
+  favorisError: string | null = null;
 
   // Formulaire profil
   profilForm!: FormGroup;
@@ -42,17 +60,24 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   confidSuccess = false;
 
   private sub!: Subscription;
+  private monCompteSubscriptions: Subscription[] = [];
 
   constructor(
     private authService: AuthService,
     private fb: FormBuilder,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private monCompteService: MonCompteService,
+    private notificationService: NotificationService,
+    private panierService: PanierService
   ) {}
 
   ngOnInit(): void {
     this.sub = this.authService.utilisateur$.subscribe(u => {
       this.utilisateur = u;
-      if (u) this.initProfilForm(u);
+      if (u) {
+        this.initProfilForm(u);
+        this.loadClientData();
+      }
     });
 
     // Détection de l'onglet via l'URL (ex: /mon-compte/securite)
@@ -60,13 +85,19 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       const last = segments[segments.length - 1]?.path;
       if (last === 'securite')       this.ongletActif = 'securite';
       else if (last === 'confidentialite') this.ongletActif = 'confidentialite';
+      else if (last === 'commandes') this.ongletActif = 'commandes';
+      else if (last === 'favoris') this.ongletActif = 'favoris';
       else                           this.ongletActif = 'profil';
     });
 
     this.initSecuriteForm();
+    this.setupDataSubscriptions();
   }
 
-  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+  ngOnDestroy(): void { 
+    this.sub?.unsubscribe();
+    this.monCompteSubscriptions.forEach(sub => sub.unsubscribe());
+  }
 
   // -------------------------------------------------------
   // Navigation onglets
@@ -183,5 +214,158 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   getRoleLabel(): string {
     const r = this.utilisateur?.role ?? 'client';
     return r.charAt(0).toUpperCase() + r.slice(1);
+  }
+
+  // -------------------------------------------------------
+  // ACTIONS FAVORIS
+  // -------------------------------------------------------
+  ajouterAuPanierDepuisFavori(favori: Favori): void {
+    this.panierService.ajouterProduit({
+      id: favori.id,
+      nom: favori.produit_nom,
+      prix: favori.prix,
+      image: favori.image,
+      description: '', // Description vide pour les favoris
+      quantite: 1,
+      stock: 1,
+      categorie: 0,
+      gestionnaire_stock: 0
+    });
+
+    this.notificationService.success(
+      `${favori.produit_nom} a été ajouté au panier`,
+      'Produit ajouté'
+    );
+  }
+
+  retirerDesFavoris(favori: Favori): void {
+    this.monCompteService.retirerFavori(favori.id).subscribe({
+      next: () => {
+        this.notificationService.warning(
+          `${favori.produit_nom} a été retiré des favoris`,
+          'Favori supprimé'
+        );
+      },
+      error: () => {
+        this.notificationService.error(
+          'Impossible de retirer des favoris',
+          'Erreur'
+        );
+      }
+    });
+  }
+
+  // -------------------------------------------------------
+  // UTILITAIRES
+  // -------------------------------------------------------
+  getStatutClass(statut: string): string {
+    return this.monCompteService.getStatutClass(statut);
+  }
+
+  getStatutLabel(statut: string): string {
+    return this.monCompteService.getStatutLabel(statut);
+  }
+
+  formatDate(dateString: string): string {
+    return this.monCompteService.formatDate(dateString);
+  }
+
+  formatPrix(prix: number): string {
+    return this.monCompteService.formatPrix(prix);
+  }
+
+  getCommandes(): Commande[] {
+    return this.commandesResponse?.commandes || [];
+  }
+
+  getFavoris(): Favori[] {
+    return this.favorisResponse?.favoris || [];
+  }
+
+  hasCommandes(): boolean {
+    return this.getCommandes().length > 0;
+  }
+
+  hasFavoris(): boolean {
+    return this.getFavoris().length > 0;
+  }
+
+  private loadClientData(): void {
+    if (!this.utilisateur) return;
+    
+    // Charger les infos client
+    this.isLoadingClient = true;
+    this.monCompteService.getClientInfo().subscribe({
+      next: (clientInfo) => {
+        this.clientInfo = clientInfo;
+        this.isLoadingClient = false;
+        this.clientError = null;
+      },
+      error: (error) => {
+        this.clientError = 'Impossible de charger vos informations';
+        this.isLoadingClient = false;
+        console.error('Erreur client info:', error);
+      }
+    });
+
+    // Charger les commandes
+    this.isLoadingCommandes = true;
+    this.monCompteService.getMesCommandes().subscribe({
+      next: (commandes) => {
+        this.commandesResponse = commandes;
+        this.isLoadingCommandes = false;
+        this.commandesError = null;
+      },
+      error: (error) => {
+        this.commandesError = 'Impossible de charger vos commandes';
+        this.isLoadingCommandes = false;
+        console.error('Erreur commandes:', error);
+      }
+    });
+
+    // Charger les favoris
+    this.isLoadingFavoris = true;
+    this.monCompteService.getFavoris().subscribe({
+      next: (favoris) => {
+        this.favorisResponse = favoris;
+        this.isLoadingFavoris = false;
+        this.favorisError = null;
+      },
+      error: (error) => {
+        this.favorisError = 'Impossible de charger vos favoris';
+        this.isLoadingFavoris = false;
+        console.error('Erreur favoris:', error);
+      }
+    });
+  }
+
+  private setupDataSubscriptions(): void {
+    // S'abonner aux mises à jour automatiques
+    const clientSub = this.monCompteService.clientInfo$.subscribe(info => {
+      this.clientInfo = info;
+    });
+
+    const commandesSub = this.monCompteService.commandes$.subscribe(commandes => {
+      this.commandesResponse = commandes;
+    });
+
+    const favorisSub = this.monCompteService.favoris$.subscribe(favoris => {
+      this.favorisResponse = favoris;
+    });
+
+    this.monCompteSubscriptions = [clientSub, commandesSub, favorisSub];
+  }
+
+  refreshData(): void {
+    this.loadClientData();
+  }
+
+  // -------------------------------------------------------
+  // DÉCONNEXION
+  // -------------------------------------------------------
+  deconnexion(): void {
+    this.authService.logout();
+    // Redirection vers la page d'accueil
+    window.location.href = '/';
   }
 }

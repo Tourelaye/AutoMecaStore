@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
 import { PanierService } from '../../../core/services/panier.service';
+import { CommandeClientService } from '../../../core/services/commande-client.service';
 import { PanierItem } from '../../../models/panier.model';
 
 type ModeLivraison = 'standard' | 'express' | 'retrait';
@@ -69,8 +70,14 @@ export class PanierComponent implements OnInit, OnDestroy {
   // Suppression en cours (pour animation)
   suppressionEnCours: number | null = null;
 
+  // État de la commande
+  isCommandeEnCours = false;
+  commandeErreur = '';
+  commandeSucces = false;
+
   constructor(
     private panierService: PanierService,
+    private commandeService: CommandeClientService,
     private router: Router
   ) {}
 
@@ -183,8 +190,40 @@ export class PanierComponent implements OnInit, OnDestroy {
   // Commande
   // -------------------------------------------------------
   passerCommande(): void {
-    // Navigation vers la page de paiement (à créer)
-    this.router.navigate(['/paiement']);
+    if (this.items.length === 0) {
+      this.commandeErreur = 'Votre panier est vide';
+      return;
+    }
+
+    if (!confirm('Confirmer votre commande ? Vous recevrez une confirmation par email.')) {
+      return;
+    }
+
+    this.isCommandeEnCours = true;
+    this.commandeErreur = '';
+    this.commandeSucces = false;
+
+    this.commandeService.creerCommandeDepuisPanier(this.items).subscribe({
+      next: (commande) => {
+        console.log('Commande créée avec succès:', commande);
+        this.commandeSucces = true;
+        this.isCommandeEnCours = false;
+        
+        // Vider le panier après commande réussie
+        this.panierService.viderPanier();
+        
+        // Afficher message de succès
+        setTimeout(() => {
+          alert(`Commande #${commande.reference || commande.id} créée avec succès !`);
+          this.router.navigate(['/mes-commandes']);
+        }, 1000);
+      },
+      error: (err) => {
+        console.error('Erreur lors de la création de la commande:', err);
+        this.commandeErreur = 'Erreur lors de la création de la commande. Veuillez réessayer.';
+        this.isCommandeEnCours = false;
+      }
+    });
   }
 
   // -------------------------------------------------------

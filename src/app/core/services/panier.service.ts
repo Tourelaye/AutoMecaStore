@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { CommandeService } from './commande.service';
+import { NotificationService } from './notification.service';
 import { Produit } from '../../models/produit.model';
 import { PanierItem } from '../../models/panier.model';
 
@@ -20,7 +22,9 @@ export class PanierService {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private commandeService: CommandeService,
+    private notificationService: NotificationService
   ) {
     this.loadFromStorage();
   }
@@ -192,5 +196,33 @@ export class PanierService {
       { items: this.items },
       { headers: this.getHeaders() }
     );
+  }
+
+  // =========================
+  // PASSER COMMANDE
+  // =========================
+  passerCommande(): Observable<any> {
+    if (this.items.length === 0) {
+      this.notificationService.error('Votre panier est vide');
+      return new Observable(observer => {
+        observer.error('Panier vide');
+      });
+    }
+
+    return new Observable(observer => {
+      this.commandeService.creerCommandeDepuisPanier().subscribe({
+        next: (commande) => {
+          this.notificationService.success(`Commande ${commande.reference} créée avec succès!`);
+          this.viderPanier(); // Vider le panier après commande réussie
+          observer.next(commande);
+          observer.complete();
+        },
+        error: (err) => {
+          console.error('Erreur lors de la création de la commande:', err);
+          this.notificationService.error('Erreur lors de la création de la commande');
+          observer.error(err);
+        }
+      });
+    });
   }
 }

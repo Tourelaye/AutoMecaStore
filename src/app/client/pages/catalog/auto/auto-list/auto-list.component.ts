@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PanierService } from '../../../../../core/services/panier.service';
-// import { ProduitService } from '../../../../../core/services/produit.service'; // ← décommenter quand Django prêt
-import { Produit } from '../../../../../core/services/produit.service';
+import { ProduitService } from '../../../../../core/services/produit.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
+import { Produit } from '../../../../../models/produit.model';
+
 export interface AutoProduit {
   id: number;
   nom: string;
@@ -66,13 +68,66 @@ export class AutoListComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private panierService: PanierService
+    private panierService: PanierService,
+    private produitService: ProduitService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     // -------------------------------------------------------
-    // MOCK DATA — remplacer par appel API Django
+    // CHARGEMENT DYNAMIQUE DES PRODUITS DEPUIS L'API
     // -------------------------------------------------------
+    this.isLoading = true;
+    this.produitService.getProduits().subscribe({
+      next: (data: any) => {
+        console.log('Produits chargés depuis API:', data);
+        const list = Array.isArray(data) ? data : data.results || data;
+        
+        this.tousLesProduits = list.map((p: any) => ({
+          id: p.id,
+          nom: p.nom,
+          marque: p.marque ?? 'AutoMecaStore',
+          description: p.description || 'Description du produit',
+          image: p.image ?? null,
+          prixNouveau: parseFloat(p.prix_promo ?? p.prix),
+          prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
+          discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
+          note: 4.5,
+          avis: 0,
+          stock: p.stock || 10,
+          livraison: true,
+          isFavori: false,
+          isNew: false,
+          categorie: this.mapCategorieToAuto(p.categorie)
+        }));
+        
+        this.appliquerFiltres();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des produits:', err);
+        // En cas d'erreur, charger les données mock
+        this.loadMockData();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // Mapper la catégorie de l'API vers les sous-catégories auto
+  private mapCategorieToAuto(categorie: string): string {
+    const mapping: { [key: string]: string } = {
+      'freinage': 'freinage',
+      'moteur': 'moteur',
+      'filtration': 'filtration',
+      'suspension': 'suspension',
+      'transmission': 'transmission',
+      'eclairage': 'eclairage'
+    };
+    return mapping[categorie] || 'freinage';
+  }
+
+  // Charger les données mock en cas d'erreur API
+  private loadMockData(): void {
     this.tousLesProduits = [
       {
         id: 1, nom: 'Plaquettes de frein avant', marque: 'BREMBO',
@@ -123,38 +178,8 @@ export class AutoListComponent implements OnInit {
         isFavori: false, isNew: true, categorie: 'eclairage'
       }
     ];
-
+    
     this.appliquerFiltres();
-
-    // -------------------------------------------------------
-    // APPEL API DJANGO — décommenter quand prêt
-    // -------------------------------------------------------
-    // this.isLoading = true;
-    // this.produitService.getProduits({ categorie: 'auto' }).subscribe({
-    //   next: (data: any) => {
-    //     const list = Array.isArray(data) ? data : data.results;
-    //     this.tousLesProduits = list.map((p: any) => ({
-    //       id: p.id,
-    //       nom: p.nom,
-    //       marque: p.marque ?? 'AutoMecaStore',
-    //       description: p.description,
-    //       image: p.image ?? null,
-    //       prixNouveau: parseFloat(p.prix_promo ?? p.prix),
-    //       prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
-    //       discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
-    //       note: 4.5,
-    //       avis: 0,
-    //       stock: p.stock,
-    //       livraison: true,
-    //       isFavori: false,
-    //       isNew: false,
-    //       categorie: 'freinage'
-    //     }));
-    //     this.appliquerFiltres();
-    //     this.isLoading = false;
-    //   },
-    //   error: () => { this.isLoading = false; }
-    // });
   }
 
   // -------------------------------------------------------
@@ -238,34 +263,25 @@ export class AutoListComponent implements OnInit {
   // -------------------------------------------------------
   // Panier
   // -------------------------------------------------------
-  // ajouterAuPanier(produit: AutoProduit, event: Event): void {
-  //   event.stopPropagation();
-  //   if (produit.stock === 0) return;
-
-  //   this.panierService.ajouterAuPanier({
-  //     produit: produit.id,
-  //     nom: produit.nom,
-  //     prix: produit.prixNouveau,
-  //     quantite: 1,
-  //     image: produit.image ?? undefined
-  //   });
-
-  //   this.produitAjoute = produit.id;
-  //   setTimeout(() => {
-  //     if (this.produitAjoute === produit.id) this.produitAjoute = null;
-  //   }, 1500);
-  // }
   ajouterAuPanier(produit: AutoProduit, event: Event): void {
     event.stopPropagation();
-    if (produit.stock === 0) return;
+    
+    // Vérifier le stock
+    if (produit.stock === 0) {
+      this.notificationService.warning('Ce produit est en rupture de stock', 'Stock indisponible');
+      return;
+    }
   
     this.panierService.ajouterAuPanier({
-      produit: {           // ← objet Produit complet, pas juste l'id
+      produit: {
         id: produit.id,
         nom: produit.nom,
         prix: produit.prixNouveau,
         image: produit.image ?? undefined,
-        // ajoutez ici les autres champs requis par votre interface Produit
+        description: produit.description,
+        stock: produit.stock,
+        categorie: 0,
+        gestionnaire_stock: 0
       } as any,
       nom: produit.nom,
       prix: produit.prixNouveau,
@@ -273,11 +289,19 @@ export class AutoListComponent implements OnInit {
       image: produit.image ?? undefined
     });
   
+    // Notification de succès
+    this.notificationService.success(
+      `${produit.nom} a été ajouté au panier`,
+      'Produit ajouté'
+    );
+  
+    // Animation feedback
     this.produitAjoute = produit.id;
     setTimeout(() => {
       if (this.produitAjoute === produit.id) this.produitAjoute = null;
     }, 1500);
   }
+
   // -------------------------------------------------------
   // Helpers
   // -------------------------------------------------------

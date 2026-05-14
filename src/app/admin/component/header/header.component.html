@@ -1,0 +1,106 @@
+<header class="admin-header">
+
+  <!-- SEARCH -->
+  <div class="search-box">
+    <i class="bi bi-search search-icon"></i>
+    <input
+      type="text"
+      placeholder="Rechercher un produit, commande, client..."
+      [(ngModel)]="searchQuery"
+      (keyup.enter)="onSearch()"
+    >
+    <span class="search-shortcut" *ngIf="!searchQuery">⌘K</span>
+  </div>
+
+  <!-- DROITE -->
+  <div class="header-right">
+
+    <!-- HORLOGE -->
+    <div class="clock">
+      <i class="bi bi-clock"></i>
+      {{ formatTime(currentTime) }}
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="notif-wrapper">
+      <button class="icon-btn" (click)="toggleNotifications()">
+        <i class="bi bi-bell"></i>
+        <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+
+      <!-- DROPDOWN NOTIFICATIONS -->
+      <div class="notif-dropdown" *ngIf="showNotifications">
+        <div class="notif-header">
+          <span>Notifications</span>
+          <button class="mark-read-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">
+            Tout marquer lu
+          </button>
+        </div>
+
+        <div class="notif-list">
+          <div
+            class="notif-item"
+            *ngFor="let n of notifications"
+            [class.unread]="!n.read"
+          >
+            <div class="notif-icon-wrap" [style.background]="getNotifColor(n.type) + '20'">
+              <i class="bi {{ getNotifIcon(n.type) }}" [style.color]="getNotifColor(n.type)"></i>
+            </div>
+            <div class="notif-content">
+              <p>{{ n.message }}</p>
+              <small>{{ n.time }}</small>
+            </div>
+            <div class="notif-dot" *ngIf="!n.read"></div>
+          </div>
+        </div>
+
+        <div class="notif-footer">
+          <button>Voir toutes les notifications</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER MENU -->
+    <div class="user-menu-wrapper">
+      <button class="user-btn" (click)="toggleUserMenu()">
+        <div class="user-av">{{ adminInfo.initiales }}</div>
+        <div class="user-info" *ngIf="!showUserMenu || true">
+          <span class="user-name">{{ adminInfo.nom }}</span>
+          <span class="user-role">{{ adminInfo.role }}</span>
+        </div>
+        <i class="bi bi-chevron-down chev" [class.rotate]="showUserMenu"></i>
+      </button>
+
+      <!-- DROPDOWN USER -->
+      <div class="user-dropdown" *ngIf="showUserMenu">
+        <div class="user-dropdown-header">
+          <div class="udh-av">{{ adminInfo.initiales }}</div>
+          <div>
+            <strong>{{ adminInfo.nom }}</strong>
+            <small>{{ adminInfo.email }}</small>
+            <span class="role-pill">{{ adminInfo.role }}</span>
+          </div>
+        </div>
+
+        <div class="user-dropdown-menu">
+          <a class="udm-item">
+            <i class="bi bi-person-fill"></i> Mon profil
+          </a>
+          <a class="udm-item">
+            <i class="bi bi-shield-lock-fill"></i> Sécurité
+          </a>
+          <a class="udm-item">
+            <i class="bi bi-gear-fill"></i> Paramètres
+          </a>
+        </div>
+
+        <div class="udm-divider"></div>
+
+        <button class="udm-logout" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i> Déconnexion
+        </button>
+      </div>
+    </div>
+
+  </div>
+</header>

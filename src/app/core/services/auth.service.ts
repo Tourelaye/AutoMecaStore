@@ -115,6 +115,27 @@ export class AuthService {
     this.isLoggedInSubject.next(false);
   }
 
+  // Méthodes pour gérer les rôles
+  isAdmin(): boolean {
+    const user = this.utilisateurSubject.value;
+    return user?.role === 'admin';
+  }
+
+  isClient(): boolean {
+    const user = this.utilisateurSubject.value;
+    return user?.role === 'client';
+  }
+
+  getCurrentUserRole(): string | null {
+    const user = this.utilisateurSubject.value;
+    return user?.role || null;
+  }
+
+  hasRole(role: string): boolean {
+    const user = this.utilisateurSubject.value;
+    return user?.role === role;
+  }
+
   getToken(): string | null { return localStorage.getItem('access_token'); }
   getUtilisateur(): Utilisateur | null { return this.utilisateurSubject.value; }
   isLoggedIn(): boolean { return this.isLoggedInSubject.value; }

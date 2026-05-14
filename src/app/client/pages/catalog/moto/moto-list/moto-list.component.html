@@ -1,84 +1,180 @@
 <div class="catalog-page container">
 
-    <!-- HEADER CATALOG -->
-    
-    <div class="catalog-header">
-    
-    <div class="catalog-title">
-    
-    <span class="catalog-tag">CATALOGUE</span>
-    
-    <h1>Pièces Détachées Moto & Scooter</h1>
-    
-    <p class="catalog-count">
-        <span class="highlight-count">6</span> produits disponibles
-    </p>
-    
-    <div class="catalog-features">
-    
-    <span><i class="bi bi-check-circle text-success"></i> Pièces d'origine</span>
-    
-    <span><i class="bi bi-truck text-primary"></i> Livraison 24-48h</span>
-    
-    <span><i class="bi bi-headset"></i> Support 24/7</span>
-    
-    </div>
-    
-    </div>
-    
-    
-    <div class="catalog-actions">
-    
-    <select class="form-select">
-    
-    <option>Pertinence</option>
-    <option>Popularité</option>
-    <option>Prix croissant</option>
-    <option>Prix décroissant</option>
-    
-    </select>
-    
-    <div class="view-buttons">
+  <!-- HEADER -->
+  <div class="catalog-header">
 
-        <button
-        class="btn-view"
-        (click)="setGrid()"
-        [class.active]="viewMode === 'grid'">
-        
-        <i class="bi bi-grid"></i>
-        
+    <div class="catalog-title">
+      <span class="catalog-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i> CATALOGUE
+      </span>
+      <h1>Pièces détachées <span class="accent">Moto & Scooter</span></h1>
+      <p class="catalog-count">
+        <span class="highlight-count">{{ produitsFiltres?.length || 6 }}</span> produits disponibles
+      </p>
+      <div class="catalog-features">
+        <span><i class="bi bi-check-circle text-success"></i> Pièces d'origine</span>
+        <span><i class="bi bi-truck text-primary"></i> Livraison 24-48h</span>
+        <span><i class="bi bi-headset"></i> Support 24/7</span>
+      </div>
+    </div>
+
+    <div class="catalog-actions">
+
+      <!-- RECHERCHE -->
+      <div class="search-inline">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          placeholder="Rechercher une pièce moto..."
+          [(ngModel)]="searchQuery"
+          (input)="appliquerFiltres()"
+        >
+        <button *ngIf="searchQuery" (click)="searchQuery=''; appliquerFiltres()">
+          <i class="bi bi-x"></i>
         </button>
-        
-        
-        <button
-        class="btn-view"
-        (click)="setList()"
-        [class.active]="viewMode === 'list'">
-        
-        <i class="bi bi-list"></i>
-        
+      </div>
+
+      <!-- TRI -->
+      <select class="form-select" [(ngModel)]="triActif" (change)="appliquerFiltres()">
+        <option value="pertinence">Pertinence</option>
+        <option value="note">Meilleures notes</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+        <option value="promo">Meilleures promos</option>
+      </select>
+
+      <!-- VUE GRID/LIST -->
+      <div class="view-buttons">
+        <button class="btn-view" (click)="setGrid()" [class.active]="viewMode === 'grid'" title="Vue grille">
+          <i class="bi bi-grid"></i>
         </button>
-        
-        
-        <button
-        class="btn-view active"
-        (click)="toggleFilters()">
-        
-        <i class="bi bi-sliders"></i>
-        Filtres
-        
+        <button class="btn-view" (click)="setList()" [class.active]="viewMode === 'list'" title="Vue liste">
+          <i class="bi bi-list-ul"></i>
         </button>
-        
+      </div>
+
+      <!-- TOGGLE FILTRES -->
+      <button class="btn-viewF" (click)="toggleFilters()">
+        <i class="bi bi-sliders"></i> Filtres
+        <span class="filter-count" *ngIf="getNbFiltresActifs() > 0">
+          {{ getNbFiltresActifs() }}
+        </span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- SOUS-CATÉGORIES MOTO -->
+  <div class="sous-categories">
+    <button
+      *ngFor="let cat of sousCategoriesMoto"
+      class="scat-btn"
+      [class.active]="categorieActive === cat.key"
+      (click)="setCategorieActive(cat.key)"
+    >
+      <i class="bi" [class]="cat.icon"></i>
+      {{ cat.label }}
+    </button>
+  </div>
+
+  <div class="catalog-layout">
+
+    <!-- SIDEBAR FILTRES -->
+    <aside class="filters" [class.hide-filters]="!showFilters">
+
+      <div class="filter-header">
+        <i class="bi bi-sliders"></i> Filtres
+        <p class="subtitle">Affinez votre recherche</p>
+      </div>
+
+      <!-- FILTRES RAPIDES -->
+      <div class="filter-section">
+        <h6><i class="bi bi-lightning-charge"></i> Filtres rapides</h6>
+
+        <label class="quick-filter" [class.active-filter]="filtreLivraison">
+          <input type="checkbox" [(ngModel)]="filtreLivraison" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-truck"></i></span>
+          Livraison gratuite
+          <span class="badge">{{ tousLesProduits.length }}</span>
+        </label>
+
+        <label class="quick-filter" [class.active-filter]="filtrePromo">
+          <input type="checkbox" [(ngModel)]="filtrePromo" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-percent"></i></span>
+          En promotion
+          <span class="badge">89</span>
+        </label>
+
+        <label class="quick-filter" [class.active-filter]="filtreNew">
+          <input type="checkbox" [(ngModel)]="filtreNew" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-star"></i></span>
+          Nouveautés
+          <span class="badge">67</span>
+        </label>
+
+        <label class="quick-filter" [class.active-filter]="filtreBestseller">
+          <input type="checkbox" [(ngModel)]="filtreBestseller" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-graph-up"></i></span>
+          Bestsellers
+          <span class="badge">245</span>
+        </label>
+      </div>
+
+      <!-- FOURCHETTE DE PRIX -->
+      <div class="filter-section">
+        <h6><i class="bi bi-currency-exchange"></i> Prix (FCFA)</h6>
+        <div class="price-inputs">
+          <input
+            type="number"
+            placeholder="Min"
+            [(ngModel)]="prixMin"
+            (input)="appliquerFiltres()"
+          >
+          <span>—</span>
+          <input
+            type="number"
+            placeholder="Max"
+            [(ngModel)]="prixMax"
+            (input)="appliquerFiltres()"
+          >
         </div>
-    
-    </div>
-    
-    </div>
-    
-    
-    <div class="catalog-layout">
-    
-    <!-- SIDEBAR FILTERS -->
+      </div>
+
+      <!-- MARQUES MOTO -->
+      <div class="filter-section">
+        <h6><i class="bi bi-badge"></i> Marques</h6>
+        <div class="marque-grid">
+          <label class="marque-item" *ngFor="let marque of marquesMoto">
+            <input type="checkbox" [(ngModel)]="marque.selected" (change)="appliquerFiltres()">
+            <span class="marque-logo">{{ marque.logo }}</span>
+            {{ marque.name }}
+          </label>
+        </div>
+      </div>
+
+      <!-- NOTE MINIMALE -->
+      <div class="filter-section">
+        <h6><i class="bi bi-star-fill"></i> Note minimale</h6>
+        <div class="note-filter">
+          <button
+            *ngFor="let n of [1,2,3,4,5]"
+            class="note-btn"
+            [class.active]="noteMin === n"
+            (click)="noteMin = (noteMin === n ? 0 : n); appliquerFiltres()"
+          >
+            {{ n }}⭐
+          </button>
+        </div>
+      </div>
+
+      <!-- RESET -->
+      <button class="btn-reset" (click)="resetFiltres()" *ngIf="getNbFiltresActifs() > 0">
+        <i class="bi bi-x-circle"></i> Réinitialiser ({{ getNbFiltresActifs() }})
+      </button>
+
+    </aside>
+
+    <!-- PRODUITS -->
     
     <div class="filters" [class.hide-filters]="!showFilters">
     

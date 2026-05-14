@@ -3,6 +3,7 @@ import { Component, HostListener } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
+import { NotificationsComponent } from './shared/components/notifications/notifications.component';
 import { PanierService } from './core/services/panier.service';
 import { Produit } from './models/produit.model';
 
@@ -13,7 +14,8 @@ import { Produit } from './models/produit.model';
     CommonModule,
     RouterOutlet,
     NavbarComponent,
-    FooterComponent
+    FooterComponent,
+    NotificationsComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
@@ -65,6 +67,16 @@ export class AppComponent {
     console.log('URL actuelle:', this.router.url);
     console.log('Est admin page?', isAdmin);
     return isAdmin;
+  }
+
+  isClientProfilePage(): boolean {
+    const url = this.router.url;
+    // Pages de profil et informations personnelles du client
+    return url.startsWith('/profile') || 
+           url.startsWith('/commandes') || 
+           url.startsWith('/mes-commandes') ||
+           url.startsWith('/mon-compte') ||
+           url.startsWith('/informations-personnelles');
   }
 
   @HostListener('document:click', ['$event'])

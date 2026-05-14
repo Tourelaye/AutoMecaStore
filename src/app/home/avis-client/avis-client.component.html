@@ -1,108 +1,104 @@
-<section class="avisClient">
-    
-    <div class="header">
-        <p class="client">
-            <i class="bi bi-people icon-user"></i>
-            AVIS CLIENTS
-        </p>
-        <h3>Ce que disent nos clients</h3>
-        <p class="p">Plus de 50,000 clients satisfaits nous font confiance pour leurs pièces détachées</p>
+<section class="avis-section">
+
+  <!-- FOND DÉCORATIF -->
+  <div class="bg-deco">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-lines"></div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="section-header">
+
+    <div class="header-tag">
+      <i class="bi bi-people-fill tag-icon"></i>
+      AVIS CLIENTS
     </div>
 
-    <div class="cards">
+    <h2 class="section-title">
+      Ce que disent nos <span class="highlight">clients</span>
+    </h2>
 
-        <!-- CARD 1 -->
-        <div class="card">
-            <div class="etoile">
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i> 
-                <i class="bi bi-star-fill"></i>           
-            </div>
+    <p class="section-sub">
+      Plus de <strong>50 000 clients satisfaits</strong> nous font confiance
+      pour leurs pièces détachées au Sénégal
+    </p>
 
-            <p class="avis">
-                Excellent service et livraison rapide. Produits de très bonne qualité !
-            </p>
+    <!-- STATS BAND -->
+    <div class="stats-band">
+      <div class="stat-item" *ngFor="let s of stats">
+        <div class="stat-val">{{ s.valeur }}</div>
+        <div class="stat-lbl">{{ s.label }}</div>
+      </div>
+    </div>
 
-            <div class="user">
-                <div class="avatar">A</div>
-                <div>
-                    <h4>Ahmed M.</h4>
-                    <span>Dakar</span>
-                </div>
-            </div>
+  </div>
+
+  <!-- CARDS GRILLE -->
+  <div class="cards-grid">
+
+    <div
+      class="avis-card"
+      *ngFor="let a of avis; let i = index"
+      [style.--delay]="(i * 0.12) + 's'"
+      [style.--color]="a.couleur"
+    >
+
+      <!-- QUOTE ICON -->
+      <div class="quote-icon">
+        <i class="bi bi-quote"></i>
+      </div>
+
+      <!-- ÉTOILES -->
+      <div class="stars">
+        <i
+          class="bi"
+          *ngFor="let s of getEtoiles(a.note); let si = index"
+          [class.bi-star-fill]="isPleine(si + 1, a.note)"
+          [class.bi-star]="!isPleine(si + 1, a.note)"
+          [style.animation-delay]="(si * 0.08) + 's'"
+        ></i>
+        <span class="note-val">{{ a.note }}.0</span>
+      </div>
+
+      <!-- TEXTE -->
+      <p class="avis-texte">« {{ a.texte }} »</p>
+
+      <!-- PRODUIT ACHETÉ -->
+      <div class="produit-tag">
+        <i class="bi bi-bag-check-fill"></i>
+        {{ a.produit }}
+      </div>
+
+      <!-- UTILISATEUR -->
+      <div class="user-row">
+        <div class="avatar" [style.background]="a.couleur">
+          {{ a.initiale }}
         </div>
-
-        <!-- CARD 2 -->
-        <div class="card">
-            <div class="etoile">
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i> 
-                <i class="bi bi-star-fill"></i>           
-            </div>
-
-            <p class="avis">
-                Très satisfait de ma commande. Équipe support très réactive.
-            </p>
-
-            <div class="user">
-                <div class="avatar">F</div>
-                <div>
-                    <h4>Fatima B.</h4>
-                    <span>Rufisque</span>
-                </div>
-            </div>
+        <div class="user-info">
+          <strong>{{ a.nom }}</strong>
+          <span>
+            <i class="bi bi-geo-alt-fill"></i>
+            {{ a.ville }}
+          </span>
         </div>
+        <div class="avis-date">{{ a.date }}</div>
+      </div>
 
-        <!-- CARD 3 -->
-        <div class="card">
-            <div class="etoile">
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i> 
-                <i class="bi bi-star"></i>           
-            </div>
-
-            <p class="avis">
-                Bonne qualité et prix compétitif. Je recommande !
-            </p>
-
-            <div class="user">
-                <div class="avatar">M</div>
-                <div>
-                    <h4>Mohamed K.</h4>
-                    <span>Kaolack</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- CARD 4 -->
-        <div class="card">
-            <div class="etoile">
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i> 
-                <i class="bi bi-star-fill"></i>           
-            </div>
-
-            <p class="avis">
-                Service impeccable du début à la fin. À bientôt pour de nouveaux achats !
-            </p>
-
-            <div class="user">
-                <div class="avatar">L</div>
-                <div>
-                    <h4>Lina Z.</h4>
-                    <span>Thiès</span>
-                </div>
-            </div>
-        </div>
+      <!-- BORDURE DÉCORATIVE -->
+      <div class="card-glow"></div>
 
     </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-row">
+    <p>Vous aussi, partagez votre expérience</p>
+    <button class="btn-avis">
+      <i class="bi bi-pencil-square"></i>
+      Laisser un avis
+    </button>
+  </div>
 
 </section>

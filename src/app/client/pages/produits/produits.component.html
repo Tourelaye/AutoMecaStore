@@ -16,7 +16,7 @@
     <div class="col-md-6">
       <p class="text-muted">Mann-Filter</p>
 
-      <h3>{{produit.nom}}</h3>
+      <h3 *ngIf="produit">{{produit.nom}}</h3>
 
       <div class="text-warning">
         <i class="bi bi-star-fill"></i>
@@ -26,11 +26,11 @@
         <span class="text-dark ms-2">4.8 (156 avis)</span>
       </div>
 
-      <h4 class="text-orange">{{produit.prix / 100}}€</h4>
+      <h4 class="text-orange" *ngIf="produit">{{produit.prix / 100}}€</h4>
 
       <p class="text-success">
         <i class="bi bi-check-circle"></i>
-        En stock ({{produit.stock}})
+        En stock ({{produit?.stock || 0}})
       </p>
 
       <!-- QUANTITY -->
@@ -42,7 +42,7 @@
 
       <!-- ACTION -->
       <div class="d-flex gap-2 mt-3">
-        <button class="btn btn-orange flex-grow-1" (click)="addToCart(produit)">
+        <button class="btn btn-orange flex-grow-1" (click)="addToCart(produit!)" *ngIf="produit">
           <i class="bi bi-cart"></i> Ajouter au panier
         </button>
       </div>
@@ -71,7 +71,7 @@
   <!-- DESCRIPTION -->
   <div *ngIf="activeTab==='description'" @fadeSlide class="card p-4 mt-3">
     <h5>Description</h5>
-    <p>{{produit.description}}</p>
+    <p *ngIf="produit">{{produit.description}}</p>
   </div>
 
   <!-- CARACTERISTIQUES -->

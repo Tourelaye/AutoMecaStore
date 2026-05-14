@@ -1,0 +1,274 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <div class="main">
+    <app-header></app-header>
+
+    <div class="content">
+      <!-- STATISTIQUES -->
+      <div class="stats-grid" *ngIf="stats">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.total_clients }}</h3>
+            <p>Total Clients</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <i class="bi bi-person-check"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.clients_actifs }}</h3>
+            <p>Clients Actifs</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <i class="bi bi-person-x"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.clients_inactifs }}</h3>
+            <p>Clients Inactifs</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <i class="bi bi-person-plus"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.nouveaux_clients_ce_mois }}</h3>
+            <p>Nouveaux ce mois</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Gestion des Clients</h2>
+          <p>Gérez votre base de clients en temps réel</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+            <i class="bi bi-arrow-clockwise" [class.spinning]="isLoading"></i>
+            Actualiser
+          </button>
+        </div>
+      </div>
+
+      <!-- ERREUR -->
+      <div class="error-banner" *ngIf="error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>{{ error }}</span>
+        <button class="btn-close-error" (click)="error = null">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <!-- PANEL -->
+      <div class="panel">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="search-filters">
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input 
+                type="text" 
+                placeholder="Rechercher par nom, email, téléphone..." 
+                [(ngModel)]="searchQuery" 
+                (keyup.enter)="onSearch()" 
+              />
+            </div>
+            <select class="filter-select" [(ngModel)]="selectedStatut" (change)="onStatutFilter()">
+              <option value="all">Tous les statuts</option>
+              <option value="actif">Actifs</option>
+              <option value="inactif">Inactifs</option>
+            </select>
+            <select class="filter-select" [(ngModel)]="selectedOrdering" (change)="onOrderingChange()">
+              <option value="-date_inscription">Plus récents</option>
+              <option value="date_inscription">Plus anciens</option>
+              <option value="user__nom">Nom (A-Z)</option>
+              <option value="-user__nom">Nom (Z-A)</option>
+              <option value="user__email">Email (A-Z)</option>
+            </select>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-filter" (click)="onSearch()">
+              <i class="bi bi-funnel"></i> Filtrer
+            </button>
+            <button class="btn-reset" (click)="resetFilters()">
+              <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-container">
+          <div class="table-header">
+            <div class="header-cell avatar">Avatar</div>
+            <div class="header-cell">Client</div>
+            <div class="header-cell">Email</div>
+            <div class="header-cell">Téléphone</div>
+            <div class="header-cell">Inscription</div>
+            <div class="header-cell">Commandes</div>
+            <div class="header-cell">Statut</div>
+            <div class="header-cell">Actions</div>
+          </div>
+
+          <!-- LOADING -->
+          <div class="loading-state" *ngIf="isLoading">
+            <div class="loading-spinner">
+              <i class="bi bi-hourglass-split"></i>
+              <span>Chargement des clients...</span>
+            </div>
+          </div>
+
+          <!-- TABLE ROWS -->
+          <div class="table-row" *ngFor="let client of paginatedClients; trackBy: trackByClientId">
+            <div class="cell avatar">
+              <div class="avatar-circle">
+                {{ getInitials(client.nom_complet) }}
+              </div>
+            </div>
+            <div class="cell client-info">
+              <div class="client-name">{{ client.nom_complet }}</div>
+              <div class="client-id">ID: {{ client.user }}</div>
+            </div>
+            <div class="cell email">Email à charger</div>
+            <div class="cell phone">Téléphone à charger</div>
+            <div class="cell date">{{ formatDate(client.date_inscription) }}</div>
+            <div class="cell orders">
+              <span class="orders-badge">{{ client.nombre_commandes }}</span>
+            </div>
+            <div class="cell status">
+              <span class="status-badge" [ngClass]="formatStatut(client.statut).class">
+                {{ formatStatut(client.statut).label }}
+              </span>
+            </div>
+            <div class="cell actions">
+              <div class="action-menu">
+                <button class="btn-action" (click)="viewClientDetails(client)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn-action" (click)="toggleClientStatus(client)">
+                  <i class="bi" [class.bi-toggle-on]="client.statut === 'actif'" [class.bi-toggle-off]="client.statut === 'inactif'"></i>
+                </button>
+                <button class="btn-action btn-delete" (click)="deleteClient(client)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- EMPTY STATE -->
+          <div class="empty-state" *ngIf="!isLoading && paginatedClients.length === 0">
+            <div class="empty-icon">
+              <i class="bi bi-people"></i>
+            </div>
+            <h3>Aucun client trouvé</h3>
+            <p>{{ searchQuery ? 'Aucun client ne correspond à votre recherche.' : 'Aucun client enregistré.' }}</p>
+          </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination" *ngIf="totalPages > 1">
+          <button 
+            class="page-btn" 
+            [disabled]="currentPage === 1" 
+            (click)="changePage(currentPage - 1)"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <span class="page-info">
+            Page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} clients)
+          </span>
+          
+          <button 
+            class="page-btn" 
+            [disabled]="currentPage === totalPages" 
+            (click)="changePage(currentPage + 1)"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DÉTAILS CLIENT -->
+<div class="modal-overlay" *ngIf="showModal && actionType === 'details'" (click)="closeModal()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Détails du client</h3>
+      <button class="btn-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedClient">
+      <div class="client-detail-grid">
+        <div class="detail-item">
+          <label>Nom complet</label>
+          <p>{{ selectedClient.nom_complet }}</p>
+        </div>
+        <div class="detail-item">
+          <label>ID Utilisateur</label>
+          <p>#{{ selectedClient.user }}</p>
+        </div>
+        <div class="detail-item">
+          <label>Date d'inscription</label>
+          <p>{{ formatDate(selectedClient.date_inscription) }}</p>
+        </div>
+        <div class="detail-item">
+          <label>Statut</label>
+          <p>
+            <span class="status-badge" [ngClass]="formatStatut(selectedClient.statut).class">
+              {{ formatStatut(selectedClient.statut).label }}
+            </span>
+          </p>
+        </div>
+        <div class="detail-item">
+          <label>Nombre de commandes</label>
+          <p>{{ selectedClient.nombre_commandes }}</p>
+        </div>
+        <div class="detail-item">
+          <label>Points de fidélité</label>
+          <p>{{ selectedClient.point_fidelite || 0 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMATION -->
+<div class="modal-overlay" *ngIf="showModal && (actionType === 'toggle' || actionType === 'delete')" (click)="closeModal()">
+  <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 *ngIf="actionType === 'toggle'">Changer le statut</h3>
+      <h3 *ngIf="actionType === 'delete'">Supprimer le client</h3>
+      <button class="btn-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p *ngIf="actionType === 'toggle'">
+        Êtes-vous sûr de vouloir {{ selectedClient?.statut === 'actif' ? 'désactiver' : 'activer' }} le client 
+        <strong>{{ selectedClient?.nom_complet }}</strong> ?
+      </p>
+      <p *ngIf="actionType === 'delete'" class="warning-text">
+        ⚠️ Attention : Cette action est irréversible. Êtes-vous sûr de vouloir supprimer le client 
+        <strong>{{ selectedClient?.nom_complet }}</strong> ?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Annuler</button>
+      <button class="btn-confirm" (click)="actionType === 'toggle' ? confirmToggleClient() : confirmDeleteClient()">
+        {{ actionType === 'toggle' ? 'Confirmer' : 'Supprimer' }}
+      </button>
+    </div>
+  </div>
+</div>

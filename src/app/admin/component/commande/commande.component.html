@@ -1,0 +1,150 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <app-header></app-header>
+
+  <main class="content">
+    <div class="page-header">
+      <div>
+        <h2>Gestion des Commandes</h2>
+        <p>Suivez et gérez toutes les commandes clients en temps réel</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-refresh" (click)="refreshCommandes()" [disabled]="loading">
+          <i class="bi bi-arrow-clockwise" [class.spinning]="loading"></i>
+          Actualiser
+        </button>
+      </div>
+    </div>
+
+    <!-- 📊 Statistiques -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="bi bi-cart-check"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().total }}</div>
+          <div class="stat-label">Total commandes</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().enAttente }}</div>
+          <div class="stat-label">En attente</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().validees }}</div>
+          <div class="stat-label">Validées</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <i class="bi bi-truck"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getStats().expediees }}</div>
+          <div class="stat-label">Expédiées</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Rechercher une commande..." [(ngModel)]="searchTerm" (input)="searchCommandes()">
+      </div>
+      <div class="toolbar-actions">
+        <div class="polling-indicator">
+          <i class="bi bi-wifi"></i>
+          <span>Auto-rafraîchissement</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 Tableau des commandes -->
+    <div class="panel">
+      <!-- Loading -->
+      <div class="loading-state" *ngIf="loading && commandes.length === 0">
+        <div class="spinner"></div>
+        <p>Chargement des commandes...</p>
+      </div>
+
+      <!-- Error -->
+      <div class="error-state" *ngIf="error">
+        <i class="bi bi-exclamation-triangle"></i>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="loadCommandes()">Réessayer</button>
+      </div>
+
+      <!-- Tableau -->
+      <div class="table" *ngIf="!loading && !error">
+        <div class="table-header">
+          <div>Référence</div>
+          <div>Date</div>
+          <div>Client</div>
+          <div>Montant</div>
+          <div>Statut</div>
+          <div>Actions</div>
+        </div>
+
+        <div class="table-row" *ngFor="let commande of commandesFiltrees; trackBy: trackByCommandeId">
+          <div class="reference">
+            <span class="ref-number">{{ commande.reference || '#' + commande.id }}</span>
+          </div>
+          <div class="date">{{ formatDate(commande.date_commande) }}</div>
+          <div class="client">
+            <div class="client-info">
+              <i class="bi bi-person-circle"></i>
+              <span>Client #{{ commande.client }}</span>
+            </div>
+          </div>
+          <div class="montant">{{ formatMontant(commande.montant_total) }}</div>
+          <div class="statut">
+            <span class="status-badge" [ngClass]="getStatutClass(commande.statut)">
+              <i class="bi" [ngClass]="getStatutIcon(commande.statut)"></i>
+              {{ getStatutLabel(commande.statut) }}
+            </span>
+          </div>
+          <div class="actions">
+            <select class="statut-select" [value]="commande.statut" (change)="updateStatutCommande(commande, $any($event.target).value)" [disabled]="loading">
+              <option *ngFor="let statut of statutsPossibles" [value]="statut.value">
+                {{ statut.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" *ngIf="!loading && !error && commandesFiltrees.length === 0">
+        <i class="bi bi-cart-x"></i>
+        <p *ngIf="searchTerm">Aucune commande trouvée pour "{{ searchTerm }}"</p>
+        <p *ngIf="!searchTerm">Aucune commande trouvée</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 📢 Notifications -->
+<div class="notification-container">
+  <div class="notification" 
+       [class.success]="notification?.type === 'success'" 
+       [class.error]="notification?.type === 'error'" 
+       [class.info]="notification?.type === 'info'"
+       *ngIf="notification">
+    <i class="bi" 
+       [class.bi-check-circle-fill]="notification.type === 'success'" 
+       [class.bi-exclamation-circle-fill]="notification.type === 'error'"
+       [class.bi-info-circle-fill]="notification.type === 'info'"></i>
+    {{ notification.message }}
+  </div>
+</div>

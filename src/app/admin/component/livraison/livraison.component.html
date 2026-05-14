@@ -1,0 +1,125 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <div class="main">
+    <app-header></app-header>
+
+    <div class="content">
+      <!-- MESSAGE -->
+      <div class="notification" *ngIf="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+        <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
+        {{ message }}
+      </div>
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Gestion des Livraisons</h2>
+          <p>Suivez et gérez les livraisons</p>
+        </div>
+      </div>
+
+      <!-- PANEL -->
+      <div class="panel">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Rechercher une livraison..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" />
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-filter" (click)="onSearch()">
+              <i class="bi bi-funnel"></i> Rechercher
+            </button>
+            <button class="btn-add" (click)="openAddModal()">
+              <i class="bi bi-plus-lg"></i> Nouvelle livraison
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table">
+          <div class="table-header">
+            <span>ID</span>
+            <span>Commande</span>
+            <span>Client</span>
+            <span>Adresse</span>
+            <span>Statut</span>
+            <span>Transporteur</span>
+            <span>Actions</span>
+          </div>
+
+          <div class="table-row" *ngFor="let livraison of livraisons">
+            <span class="id">#{{ livraison.id }}</span>
+            <span class="commande">{{ livraison.commandeId }}</span>
+            <span class="client">{{ livraison.client }}</span>
+            <span class="adresse">{{ livraison.adresse }}</span>
+            <span>
+              <span class="badge" [class.en-preparation]="livraison.statut === 'en_preparation'" [class.en-cours]="livraison.statut === 'en_cours'" [class.livree]="livraison.statut === 'livree'" [class.annulee]="livraison.statut === 'annulee'">
+                {{ getStatutLabel(livraison.statut) }}
+              </span>
+            </span>
+            <span>{{ livraison.transporteur || '-' }}</span>
+            <span class="actions">
+              <i class="bi bi-three-dots-vertical"></i>
+            </span>
+          </div>
+
+          <div *ngIf="livraisons.length === 0" class="empty-state">
+            <i class="bi bi-truck"></i>
+            <p>Aucune livraison trouvée</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Modifier la livraison' : 'Nouvelle livraison' }}</h3>
+      <button class="btn-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="saveLivraison()">
+        <div class="form-group">
+          <label>N° Commande *</label>
+          <input type="text" [(ngModel)]="livraisonForm.commandeId" name="commandeId" placeholder="Ex: CMD-001" required />
+        </div>
+        <div class="form-group">
+          <label>Client *</label>
+          <input type="text" [(ngModel)]="livraisonForm.client" name="client" placeholder="Nom du client" required />
+        </div>
+        <div class="form-group">
+          <label>Adresse de livraison</label>
+          <textarea [(ngModel)]="livraisonForm.adresse" name="adresse" rows="2" placeholder="Adresse complète..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Statut</label>
+            <select [(ngModel)]="livraisonForm.statut" name="statut">
+              <option value="en_preparation">En préparation</option>
+              <option value="en_cours">En cours</option>
+              <option value="livree">Livrée</option>
+              <option value="annulee">Annulée</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Transporteur</label>
+            <input type="text" [(ngModel)]="livraisonForm.transporteur" name="transporteur" placeholder="Ex: Chronopost" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-save">
+            <i class="bi bi-check-lg"></i> {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

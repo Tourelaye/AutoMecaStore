@@ -16,6 +16,8 @@ export interface Produit {
   prix: number;
   stock: number;
   categorie: Categorie | null;
+  categorie_detail?: Categorie | null;  // Objet catégorie complet (lecture seule)
+  categorie_nom?: string;  // Nom de la catégorie (lecture seule)
   image?: string;
 }
 
@@ -34,6 +36,13 @@ export class ProduitService {
   private apiUrl = 'http://localhost:8000/api';
 
   constructor(private http: HttpClient) {}
+
+  // ---------------------------------
+  // Récupérer un produit spécifique
+  // ---------------------------------
+  getProduit(id: number): Observable<Produit> {
+    return this.http.get<Produit>(`${this.apiUrl}/produits/${id}/`);
+  }
 
   // ---------------------------------
   // Récupérer tous les produits
@@ -63,13 +72,6 @@ export class ProduitService {
   }
 
   // ---------------------------------
-  // Récupérer un produit par ID
-  // ---------------------------------
-  getProduitById(id: number): Observable<Produit> {
-    return this.http.get<Produit>(`${this.apiUrl}/produits/${id}/`);
-  }
-
-  // ---------------------------------
   // Recherche rapide (pour la searchbar du header)
   // ---------------------------------
   rechercherProduits(query: string): Observable<Produit[]> {
@@ -92,5 +94,26 @@ export class ProduitService {
     return this.http.get<Produit[]>(`${this.apiUrl}/produits/`, {
       params: new HttpParams().set('categorie__nom__icontains', nom)
     });
+  }
+
+  // ---------------------------------
+  // Créer un nouveau produit
+  // ---------------------------------
+  createProduit(produit: Omit<Produit, 'id'>): Observable<Produit> {
+    return this.http.post<Produit>(`${this.apiUrl}/produits/`, produit);
+  }
+
+  // ---------------------------------
+  // Mettre à jour un produit
+  // ---------------------------------
+  updateProduit(id: number, produit: Partial<Produit>): Observable<Produit> {
+    return this.http.put<Produit>(`${this.apiUrl}/produits/${id}/`, produit);
+  }
+
+  // ---------------------------------
+  // Supprimer un produit
+  // ---------------------------------
+  deleteProduit(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/produits/${id}/`);
   }
 }

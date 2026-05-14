@@ -1,65 +1,102 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { trigger, style, animate, transition } from '@angular/animations';
+import { AuthService } from '../../core/services/auth.service';
+
+interface AdminAccount {
+  email: string;
+  password: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  avatar: string;
+}
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-  animations: [
-    trigger('fadeSlide', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(40px)' }),
-        animate('500ms ease-out',
-          style({ opacity: 1, transform: 'translateY(0)' })
-        )
-      ])
-    ])
-  ]
+  styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
 
-  email = '';
+  email    = '';
   password = '';
+
   showPassword = false;
-  isLoading = false;
+  isLoading    = false;
   errorMessage = '';
-  loginSuccess = false;
+  loginAttempts = 0;
 
-  constructor(private router: Router) {}
+  // Comptes admin autorisés (pour affichage et démo seulement)
+  private readonly ADMIN_EMAILS = ['admin@automeca.com'];
 
-  ngOnInit() {
-    // Initialisation du composant
-    // Les particules seront ajoutées plus tard si nécessaire
-  }
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
-  onSubmit() {
-    this.isLoading = true;
+  // -------------------------------------------------------
+  // Connexion
+  // -------------------------------------------------------
+  onSubmit(): void {
     this.errorMessage = '';
 
-    // Simulation login
-    setTimeout(() => {
-      this.isLoading = false;
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Veuillez remplir tous les champs.';
+      return;
+    }
 
-      if (this.email === 'admin@automeca.com' && this.password === 'admin') {
-        this.loginSuccess = true;
+    if (this.loginAttempts >= 5) {
+      this.errorMessage = 'Trop de tentatives. Compte temporairement bloqué.';
+      return;
+    }
 
-        setTimeout(() => {
-          this.router.navigate(['/dashboard']);
-        }, 1200);
+    this.isLoading = true;
 
-      } else {
-        this.errorMessage = "Email ou mot de passe incorrect";
+    // Appel API réel pour l'authentification
+    this.authService.login(this.email, this.password).subscribe({
+      next: (response) => {
+        // Vérifie si l'utilisateur a le rôle admin
+        const user = this.authService.getUtilisateur();
+        const isAdmin = user?.role === 'administrateur' || user?.role === 'gestionnaire';
+
+        if (!isAdmin) {
+          this.authService.logout();
+          this.errorMessage = 'Accès réservé aux administrateurs.';
+          this.isLoading = false;
+          return;
+        }
+
+        // Stocke aussi les infos admin pour l'affichage
+        localStorage.setItem('admin_user', JSON.stringify({
+          email:  user?.email,
+          nom:    user?.nom,
+          prenom: user?.prenom,
+          role:   user?.role,
+          avatar: 'ID'
+        }));
+
+        this.loginAttempts = 0;
+        this.router.navigate(['/admin/dashboard']);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.loginAttempts++;
+        this.errorMessage = err.error?.detail || `Email ou mot de passe incorrect. (${5 - this.loginAttempts} tentative${5 - this.loginAttempts > 1 ? 's' : ''} restante${5 - this.loginAttempts > 1 ? 's' : ''})`;
+        this.isLoading = false;
       }
-
-    }, 1500);
+    });
   }
 
-  toggleTheme() {
-    document.body.classList.toggle('dark');
+  // -------------------------------------------------------
+  // Remplissage rapide (démo)
+  // -------------------------------------------------------
+  fillDemo(account: AdminAccount): void {
+    this.email    = account.email;
+    this.password = account.password;
+    this.errorMessage = '';
   }
 }

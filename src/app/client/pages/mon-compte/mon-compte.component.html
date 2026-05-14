@@ -321,7 +321,49 @@
             <h2><i class="bi bi-box-seam-fill"></i> Mes commandes</h2>
             <p>Retrouvez l'historique de toutes vos commandes</p>
           </div>
-          <div class="empty-state">
+
+          <!-- État de chargement -->
+          <div class="loading-state" *ngIf="isLoadingCommandes">
+            <div class="spinner"></div>
+            <p>Chargement de vos commandes...</p>
+          </div>
+
+          <!-- Erreur -->
+          <div class="error-banner" *ngIf="commandesError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ commandesError }}
+          </div>
+
+          <!-- Liste des commandes -->
+          <div class="commandes-list" *ngIf="hasCommandes()">
+            <div class="commande-card" *ngFor="let commande of getCommandes()">
+              <div class="commande-header">
+                <div class="commande-info">
+                  <h4>Commande #{{ commande.id }}</h4>
+                  <p class="commande-date">{{ formatDate(commande.date_commande) }}</p>
+                </div>
+                <span class="commande-statut" [class]="getStatutClass(commande.statut)">
+                  {{ getStatutLabel(commande.statut) }}
+                </span>
+              </div>
+              
+              <div class="commande-details">
+                <div class="commande-produits">
+                  <div class="produit-item" *ngFor="let ligne of commande.lignes">
+                    <span class="produit-nom">{{ ligne.produit_nom }}</span>
+                    <span class="produit-quantite">{{ ligne.quantite }}x</span>
+                    <span class="produit-prix">{{ formatPrix(ligne.prix_unitaire) }}</span>
+                  </div>
+                </div>
+                
+                <div class="commande-total">
+                  <strong>Total: {{ formatPrix(commande.montant_total) }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- État vide -->
+          <div class="empty-state" *ngIf="!isLoadingCommandes && !hasCommandes()">
             <i class="bi bi-box-seam"></i>
             <h3>Aucune commande pour le moment</h3>
             <p>Vous n'avez pas encore passé de commande sur AutoMecaStore.</p>
@@ -337,7 +379,44 @@
             <h2><i class="bi bi-heart-fill"></i> Mes favoris</h2>
             <p>Les pièces que vous avez sauvegardées</p>
           </div>
-          <div class="empty-state">
+
+          <!-- État de chargement -->
+          <div class="loading-state" *ngIf="isLoadingFavoris">
+            <div class="spinner"></div>
+            <p>Chargement de vos favoris...</p>
+          </div>
+
+          <!-- Erreur -->
+          <div class="error-banner" *ngIf="favorisError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ favorisError }}
+          </div>
+
+          <!-- Liste des favoris -->
+          <div class="favoris-grid" *ngIf="hasFavoris()">
+            <div class="favori-card" *ngFor="let favori of getFavoris()">
+              <div class="favori-image">
+                <img [src]="favori.image" [alt]="favori.produit_nom" />
+              </div>
+              
+              <div class="favori-content">
+                <h4>{{ favori.produit_nom }}</h4>
+                <p class="favori-prix">{{ formatPrix(favori.prix) }}</p>
+                <p class="favori-date">Ajouté le {{ formatDate(favori.date_ajout) }}</p>
+                
+                <div class="favori-actions">
+                  <button class="btn-primary" (click)="ajouterAuPanierDepuisFavori(favori)">
+                    <i class="bi bi-cart-plus"></i> Ajouter au panier
+                  </button>
+                  <button class="btn-danger" (click)="retirerDesFavoris(favori)">
+                    <i class="bi bi-heart-break"></i> Retirer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- État vide -->
+          <div class="empty-state" *ngIf="!isLoadingFavoris && !hasFavoris()">
             <i class="bi bi-heart"></i>
             <h3>Aucun favori pour le moment</h3>
             <p>Ajoutez des pièces à vos favoris depuis le catalogue.</p>

@@ -1,0 +1,279 @@
+<app-sidebar></app-sidebar>
+
+<div class="dashboard-layout">
+  <div class="dashboard-main">
+    <app-header></app-header>
+
+    <div class="dashboard-content">
+
+      <!-- WELCOME HEADER -->
+      <div class="welcome-header">
+        <div class="welcome-text">
+          <h1>Bienvenue, Admin</h1>
+          <p>{{ currentDate }}</p>
+        </div>
+        <div class="welcome-actions">
+          <button class="btn-export">
+            <i class="bi bi-download"></i>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <!-- STATS CARDS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Total Revenue</span>
+            <div class="stat-icon revenue">
+              <i class="bi bi-currency-euro"></i>
+            </div>
+          </div>
+          <div class="stat-value">42,850€</div>
+          <div class="stat-change up">
+            <i class="bi bi-arrow-up-right"></i>
+            +12.5%
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Commandes</span>
+            <div class="stat-icon orders">
+              <i class="bi bi-bag"></i>
+            </div>
+          </div>
+          <div class="stat-value">156</div>
+          <div class="stat-change up">
+            <i class="bi bi-arrow-up-right"></i>
+            +4%
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Nouveaux clients</span>
+            <div class="stat-icon customers">
+              <i class="bi bi-people"></i>
+            </div>
+          </div>
+          <div class="stat-value">24</div>
+          <div class="stat-change up">
+            <i class="bi bi-arrow-up-right"></i>
+            +18%
+          </div>
+        </div>
+
+        <div class="stat-card critical">
+          <div class="stat-header">
+            <span class="stat-label">Stock Critique</span>
+            <div class="stat-icon stock">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+          </div>
+          <div class="stat-value">12</div>
+          <div class="stat-subtitle">Pieces a reapprovisionner</div>
+        </div>
+      </div>
+
+      <!-- MIDDLE SECTION: Chart + Sidebar -->
+      <div class="middle-section">
+        <!-- Weekly Sales Chart -->
+        <div class="chart-card">
+          <div class="card-header">
+            <h3>Ventes Hebdomadaires</h3>
+            <select class="filter-dropdown">
+              <option>Last 7 days</option>
+              <option>Last 30 days</option>
+              <option>This month</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <div class="sales-chart">
+              <!-- Lignes de grille -->
+              <div class="grid-lines">
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+                <div class="grid-line"></div>
+              </div>
+              
+              <!-- Barres des ventes -->
+              <div class="bars-container">
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 65%"></div>
+                    <div class="bar-target" style="height: 75%"></div>
+                  </div>
+                  <span class="bar-label">Lun</span>
+                  <span class="bar-value">6.5k€</span>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 82%"></div>
+                    <div class="bar-target" style="height: 70%"></div>
+                  </div>
+                  <span class="bar-label">Mar</span>
+                  <span class="bar-value">8.2k€</span>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 45%"></div>
+                    <div class="bar-target" style="height: 60%"></div>
+                  </div>
+                  <span class="bar-label">Mer</span>
+                  <span class="bar-value">4.5k€</span>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 91%"></div>
+                    <div class="bar-target" style="height: 80%"></div>
+                  </div>
+                  <span class="bar-label">Jeu</span>
+                  <span class="bar-value">9.1k€</span>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 73%"></div>
+                    <div class="bar-target" style="height: 65%"></div>
+                  </div>
+                  <span class="bar-label">Ven</span>
+                  <span class="bar-value">7.3k€</span>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 56%"></div>
+                    <div class="bar-target" style="height: 50%"></div>
+                  </div>
+                  <span class="bar-label">Sam</span>
+                  <span class="bar-value">5.6k€</span>
+                </div>
+                <div class="bar-group">
+                  <div class="bar-wrapper">
+                    <div class="bar-real" style="height: 38%"></div>
+                    <div class="bar-target" style="height: 40%"></div>
+                  </div>
+                  <span class="bar-label">Dim</span>
+                  <span class="bar-value">3.8k€</span>
+                </div>
+              </div>
+              
+              <!-- Légende -->
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <span class="legend-dot real"></span>
+                  <span>Ventes réelles</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-dot target"></span>
+                  <span>Objectif</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Alerts Sidebar -->
+        <div class="sidebar-widgets">
+          <div class="widget-card alerts">
+            <div class="card-header">
+              <h3>Stock Alerts</h3>
+              <span class="alert-count">2</span>
+            </div>
+            <div class="alert-list">
+              <div class="alert-item critical">
+                <div class="alert-info">
+                  <span class="alert-name">Oil Filter X-200</span>
+                  <span class="alert-stock">2 left</span>
+                </div>
+                <span class="alert-badge red">Critical</span>
+              </div>
+              <div class="alert-item warning">
+                <div class="alert-info">
+                  <span class="alert-name">Brake Pads Brembo</span>
+                  <span class="alert-stock">5 left</span>
+                </div>
+                <span class="alert-badge orange">Low</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT ORDERS TABLE -->
+      <div class="table-card">
+        <div class="card-header">
+          <h3>Recent Orders</h3>
+          <button class="btn-view-all">View All</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="order-id">#ORD-001</td>
+                <td class="customer">
+                  <div class="avatar">JD</div>
+                  <span>John Doe</span>
+                </td>
+                <td>Brake Disc Brembo</td>
+                <td class="total">245.00€</td>
+                <td><span class="status shipped">Shipped</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#ORD-002</td>
+                <td class="customer">
+                  <div class="avatar">AS</div>
+                  <span>Alice Smith</span>
+                </td>
+                <td>Oil Filter X-200</td>
+                <td class="total">89.50€</td>
+                <td><span class="status pending">Pending</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#ORD-003</td>
+                <td class="customer">
+                  <div class="avatar">MK</div>
+                  <span>Mike King</span>
+                </td>
+                <td>Spark Plug NGK</td>
+                <td class="total">156.00€</td>
+                <td><span class="status validated">Validated</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#ORD-004</td>
+                <td class="customer">
+                  <div class="avatar">SJ</div>
+                  <span>Sarah Jones</span>
+                </td>
+                <td>Air Filter Bosch</td>
+                <td class="total">312.00€</td>
+                <td><span class="status shipped">Shipped</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#ORD-005</td>
+                <td class="customer">
+                  <div class="avatar">RL</div>
+                  <span>Robert Lee</span>
+                </td>
+                <td>Brake Pads Brembo</td>
+                <td class="total">178.00€</td>
+                <td><span class="status pending">Pending</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

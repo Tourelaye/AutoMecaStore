@@ -1,0 +1,107 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <app-header></app-header>
+
+  <main class="content">
+    <div class="page-header">
+      <div>
+        <h2>Categories de Produits</h2>
+        <p>Organisez vos produits par categories</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Rechercher une categorie..." [(ngModel)]="searchTerm" (keyup.enter)="searchCategories()">
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn-filter"><i class="bi bi-funnel"></i> Filtrer</button>
+        <button class="btn-add" (click)="openAddModal()">
+          <i class="bi bi-plus-lg"></i> Nouvelle categorie
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <!-- Loading -->
+      <div class="loading-state" *ngIf="loading">
+        <i class="bi bi-arrow-repeat spinning"></i>
+        <p>Chargement des categories...</p>
+      </div>
+
+      <!-- Grid -->
+      <div class="categories-grid" *ngIf="!loading && categories.length > 0">
+        <div class="category-card" *ngFor="let categorie of categories">
+          <div class="category-icon">
+            <i class="bi" [ngClass]="categorie.icone"></i>
+          </div>
+          <div class="category-info">
+            <h4>{{ categorie.nom }}</h4>
+            <p>{{ categorie.description }}</p>
+          </div>
+          <div class="category-stats">
+            <span class="products-count">{{ categorie.nombre_produits }} produits</span>
+            <span class="badge" [ngClass]="getStatutClass(categorie.etat)">{{ categorie.etat }}</span>
+          </div>
+          <div class="category-actions">
+            <button class="btn-edit" (click)="openEditModal(categorie)"><i class="bi bi-pencil"></i></button>
+            <button class="btn-delete" (click)="deleteCategorie(categorie)"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty -->
+      <div class="empty-state" *ngIf="!loading && categories.length === 0">
+        <i class="bi bi-folder-x"></i>
+        <p>Aucune categorie trouvee</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingCategorie ? 'Modifier' : 'Nouvelle' }} categorie</h3>
+      <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="saveCategorie()">
+        <div class="form-group">
+          <label>Nom de la categorie</label>
+          <input type="text" [(ngModel)]="categorieForm.nom" name="nom" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="categorieForm.description" name="description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Icone</label>
+          <select [(ngModel)]="categorieForm.icone" name="icone">
+            <option *ngFor="let icone of iconesDisponibles" [value]="icone.value">{{ icone.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Etat</label>
+          <select [(ngModel)]="categorieForm.etat" name="etat" required>
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> {{ editingCategorie ? 'Mettre a jour' : 'Enregistrer' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" [class.success]="notification?.type === 'success'" [class.error]="notification?.type === 'error'" *ngIf="notification">
+  <i class="bi" [class.bi-check-circle-fill]="notification?.type === 'success'" [class.bi-exclamation-circle-fill]="notification?.type === 'error'"></i>
+  {{ notification?.message }}
+</div>

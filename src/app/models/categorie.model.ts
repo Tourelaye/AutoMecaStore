@@ -5,5 +5,6 @@ export interface Categorie{
     datecreation: string;
     datemodification: string;
     etat: string; 
-    categorieid: number | null ; 
+    categorieid: number | null;
+    nombre_produits?: number;
 }

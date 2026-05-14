@@ -35,7 +35,7 @@ export class AuthInterceptor implements HttpInterceptor {
         // Si 401 (token expiré), on déconnecte
         if (error.status === 401) {
           this.authService.logout();
-          this.router.navigate(['/login']);
+          this.router.navigate(['/admin/login']);
         }
         return throwError(() => error);
       })

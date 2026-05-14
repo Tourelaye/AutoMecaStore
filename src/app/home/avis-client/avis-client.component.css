@@ -1,158 +1,416 @@
-/* ICON */
-.icon-user {
-    margin-right: 5px;
-    font-size: 16px; 
-    display: inline-block;
-    animation: floatIcon 2s ease-in-out infinite;
+/* ================================================
+   AVIS CLIENTS — AutoMecaStore
+   ================================================ */
+
+.avis-section {
+  padding: 80px 20px;
+  background: #f8fafc;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* ANIMATION HAUT/BAS */
+/* ---------------------------------
+   FOND DÉCORATIF
+--------------------------------- */
+.bg-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.35;
+  animation: orbFloat ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, #bfdbfe, transparent);
+  top: -100px; left: -80px;
+  animation-duration: 12s;
+}
+
+.orb-2 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #ddd6fe, transparent);
+  bottom: -60px; right: -60px;
+  animation-duration: 16s; animation-delay: 4s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+
+.grid-lines {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* ---------------------------------
+   HEADER
+--------------------------------- */
+.section-header {
+  text-align: center;
+  margin-bottom: 56px;
+  position: relative;
+  z-index: 1;
+  animation: fadeDown 0.7s ease both;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 99px;
+  border: 1px solid #bfdbfe;
+  margin-bottom: 18px;
+}
+
+.tag-icon {
+  animation: floatIcon 2.5s ease-in-out infinite;
+}
+
 @keyframes floatIcon {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0px); }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
 }
 
-.avisClient {
-    padding: 60px 20px;
-    background-color: #f9fafc;
+.section-title {
+  font-size: clamp(26px, 4vw, 38px);
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 14px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
 }
 
-/* HEADER */
-.header {
-    text-align: center;
-    margin-bottom: 40px;
+.highlight {
+  position: relative;
+  color: #2563eb;
+  display: inline-block;
 }
 
-.client {
-    color: #2563eb;
-    font-size: 14px;
-    font-weight: bold;
+.highlight::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: -4px;
+  width: 100%; height: 4px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  border-radius: 99px;
+  animation: lineGrow 0.8s ease 0.5s both;
 }
 
-h3 {
-    font-size: 28px;
-    margin: 10px 0;
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
-.p {
-    color: gray;
-    font-size: 14px;
+.section-sub {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0 0 36px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.65;
 }
 
-/* CARDS CONTAINER */
-.cards {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
+.section-sub strong { color: #0f172a; }
+
+/* ---------------------------------
+   STATS BAND
+--------------------------------- */
+.stats-band {
+  display: inline-flex;
+  gap: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  animation: fadeUp 0.7s ease 0.3s both;
 }
 
-/* CARD */
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    width: 250px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: 0.3s;
+.stat-item {
+  padding: 14px 28px;
+  border-right: 1px solid #e2e8f0;
+  text-align: center;
+  transition: background 0.2s;
 }
 
-/* HOVER EFFECT 🔥 */
-.card:hover {
-    transform: translateY(-5px);
+.stat-item:last-child { border-right: none; }
+.stat-item:hover { background: #f8faff; }
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: #2563eb;
+  line-height: 1.2;
 }
 
-/* STARS */
-.etoile {
-    color: #facc15;
-    margin-bottom: 10px;
+.stat-lbl {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
 }
 
-/* TEXT */
-.avis {
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 20px;
+/* ---------------------------------
+   CARDS GRID
+--------------------------------- */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
-/* USER */
-.user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* ---------------------------------
+   CARD
+--------------------------------- */
+.avis-card {
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  border: 1.5px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+
+  /* Animation à l'entrée via IntersectionObserver */
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.6s ease var(--delay, 0s),
+    transform 0.6s ease var(--delay, 0s),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 
-/* AVATAR */
+.avis-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.avis-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  border-color: var(--color, #2563eb);
+}
+
+/* Lueur colorée en haut de la card */
+.card-glow {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--color, #2563eb);
+  border-radius: 18px 18px 0 0;
+  transform: scaleX(0);
+  transition: transform 0.35s ease;
+  transform-origin: left;
+}
+
+.avis-card:hover .card-glow { transform: scaleX(1); }
+
+/* QUOTE */
+.quote-icon {
+  position: absolute;
+  top: 16px; right: 20px;
+  font-size: 32px;
+  color: var(--color, #2563eb);
+  opacity: 0.12;
+  line-height: 1;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.avis-card:hover .quote-icon { opacity: 0.25; transform: scale(1.15) rotate(-5deg); }
+
+/* ÉTOILES */
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.stars i {
+  color: #facc15;
+  font-size: 15px;
+  animation: starPop 0.5s ease both;
+}
+
+@keyframes starPop {
+  from { opacity: 0; transform: scale(0.5) rotate(-15deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.avis-card:hover .stars i {
+  animation: starBounce 0.4s ease;
+}
+
+@keyframes starBounce {
+  0%, 100% { transform: translateY(0); }
+  40%       { transform: translateY(-4px); }
+}
+
+.note-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  margin-left: 4px;
+}
+
+/* TEXTE AVIS */
+.avis-texte {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* PRODUIT TAG */
+.produit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f9ff;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid #bae6fd;
+  margin-bottom: 18px;
+}
+
+/* USER ROW */
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
 .avatar {
-    width: 40px;
-    height: 40px;
-    background: #3b82f6;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--color, #2563eb);
+  color: white; font-size: 16px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color, #2563eb) 40%, transparent);
+  transition: transform 0.3s;
 }
 
-/* USER TEXT */
-.user h4 {
-    margin: 0;
-    font-size: 14px;
+.avis-card:hover .avatar { transform: scale(1.1) rotate(3deg); }
+
+.user-info { flex: 1; }
+.user-info strong { display: block; font-size: 14px; font-weight: 700; color: #0f172a; }
+.user-info span   {
+  font-size: 12px; color: #94a3b8;
+  display: flex; align-items: center; gap: 4px; margin-top: 1px;
+}
+.user-info span i { font-size: 10px; }
+
+.avis-date {
+  font-size: 11px; color: #cbd5e1; font-weight: 500;
+  flex-shrink: 0;
 }
 
-.user span {
-    font-size: 12px;
-    color: gray;
+/* ---------------------------------
+   CTA
+--------------------------------- */
+.cta-row {
+  text-align: center;
+  margin-top: 52px;
+  position: relative; z-index: 1;
+  animation: fadeUp 0.7s ease 0.6s both;
 }
 
-/* ANIMATION CARDS */
-.card {
-    opacity: 0;
-    transform: translateY(30px);
-    animation: fadeUp 0.8s ease forwards;
+.cta-row p { font-size: 15px; color: #64748b; margin-bottom: 16px; }
+
+.btn-avis {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  border: none;
+  padding: 13px 28px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 6px 20px rgba(37,99,235,0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-/* DELAY POUR CHAQUE CARD */
-.card:nth-child(1) { animation-delay: 0.2s; }
-.card:nth-child(2) { animation-delay: 0.4s; }
-.card:nth-child(3) { animation-delay: 0.6s; }
-.card:nth-child(4) { animation-delay: 0.8s; }
+.btn-avis::before {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: 0.5s;
+}
 
+.btn-avis:hover::before { left: 100%; }
+
+.btn-avis:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(37,99,235,0.4);
+}
+
+/* ---------------------------------
+   ANIMATIONS UTILITAIRES
+--------------------------------- */
 @keyframes fadeUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.card:hover {
-    transform: translateY(-8px) scale(1.05);
-    border: 1px solid #2563eb;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+/* ---------------------------------
+   RESPONSIVE
+--------------------------------- */
+@media (max-width: 768px) {
+  .avis-section { padding: 60px 16px; }
+  .section-title { font-size: 24px; }
+  .stats-band { flex-direction: column; gap: 0; border-radius: 14px; }
+  .stat-item { border-right: none; border-bottom: 1px solid #e2e8f0; }
+  .stat-item:last-child { border-bottom: none; }
+  .cards-grid { grid-template-columns: 1fr; gap: 16px; }
+  .avis-card { padding: 22px 20px; }
 }
 
-.etoile i {
-    transition: 0.3s;
-}
-
-
-.card:hover .etoile i {
-    transform: scale(1.2);
-}
-
-.header {
-    animation: fadeIn 1s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@media (max-width: 480px) {
+  .section-sub { font-size: 14px; }
+  .stats-band  { width: 100%; }
 }
