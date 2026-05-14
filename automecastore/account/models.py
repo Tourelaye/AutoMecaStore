@@ -34,7 +34,11 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, max_length=150)
     adresse = models.TextField(blank=True, null=True)
     telephone = models.CharField(max_length=20, blank=True, null=True)
-    role = models.CharField(max_length=30, blank=True, null=True)
+    ROLE_CHOICES = [
+        ('client', 'Client'),
+        ('admin', 'Administrateur'),
+    ]
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='client')
 
     # Champs pour Django
     is_active = models.BooleanField(default=True)

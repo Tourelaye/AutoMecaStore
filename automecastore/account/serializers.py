@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Utilisateur, Client 
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from orders.models import Commande
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -20,10 +21,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
+        # Assigner explicitement le rôle 'client' aux nouvelles inscriptions
+        validated_data['role'] = 'client'
         user = Utilisateur.objects.create_user(
             password=password,
             **validated_data
         )
+        # Créer le profil client uniquement pour les vrais clients
         Client.objects.create(user=user)
         return user
     
@@ -98,3 +102,61 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['prenom'] = user.prenom
         token['user_id'] = user.id
         return token
+
+class ClientSerializer(serializers.ModelSerializer):
+    """Serializer pour les clients avec informations complètes pour l'admin"""
+    nom_complet = serializers.SerializerMethodField()
+    nombre_commandes = serializers.SerializerMethodField()
+    statut = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Client
+        fields = [
+            'user',
+            'date_inscription',
+            'point_fidelite',
+            'mode_paiement_favoris',
+            'nom_complet',
+            'nombre_commandes',
+            'statut'
+        ]
+    
+    def get_nom_complet(self, obj):
+        return f"{obj.user.nom} {obj.user.prenom}"
+    
+    def get_nombre_commandes(self, obj):
+        return Commande.objects.filter(client=obj).count()
+    
+    def get_statut(self, obj):
+        return 'actif' if obj.user.is_active else 'inactif'
+
+class ClientDetailSerializer(serializers.ModelSerializer):
+    """Serializer détaillé pour un client spécifique"""
+    user = UtilisateurSerializer(read_only=True)
+    nom_complet = serializers.SerializerMethodField()
+    nombre_commandes = serializers.SerializerMethodField()
+    statut = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Client
+        fields = [
+            'user',
+            'date_inscription',
+            'point_fidelite',
+            'mode_paiement_favoris',
+            'note_livreur',
+            'livreur_id',
+            'administrateur_id',
+            'nom_complet',
+            'nombre_commandes',
+            'statut'
+        ]
+    
+    def get_nom_complet(self, obj):
+        return f"{obj.user.nom} {obj.user.prenom}"
+    
+    def get_nombre_commandes(self, obj):
+        return Commande.objects.filter(client=obj).count()
+    
+    def get_statut(self, obj):
+        return 'actif' if obj.user.is_active else 'inactif'

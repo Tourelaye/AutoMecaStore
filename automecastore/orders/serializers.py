@@ -1,23 +1,19 @@
 from rest_framework import serializers
 from .models import Commande, LigneCommande, Panier, PanierItem
 from catalog.serializers import ProduitSerializer
+from catalog.models import Produit
 
 # -----------------------------
 # LigneCommande
 # -----------------------------
 class LigneCommandeSerializer(serializers.ModelSerializer):
     produit = ProduitSerializer(read_only=True)
-    produit_id = serializers.PrimaryKeyRelatedField(queryset=None, source='produit', write_only=True)
+    produit_id = serializers.PrimaryKeyRelatedField(queryset=Produit.objects.all(), source='produit', write_only=True)
 
     class Meta:
         model = LigneCommande
         fields = ['id', 'commande', 'produit', 'produit_id', 'quantite', 'prix_unitaire', 'sous_total']
         read_only_fields = ['prix_unitaire', 'sous_total']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Dynamique pour éviter erreur circular import
-        self.fields['produit_id'].queryset = ProduitSerializer.Meta.model.objects.all()
 
     def validate_quantite(self, value):
         if value <= 0:
@@ -52,15 +48,11 @@ class CommandeSerializer(serializers.ModelSerializer):
 # -----------------------------
 class PanierItemSerializer(serializers.ModelSerializer):
     produit = ProduitSerializer(read_only=True)
-    produit_id = serializers.PrimaryKeyRelatedField(queryset=None, source='produit', write_only=True)
+    produit_id = serializers.PrimaryKeyRelatedField(queryset=Produit.objects.all(), source='produit', write_only=True)
 
     class Meta:
         model = PanierItem
         fields = ['id', 'panier', 'produit', 'produit_id', 'quantite']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['produit_id'].queryset = ProduitSerializer.Meta.model.objects.all()
 
 
 class PanierSerializer(serializers.ModelSerializer):
