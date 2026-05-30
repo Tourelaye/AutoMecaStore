@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { CommandeService } from './commande.service';
 import { NotificationService } from './notification.service';
+import { MonCompteService } from './mon-compte.service';
 import { Produit } from '../../models/produit.model';
 import { PanierItem } from '../../models/panier.model';
 
@@ -12,7 +14,7 @@ import { PanierItem } from '../../models/panier.model';
 })
 export class PanierService {
 
-  private apiUrl = 'http://localhost:8000/api';
+  private apiUrl = 'http://127.0.0.1:8000/account';
 
   private itemsSubject = new BehaviorSubject<PanierItem[]>([]);
   public items$ = this.itemsSubject.asObservable();
@@ -24,7 +26,8 @@ export class PanierService {
     private http: HttpClient,
     private authService: AuthService,
     private commandeService: CommandeService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private monCompteService: MonCompteService
   ) {
     this.loadFromStorage();
   }
@@ -63,7 +66,33 @@ export class PanierService {
   // ADD PRODUCT
   // =========================
   ajouterAuPanier(item: PanierItem): void {
+    console.log('🛒 Ajout au panier:', item);
+    console.log('🔑 Utilisateur authentifié:', this.authService.isLoggedIn());
+    
+    // Sync with backend if user is authenticated
+    if (this.authService.isLoggedIn()) {
+      this.ajouterAuPanierBackend(item.produit.id, item.quantite).subscribe({
+        next: (response) => {
+          console.log('✅ Backend response:', response);
+          if (response === null) {
+            // Backend failed, fallback to localStorage
+            console.log('⚠️ Backend failed, using localStorage fallback');
+            this.ajouterAuPanierLocal(item);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Backend error, using localStorage fallback:', error);
+          this.ajouterAuPanierLocal(item);
+        }
+      });
+    } else {
+      // Fallback to localStorage for non-authenticated users
+      console.log('📦 Using localStorage (not authenticated)');
+      this.ajouterAuPanierLocal(item);
+    }
+  }
 
+  private ajouterAuPanierLocal(item: PanierItem): void {
     const items = [...this.items];
 
     const index = items.findIndex(i => i.produit.id === item.produit.id);
@@ -78,8 +107,30 @@ export class PanierService {
     }
 
     this.save(items);
-
     this.lastAddedSubject.next(item.nom);
+  }
+
+  private ajouterAuPanierBackend(produitId: number, quantite: number): Observable<any> {
+    const headers = this.getHeaders();
+    
+    return this.http.post(`${this.monCompteService['API_URL']}/panier/add/`, 
+      { produit_id: produitId, quantite: quantite }, 
+      { headers }
+    ).pipe(
+      tap(() => {
+        // Refresh cart from backend after adding
+        this.monCompteService.getPanier().subscribe();
+        this.lastAddedSubject.next('Produit ajouté');
+      }),
+      catchError(error => {
+        console.error('Erreur lors de l\'ajout au panier (backend):', error);
+        // Fallback to localStorage on error
+        console.log('Fallback vers localStorage pour l\'ajout au panier');
+        // We need to fetch the product details first for localStorage fallback
+        // For now, just return null - the UI should handle this
+        return of(null);
+      })
+    );
   }
 
   // =========================
@@ -102,40 +153,74 @@ export class PanierService {
   // QUANTITE +
   // =========================
   augmenterQuantite(item: PanierItem) {
-    const items = this.items.map(i =>
-      i.produit.id === item.produit.id
-        ? { ...i, quantite: i.quantite + 1 }
-        : i
-    );
-    this.save(items);
+    if (this.authService.isLoggedIn()) {
+      // Sync with backend
+      if (item.id !== undefined) {
+        this.monCompteService.mettreAJourQuantite(item.id, (item.quantite || 0) + 1).subscribe();
+      }
+    } else {
+      // Local storage fallback
+      const items = this.items.map(i =>
+        i.produit.id === item.produit.id
+          ? { ...i, quantite: i.quantite + 1 }
+          : i
+      );
+      this.save(items);
+    }
   }
 
   // =========================
   // QUANTITE -
   // =========================
   diminuerQuantite(item: PanierItem) {
-    const items = this.items.map(i => {
-      if (i.produit.id === item.produit.id) {
-        const q = i.quantite - 1;
-        return q > 0 ? { ...i, quantite: q } : i;
+    if (this.authService.isLoggedIn()) {
+      // Sync with backend
+      if (item.id !== undefined && item.quantite > 1) {
+        this.monCompteService.mettreAJourQuantite(item.id, item.quantite - 1).subscribe();
       }
-      return i;
-    });
-
-    this.save(items);
+    } else {
+      // Local storage fallback
+      const items = this.items.map(i => {
+        if (i.produit.id === item.produit.id) {
+          const q = i.quantite - 1;
+          return q > 0 ? { ...i, quantite: q } : i;
+        }
+        return i;
+      });
+      this.save(items);
+    }
   }
 
   // =========================
   // DELETE ITEM
   // =========================
   supprimerLigne(item: PanierItem) {
-    const items = this.items.filter(i => i.produit.id !== item.produit.id);
-    this.save(items);
+    if (this.authService.isLoggedIn()) {
+      // Sync with backend
+      if (item.id !== undefined) {
+        this.monCompteService.supprimerDuPanier(item.id).subscribe();
+      }
+    } else {
+      // Local storage fallback
+      const items = this.items.filter(i => i.produit.id !== item.produit.id);
+      this.save(items);
+    }
   }
 
   supprimerDuPanier(produitId: number): void {
-    const items = this.items.filter(i => i.produit.id !== produitId);
-    this.save(items);
+    if (this.authService.isLoggedIn()) {
+      // Need to find the item ID first from backend cart
+      this.monCompteService.getPanier().subscribe(panier => {
+        const item = panier.items.find(i => i.produit_id === produitId);
+        if (item) {
+          this.monCompteService.supprimerDuPanier(item.id).subscribe();
+        }
+      });
+    } else {
+      // Local storage fallback
+      const items = this.items.filter(i => i.produit.id !== produitId);
+      this.save(items);
+    }
   }
 
   // =========================

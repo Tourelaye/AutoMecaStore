@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { PanierService } from '../../../../../core/services/panier.service';
 import { ProduitService } from '../../../../../core/services/produit.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
+import { MonCompteService } from '../../../../../core/services/mon-compte.service';
 import { Produit } from '../../../../../models/produit.model';
 
 export interface AutoProduit {
@@ -70,7 +71,8 @@ export class AutoListComponent implements OnInit {
     private router: Router,
     private panierService: PanierService,
     private produitService: ProduitService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private monCompteService: MonCompteService
   ) {}
 
   ngOnInit(): void {
@@ -78,17 +80,18 @@ export class AutoListComponent implements OnInit {
     // CHARGEMENT DYNAMIQUE DES PRODUITS DEPUIS L'API
     // -------------------------------------------------------
     this.isLoading = true;
-    this.produitService.getProduits().subscribe({
+    // Filtrer par catégorie Automobile (ID: 1)
+    this.produitService.getProduits({ categorie: 1 }).subscribe({
       next: (data: any) => {
         console.log('Produits chargés depuis API:', data);
         const list = Array.isArray(data) ? data : data.results || data;
-        
+
         this.tousLesProduits = list.map((p: any) => ({
           id: p.id,
           nom: p.nom,
           marque: p.marque ?? 'AutoMecaStore',
           description: p.description || 'Description du produit',
-          image: p.image ?? null,
+          image: p.image ? `http://localhost:8000${p.image}` : null,
           prixNouveau: parseFloat(p.prix_promo ?? p.prix),
           prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
           discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
@@ -98,9 +101,9 @@ export class AutoListComponent implements OnInit {
           livraison: true,
           isFavori: false,
           isNew: false,
-          categorie: this.mapCategorieToAuto(p.categorie)
+          categorie: 'freinage' // Default subcategory for auto products
         }));
-        
+
         this.appliquerFiltres();
         this.isLoading = false;
       },
@@ -253,7 +256,38 @@ export class AutoListComponent implements OnInit {
 
   toggleFavori(produit: AutoProduit, event: Event): void {
     event.stopPropagation();
-    produit.isFavori = !produit.isFavori;
+    
+    if (produit.isFavori) {
+      // Retirer des favoris
+      this.monCompteService.retirerFavori(produit.id).subscribe({
+        next: () => {
+          produit.isFavori = false;
+          this.notificationService.info(
+            `${produit.nom} retiré des favoris`,
+            'Favoris'
+          );
+        },
+        error: (err) => {
+          console.error('Erreur lors du retrait des favoris:', err);
+          this.notificationService.error('Erreur lors du retrait des favoris', 'Erreur');
+        }
+      });
+    } else {
+      // Ajouter aux favoris
+      this.monCompteService.ajouterFavori(produit.id).subscribe({
+        next: () => {
+          produit.isFavori = true;
+          this.notificationService.success(
+            `${produit.nom} ajouté aux favoris`,
+            'Favoris'
+          );
+        },
+        error: (err) => {
+          console.error('Erreur lors de l\'ajout aux favoris:', err);
+          this.notificationService.error('Erreur lors de l\'ajout aux favoris', 'Erreur');
+        }
+      });
+    }
   }
 
   goToProduit(id: number): void {

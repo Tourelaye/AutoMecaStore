@@ -1,61 +1,83 @@
 <section class="why-us">
 
+  <!-- FOND DÉCO -->
+  <div class="bg-deco">
+    <div class="deco-orb orb-1"></div>
+    <div class="deco-orb orb-2"></div>
+    <div class="deco-grid"></div>
+  </div>
+
   <div class="container">
 
-    <h2 class="title">Pourquoi choisir AutoMecaStore</h2>
+    <!-- HEADER -->
+    <div class="section-header">
+      <div class="header-tag">
+        <i class="bi bi-star-fill"></i>
+        POURQUOI NOUS CHOISIR
+      </div>
+      <h2 class="section-title">
+        La référence en pièces <span class="highlight">détachées</span>
+      </h2>
+      <p class="section-desc">
+        AutoMecaStore vous garantit qualité, rapidité et sécurité pour tous vos achats
+        de pièces auto, moto et vélo au Sénégal.
+      </p>
+    </div>
 
-    <div class="features">
+    <!-- FEATURES GRID -->
+    <div class="features-grid">
+      <div
+        class="feature-card"
+        *ngFor="let f of features; let i = index"
+        [style.--delay]="(i * 0.1) + 's'"
+        [style.--color]="f.couleur"
+        [style.--bg]="f.bgColor"
+      >
+        <!-- GLOW -->
+        <div class="card-glow"></div>
 
-      <!-- Paiement sécurisé -->
-      <div class="feature-card">
+        <!-- NUMÉRO -->
+        <div class="card-number">0{{ i + 1 }}</div>
 
-        <div class="icon secure">
-          <i class="fa-solid fa-shield"></i>
+        <!-- ICÔNE -->
+        <div class="icon-wrap">
+          <div class="icon-bg">
+            <i class="bi {{ f.icon }}" [style.color]="f.couleur"></i>
+          </div>
+          <div class="icon-ring"></div>
         </div>
 
-        <h3>Paiement Sécurisé</h3>
-        <p>100% protégé</p>
+        <!-- TEXTE -->
+        <h3>{{ f.titre }}</h3>
+        <p class="card-desc">{{ f.desc }}</p>
+        <p class="card-detail">{{ f.detail }}</p>
 
-      </div>
-
-      <!-- Livraison -->
-      <div class="feature-card">
-
-        <div class="icon delivery">
-          <i class="fa-solid fa-truck-fast"></i>
+        <!-- FLÈCHE -->
+        <div class="card-arrow">
+          <i class="bi bi-arrow-right"></i>
         </div>
 
-        <h3>Livraison Express</h3>
-        <p>24-48h</p>
-
       </div>
+    </div>
 
-      <!-- Support -->
-      <div class="feature-card">
-
-        <div class="icon support">
-          <i class="fa-regular fa-clock"></i>
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+      <div
+        class="stat-item"
+        *ngFor="let s of stats; let i = index"
+        [style.--delay]="(i * 0.1) + 's'"
+      >
+        <div class="stat-icon-wrap">
+          <i class="bi {{ s.icon }}"></i>
         </div>
-
-        <h3>Support 24/7</h3>
-        <p>Service client</p>
-
-      </div>
-
-      <!-- Qualité -->
-      <div class="feature-card">
-
-        <div class="icon quality">
-          <i class="fa-regular fa-thumbs-up"></i>
+        <div class="stat-body">
+          <div class="stat-valeur">
+            <span class="counter" [attr.data-target]="s.valeur">0</span>{{ s.suffix }}
+          </div>
+          <div class="stat-label">{{ s.label }}</div>
         </div>
-
-        <h3>Garantie Qualité</h3>
-        <p>Pièces d'origine</p>
-
       </div>
-
     </div>
 
   </div>
-
 </section>

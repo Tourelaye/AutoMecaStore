@@ -90,9 +90,8 @@ export class AuthService {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    const user = this.utilisateurSubject.value;
     return this.http.patch<Utilisateur>(
-      `${this.apiUrl}/me/${user?.id}/`,
+      `${this.apiUrl}/me/`,
       data,
       { headers }
     ).pipe(

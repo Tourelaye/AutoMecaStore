@@ -1,20 +1,81 @@
-<section class="search-populaire">
+<section class="recherche-section">
 
-    <p class="top-title">🔎 RECHERCHES POPULAIRES</p>
-    <h2>Que recherchent les autres?</h2>
-    <p class="desc">Les pièces les plus demandées en ce moment</p>
+  <!-- FOND DÉCO -->
+  <div class="bg-deco">
+    <div class="deco-orb orb-1"></div>
+    <div class="deco-orb orb-2"></div>
+    <div class="deco-grid"></div>
+  </div>
 
-    <div class="search-list">
+  <!-- HEADER -->
+  <div class="section-header">
+    <div class="header-tag">
+      <i class="bi bi-search"></i>
+      RECHERCHES POPULAIRES
+    </div>
+    <h2 class="section-title">
+      Que recherchent les <span class="highlight">autres</span> ?
+    </h2>
+    <p class="section-desc">
+      Les pièces les plus demandées en ce moment par notre communauté
+    </p>
 
-        <div class="search-item">Plaquettes frein <span>→</span></div>
-        <div class="search-item">Batterie auto <span>→</span></div>
-        <div class="search-item">Filtre à air <span>→</span></div>
-        <div class="search-item">Pneus Michelin <span>→</span></div>
-        <div class="search-item">Amortisseurs <span>→</span></div>
-        <div class="search-item">Essuie-glaces <span>→</span></div>
-        <div class="search-item">Embrayage <span>→</span></div>
-        <div class="search-item">Courroie de distribution <span>→</span></div>
+    <!-- FILTRES RAPIDES -->
+    <div class="quick-filters">
+      <button
+        *ngFor="let t of tendances"
+        class="filter-pill"
+        (click)="goToCat(t.route)"
+      >
+        {{ t.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- GRID RECHERCHES -->
+  <div class="search-grid">
+    <div
+      class="search-card"
+      *ngFor="let r of recherches; let i = index"
+      [style.--delay]="(i * 0.08) + 's'"
+      (click)="goTo(r)"
+    >
+      <div class="card-icon">
+        <i class="bi {{ r.icon }}"></i>
+      </div>
+
+      <div class="card-body">
+        <span class="card-label">{{ r.label }}</span>
+        <span class="card-count">
+          <i class="bi bi-graph-up-arrow"></i>
+          {{ r.count }} recherches
+        </span>
+      </div>
+
+      <div
+        class="card-tag"
+        *ngIf="r.tag"
+        [style.background]="r.tagColor + '18'"
+        [style.color]="r.tagColor"
+        [style.border-color]="r.tagColor + '40'"
+      >
+        {{ r.tag }}
+      </div>
+
+      <div class="card-arrow">
+        <i class="bi bi-arrow-right"></i>
+      </div>
 
     </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="search-cta">
+    <p>Vous ne trouvez pas ce que vous cherchez ?</p>
+    <button class="btn-search" (click)="goToCat('/produits')">
+      <i class="bi bi-search"></i>
+      Recherche avancée
+    </button>
+  </div>
 
 </section>

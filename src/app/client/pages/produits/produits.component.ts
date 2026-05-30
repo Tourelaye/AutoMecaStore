@@ -1,34 +1,60 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PanierService } from '../../../core/services/panier.service';
 import { ProduitService, Produit } from '../../../core/services/produit.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { MonCompteService } from '../../../core/services/mon-compte.service';
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 import {
   trigger,
   transition,
   style,
-  animate
+  animate,
+  query,
+  stagger
 } from '@angular/animations';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-produits',
   standalone: true,
-  imports: [CommonModule, ScrollRevealDirective],
+  imports: [CommonModule, DecimalPipe, TitleCasePipe, ScrollRevealDirective],
   templateUrl: './produits.component.html',
   styleUrls: ['./produits.component.css', '../../../shared/styles/scroll-reveal.css'],
   animations: [
+    // Transition de tabs : entrée fluide par le bas
     trigger('fadeSlide', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(15px)' }),
-        animate('300ms ease-out',
+        style({ opacity: 0, transform: 'translateY(12px)' }),
+        animate('320ms cubic-bezier(0.22, 1, 0.36, 1)',
           style({ opacity: 1, transform: 'translateY(0)' }))
       ]),
       transition(':leave', [
-        animate('200ms ease-in',
-          style({ opacity: 0, transform: 'translateY(10px)' }))
+        animate('180ms ease-in',
+          style({ opacity: 0, transform: 'translateY(6px)' }))
+      ])
+    ]),
+
+    // Entrée de la page produit
+    trigger('pageEnter', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('500ms 100ms cubic-bezier(0.22, 1, 0.36, 1)',
+          style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+
+    // Stagger pour les cartes produits similaires
+    trigger('listStagger', [
+      transition('* => *', [
+        query(':enter', [
+          style({ opacity: 0, transform: 'translateY(20px)' }),
+          stagger(80, [
+            animate('400ms cubic-bezier(0.22, 1, 0.36, 1)',
+              style({ opacity: 1, transform: 'translateY(0)' }))
+          ])
+        ], { optional: true })
       ])
     ])
   ]
@@ -43,6 +69,12 @@ export class ProduitsComponent implements OnInit, OnDestroy {
   isLoading = false;
   erreur = false;
   produitAjoute = false;
+  currentImageIndex: number = 0;
+  isWishlisted: boolean = false;
+  lightboxOpen: boolean = false;
+
+  /** Onglets disponibles */
+  readonly tabs = ['description', 'caracteristiques', 'compatibilite', 'avis'] as const;
 
   private routeSub: Subscription | null = null;
 
@@ -50,132 +82,103 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     private panierService: PanierService,
     private produitService: ProduitService,
     private notificationService: NotificationService,
+    private monCompteService: MonCompteService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    // Récupérer l'ID du produit depuis les queryParams
     this.routeSub = this.route.queryParams.subscribe(params => {
       const produitId = params['id'];
       if (produitId) {
-        this.loadProduit(parseInt(produitId));
+        this.loadProduit(parseInt(produitId, 10));
+        this.loadAllProduits();       // charger aussi les similaires
       } else {
-        // Si pas d'ID, charger tous les produits
         this.loadAllProduits();
       }
     });
   }
 
   ngOnDestroy(): void {
-    if (this.routeSub) {
-      this.routeSub.unsubscribe();
-    }
+    this.routeSub?.unsubscribe();
   }
 
-  // Charger un produit spécifique
+  // ── Chargements ───────────────────────────────────────────────────────────
+
   private loadProduit(id: number): void {
     this.isLoading = true;
     this.erreur = false;
-    
+
     this.produitService.getProduit(id).subscribe({
       next: (produit) => {
         this.produit = produit;
-        this.images = produit.image ? [produit.image] : ['https://via.placeholder.com/300'];
+        this.images = produit.image
+          ? [produit.image]
+          : ['https://via.placeholder.com/600x400?text=Produit'];
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Erreur lors du chargement du produit:', err);
+        console.error('Erreur produit:', err);
         this.erreur = true;
         this.isLoading = false;
-        // Charger les données mock en cas d'erreur
         this.loadMockProduit(id);
       }
     });
   }
 
-  // Charger tous les produits (page listing)
   private loadAllProduits(): void {
-    this.isLoading = true;
-    this.erreur = false;
-    
     this.produitService.getProduits().subscribe({
       next: (data) => {
-        const list = Array.isArray(data) ? data : data.results || data;
+        const list = Array.isArray(data) ? data : (data as any).results ?? data;
         this.produits = list;
-        this.isLoading = false;
+        // Si aucun produit unique sélectionné, activer le loading ici
+        if (!this.produit) this.isLoading = false;
       },
       error: (err) => {
-        console.error('Erreur lors du chargement des produits:', err);
-        this.erreur = true;
-        this.isLoading = false;
+        console.error('Erreur liste:', err);
         this.loadMockProduits();
+        if (!this.produit) this.isLoading = false;
       }
     });
   }
 
-  // Données mock pour le produit détaillé
+  // ── Mock data ─────────────────────────────────────────────────────────────
+
   private loadMockProduit(id: number): void {
     this.produit = {
-      id: id,
+      id,
       nom: 'Filtre à huile BMW E90',
-      description: 'Filtre de haute qualité pour moteur BMW E90/E91/E92/E93. Conçu pour offrir une filtration optimale et protéger votre moteur contre les impuretés.',
+      description:
+        'Filtre de haute qualité conçu spécialement pour les moteurs BMW série 3 (E90/E91/E92/E93). ' +
+        'Il assure une filtration optimale des impuretés et particules métalliques présentes dans l\'huile moteur. ' +
+        'Compatible avec les vidanges longue durée jusqu\'à 30 000 km.',
       prix: 12990,
       stock: 25,
-      image: 'https://via.placeholder.com/300',
+      image: 'https://via.placeholder.com/600x400?text=Filtre+Huile',
       categorie: null
     };
-    this.images = ['https://via.placeholder.com/300'];
+    this.images = [this.produit.image as string];
   }
 
-  // Données mock pour la liste
   private loadMockProduits(): void {
     this.produits = [
-      {
-        id: 1,
-        nom: 'Filtre à huile BMW E90',
-        description: 'Filtre de haute qualité pour moteur...',
-        prix: 12990,
-        stock: 25,
-        image: 'https://via.placeholder.com/150',
-        categorie: null
-      },
-      {
-        id: 2,
-        nom: 'Filtre à air BMW E90',
-        description: 'Filtre performant',
-        prix: 18990,
-        stock: 20,
-        image: 'https://via.placeholder.com/150',
-        categorie: null
-      },
-      {
-        id: 3,
-        nom: 'Filtre habitacle BMW E90',
-        description: 'Bonne qualité',
-        prix: 15990,
-        stock: 15,
-        image: 'https://via.placeholder.com/150',
-        categorie: null
-      },
-      {
-        id: 4,
-        nom: 'Filtre carburant BMW E90',
-        description: 'Top qualité',
-        prix: 22990,
-        stock: 0,
-        image: 'https://via.placeholder.com/150',
-        categorie: null
-      }
+      { id: 1, nom: 'Filtre à huile BMW E90',      description: 'Haute filtration',      prix: 12990, stock: 25, image: 'https://via.placeholder.com/400x300?text=Filtre+Huile',     categorie: null },
+      { id: 2, nom: 'Filtre à air BMW E90',         description: 'Filtre performant',      prix: 18990, stock: 20, image: 'https://via.placeholder.com/400x300?text=Filtre+Air',       categorie: null },
+      { id: 3, nom: 'Filtre habitacle BMW E90',     description: 'Qualité OEM',            prix: 15990, stock: 15, image: 'https://via.placeholder.com/400x300?text=Filtre+Habitacle', categorie: null },
+      { id: 4, nom: 'Filtre carburant BMW E90',     description: 'Top qualité',            prix: 22990, stock: 0,  image: 'https://via.placeholder.com/400x300?text=Filtre+Carburant', categorie: null }
     ];
   }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   setTab(tab: string): void {
     this.activeTab = tab;
   }
 
   increase(): void {
-    this.quantity++;
+    if (this.produit && this.quantity < this.produit.stock) {
+      this.quantity++;
+    }
   }
 
   decrease(): void {
@@ -183,8 +186,7 @@ export class ProduitsComponent implements OnInit, OnDestroy {
   }
 
   addToCart(produit: Produit): void {
-    // Vérifier le stock
-    if (produit.stock === 0) {
+    if (!produit || produit.stock === 0) {
       this.notificationService.warning('Ce produit est en rupture de stock', 'Stock indisponible');
       return;
     }
@@ -193,19 +195,96 @@ export class ProduitsComponent implements OnInit, OnDestroy {
       ...produit,
       quantite: this.quantity,
       gestionnaire_stock: 0,
-      image: produit.image || null
+      image: produit.image ?? null
     });
-  
-    // Notification de succès
+
     this.notificationService.success(
-      `${produit.nom} a été ajouté au panier`,
-      'Produit ajouté'
+      `${produit.nom} ajouté au panier`,
+      'Succès'
     );
 
-    // Animation feedback
+    // Animation bouton
     this.produitAjoute = true;
-    setTimeout(() => {
-      this.produitAjoute = false;
-    }, 1500);
+    setTimeout(() => { this.produitAjoute = false; }, 1800);
+  }
+
+  naviguerVersProduit(id: number): void {
+    this.router.navigate([], { queryParams: { id } });
+  }
+
+  // ── Image Gallery ───────────────────────────────────────────────────────────
+
+  prevImage(): void {
+    if (this.images.length > 1) {
+      this.currentImageIndex = this.currentImageIndex === 0 
+        ? this.images.length - 1 
+        : this.currentImageIndex - 1;
+    }
+  }
+
+  nextImage(): void {
+    if (this.images.length > 1) {
+      this.currentImageIndex = this.currentImageIndex === this.images.length - 1 
+        ? 0 
+        : this.currentImageIndex + 1;
+    }
+  }
+
+  setImage(index: number): void {
+    this.currentImageIndex = index;
+  }
+
+  openLightbox(): void {
+    this.lightboxOpen = true;
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen = false;
+  }
+
+  // ── Wishlist ───────────────────────────────────────────────────────────────
+
+  toggleWishlist(): void {
+    if (!this.produit) {
+      this.notificationService.warning('Aucun produit sélectionné', 'Erreur');
+      return;
+    }
+
+    if (this.isWishlisted) {
+      // Retirer des favoris
+      this.monCompteService.retirerFavori(this.produit.id).subscribe({
+        next: () => {
+          this.isWishlisted = false;
+          this.notificationService.info(
+            `${this.produit!.nom} retiré des favoris`,
+            'Favoris'
+          );
+        },
+        error: (err) => {
+          console.error('Erreur lors du retrait des favoris:', err);
+          this.notificationService.error('Erreur lors du retrait des favoris', 'Erreur');
+        }
+      });
+    } else {
+      // Ajouter aux favoris
+      this.monCompteService.ajouterFavori(this.produit.id).subscribe({
+        next: () => {
+          this.isWishlisted = true;
+          this.notificationService.success(
+            `${this.produit!.nom} ajouté aux favoris`,
+            'Favoris'
+          );
+        },
+        error: (err) => {
+          console.error('Erreur lors de l\'ajout aux favoris:', err);
+          if (err.error?.error === 'Produit déjà dans les favoris') {
+            this.isWishlisted = true;
+            this.notificationService.warning('Ce produit est déjà dans vos favoris', 'Favoris');
+          } else {
+            this.notificationService.error('Erreur lors de l\'ajout aux favoris', 'Erreur');
+          }
+        }
+      });
+    }
   }
 }

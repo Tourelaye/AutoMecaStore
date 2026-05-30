@@ -62,12 +62,12 @@
         <i class="bi bi-search"></i>
         <input type="text" placeholder="Rechercher une commande..." [(ngModel)]="searchTerm" (input)="searchCommandes()">
       </div>
-      <div class="toolbar-actions">
+      <!-- <div class="toolbar-actions">
         <div class="polling-indicator">
           <i class="bi bi-wifi"></i>
           <span>Auto-rafraîchissement</span>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- 📋 Tableau des commandes -->
@@ -88,38 +88,50 @@
       <!-- Tableau -->
       <div class="table" *ngIf="!loading && !error">
         <div class="table-header">
-          <div>Référence</div>
-          <div>Date</div>
-          <div>Client</div>
-          <div>Montant</div>
-          <div>Statut</div>
-          <div>Actions</div>
+          <div class="col-reference">Référence</div>
+          <div class="col-date">Date</div>
+          <div class="col-client">Client</div>
+          <div class="col-montant">Montant</div>
+          <div class="col-spacer"></div>
+          <div class="col-statut">Statut</div>
+          <div class="col-actions">Actions</div>
         </div>
 
         <div class="table-row" *ngFor="let commande of commandesFiltrees; trackBy: trackByCommandeId">
-          <div class="reference">
-            <span class="ref-number">{{ commande.reference || '#' + commande.id }}</span>
+          <div class="col-reference" data-label="Référence">
+            <span class="ref-badge">{{ commande.reference || '#' + commande.id }}</span>
           </div>
-          <div class="date">{{ formatDate(commande.date_commande) }}</div>
-          <div class="client">
-            <div class="client-info">
-              <i class="bi bi-person-circle"></i>
-              <span>Client #{{ commande.client }}</span>
+          <div class="col-date" data-label="Date">
+            <span class="date-text">{{ formatDate(commande.date_commande) }}</span>
+          </div>
+          <div class="col-client" data-label="Client">
+            <div class="client-cell">
+              <i class="bi bi-person-circle client-avatar"></i>
+              <span class="client-name">Client #{{ commande.client }}</span>
             </div>
           </div>
-          <div class="montant">{{ formatMontant(commande.montant_total) }}</div>
-          <div class="statut">
+          <div class="col-montant" data-label="Montant">
+            <span class="montant-text">{{ formatMontant(commande.montant_total) }}</span>
+          </div>
+          <div class="col-spacer"></div>
+          <div class="col-statut" data-label="Statut">
             <span class="status-badge" [ngClass]="getStatutClass(commande.statut)">
               <i class="bi" [ngClass]="getStatutIcon(commande.statut)"></i>
               {{ getStatutLabel(commande.statut) }}
             </span>
           </div>
-          <div class="actions">
-            <select class="statut-select" [value]="commande.statut" (change)="updateStatutCommande(commande, $any($event.target).value)" [disabled]="loading">
-              <option *ngFor="let statut of statutsPossibles" [value]="statut.value">
-                {{ statut.label }}
-              </option>
-            </select>
+          <div class="col-actions" data-label="Actions">
+            <div class="action-wrapper">
+              <select class="action-select" 
+                      [value]="commande.statut" 
+                      (change)="updateStatutCommande(commande, $any($event.target).value)" 
+                      [disabled]="loading">
+                <option *ngFor="let statut of statutsPossibles" [value]="statut.value">
+                  {{ statut.label }}
+                </option>
+              </select>
+              <i class="bi bi-chevron-down dropdown-icon"></i>
+            </div>
           </div>
         </div>
       </div>
@@ -136,10 +148,10 @@
 
 <!-- 📢 Notifications -->
 <div class="notification-container">
-  <div class="notification" 
-       [class.success]="notification?.type === 'success'" 
-       [class.error]="notification?.type === 'error'" 
-       [class.info]="notification?.type === 'info'"
+  <div class="notification"
+       [class.success]="notification.type === 'success'"
+       [class.error]="notification.type === 'error'"
+       [class.info]="notification.type === 'info'"
        *ngIf="notification">
     <i class="bi" 
        [class.bi-check-circle-fill]="notification.type === 'success'" 

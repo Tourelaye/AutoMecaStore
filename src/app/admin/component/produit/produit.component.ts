@@ -232,65 +232,147 @@ export class ProduitComponent implements OnInit {
     console.log('=== SAUVEGARDE PRODUIT ===');
     console.log('Mode:', this.isEditing ? 'MODIFICATION' : 'CREATION');
     console.log('Form data:', this.produitForm);
-    
+    console.log('Image file:', this.imageFile);
+    console.log('Image preview:', this.imagePreview);
+
     if (!this.produitForm.nom || !this.produitForm.prix) {
       this.showMessage('Veuillez remplir le nom et le prix', 'error');
       return;
     }
-    
-    const produitData = {
-      nom: this.produitForm.nom!,
-      description: this.produitForm.description || '',
-      prix: Number(this.produitForm.prix),
-      stock: Number(this.produitForm.stock) || 0,
-      categorie: this.produitForm.categorie ? (this.produitForm.categorie as any).id : null,
-      reference: this.produitForm.reference || null,
-      marque: this.produitForm.marque || null,
-      est_en_promo: this.produitForm.est_en_promo || false,
-      prix_promo: this.produitForm.est_en_promo ? Number(this.produitForm.prix_promo) : null,
-      date_fin_promo: this.produitForm.est_en_promo && this.produitForm.date_fin_promo ? this.produitForm.date_fin_promo : null,
-      gestionnaire_stock: null
-    };
-    
-    console.log('Données envoyées:', produitData);
-    
-    if (this.isEditing && this.editingProduitId) {
-      // Modification
-      this.produitService.updateProduit(this.editingProduitId, produitData as any).subscribe({
-        next: (updatedProduit) => {
-          console.log('Produit mis à jour:', updatedProduit);
-          const index = this.produits.findIndex(p => p.id === this.editingProduitId);
-          if (index !== -1) {
-            this.produits[index] = updatedProduit;
+
+    // Si une nouvelle image est sélectionnée, utiliser FormData
+    if (this.imageFile) {
+      const formData = new FormData();
+      formData.append('nom', this.produitForm.nom!);
+      formData.append('description', this.produitForm.description || '');
+      formData.append('prix', String(Number(this.produitForm.prix)));
+      formData.append('stock', String(Number(this.produitForm.stock) || 0));
+      if (this.produitForm.categorie) {
+        formData.append('categorie', String((this.produitForm.categorie as any).id));
+      }
+      if (this.produitForm.reference) {
+        formData.append('reference', this.produitForm.reference);
+      }
+      if (this.produitForm.marque) {
+        formData.append('marque', this.produitForm.marque);
+      }
+      formData.append('est_en_promo', String(this.produitForm.est_en_promo || false));
+      if (this.produitForm.est_en_promo && this.produitForm.prix_promo) {
+        formData.append('prix_promo', String(Number(this.produitForm.prix_promo)));
+      }
+      if (this.produitForm.est_en_promo && this.produitForm.date_fin_promo) {
+        formData.append('date_fin_promo', this.produitForm.date_fin_promo);
+      }
+      formData.append('image', this.imageFile);
+
+      console.log('FormData avec image:', formData);
+
+      if (this.isEditing && this.editingProduitId) {
+        // Modification avec image - utiliser PATCH pour éviter de remplacer tout le produit
+        this.produitService.patchProduitWithImage(this.editingProduitId, formData).subscribe({
+          next: (updatedProduit) => {
+            console.log('=== PRODUIT MIS À JOUR AVEC IMAGE ===');
+            console.log('Produit retourné par API:', updatedProduit);
+            console.log('ID:', updatedProduit.id);
+            console.log('Nom:', updatedProduit.nom);
+            console.log('Image:', updatedProduit.image);
+            
+            // Recharger la liste complète depuis le serveur pour s'assurer que tout est à jour
+            this.loadProduits();
+            
+            this.showModal = false;
+            this.showMessage('Produit mis à jour avec succès !', 'success');
+          },
+          error: (error) => {
+            console.error('=== ERREUR API MISE À JOUR ===');
+            console.error('Status:', error.status);
+            console.error('Message:', error.message);
+            console.error('Error body:', error.error);
+            this.showMessage(`Erreur ${error.status}: ${error.error?.detail || error.message}`, 'error');
           }
-          this.showModal = false;
-          this.showMessage('Produit mis à jour avec succès !', 'success');
-        },
-        error: (error) => {
-          console.error('=== ERREUR API ===');
-          console.error('Status:', error.status);
-          console.error('Message:', error.message);
-          console.error('Error body:', error.error);
-          this.showMessage(`Erreur ${error.status}: ${error.error?.detail || error.message}`, 'error');
-        }
-      });
+        });
+      } else {
+        // Création avec image
+        this.produitService.createProduitWithImage(formData).subscribe({
+          next: (newProduit) => {
+            console.log('=== PRODUIT CRÉÉ AVEC IMAGE ===');
+            console.log('Produit retourné par API:', newProduit);
+            console.log('ID:', newProduit.id);
+            console.log('Nom:', newProduit.nom);
+            console.log('Image:', newProduit.image);
+            
+            // Recharger la liste complète depuis le serveur pour s'assurer que tout est à jour
+            this.loadProduits();
+            
+            this.showModal = false;
+            this.showMessage('Produit ajouté avec succès !', 'success');
+          },
+          error: (error) => {
+            console.error('=== ERREUR API CRÉATION ===');
+            console.error('Status:', error.status);
+            console.error('Message:', error.message);
+            console.error('Error body:', error.error);
+            this.showMessage(`Erreur ${error.status}: ${error.error?.detail || error.message}`, 'error');
+          }
+        });
+      }
     } else {
-      // Création
-      this.produitService.createProduit(produitData as any).subscribe({
-        next: (newProduit) => {
-          console.log('Produit créé:', newProduit);
-          this.produits.unshift(newProduit);
-          this.showModal = false;
-          this.showMessage('Produit ajouté avec succès !', 'success');
-        },
-        error: (error) => {
-          console.error('=== ERREUR API ===');
-          console.error('Status:', error.status);
-          console.error('Message:', error.message);
-          console.error('Error body:', error.error);
-          this.showMessage(`Erreur ${error.status}: ${error.error?.detail || error.message}`, 'error');
-        }
-      });
+      // Sans nouvelle image, utiliser JSON
+      const produitData = {
+        nom: this.produitForm.nom!,
+        description: this.produitForm.description || '',
+        prix: Number(this.produitForm.prix),
+        stock: Number(this.produitForm.stock) || 0,
+        categorie: this.produitForm.categorie ? (this.produitForm.categorie as any).id : null,
+        reference: this.produitForm.reference || null,
+        marque: this.produitForm.marque || null,
+        est_en_promo: this.produitForm.est_en_promo || false,
+        prix_promo: this.produitForm.est_en_promo ? Number(this.produitForm.prix_promo) : null,
+        date_fin_promo: this.produitForm.est_en_promo && this.produitForm.date_fin_promo ? this.produitForm.date_fin_promo : null,
+        gestionnaire_stock: null,
+        image: this.produitForm.image || null
+      };
+
+      console.log('Données envoyées:', produitData);
+
+      if (this.isEditing && this.editingProduitId) {
+        // Modification sans image
+        this.produitService.updateProduit(this.editingProduitId, produitData as any).subscribe({
+          next: (updatedProduit) => {
+            console.log('Produit mis à jour:', updatedProduit);
+            const index = this.produits.findIndex(p => p.id === this.editingProduitId);
+            if (index !== -1) {
+              this.produits[index] = updatedProduit;
+            }
+            this.showModal = false;
+            this.showMessage('Produit mis à jour avec succès !', 'success');
+          },
+          error: (error) => {
+            console.error('=== ERREUR API ===');
+            console.error('Status:', error.status);
+            console.error('Message:', error.message);
+            console.error('Error body:', error.error);
+            this.showMessage(`Erreur ${error.status}: ${error.error?.detail || error.message}`, 'error');
+          }
+        });
+      } else {
+        // Création sans image
+        this.produitService.createProduit(produitData as any).subscribe({
+          next: (newProduit) => {
+            console.log('Produit créé:', newProduit);
+            this.produits.unshift(newProduit);
+            this.showModal = false;
+            this.showMessage('Produit ajouté avec succès !', 'success');
+          },
+          error: (error) => {
+            console.error('=== ERREUR API ===');
+            console.error('Status:', error.status);
+            console.error('Message:', error.message);
+            console.error('Error body:', error.error);
+            this.showMessage(`Erreur ${error.status}: ${error.error?.detail || error.message}`, 'error');
+          }
+        });
+      }
     }
   }
   

@@ -101,7 +101,7 @@
 </div>
 
 <!-- Notification -->
-<div class="notification" [class.success]="notification?.type === 'success'" [class.error]="notification?.type === 'error'" *ngIf="notification">
-  <i class="bi" [class.bi-check-circle-fill]="notification?.type === 'success'" [class.bi-exclamation-circle-fill]="notification?.type === 'error'"></i>
-  {{ notification?.message }}
+<div class="notification" [class.success]="notification.type === 'success'" [class.error]="notification.type === 'error'" *ngIf="notification">
+  <i class="bi" [class.bi-check-circle-fill]="notification.type === 'success'" [class.bi-exclamation-circle-fill]="notification.type === 'error'"></i>
+  {{ notification.message }}
 </div>

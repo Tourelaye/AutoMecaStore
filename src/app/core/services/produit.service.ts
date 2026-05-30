@@ -72,6 +72,15 @@ export class ProduitService {
   }
 
   // ---------------------------------
+  // Récupérer les produits par catégorie ID
+  // ---------------------------------
+  getProduitsByCategorieId(categorieId: number): Observable<Produit[]> {
+    return this.http.get<Produit[]>(`${this.apiUrl}/produits/`, {
+      params: new HttpParams().set('categorie', categorieId.toString())
+    });
+  }
+
+  // ---------------------------------
   // Recherche rapide (pour la searchbar du header)
   // ---------------------------------
   rechercherProduits(query: string): Observable<Produit[]> {
@@ -104,10 +113,24 @@ export class ProduitService {
   }
 
   // ---------------------------------
+  // Créer un produit avec image (FormData)
+  // ---------------------------------
+  createProduitWithImage(formData: FormData): Observable<Produit> {
+    return this.http.post<Produit>(`${this.apiUrl}/produits/`, formData);
+  }
+
+  // ---------------------------------
   // Mettre à jour un produit
   // ---------------------------------
   updateProduit(id: number, produit: Partial<Produit>): Observable<Produit> {
     return this.http.put<Produit>(`${this.apiUrl}/produits/${id}/`, produit);
+  }
+
+  // ---------------------------------
+  // Mettre à jour un produit avec image (FormData) - PATCH
+  // ---------------------------------
+  patchProduitWithImage(id: number, formData: FormData): Observable<Produit> {
+    return this.http.patch<Produit>(`${this.apiUrl}/produits/${id}/`, formData);
   }
 
   // ---------------------------------

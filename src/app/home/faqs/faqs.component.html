@@ -1,81 +1,90 @@
-<div class="faq-container">
+<section class="faq-section">
 
-    <!-- HEADER -->
-    <div class="faq-header">
-  
-      <div class="assist-line">
-        <i class="bi bi-chat-dots-fill assist-icon"></i>
-        <span class="subtitle">ASSISTANCE</span>
-      </div>
-  
-      <h2>Questions fréquemment posées</h2>
-      <p>Trouvez rapidement les réponses à vos questions</p>
-  
-    </div>
-  
-    <!-- FAQ ITEMS -->
-    <div class="faq-item">
-      <input type="checkbox" id="q1">
-      <label for="q1" class="faq-question">
-        <span class="left">
-          <span class="icon">?</span>
-          Comment puis-je retourner une commande ?
-        </span>
-        <span class="arrow">›</span>
-      </label>
-      <div class="faq-answer">
-        Vous avez 30 jours pour retourner votre commande sans frais.
-        Contactez simplement notre service client avec votre numéro de commande.
-      </div>
-    </div>
-  
-    <div class="faq-item">
-      <input type="checkbox" id="q2">
-      <label for="q2" class="faq-question">
-        <span class="left">
-          <span class="icon">?</span>
-          Quels sont les délais de livraison ?
-        </span>
-        <span class="arrow">›</span>
-      </label>
-      <div class="faq-answer">
-        Les délais de livraison sont généralement de 3 à 5 jours ouvrés.
-      </div>
-    </div>
-  
-    <div class="faq-item">
-      <input type="checkbox" id="q3">
-      <label for="q3" class="faq-question">
-        <span class="left">
-          <span class="icon">?</span>
-          Comment puis-je payer en toute sécurité ?
-        </span>
-        <span class="arrow">›</span>
-      </label>
-      <div class="faq-answer">
-        Nous utilisons un cryptage SSL pour sécuriser vos paiements.
-      </div>
-    </div>
-  
-    <div class="faq-item">
-      <input type="checkbox" id="q4">
-      <label for="q4" class="faq-question">
-        <span class="left">
-          <span class="icon">?</span>
-          Puis-je changer ma commande après l’avoir passée ?
-        </span>
-        <span class="arrow">›</span>
-      </label>
-      <div class="faq-answer">
-        Oui, vous pouvez modifier votre commande dans un délai de 24h.
-      </div>
-    </div>
-  
-    <!-- SUPPORT BOX -->
-    <div class="support-box">
-      <p>Vous n’avez pas trouvé votre réponse ?</p>
-      <button>Contactez notre support</button>
-    </div>
-  
+  <!-- FOND DÉCO -->
+  <div class="bg-deco">
+    <div class="deco-orb orb-1"></div>
+    <div class="deco-orb orb-2"></div>
+    <div class="deco-grid"></div>
   </div>
-  
+
+  <!-- HEADER -->
+  <div class="faq-header">
+    <div class="header-tag">
+      <i class="bi bi-question-circle-fill"></i>
+      ASSISTANCE
+    </div>
+    <h2 class="section-title">
+      Questions <span class="highlight">fréquentes</span>
+    </h2>
+    <p class="section-desc">
+      Trouvez rapidement les réponses à vos questions les plus courantes
+    </p>
+  </div>
+
+  <!-- FAQ ITEMS -->
+  <div class="faq-container">
+    <div class="faq-item" *ngFor="let faq of filteredFaqs; let i = index">
+      <input 
+        type="checkbox" 
+        [id]="'q' + i"
+        [(ngModel)]="faq.open"
+        (change)="toggleFaq(i)"
+      >
+      <label [for]="'q' + i" class="faq-question">
+        <div class="question-left">
+          <div class="question-icon">
+            <i class="bi bi-question-lg"></i>
+          </div>
+          <span class="question-text">{{ faq.question }}</span>
+        </div>
+        <div class="question-right">
+          <span class="category-badge">{{ faq.category }}</span>
+          <i class="bi bi-chevron-down arrow"></i>
+        </div>
+      </label>
+      <div class="faq-answer">
+        <div class="answer-content">
+          <p>{{ faq.answer }}</p>
+          <div class="answer-meta" *ngIf="faq.helpful !== undefined">
+            <span class="meta-label">Cette réponse a-t-elle été utile ?</span>
+            <button class="helpful-btn" (click)="markHelpful(i, true)">
+              <i class="bi bi-hand-thumbs-up"></i>
+            </button>
+            <button class="helpful-btn" (click)="markHelpful(i, false)">
+              <i class="bi bi-hand-thumbs-down"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH BOX -->
+  <div class="faq-search">
+    <i class="bi bi-search search-icon"></i>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (input)="filterFaqs()"
+      placeholder="Rechercher dans les FAQ..."
+    >
+  </div>
+
+  <!-- SUPPORT BOX -->
+  <div class="support-box">
+    <div class="support-icon">
+      <i class="bi bi-headset"></i>
+    </div>
+    <h3>Vous n'avez pas trouvé votre réponse ?</h3>
+    <p>Notre équipe d'assistance est disponible 7j/7 pour vous aider</p>
+    <button class="support-btn">
+      <i class="bi bi-chat-dots-fill"></i>
+      Contacter le support
+    </button>
+    <div class="contact-info">
+      <span><i class="bi bi-telephone-fill"></i> +221 78 449 25 68</span>
+      <span><i class="bi bi-envelope-fill"></i> support&#64;automecastore.com</span>
+    </div>
+  </div>
+
+</section>

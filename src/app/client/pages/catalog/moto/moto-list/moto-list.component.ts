@@ -1,35 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { PanierService } from '../../../../../core/services/panier.service';
+import { ProduitService } from '../../../../../core/services/produit.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
+import { MonCompteService } from '../../../../../core/services/mon-compte.service';
+import { Produit } from '../../../../../models/produit.model';
 
-interface Produit {
+export interface MotoProduit {
   id: number;
   nom: string;
   marque: string;
+  description: string;
+  image: string | null;
   prixNouveau: number;
-  prixAncien?: number;
-  image?: string;
-  description?: string;
+  prixAncien: number | null;
+  discount: number | null;
   note: number;
   avis: number;
   stock: number;
-  discount?: number;
-  isNew?: boolean;
-  isBestseller?: boolean;
-  isFavori?: boolean;
-  livraison?: boolean;
-}
-
-interface SousCategorie {
-  key: string;
-  label: string;
-  icon: string;
-}
-
-interface Marque {
-  name: string;
-  logo: string;
-  selected: boolean;
+  livraison: boolean;
+  isFavori: boolean;
+  isNew: boolean;
+  categorie: string; // sous-catégorie moto
 }
 
 @Component({
@@ -44,344 +38,326 @@ export class MotoListComponent implements OnInit {
   showFilters = true;
   viewMode: 'grid' | 'list' = 'grid';
   isLoading = false;
-  
+  produitAjoute: number | null = null;
+
   // Filtres
   searchQuery = '';
   triActif = 'pertinence';
-  categorieActive = 'all';
+  filtrePromo = false;
+  filtreLivraison = false;
+  filtreNew = false;
   prixMin: number | null = null;
   prixMax: number | null = null;
-  filtreLivraison = false;
-  filtrePromo = false;
-  filtreNew = false;
-  filtreBestseller = false;
   noteMin = 0;
-  
-  // Données
-  tousLesProduits: Produit[] = [];
-  produitsFiltres: Produit[] = [];
-  produitAjoute: number | null = null;
+  categorieActive = 'tous';
 
-  // Sous-catégories moto
-  sousCategoriesMoto: SousCategorie[] = [
-    { key: 'all', label: 'Toutes', icon: 'bi-grid-3x3-gap' },
-    { key: 'moteur', label: 'Moteur', icon: 'bi-gear' },
-    { key: 'freinage', label: 'Freinage', icon: 'bi-shield-check' },
-    { key: 'suspension', label: 'Suspension', icon: 'bi-arrow-up-down' },
-    { key: 'transmission', label: 'Transmission', icon: 'bi-link' },
-    { key: 'eclairage', label: 'Éclairage', icon: 'bi-lightbulb' },
-    { key: 'carrosserie', label: 'Carrosserie', icon: 'bi-truck' },
-    { key: 'accessoires', label: 'Accessoires', icon: 'bi-bag' }
+  sousCategoriesMoto = [
+    { key: 'tous',        label: 'Toutes' },
+    { key: 'freinage',    label: '🔴 Freinage' },
+    { key: 'moteur',      label: '⚙️ Moteur' },
+    { key: 'filtration',  label: '🌀 Filtration' },
+    { key: 'suspension',  label: '🔧 Suspension' },
+    { key: 'transmission',label: '⛓️ Transmission' },
+    { key: 'eclairage',   label: '💡 Éclairage' },
   ];
 
-  // Marques moto
-  marquesMoto: Marque[] = [
-    { name: 'Yamaha', logo: 'Y', selected: false },
-    { name: 'Honda', logo: 'H', selected: false },
-    { name: 'Suzuki', logo: 'S', selected: false },
-    { name: 'Kawasaki', logo: 'K', selected: false },
-    { name: 'Ducati', logo: 'D', selected: false },
-    { name: 'BMW', logo: 'B', selected: false },
-    { name: 'KTM', logo: 'K', selected: false },
-    { name: 'Harley', logo: 'H', selected: false }
-  ];
+  // Tous les produits (source)
+  public tousLesProduits: MotoProduit[] = [];
+
+  // Produits affichés après filtres
+  produitsFiltres: MotoProduit[] = [];
+
+  constructor(
+    private router: Router,
+    private panierService: PanierService,
+    private produitService: ProduitService,
+    private notificationService: NotificationService,
+    private monCompteService: MonCompteService
+  ) {}
 
   ngOnInit(): void {
-    this.chargerProduits();
+    // -------------------------------------------------------
+    // CHARGEMENT DYNAMIQUE DES PRODUITS DEPUIS L'API
+    // -------------------------------------------------------
+    this.isLoading = true;
+    // Filtrer par catégorie Moto (ID: 2)
+    this.produitService.getProduits({ categorie: 2 }).subscribe({
+      next: (data: any) => {
+        console.log('Produits chargés depuis API:', data);
+        const list = Array.isArray(data) ? data : data.results || data;
+
+        this.tousLesProduits = list.map((p: any) => ({
+          id: p.id,
+          nom: p.nom,
+          marque: p.marque ?? 'AutoMecaStore',
+          description: p.description || 'Description du produit',
+          image: p.image ? `http://localhost:8000${p.image}` : null,
+          prixNouveau: parseFloat(p.prix_promo ?? p.prix),
+          prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
+          discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
+          note: 4.5,
+          avis: 0,
+          stock: p.stock || 10,
+          livraison: true,
+          isFavori: false,
+          isNew: false,
+          categorie: 'freinage' // Default subcategory for moto products
+        }));
+
+        this.appliquerFiltres();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des produits:', err);
+        // En cas d'erreur, charger les données mock
+        this.loadMockData();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // Mapper la catégorie de l'API vers les sous-catégories moto
+  private mapCategorieToMoto(categorie: string): string {
+    const mapping: { [key: string]: string } = {
+      'freinage': 'freinage',
+      'moteur': 'moteur',
+      'filtration': 'filtration',
+      'suspension': 'suspension',
+      'transmission': 'transmission',
+      'eclairage': 'eclairage'
+    };
+    return mapping[categorie] || 'freinage';
+  }
+
+  // Charger les données mock en cas d'erreur API
+  private loadMockData(): void {
+    this.tousLesProduits = [
+      {
+        id: 1, nom: 'Plaquettes de frein avant', marque: 'BREMBO',
+        description: 'Plaquettes haute performance pour Renault Clio, Peugeot 206',
+        image: 'assets/products/brake.png',
+        prixNouveau: 59.99, prixAncien: 79.99, discount: 25,
+        note: 4.6, avis: 234, stock: 18, livraison: true,
+        isFavori: false, isNew: false, categorie: 'freinage'
+      },
+      {
+        id: 2, nom: 'Filtre à huile Mann', marque: 'MANN-FILTER',
+        description: 'Filtre à huile OEM pour BMW E90 E60',
+        image: 'assets/products/filter.png',
+        prixNouveau: 12.99, prixAncien: 18.99, discount: 32,
+        note: 4.8, avis: 159, stock: 45, livraison: true,
+        isFavori: false, isNew: false, categorie: 'filtration'
+      },
+      {
+        id: 3, nom: 'Amortisseur avant Monroe', marque: 'MONROE',
+        description: 'Amortisseur avant pour véhicules compacts',
+        image: 'assets/products/shock.png',
+        prixNouveau: 78.99, prixAncien: null, discount: null,
+        note: 4.7, avis: 124, stock: 7, livraison: false,
+        isFavori: false, isNew: true, categorie: 'suspension'
+      },
+      {
+        id: 4, nom: 'Kit distribution Gates', marque: 'GATES',
+        description: 'Kit complet courroie de distribution',
+        image: 'assets/products/kit.png',
+        prixNouveau: 189.99, prixAncien: 249.99, discount: 24,
+        note: 4.6, avis: 89, stock: 0, livraison: true,
+        isFavori: false, isNew: false, categorie: 'transmission'
+      },
+      {
+        id: 5, nom: 'Huile moteur Castrol 5W30', marque: 'CASTROL',
+        description: 'Huile moteur synthétique haute performance',
+        image: 'assets/products/filter.png',
+        prixNouveau: 34.99, prixAncien: 44.99, discount: 22,
+        note: 4.9, avis: 412, stock: 32, livraison: true,
+        isFavori: false, isNew: false, categorie: 'moteur'
+      },
+      {
+        id: 6, nom: 'Kit ampoules LED H7', marque: 'PHILIPS',
+        description: 'Kit ampoules LED H7 homologuées route',
+        image: null,
+        prixNouveau: 49.99, prixAncien: 64.99, discount: 23,
+        note: 4.5, avis: 67, stock: 3, livraison: true,
+        isFavori: false, isNew: true, categorie: 'eclairage'
+      }
+    ];
+    
+    this.appliquerFiltres();
   }
 
   // -------------------------------------------------------
-  // GESTION DES VUES
+  // Filtres & Tri
   // -------------------------------------------------------
-  toggleFilters(): void {
-    this.showFilters = !this.showFilters;
+  appliquerFiltres(): void {
+    let result = [...this.tousLesProduits];
+
+    // Recherche
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(p =>
+        p.nom.toLowerCase().includes(q) ||
+        p.marque.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q)
+      );
+    }
+
+    // Sous-catégorie
+    if (this.categorieActive !== 'tous') {
+      result = result.filter(p => p.categorie === this.categorieActive);
+    }
+
+    // Filtres rapides
+    if (this.filtrePromo)     result = result.filter(p => p.discount !== null);
+    if (this.filtreLivraison) result = result.filter(p => p.livraison);
+    if (this.filtreNew)       result = result.filter(p => p.isNew);
+
+    // Prix
+    if (this.prixMin !== null) result = result.filter(p => p.prixNouveau >= this.prixMin!);
+    if (this.prixMax !== null) result = result.filter(p => p.prixNouveau <= this.prixMax!);
+
+    // Note minimale
+    if (this.noteMin > 0) result = result.filter(p => p.note >= this.noteMin);
+
+    // Tri
+    switch (this.triActif) {
+      case 'prix-asc':  result.sort((a, b) => a.prixNouveau - b.prixNouveau); break;
+      case 'prix-desc': result.sort((a, b) => b.prixNouveau - a.prixNouveau); break;
+      case 'note':      result.sort((a, b) => b.note - a.note); break;
+      case 'promo':     result.sort((a, b) => (b.discount ?? 0) - (a.discount ?? 0)); break;
+    }
+
+    this.produitsFiltres = result;
   }
 
-  setGrid(): void {
-    this.viewMode = 'grid';
-  }
-
-  setList(): void {
-    this.viewMode = 'list';
+  resetFiltres(): void {
+    this.searchQuery = '';
+    this.filtrePromo = false;
+    this.filtreLivraison = false;
+    this.filtreNew = false;
+    this.prixMin = null;
+    this.prixMax = null;
+    this.noteMin = 0;
+    this.categorieActive = 'tous';
+    this.triActif = 'pertinence';
+    this.appliquerFiltres();
   }
 
   // -------------------------------------------------------
-  // GESTION DES CATÉGORIES
+  // UI
   // -------------------------------------------------------
+  toggleFilters(): void { this.showFilters = !this.showFilters; }
+  setGrid(): void { this.viewMode = 'grid'; }
+  setList(): void { this.viewMode = 'list'; }
+
   setCategorieActive(key: string): void {
     this.categorieActive = key;
     this.appliquerFiltres();
   }
 
-  // -------------------------------------------------------
-  // FILTRES
-  // -------------------------------------------------------
-  appliquerFiltres(): void {
-    this.isLoading = true;
+  toggleFavori(produit: MotoProduit, event: Event): void {
+    event.stopPropagation();
     
-    // Simuler un chargement
-    setTimeout(() => {
-      this.produitsFiltres = this.filtrerProduits();
-      this.isLoading = false;
-    }, 300);
+    if (produit.isFavori) {
+      // Retirer des favoris
+      this.monCompteService.retirerFavori(produit.id).subscribe({
+        next: () => {
+          produit.isFavori = false;
+          this.notificationService.info(
+            `${produit.nom} retiré des favoris`,
+            'Favoris'
+          );
+        },
+        error: (err) => {
+          console.error('Erreur lors du retrait des favoris:', err);
+          this.notificationService.error('Erreur lors du retrait des favoris', 'Erreur');
+        }
+      });
+    } else {
+      // Ajouter aux favoris
+      this.monCompteService.ajouterFavori(produit.id).subscribe({
+        next: () => {
+          produit.isFavori = true;
+          this.notificationService.success(
+            `${produit.nom} ajouté aux favoris`,
+            'Favoris'
+          );
+        },
+        error: (err) => {
+          console.error('Erreur lors de l\'ajout aux favoris:', err);
+          this.notificationService.error('Erreur lors de l\'ajout aux favoris', 'Erreur');
+        }
+      });
+    }
   }
 
-  resetFiltres(): void {
-    this.searchQuery = '';
-    this.triActif = 'pertinence';
-    this.categorieActive = 'all';
-    this.prixMin = null;
-    this.prixMax = null;
-    this.filtreLivraison = false;
-    this.filtrePromo = false;
-    this.filtreNew = false;
-    this.filtreBestseller = false;
-    this.noteMin = 0;
-    this.marquesMoto.forEach(m => m.selected = false);
-    this.appliquerFiltres();
+  goToProduit(id: number): void {
+    this.router.navigate(['/produits'], { queryParams: { id } });
   }
+
+  // -------------------------------------------------------
+  // Panier
+  // -------------------------------------------------------
+  ajouterAuPanier(produit: MotoProduit, event: Event): void {
+    event.stopPropagation();
+    
+    // Vérifier le stock
+    if (produit.stock === 0) {
+      this.notificationService.warning('Ce produit est en rupture de stock', 'Stock indisponible');
+      return;
+    }
+  
+    this.panierService.ajouterAuPanier({
+      produit: {
+        id: produit.id,
+        nom: produit.nom,
+        prix: produit.prixNouveau,
+        image: produit.image ?? undefined,
+        description: produit.description,
+        stock: produit.stock,
+        categorie: 0,
+        gestionnaire_stock: 0
+      } as any,
+      nom: produit.nom,
+      prix: produit.prixNouveau,
+      quantite: 1,
+      image: produit.image ?? undefined
+    });
+  
+    // Notification de succès
+    this.notificationService.success(
+      `${produit.nom} a été ajouté au panier`,
+      'Produit ajouté'
+    );
+  
+    // Animation feedback
+    this.produitAjoute = produit.id;
+    setTimeout(() => {
+      if (this.produitAjoute === produit.id) this.produitAjoute = null;
+    }, 1500);
+  }
+
+  // -------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------
+  getEtoiles(): number[] { return [1, 2, 3, 4, 5]; }
+
+  isPleine(i: number, note: number): boolean { return i <= Math.floor(note); }
+
+  isDemi(i: number, note: number): boolean {
+    return i === Math.ceil(note) && note % 1 >= 0.5;
+  }
+
+  isStockFaible(p: MotoProduit): boolean { return p.stock > 0 && p.stock <= 5; }
 
   getNbFiltresActifs(): number {
-    let count = 0;
-    if (this.searchQuery) count++;
-    if (this.filtreLivraison) count++;
-    if (this.filtrePromo) count++;
-    if (this.filtreNew) count++;
-    if (this.filtreBestseller) count++;
-    if (this.noteMin > 0) count++;
-    if (this.prixMin !== null || this.prixMax !== null) count++;
-    if (this.categorieActive !== 'all') count++;
-    if (this.marquesMoto.some(m => m.selected)) count++;
-    return count;
-  }
-
-  private filtrerProduits(): Produit[] {
-    let produits = [...this.tousLesProduits];
-
-    // Filtre par recherche
-    if (this.searchQuery) {
-      produits = produits.filter(p => 
-        p.nom.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        p.marque.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        p.description?.toLowerCase().includes(this.searchQuery.toLowerCase())
-      );
-    }
-
-    // Filtre par catégorie
-    if (this.categorieActive !== 'all') {
-      produits = produits.filter(p => 
-        p.nom.toLowerCase().includes(this.categorieActive.toLowerCase())
-      );
-    }
-
-    // Filtre par prix
-    if (this.prixMin !== null) {
-      produits = produits.filter(p => p.prixNouveau >= this.prixMin!);
-    }
-    if (this.prixMax !== null) {
-      produits = produits.filter(p => p.prixNouveau <= this.prixMax!);
-    }
-
-    // Filtres rapides
-    if (this.filtreLivraison) {
-      produits = produits.filter(p => p.livraison);
-    }
-    if (this.filtrePromo) {
-      produits = produits.filter(p => p.discount && p.discount > 0);
-    }
-    if (this.filtreNew) {
-      produits = produits.filter(p => p.isNew);
-    }
-    if (this.filtreBestseller) {
-      produits = produits.filter(p => p.isBestseller);
-    }
-
-    // Filtre par note
-    if (this.noteMin > 0) {
-      produits = produits.filter(p => p.note >= this.noteMin);
-    }
-
-    // Filtre par marques
-    const marquesSelectionnees = this.marquesMoto.filter(m => m.selected).map(m => m.name);
-    if (marquesSelectionnees.length > 0) {
-      produits = produits.filter(p => marquesSelectionnees.includes(p.marque));
-    }
-
-    // Tri
-    this.trierProduits(produits);
-
-    return produits;
-  }
-
-  private trierProduits(produits: Produit[]): void {
-    switch (this.triActif) {
-      case 'pertinence':
-        // Tri par pertinence (bestsellers d'abord)
-        produits.sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
-        break;
-      case 'note':
-        produits.sort((a, b) => b.note - a.note);
-        break;
-      case 'prix-asc':
-        produits.sort((a, b) => a.prixNouveau - b.prixNouveau);
-        break;
-      case 'prix-desc':
-        produits.sort((a, b) => b.prixNouveau - a.prixNouveau);
-        break;
-      case 'promo':
-        produits.sort((a, b) => (b.discount || 0) - (a.discount || 0));
-        break;
-    }
-  }
-
-  // -------------------------------------------------------
-  // ACTIONS PRODUITS
-  // -------------------------------------------------------
-  goToProduit(id: number): void {
-    console.log('Navigation vers produit', id);
-    // TODO: Implémenter la navigation vers le détail du produit
-  }
-
-  toggleFavori(produit: Produit, event: Event): void {
-    event.stopPropagation();
-    produit.isFavori = !produit.isFavori;
-    console.log('Favori toggled pour', produit.nom, produit.isFavori);
-  }
-
-  ajouterAuPanier(produit: Produit, event: Event): void {
-    event.stopPropagation();
-    if (produit.stock === 0) return;
-    
-    this.produitAjoute = produit.id;
-    console.log('Ajout au panier', produit.nom);
-    
-    // Simuler l'ajout au panier
-    setTimeout(() => {
-      this.produitAjoute = null;
-    }, 2000);
-  }
-
-  // -------------------------------------------------------
-  // UTILITAIRES
-  // -------------------------------------------------------
-  getEtoiles(): number[] {
-    return [1, 2, 3, 4, 5];
-  }
-
-  isPleine(position: number, note: number): boolean {
-    return position <= Math.floor(note);
-  }
-
-  isDemi(position: number, note: number): boolean {
-    return position === Math.ceil(note) && note % 1 !== 0;
-  }
-
-  isStockFaible(produit: Produit): boolean {
-    return produit.stock > 0 && produit.stock <= 5;
-  }
-
-  private chargerProduits(): void {
-    this.isLoading = true;
-    
-    // Simuler le chargement de produits avec des données réalistes
-    setTimeout(() => {
-      this.tousLesProduits = [
-        {
-          id: 1,
-          nom: 'Amortisseur arrière Yamaha MT-07',
-          marque: 'Yamaha',
-          prixNouveau: 89999,
-          prixAncien: 119999,
-          note: 4.8,
-          avis: 124,
-          stock: 8,
-          discount: 25,
-          isNew: false,
-          isBestseller: true,
-          isFavori: false,
-          livraison: true,
-          description: 'Amortisseur arrière haute performance pour Yamaha MT-07'
-        },
-        {
-          id: 2,
-          nom: 'Plaquettes de frein avant Honda CBR600RR',
-          marque: 'Honda',
-          prixNouveau: 45999,
-          prixAncien: 59999,
-          note: 4.6,
-          avis: 89,
-          stock: 15,
-          discount: 23,
-          isNew: true,
-          isBestseller: false,
-          isFavori: false,
-          livraison: true,
-          description: 'Plaquettes de frein avant HH pour Honda CBR600RR'
-        },
-        {
-          id: 3,
-          nom: 'Pot d\'échappement Akrapovic Ducati Panigale',
-          marque: 'Ducati',
-          prixNouveau: 289999,
-          prixAncien: 349999,
-          note: 4.9,
-          avis: 67,
-          stock: 3,
-          discount: 17,
-          isNew: false,
-          isBestseller: true,
-          isFavori: true,
-          livraison: true,
-          description: 'Pot d\'échappement titane Akrapovic pour Ducati Panigale'
-        },
-        {
-          id: 4,
-          nom: 'Kit chaîne et pignon Kawasaki Ninja 650',
-          marque: 'Kawasaki',
-          prixNouveau: 35999,
-          note: 4.5,
-          avis: 45,
-          stock: 0,
-          isNew: false,
-          isBestseller: false,
-          isFavori: false,
-          livraison: false,
-          description: 'Kit chaîne et pignon JT pour Kawasaki Ninja 650'
-        },
-        {
-          id: 5,
-          nom: 'Rétroviseur BMW R1250GS',
-          marque: 'BMW',
-          prixNouveau: 12999,
-          prixAncien: 16999,
-          note: 4.3,
-          avis: 28,
-          stock: 12,
-          discount: 24,
-          isNew: true,
-          isBestseller: false,
-          isFavori: false,
-          livraison: true,
-          description: 'Rétroviseur LED BMW R1250GS avec montage facile'
-        },
-        {
-          id: 6,
-          nom: 'Pneu avant Michelin Road 5',
-          marque: 'Michelin',
-          prixNouveau: 78999,
-          note: 4.7,
-          avis: 156,
-          stock: 20,
-          isNew: false,
-          isBestseller: true,
-          isFavori: false,
-          livraison: true,
-          description: 'Pneu avant Michelin Road 5 120/70 ZR17'
-        }
-      ];
-      
-      this.produitsFiltres = this.filtrerProduits();
-      this.isLoading = false;
-    }, 800);
+    let n = 0;
+    if (this.filtrePromo) n++;
+    if (this.filtreLivraison) n++;
+    if (this.filtreNew) n++;
+    if (this.prixMin !== null) n++;
+    if (this.prixMax !== null) n++;
+    if (this.noteMin > 0) n++;
+    if (this.categorieActive !== 'tous') n++;
+    return n;
   }
 }

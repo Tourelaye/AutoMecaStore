@@ -2,14 +2,8 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
-interface Notification {
-  id: number;
-  message: string;
-  time: string;
-  type: 'order' | 'stock' | 'client' | 'system';
-  read: boolean;
-}
+import { HeaderService, Notification } from './header.service';
+import { interval, Subscription } from 'rxjs';
 
 interface AdminInfo {
   nom: string;
@@ -32,6 +26,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   showUserMenu = false;
   currentTime = new Date();
   private timer: any;
+  private notificationSubscription: Subscription | null = null;
 
   adminInfo: AdminInfo = {
     nom: 'Administrateur',
@@ -40,19 +35,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     email: ''
   };
 
-  notifications: Notification[] = [
-    { id: 1, message: '5 nouvelles commandes en attente',   time: 'Il y a 5 min',  type: 'order', read: false },
-    { id: 2, message: 'Stock critique : Pneu Michelin',     time: 'Il y a 12 min', type: 'stock', read: false },
-    { id: 3, message: 'Nouveau client inscrit',             time: 'Il y a 30 min', type: 'client', read: false },
-    { id: 4, message: 'Mise à jour système disponible',     time: 'Il y a 1h',     type: 'system', read: true  },
-    { id: 5, message: 'Commande #ORD-005 annulée',          time: 'Il y a 2h',     type: 'order', read: true  },
-  ];
+  notifications: Notification[] = [];
 
   get unreadCount(): number {
     return this.notifications.filter(n => !n.read).length;
   }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private headerService: HeaderService
+  ) {}
 
   ngOnInit(): void {
     // Charge le profil admin depuis localStorage
@@ -70,10 +62,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     this.timer = setInterval(() => this.currentTime = new Date(), 1000);
+    
+    // Charger les notifications initiales
+    this.loadNotifications();
+    
+    // Polling pour les notifications en temps réel (toutes les 30 secondes)
+    this.notificationSubscription = interval(30000).subscribe(() => {
+      this.loadNotifications();
+    });
   }
 
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
+    if (this.notificationSubscription) this.notificationSubscription.unsubscribe();
+  }
+
+  loadNotifications(): void {
+    this.headerService.getNotifications().subscribe({
+      next: (response) => {
+        this.notifications = response.notifications;
+      },
+      error: () => {
+        // Fallback vers des notifications statiques si l'API échoue
+        this.notifications = [
+          { id: 1, message: '5 nouvelles commandes en attente',   time: 'Il y a 5 min',  type: 'order', read: false },
+          { id: 2, message: 'Stock critique : Pneu Michelin',     time: 'Il y a 12 min', type: 'stock', read: false },
+          { id: 3, message: 'Nouveau client inscrit',             time: 'Il y a 30 min', type: 'client', read: false },
+          { id: 4, message: 'Mise à jour système disponible',     time: 'Il y a 1h',     type: 'system', read: true  },
+          { id: 5, message: 'Commande #ORD-005 annulée',          time: 'Il y a 2h',     type: 'order', read: true  },
+        ];
+      }
+    });
   }
 
   // Ferme les dropdowns en cliquant dehors
@@ -96,6 +115,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   markAllRead(): void {
     this.notifications.forEach(n => n.read = true);
+    // Optionnel: appeler l'API pour marquer comme lu
   }
 
   getNotifIcon(type: string): string {

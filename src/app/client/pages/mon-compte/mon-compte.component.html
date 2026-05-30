@@ -43,6 +43,12 @@
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
+          <button class="nav-item" [class.active]="ongletActif === 'panier'" (click)="setOnglet('panier')">
+            <div class="nav-icon icon-yellow"><i class="bi bi-cart-fill"></i></div>
+            <div class="nav-text"><span>Mon panier</span><small>Articles en cours</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
           <div class="nav-separator"></div>
 
           <button class="nav-item" [class.active]="ongletActif === 'securite'" (click)="setOnglet('securite')">
@@ -362,8 +368,15 @@
             </div>
           </div>
 
-          <!-- État vide -->
           <div class="empty-state" *ngIf="!isLoadingCommandes && !hasCommandes()">
+            <!-- DEBUG OUTPUT -->
+            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
+                <strong>DEBUG - Commandes:</strong>
+                <pre>{{ commandesResponse | json }}</pre>
+                <strong>hasCommandes():</strong> {{ hasCommandes() }}
+                <strong>getCommandes().length:</strong> {{ getCommandes().length }}
+            </div>
+
             <i class="bi bi-box-seam"></i>
             <h3>Aucune commande pour le moment</h3>
             <p>Vous n'avez pas encore passé de commande sur AutoMecaStore.</p>
@@ -373,7 +386,6 @@
           </div>
         </div>
 
-        <!-- ====== FAVORIS ====== -->
         <div class="panel" *ngIf="ongletActif === 'favoris'">
           <div class="panel-header">
             <h2><i class="bi bi-heart-fill"></i> Mes favoris</h2>
@@ -417,9 +429,102 @@
 
           <!-- État vide -->
           <div class="empty-state" *ngIf="!isLoadingFavoris && !hasFavoris()">
+            <!-- DEBUG OUTPUT -->
+            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
+                <strong>DEBUG - Favoris:</strong>
+                <pre>{{ favorisResponse | json }}</pre>
+                <strong>hasFavoris():</strong> {{ hasFavoris() }}
+                <strong>getFavoris().length:</strong> {{ getFavoris().length }}
+            </div>
+
             <i class="bi bi-heart"></i>
             <h3>Aucun favori pour le moment</h3>
             <p>Ajoutez des pièces à vos favoris depuis le catalogue.</p>
+            <a routerLink="/catalog/auto" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+              <i class="bi bi-grid"></i> Voir le catalogue
+            </a>
+          </div>
+        </div>
+
+        <!-- ====== PANIER ====== -->
+        <div class="panel" *ngIf="ongletActif === 'panier'">
+          <div class="panel-header">
+            <h2><i class="bi bi-cart-fill"></i> Mon panier</h2>
+            <p>Les articles que vous avez ajoutés au panier</p>
+          </div>
+
+          <!-- État de chargement -->
+          <div class="loading-state" *ngIf="isLoadingPanier">
+            <div class="spinner"></div>
+            <p>Chargement de votre panier...</p>
+          </div>
+
+          <!-- Erreur -->
+          <div class="error-banner" *ngIf="panierError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ panierError }}
+          </div>
+
+          <!-- Liste du panier -->
+          <div class="panier-list" *ngIf="hasPanierItems()">
+            <div class="panier-item" *ngFor="let item of getPanierItems()">
+              <div class="panier-item-image">
+                <img [src]="item.image" [alt]="item.produit_nom" />
+              </div>
+              
+              <div class="panier-item-content">
+                <h4>{{ item.produit_nom }}</h4>
+                <p class="panier-item-prix">{{ formatPrix(item.prix) }}</p>
+                
+                <div class="panier-item-quantity">
+                  <button class="qty-btn" (click)="mettreAJourQuantite(item, item.quantite - 1)" [disabled]="item.quantite <= 1">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <span class="qty-value">{{ item.quantite }}</span>
+                  <button class="qty-btn" (click)="mettreAJourQuantite(item, item.quantite + 1)">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+                
+                <p class="panier-item-sous-total">Sous-total: {{ formatPrix(item.sous_total) }}</p>
+              </div>
+              
+              <div class="panier-item-actions">
+                <button class="btn-danger" (click)="supprimerDuPanier(item)">
+                  <i class="bi bi-trash"></i> Supprimer
+                </button>
+              </div>
+            </div>
+
+            <!-- Résumé du panier -->
+            <div class="panier-summary">
+              <div class="summary-row">
+                <span>Nombre d'articles:</span>
+                <strong>{{ getPanierNombreItems() }}</strong>
+              </div>
+              <div class="summary-row total">
+                <span>Total:</span>
+                <strong>{{ formatPrix(getPanierTotal()) }}</strong>
+              </div>
+              
+              <button class="btn-primary btn-large" (click)="passerCommande()">
+                <i class="bi bi-credit-card"></i> Passer la commande
+              </button>
+            </div>
+          </div>
+
+          <!-- État vide -->
+          <div class="empty-state" *ngIf="!isLoadingPanier && !hasPanierItems()">
+            <!-- DEBUG OUTPUT -->
+            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
+                <strong>DEBUG - Panier:</strong>
+                <pre>{{ panierResponse | json }}</pre>
+                <strong>hasPanierItems():</strong> {{ hasPanierItems() }}
+                <strong>getPanierItems().length:</strong> {{ getPanierItems().length }}
+            </div>
+
+            <i class="bi bi-cart"></i>
+            <h3>Votre panier est vide</h3>
+            <p>Ajoutez des pièces depuis le catalogue pour commencer vos achats.</p>
             <a routerLink="/catalog/auto" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
               <i class="bi bi-grid"></i> Voir le catalogue
             </a>

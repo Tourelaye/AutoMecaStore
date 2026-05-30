@@ -165,11 +165,61 @@
                 </div>
               </div>
   
-              <label class="field-label">Téléphone</label>
-              <div class="input-group custom-input">
-                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                <input type="tel" class="form-control" placeholder="+221 7X XXX XX XX" formControlName="telephone">
+              <label class="field-label">Téléphone <span class="required">*</span></label>
+              <div class="phone-input-wrapper" [class.input-error]="registerForm.get('telephone')?.invalid && registerForm.get('telephone')?.touched">
+                <!-- Country Selector -->
+                <div class="country-selector" (click)="toggleCountryDropdown()">
+                  <span class="country-flag">{{ selectedCountry.flag }}</span>
+                  <span class="country-code">{{ selectedCountry.dialCode }}</span>
+                  <i class="bi bi-chevron-down dropdown-arrow"></i>
+                </div>
+                
+                <!-- Phone Input -->
+                <input 
+                  type="tel" 
+                  class="phone-input" 
+                  [placeholder]="selectedCountry.example"
+                  formControlName="telephone"
+                  (input)="onPhoneInput($event)"
+                >
+                
+                <!-- Validation Icon -->
+                <div class="validation-icon" *ngIf="registerForm.get('telephone')?.touched">
+                  <i class="bi bi-check-circle-fill" *ngIf="registerForm.get('telephone')?.valid"></i>
+                  <i class="bi bi-x-circle-fill" *ngIf="registerForm.get('telephone')?.invalid"></i>
+                </div>
+                
+                <!-- Country Dropdown -->
+                <div class="country-dropdown" *ngIf="countryDropdownOpen">
+                  <div class="country-search">
+                    <i class="bi bi-search search-icon"></i>
+                    <input 
+                      type="text" 
+                      placeholder="Rechercher un pays..." 
+                      #countrySearchInput
+                      (input)="filterCountries(countrySearchInput.value)"
+                    >
+                  </div>
+                  <div class="country-list">
+                    <div 
+                      class="country-item" 
+                      *ngFor="let country of (countrySearchQuery ? filteredCountries : countries)"
+                      (click)="onCountryChange(country)"
+                      [class.selected]="country.code === selectedCountry.code"
+                    >
+                      <span class="country-flag">{{ country.flag }}</span>
+                      <span class="country-name">{{ country.name }}</span>
+                      <span class="country-code">{{ country.dialCode }}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
+              <small class="field-error" *ngIf="registerForm.get('telephone')?.touched && registerForm.get('telephone')?.invalid">
+                <i class="bi bi-exclamation-circle"></i> {{ getPhoneErrorMessage() }}
+              </small>
+              <small class="field-success" *ngIf="registerForm.get('telephone')?.valid && registerForm.get('telephone')?.touched">
+                <i class="bi bi-check-circle"></i> Numéro valide
+              </small>
   
               <div class="account-info">
                 <i class="bi bi-person-circle"></i>

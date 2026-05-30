@@ -1,132 +1,381 @@
-<div class="container my-4">
+<div class="produit-page" @pageEnter>
 
-  <div class="row">
-    <!-- IMAGE -->
-    <div class="col-md-6">
-      <div class="main-image"></div>
+  <!-- ============ LOADING ============ -->
+  <div class="loading-screen" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Chargement du produit...</p>
+  </div>
 
-      <div class="d-flex gap-2 mt-3">
-        <div class="thumb active"></div>
-        <div class="thumb"></div>
-        <div class="thumb"></div>
+  <!-- ============ ERREUR ============ -->
+  <div class="error-screen" *ngIf="erreur && !isLoading && !produit">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <h3>Produit introuvable</h3>
+    <p>Ce produit n'existe pas ou a été supprimé.</p>
+    <a routerLink="/catalog/auto" class="btn-back">
+      <i class="bi bi-arrow-left"></i> Retour au catalogue
+    </a>
+  </div>
+
+  <div class="container" *ngIf="!isLoading">
+
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb-nav">
+      <a routerLink="/">Accueil</a>
+      <i class="bi bi-chevron-right"></i>
+      <a routerLink="/catalog/auto">Catalogue</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>{{ produit?.nom ?? 'Produit' }}</span>
+    </nav>
+
+    <!-- ============ PRODUIT PRINCIPAL ============ -->
+    <div class="product-main" *ngIf="produit">
+
+      <!-- GALERIE -->
+      <div class="gallery-col">
+
+        <!-- IMAGE PRINCIPALE -->
+        <div class="main-image-wrap" (click)="openLightbox()">
+          <div class="main-image" [class.has-image]="images[currentImageIndex]">
+            <img
+              *ngIf="images[currentImageIndex]"
+              [src]="images[currentImageIndex]"
+              [alt]="produit.nom"
+              class="main-img"
+            >
+            <div class="img-placeholder" *ngIf="!images[currentImageIndex]">
+              <i class="bi bi-image"></i>
+            </div>
+          </div>
+
+          <!-- BADGE STOCK -->
+          <div class="stock-badge" [class.out]="produit.stock === 0">
+            <i class="bi" [class.bi-check-circle-fill]="produit.stock > 0" [class.bi-x-circle-fill]="produit.stock === 0"></i>
+            {{ produit.stock > 0 ? 'En stock' : 'Rupture' }}
+          </div>
+
+          <!-- LOUPE -->
+          <div class="zoom-hint">
+            <i class="bi bi-zoom-in"></i> Agrandir
+          </div>
+
+          <!-- NAVIGATION IMAGE -->
+          <button class="img-nav prev" (click)="prevImage(); $event.stopPropagation()" *ngIf="images.length > 1">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="img-nav next" (click)="nextImage(); $event.stopPropagation()" *ngIf="images.length > 1">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <!-- THUMBNAILS -->
+        <div class="thumbs">
+          <div
+            class="thumb"
+            *ngFor="let img of images; let i = index"
+            [class.active]="i === currentImageIndex"
+            (click)="setImage(i)"
+          >
+            <img *ngIf="img" [src]="img" [alt]="'Vue ' + (i+1)">
+            <div class="thumb-placeholder" *ngIf="!img"><i class="bi bi-image"></i></div>
+          </div>
+          <!-- Thumbs vides pour l'UI -->
+          <div class="thumb empty" *ngIf="images.length < 2">
+            <i class="bi bi-image"></i>
+          </div>
+          <div class="thumb empty" *ngIf="images.length < 3">
+            <i class="bi bi-image"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- INFO PRODUIT -->
+      <div class="info-col">
+
+        <!-- MARQUE & BADGES -->
+        <div class="product-meta">
+          <span class="brand-tag">Mann-Filter</span>
+          <span class="verified-badge">
+            <i class="bi bi-patch-check-fill"></i> Certifié OEM
+          </span>
+        </div>
+
+        <!-- NOM -->
+        <h1 class="product-name">{{ produit.nom }}</h1>
+
+        <!-- ÉTOILES -->
+        <div class="rating-row">
+          <div class="stars">
+            <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4]"></i>
+            <i class="bi bi-star-half"></i>
+          </div>
+          <span class="rating-val">4.8</span>
+          <span class="rating-count">(156 avis)</span>
+          <span class="sep">·</span>
+          <span class="sold-count"><i class="bi bi-bag-check-fill"></i> 2.4k vendus</span>
+        </div>
+
+        <!-- PRIX -->
+        <div class="price-block">
+          <div class="price-main">{{ produit.prix / 100 | number:'1.2-2' }} FCFA</div>
+          <div class="price-old">{{ (produit.prix / 100 * 1.2) | number:'1.2-2' }} FCFA</div>
+          <div class="price-discount">-20%</div>
+        </div>
+
+        <!-- STOCK -->
+        <div class="stock-info" [class.out-of-stock]="produit.stock === 0">
+          <i class="bi" [class.bi-check-circle-fill]="produit.stock > 0" [class.bi-x-circle-fill]="produit.stock === 0"></i>
+          <span *ngIf="produit.stock > 0">En stock — <strong>{{ produit.stock }} unités</strong> disponibles</span>
+          <span *ngIf="produit.stock === 0">Rupture de stock</span>
+        </div>
+
+        <!-- STOCK FAIBLE -->
+        <div class="low-stock-warn" *ngIf="produit.stock > 0 && produit.stock <= 5">
+          <i class="bi bi-fire"></i>
+          Plus que {{ produit.stock }} en stock — commandez vite !
+        </div>
+
+        <!-- LIVRAISON -->
+        <div class="delivery-info">
+          <div class="delivery-item">
+            <i class="bi bi-truck-front-fill"></i>
+            <div>
+              <strong>Livraison gratuite</strong>
+              <span>Dakar & régions — 24 à 48h</span>
+            </div>
+          </div>
+          <div class="delivery-item">
+            <i class="bi bi-arrow-return-left"></i>
+            <div>
+              <strong>Retour 30 jours</strong>
+              <span>Satisfait ou remboursé</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DIVIDER -->
+        <div class="divider"></div>
+
+        <!-- QUANTITÉ -->
+        <div class="qty-row">
+          <span class="qty-label">Quantité</span>
+          <div class="qty-control">
+            <button class="qty-btn" (click)="decrease()" [disabled]="quantity <= 1">
+              <i class="bi bi-dash"></i>
+            </button>
+            <span class="qty-val">{{ quantity }}</span>
+            <button class="qty-btn" (click)="increase()" [disabled]="produit.stock <= quantity">
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="action-btns">
+          <button
+            class="btn-cart"
+            [class.added]="produitAjoute"
+            [disabled]="produit.stock === 0"
+            (click)="addToCart(produit)"
+          >
+            <i class="bi" [class.bi-cart-plus-fill]="!produitAjoute" [class.bi-check-lg]="produitAjoute"></i>
+            {{ produitAjoute ? 'Ajouté au panier !' : 'Ajouter au panier' }}
+          </button>
+
+          <button class="btn-wishlist" (click)="toggleWishlist()" [class.wishlisted]="isWishlisted">
+            <i class="bi" [class.bi-heart-fill]="isWishlisted" [class.bi-heart]="!isWishlisted"></i>
+          </button>
+        </div>
+
+        <!-- INFOS RAPIDES -->
+        <div class="quick-info">
+          <div class="qi-item">
+            <i class="bi bi-shield-fill-check"></i>
+            <span>Garantie 2 ans</span>
+          </div>
+          <div class="qi-item">
+            <i class="bi bi-patch-check-fill"></i>
+            <span>Pièce d'origine</span>
+          </div>
+          <div class="qi-item">
+            <i class="bi bi-lock-fill"></i>
+            <span>Paiement sécurisé</span>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- INFO -->
-    <div class="col-md-6">
-      <p class="text-muted">Mann-Filter</p>
+    <!-- ============ TABS ============ -->
+    <div class="tabs-section" *ngIf="produit">
 
-      <h3 *ngIf="produit">{{produit.nom}}</h3>
-
-      <div class="text-warning">
-        <i class="bi bi-star-fill"></i>
-        <i class="bi bi-star-fill"></i>
-        <i class="bi bi-star-fill"></i>
-        <i class="bi bi-star-fill"></i>
-        <span class="text-dark ms-2">4.8 (156 avis)</span>
-      </div>
-
-      <h4 class="text-orange" *ngIf="produit">{{produit.prix / 100}}€</h4>
-
-      <p class="text-success">
-        <i class="bi bi-check-circle"></i>
-        En stock ({{produit?.stock || 0}})
-      </p>
-
-      <!-- QUANTITY -->
-      <div class="d-flex gap-2 align-items-center">
-        <button class="btn btn-outline-secondary" (click)="decrease()">-</button>
-        <input class="form-control text-center qty-input" [value]="quantity">
-        <button class="btn btn-outline-secondary" (click)="increase()">+</button>
-      </div>
-
-      <!-- ACTION -->
-      <div class="d-flex gap-2 mt-3">
-        <button class="btn btn-orange flex-grow-1" (click)="addToCart(produit!)" *ngIf="produit">
-          <i class="bi bi-cart"></i> Ajouter au panier
+      <!-- TAB BUTTONS -->
+      <div class="tabs-bar">
+        <button
+          class="tab-btn"
+          *ngFor="let tab of tabs"
+          [class.active]="activeTab === tab"
+          (click)="setTab(tab)"
+        >
+          <i class="bi" [class.bi-file-text]="tab==='description'"
+             [class.bi-list-check]="tab==='caracteristiques'"
+             [class.bi-car-front]="tab==='compatibilite'"
+             [class.bi-star-half]="tab==='avis'"></i>
+          {{ tab | titlecase }}
         </button>
       </div>
-    </div>
-  </div>
 
-  <!-- TABS -->
-  <div class="tabs-container mt-5">
-    <button class="tab-btn" [class.active]="activeTab==='description'" (click)="setTab('description')">
-      Description
-    </button>
-
-    <button class="tab-btn" [class.active]="activeTab==='caracteristiques'" (click)="setTab('caracteristiques')">
-      Caractéristiques
-    </button>
-
-    <button class="tab-btn" [class.active]="activeTab==='comptabilite'" (click)="setTab('comptabilite')">
-      Comptabilite
-    </button>
-
-    <button class="tab-btn" [class.active]="activeTab==='avis'" (click)="setTab('avis')">
-      Avis
-    </button>
-  </div>
-
-  <!-- DESCRIPTION -->
-  <div *ngIf="activeTab==='description'" @fadeSlide class="card p-4 mt-3">
-    <h5>Description</h5>
-    <p *ngIf="produit">{{produit.description}}</p>
-  </div>
-
-  <!-- CARACTERISTIQUES -->
-  <div *ngIf="activeTab==='caracteristiques'" @fadeSlide class="card p-4 mt-3">
-    <h5>Spécifications</h5>
-
-    <div class="row">
-      <div class="col-md-6">
-        <p><strong>Référence:</strong> MF-HU925/4X</p>
-        <p><strong>EAN:</strong> 4011558290000</p>
+      <!-- DESCRIPTION -->
+      <div class="tab-panel" *ngIf="activeTab === 'description'" @fadeSlide>
+        <h5><i class="bi bi-file-text-fill"></i> Description</h5>
+        <p>{{ produit.description }}</p>
+        <div class="desc-features">
+          <div class="df-item">
+            <i class="bi bi-check-circle-fill"></i>
+            Filtration haute performance jusqu'à 30 000 km
+          </div>
+          <div class="df-item">
+            <i class="bi bi-check-circle-fill"></i>
+            Conforme aux normes constructeur d'origine
+          </div>
+          <div class="df-item">
+            <i class="bi bi-check-circle-fill"></i>
+            Résistant aux températures extrêmes (−40°C à +150°C)
+          </div>
+        </div>
       </div>
 
-      <div class="col-md-6">
-        <p><strong>Type:</strong> Filtre à cartouche</p>
-        <p><strong>Température:</strong> 150°C</p>
+      <!-- CARACTÉRISTIQUES -->
+      <div class="tab-panel" *ngIf="activeTab === 'caracteristiques'" @fadeSlide>
+        <h5><i class="bi bi-list-check"></i> Spécifications techniques</h5>
+        <div class="specs-grid">
+          <div class="spec-row">
+            <span class="spec-key">Référence</span>
+            <span class="spec-val">MF-HU925/4X</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">EAN</span>
+            <span class="spec-val">4011558290000</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Type</span>
+            <span class="spec-val">Filtre à cartouche</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Température max</span>
+            <span class="spec-val">150°C</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Marque</span>
+            <span class="spec-val">Mann-Filter</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Poids</span>
+            <span class="spec-val">320 g</span>
+          </div>
+        </div>
       </div>
+
+      <!-- COMPATIBILITÉ -->
+      <div class="tab-panel" *ngIf="activeTab === 'compatibilite'" @fadeSlide>
+        <h5><i class="bi bi-car-front-fill"></i> Véhicules compatibles</h5>
+        <div class="compat-grid">
+          <div class="compat-item" *ngFor="let v of ['BMW Série 3 (E90)', 'BMW Série 3 (E91)', 'BMW Série 3 (E92)', 'BMW Série 3 (E93)', 'BMW Série 5 (E60)', 'BMW X3 (E83)']">
+            <i class="bi bi-check2"></i>
+            {{ v }}
+          </div>
+        </div>
+      </div>
+
+      <!-- AVIS -->
+      <div class="tab-panel" *ngIf="activeTab === 'avis'" @fadeSlide>
+        <h5><i class="bi bi-star-half"></i> Avis clients</h5>
+        <div class="avis-summary">
+          <div class="avis-score">
+            <span class="score-val">4.8</span>
+            <div class="score-stars">
+              <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4]"></i>
+              <i class="bi bi-star-half"></i>
+            </div>
+            <span class="score-count">156 avis</span>
+          </div>
+          <div class="avis-empty-note">
+            <i class="bi bi-chat-left-text"></i>
+            <p>Soyez le premier à partager votre expérience !</p>
+            <button class="btn-write-review">
+              <i class="bi bi-pencil-fill"></i>
+              Écrire un avis
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
 
-  <!-- AVIS -->
-  <div *ngIf="activeTab==='avis'" @fadeSlide class="card p-4 mt-3">
-    <h5>Avis clients</h5>
-    <p>Aucun avis pour le moment</p>
-  </div>
+    <!-- ============ PRODUITS SIMILAIRES ============ -->
+    <div class="similaires-section" *ngIf="produits.length > 0">
 
-  <!-- PRODUITS SIMILAIRES -->
-  <div class="mt-5">
-    <h5>Produits similaires</h5>
+      <div class="sim-header">
+        <h5>Produits similaires</h5>
+        <a routerLink="/catalog/auto" class="voir-plus">
+          Voir tout <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
 
-    <div class="row">
-      <div class="col-md-4" *ngFor="let p of produits; let i = index">
-        <div class="product-card scroll-reveal stagger-item" 
-             appScrollReveal 
-             [revealDelay]="i * 150">
-
-          <div class="product-img"></div>
-
-          <div class="p-3">
-            <h6>{{p.nom}}</h6>
-
-            <div class="text-warning">4.5</div>
-
-            <div class="d-flex justify-content-between mt-2">
-              <span class="price">{{p.prix / 100}}</span>
-
-              <button class="btn btn-orange btn-sm">
-                <i class="bi bi-cart"></i>
+      <div class="sim-grid" [@listStagger]="produits.length">
+        <div
+          class="sim-card"
+          *ngFor="let p of produits.slice(0, 4); let i = index"
+          (click)="naviguerVersProduit(p.id)"
+          appScrollReveal
+          [revealDelay]="i * 120"
+        >
+          <!-- IMAGE -->
+          <div class="sim-img">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
+            <div class="sim-placeholder" *ngIf="!p.image">
+              <i class="bi bi-gear-wide-connected"></i>
+            </div>
+            <div class="sim-overlay">
+              <button class="sim-quick-add" (click)="addToCart(p); $event.stopPropagation()" [disabled]="p.stock === 0">
+                <i class="bi bi-cart-plus-fill"></i>
               </button>
             </div>
+          </div>
 
+          <!-- INFO -->
+          <div class="sim-info">
+            <span class="sim-brand">Mann-Filter</span>
+            <h6 class="sim-name">{{ p.nom }}</h6>
+
+            <div class="sim-stars">
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-fill"></i>
+              <i class="bi bi-star-half"></i>
+              <span>4.5</span>
+            </div>
+
+            <div class="sim-footer">
+              <span class="sim-price">{{ p.prix / 100 | number:'1.2-2' }} FCFA</span>
+              <span class="sim-stock out" *ngIf="p.stock === 0">Rupture</span>
+              <span class="sim-stock" *ngIf="p.stock > 0">En stock</span>
+            </div>
           </div>
 
         </div>
       </div>
-    </div>
-  </div>
 
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ LIGHTBOX ============ -->
+<div class="lightbox" *ngIf="lightboxOpen" (click)="closeLightbox()">
+  <button class="lightbox-close" (click)="closeLightbox()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+  <img [src]="images[currentImageIndex]" [alt]="produit?.nom" (click)="$event.stopPropagation()">
 </div>

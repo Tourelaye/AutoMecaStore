@@ -42,6 +42,7 @@ export interface CommandesResponse {
 
 export interface Favori {
   id: number;
+  produit_id: number;
   produit_nom: string;
   prix: number;
   image: string;
@@ -51,6 +52,22 @@ export interface Favori {
 export interface FavorisResponse {
   favoris: Favori[];
   total: number;
+}
+
+export interface PanierItem {
+  id: number;
+  produit_id: number;
+  produit_nom: string;
+  prix: number;
+  image: string;
+  quantite: number;
+  sous_total: number;
+}
+
+export interface PanierResponse {
+  items: PanierItem[];
+  total: number;
+  nombre_items: number;
 }
 
 @Injectable({
@@ -63,11 +80,13 @@ export class MonCompteService {
   private clientInfoSubject = new BehaviorSubject<ClientInfo | null>(null);
   private commandesSubject = new BehaviorSubject<CommandesResponse | null>(null);
   private favorisSubject = new BehaviorSubject<FavorisResponse | null>(null);
+  private panierSubject = new BehaviorSubject<PanierResponse | null>(null);
   
   // Observables publics
   clientInfo$ = this.clientInfoSubject.asObservable();
   commandes$ = this.commandesSubject.asObservable();
   favoris$ = this.favorisSubject.asObservable();
+  panier$ = this.panierSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -112,13 +131,15 @@ export class MonCompteService {
   
   getMesCommandes(): Observable<CommandesResponse> {
     const headers = this.getAuthHeaders();
+    console.log('📡 GET /mes-commandes/ - Headers:', headers);
     
     return this.http.get<CommandesResponse>(`${this.API_URL}/mes-commandes/`, { headers }).pipe(
       tap(commandes => {
+        console.log('📦 COMMANDES API RESPONSE:', commandes);
         this.commandesSubject.next(commandes);
       }),
       catchError(error => {
-        console.error('Erreur lors de la récupération des commandes:', error);
+        console.error('❌ Erreur lors de la récupération des commandes:', error);
         // Retourner une réponse vide en cas d'erreur
         const emptyResponse: CommandesResponse = { commandes: [], total: 0 };
         this.commandesSubject.next(emptyResponse);
@@ -133,13 +154,19 @@ export class MonCompteService {
   
   getFavoris(): Observable<FavorisResponse> {
     const headers = this.getAuthHeaders();
+    console.log('📡 GET /favoris/ - Headers:', headers);
     
     return this.http.get<FavorisResponse>(`${this.API_URL}/favoris/`, { headers }).pipe(
       tap(favoris => {
+        console.log('❤️ FAVORIS API RAW RESPONSE:', favoris);
+        console.log('❤️ FAVORIS ARRAY:', favoris.favoris);
+        console.log('❤️ FAVORIS TOTAL:', favoris.total);
+        console.log('❤️ FAVORIS LENGTH:', favoris.favoris?.length || 0);
         this.favorisSubject.next(favoris);
+        console.log('❤️ FAVORIS SUBJECT UPDATED');
       }),
       catchError(error => {
-        console.error('Erreur lors de la récupération des favoris:', error);
+        console.error('❌ Erreur lors de la récupération des favoris:', error);
         // Retourner une réponse vide en cas d'erreur
         const emptyResponse: FavorisResponse = { favoris: [], total: 0 };
         this.favorisSubject.next(emptyResponse);
@@ -150,14 +177,22 @@ export class MonCompteService {
 
   ajouterFavori(produitId: number): Observable<any> {
     const headers = this.getAuthHeaders();
+    console.log('📡 POST /favoris/ - produit_id:', produitId);
+    console.log('📡 POST /favoris/ - Headers:', headers);
     
     return this.http.post(`${this.API_URL}/favoris/`, { produit_id: produitId }, { headers }).pipe(
-      tap(() => {
+      tap(response => {
+        console.log('✅ FAVORI POST RESPONSE:', response);
         // Rafraîchir la liste des favoris après ajout
-        this.getFavoris().subscribe();
+        console.log('🔄 Refreshing favoris after add...');
+        this.getFavoris().subscribe({
+          next: (data) => console.log('✅ Favoris refreshed after add:', data),
+          error: (err) => console.error('❌ Error refreshing favoris:', err)
+        });
       }),
       catchError(error => {
-        console.error('Erreur lors de l\'ajout aux favoris:', error);
+        console.error('❌ Erreur lors de l\'ajout aux favoris:', error);
+        console.error('❌ Error details:', error.error);
         throw error;
       })
     );
@@ -165,17 +200,78 @@ export class MonCompteService {
 
   retirerFavori(produitId: number): Observable<any> {
     const headers = this.getAuthHeaders();
-    
-    return this.http.delete(`${this.API_URL}/favoris/`, { 
+    console.log('📡 DELETE /favoris/ - produit_id:', produitId);
+    console.log('📡 DELETE /favoris/ - Headers:', headers);
+
+    return this.http.delete(`${this.API_URL}/favoris/`, {
       headers,
       body: { produit_id: produitId }
     }).pipe(
-      tap(() => {
+      tap(response => {
+        console.log('✅ FAVORI DELETE RESPONSE:', response);
         // Rafraîchir la liste des favoris après suppression
-        this.getFavoris().subscribe();
+        console.log('🔄 Refreshing favoris after remove...');
+        this.getFavoris().subscribe({
+          next: (data) => console.log('✅ Favoris refreshed after remove:', data),
+          error: (err) => console.error('❌ Error refreshing favoris:', err)
+        });
       }),
       catchError(error => {
-        console.error('Erreur lors du retrait des favoris:', error);
+        console.error('❌ Erreur lors du retrait des favoris:', error);
+        console.error('❌ Error details:', error.error);
+        throw error;
+      })
+    );
+  }
+
+  // ==============================
+  // PANIER
+  // ==============================
+  
+  getPanier(): Observable<PanierResponse> {
+    const headers = this.getAuthHeaders();
+    console.log('📡 GET /panier/ - Headers:', headers);
+    
+    return this.http.get<PanierResponse>(`${this.API_URL}/panier/`, { headers }).pipe(
+      tap(panier => {
+        console.log('🛒 PANIER API RESPONSE:', panier);
+        this.panierSubject.next(panier);
+      }),
+      catchError(error => {
+        console.error('❌ Erreur lors de la récupération du panier:', error);
+        // Retourner une réponse vide en cas d'erreur
+        const emptyResponse: PanierResponse = { items: [], total: 0, nombre_items: 0 };
+        this.panierSubject.next(emptyResponse);
+        return of(emptyResponse);
+      })
+    );
+  }
+
+  supprimerDuPanier(itemId: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.delete(`${this.API_URL}/panier/${itemId}/`, { headers }).pipe(
+      tap(() => {
+        // Rafraîchir le panier après suppression
+        this.getPanier().subscribe();
+      }),
+      catchError(error => {
+        console.error('Erreur lors de la suppression du panier:', error);
+        throw error;
+      })
+    );
+  }
+
+  mettreAJourQuantite(itemId: number, quantite: number): Observable<any> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.patch(`${this.API_URL}/panier/${itemId}/`, { quantite }, { headers }).pipe(
+      tap(() => {
+        // Rafraîchir le panier après mise à jour
+        this.getPanier().subscribe();
+      }),
+      catchError(error => {
+        console.error('Erreur lors de la mise à jour de la quantité:', error);
         throw error;
       })
     );
@@ -187,10 +283,13 @@ export class MonCompteService {
   
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.getToken();
-    return new HttpHeaders({
+    console.log('🔑 TOKEN:', token ? 'PRÉSENT' : 'ABSENT');
+    const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
+    console.log('📋 HEADERS:', headers);
+    return headers;
   }
 
   // ==============================
@@ -198,9 +297,23 @@ export class MonCompteService {
   // ==============================
   
   refreshAllData(): void {
-    this.getClientInfo().subscribe();
-    this.getMesCommandes().subscribe();
-    this.getFavoris().subscribe();
+    console.log('🔄 REFRESH ALL DATA APPELE');
+    this.getClientInfo().subscribe({
+      next: (data) => console.log('✅ Client info chargée:', data),
+      error: (err) => console.error('❌ Erreur client info:', err)
+    });
+    this.getMesCommandes().subscribe({
+      next: (data) => console.log('✅ Commandes chargées:', data),
+      error: (err) => console.error('❌ Erreur commandes:', err)
+    });
+    this.getFavoris().subscribe({
+      next: (data) => console.log('✅ Favoris chargés:', data),
+      error: (err) => console.error('❌ Erreur favoris:', err)
+    });
+    this.getPanier().subscribe({
+      next: (data) => console.log('✅ Panier chargé:', data),
+      error: (err) => console.error('❌ Erreur panier:', err)
+    });
   }
 
   // Méthodes utilitaires pour les statuts

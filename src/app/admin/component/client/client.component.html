@@ -5,161 +5,159 @@
     <app-header></app-header>
 
     <div class="content">
-      <!-- STATISTIQUES -->
-      <div class="stats-grid" *ngIf="stats">
-        <div class="stat-card">
-          <div class="stat-icon blue">
-            <i class="bi bi-people"></i>
-          </div>
-          <div class="stat-info">
-            <h3>{{ stats.total_clients }}</h3>
-            <p>Total Clients</p>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon green">
-            <i class="bi bi-person-check"></i>
-          </div>
-          <div class="stat-info">
-            <h3>{{ stats.clients_actifs }}</h3>
-            <p>Clients Actifs</p>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon red">
-            <i class="bi bi-person-x"></i>
-          </div>
-          <div class="stat-info">
-            <h3>{{ stats.clients_inactifs }}</h3>
-            <p>Clients Inactifs</p>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon purple">
-            <i class="bi bi-person-plus"></i>
-          </div>
-          <div class="stat-info">
-            <h3>{{ stats.nouveaux_clients_ce_mois }}</h3>
-            <p>Nouveaux ce mois</p>
-          </div>
-        </div>
-      </div>
 
       <!-- EN-TÊTE -->
       <div class="page-header">
-        <div>
-          <h2>Gestion des Clients</h2>
+        <div class="header-title">
+          <h1>Gestion des Clients</h1>
           <p>Gérez votre base de clients en temps réel</p>
         </div>
-        <div class="header-actions">
-          <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
-            <i class="bi bi-arrow-clockwise" [class.spinning]="isLoading"></i>
-            Actualiser
-          </button>
+        <button class="btn-primary" (click)="refreshData()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise" [class.spinning]="isLoading"></i>
+          Actualiser
+        </button>
+      </div>
+      
+      <!-- STATISTIQUES -->
+      <div class="stats-section" *ngIf="stats">
+        <div class="stat-card stat-blue">
+          <div class="stat-icon">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.total_clients }}</div>
+            <div class="stat-label">Total Clients</div>
+          </div>
+        </div>
+        <div class="stat-card stat-green">
+          <div class="stat-icon">
+            <i class="bi bi-person-check-fill"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.clients_actifs }}</div>
+            <div class="stat-label">Clients Actifs</div>
+          </div>
+        </div>
+        <div class="stat-card stat-red">
+          <div class="stat-icon">
+            <i class="bi bi-person-x-fill"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.clients_inactifs }}</div>
+            <div class="stat-label">Clients Inactifs</div>
+          </div>
+        </div>
+        <div class="stat-card stat-purple">
+          <div class="stat-icon">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ stats.nouveaux_clients_ce_mois }}</div>
+            <div class="stat-label">Nouveaux ce mois</div>
+          </div>
         </div>
       </div>
 
       <!-- ERREUR -->
-      <div class="error-banner" *ngIf="error">
-        <i class="bi bi-exclamation-triangle"></i>
+      <div class="error-alert" *ngIf="error">
+        <i class="bi bi-exclamation-circle"></i>
         <span>{{ error }}</span>
-        <button class="btn-close-error" (click)="error = null">
+        <button class="btn-close" (click)="error = null">
           <i class="bi bi-x"></i>
         </button>
       </div>
 
-      <!-- PANEL -->
-      <div class="panel">
+      <!-- PANEL PRINCIPAL -->
+      <div class="main-panel">
         <!-- TOOLBAR -->
         <div class="toolbar">
-          <div class="search-filters">
-            <div class="search-box">
+          <div class="search-section">
+            <div class="search-input-wrapper">
               <i class="bi bi-search"></i>
               <input 
                 type="text" 
-                placeholder="Rechercher par nom, email, téléphone..." 
+                placeholder="Rechercher un client..." 
                 [(ngModel)]="searchQuery" 
                 (keyup.enter)="onSearch()" 
               />
             </div>
-            <select class="filter-select" [(ngModel)]="selectedStatut" (change)="onStatutFilter()">
+          </div>
+          <div class="filters-section">
+            <select class="filter-dropdown" [(ngModel)]="selectedStatut" (change)="onStatutFilter()">
               <option value="all">Tous les statuts</option>
               <option value="actif">Actifs</option>
               <option value="inactif">Inactifs</option>
             </select>
-            <select class="filter-select" [(ngModel)]="selectedOrdering" (change)="onOrderingChange()">
+            <select class="filter-dropdown" [(ngModel)]="selectedOrdering" (change)="onOrderingChange()">
               <option value="-date_inscription">Plus récents</option>
               <option value="date_inscription">Plus anciens</option>
               <option value="user__nom">Nom (A-Z)</option>
               <option value="-user__nom">Nom (Z-A)</option>
-              <option value="user__email">Email (A-Z)</option>
             </select>
           </div>
-          <div class="toolbar-actions">
-            <button class="btn-filter" (click)="onSearch()">
-              <i class="bi bi-funnel"></i> Filtrer
-            </button>
-            <button class="btn-reset" (click)="resetFilters()">
-              <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+          <div class="actions-section">
+            <button class="btn-secondary" (click)="resetFilters()">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Réinitialiser
             </button>
           </div>
         </div>
 
-        <!-- TABLE -->
-        <div class="table-container">
-          <div class="table-header">
-            <div class="header-cell avatar">Avatar</div>
-            <div class="header-cell">Client</div>
-            <div class="header-cell">Email</div>
-            <div class="header-cell">Téléphone</div>
-            <div class="header-cell">Inscription</div>
-            <div class="header-cell">Commandes</div>
-            <div class="header-cell">Statut</div>
-            <div class="header-cell">Actions</div>
-          </div>
-
+        <!-- CLIENTS GRID -->
+        <div class="clients-grid">
           <!-- LOADING -->
-          <div class="loading-state" *ngIf="isLoading">
+          <div class="loading-container" *ngIf="isLoading">
             <div class="loading-spinner">
               <i class="bi bi-hourglass-split"></i>
-              <span>Chargement des clients...</span>
+              <span>Chargement...</span>
             </div>
           </div>
 
-          <!-- TABLE ROWS -->
-          <div class="table-row" *ngFor="let client of paginatedClients; trackBy: trackByClientId">
-            <div class="cell avatar">
-              <div class="avatar-circle">
+          <!-- CLIENT CARDS -->
+          <div class="client-card" *ngFor="let client of paginatedClients; trackBy: trackByClientId">
+            <div class="card-header">
+              <div class="client-avatar">
                 {{ getInitials(client.nom_complet) }}
               </div>
-            </div>
-            <div class="cell client-info">
-              <div class="client-name">{{ client.nom_complet }}</div>
-              <div class="client-id">ID: {{ client.user }}</div>
-            </div>
-            <div class="cell email">Email à charger</div>
-            <div class="cell phone">Téléphone à charger</div>
-            <div class="cell date">{{ formatDate(client.date_inscription) }}</div>
-            <div class="cell orders">
-              <span class="orders-badge">{{ client.nombre_commandes }}</span>
-            </div>
-            <div class="cell status">
-              <span class="status-badge" [ngClass]="formatStatut(client.statut).class">
-                {{ formatStatut(client.statut).label }}
-              </span>
-            </div>
-            <div class="cell actions">
-              <div class="action-menu">
-                <button class="btn-action" (click)="viewClientDetails(client)">
-                  <i class="bi bi-eye"></i>
-                </button>
-                <button class="btn-action" (click)="toggleClientStatus(client)">
-                  <i class="bi" [class.bi-toggle-on]="client.statut === 'actif'" [class.bi-toggle-off]="client.statut === 'inactif'"></i>
-                </button>
-                <button class="btn-action btn-delete" (click)="deleteClient(client)">
-                  <i class="bi bi-trash"></i>
-                </button>
+              <div class="client-info">
+                <h3>{{ client.nom_complet }}</h3>
+                <span class="client-id">ID: {{ client.user }}</span>
               </div>
+              <div class="status-indicator" [ngClass]="client.statut">
+                <i class="bi bi-circle-fill"></i>
+              </div>
+            </div>
+            
+            <div class="card-body">
+              <div class="info-row">
+                <i class="bi bi-envelope"></i>
+                <span>Email à charger</span>
+              </div>
+              <div class="info-row">
+                <i class="bi bi-telephone"></i>
+                <span>Téléphone à charger</span>
+              </div>
+              <div class="info-row">
+                <i class="bi bi-calendar"></i>
+                <span>{{ formatDate(client.date_inscription) }}</span>
+              </div>
+              <div class="info-row">
+                <i class="bi bi-bag"></i>
+                <span>{{ client.nombre_commandes }} commande(s)</span>
+              </div>
+            </div>
+            
+            <div class="card-footer">
+              <button class="btn-view" (click)="viewClientDetails(client)">
+                <i class="bi bi-eye"></i>
+                Détails
+              </button>
+              <button class="btn-toggle" (click)="toggleClientStatus(client)">
+                <i class="bi" [class.bi-toggle-on]="client.statut === 'actif'" [class.bi-toggle-off]="client.statut === 'inactif'"></i>
+              </button>
+              <button class="btn-delete" (click)="deleteClient(client)">
+                <i class="bi bi-trash"></i>
+              </button>
             </div>
           </div>
 
@@ -183,9 +181,12 @@
             <i class="bi bi-chevron-left"></i>
           </button>
           
-          <span class="page-info">
-            Page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} clients)
-          </span>
+          <div class="page-numbers">
+            <span class="page-info">
+              Page {{ currentPage }} sur {{ totalPages }}
+            </span>
+            <span class="total-info">({{ totalItems }} clients)</span>
+          </div>
           
           <button 
             class="page-btn" 
@@ -202,7 +203,7 @@
 
 <!-- MODAL DÉTAILS CLIENT -->
 <div class="modal-overlay" *ngIf="showModal && actionType === 'details'" (click)="closeModal()">
-  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>Détails du client</h3>
       <button class="btn-close" (click)="closeModal()">
@@ -210,15 +211,17 @@
       </button>
     </div>
     <div class="modal-body" *ngIf="selectedClient">
-      <div class="client-detail-grid">
-        <div class="detail-item">
-          <label>Nom complet</label>
-          <p>{{ selectedClient.nom_complet }}</p>
+      <div class="client-detail-card">
+        <div class="detail-avatar">
+          {{ getInitials(selectedClient.nom_complet) }}
         </div>
-        <div class="detail-item">
-          <label>ID Utilisateur</label>
-          <p>#{{ selectedClient.user }}</p>
+        <div class="detail-header">
+          <h2>{{ selectedClient.nom_complet }}</h2>
+          <span class="detail-id">ID: {{ selectedClient.user }}</span>
         </div>
+      </div>
+      
+      <div class="detail-grid">
         <div class="detail-item">
           <label>Date d'inscription</label>
           <p>{{ formatDate(selectedClient.date_inscription) }}</p>

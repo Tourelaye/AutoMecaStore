@@ -7,9 +7,9 @@
       <span class="catalog-tag">
         <i class="bi bi-grid-3x3-gap-fill"></i> CATALOGUE
       </span>
-      <h1>Pièces détachées <span class="accent">Moto & Scooter</span></h1>
+      <h1>Pièces détachées <span class="accent">Moto</span></h1>
       <p class="catalog-count">
-        <span class="highlight-count">{{ produitsFiltres?.length || 6 }}</span> produits disponibles
+        <span class="highlight-count">{{ produitsFiltres.length }}</span> produits disponibles
       </p>
       <div class="catalog-features">
         <span><i class="bi bi-check-circle text-success"></i> Pièces d'origine</span>
@@ -25,7 +25,7 @@
         <i class="bi bi-search"></i>
         <input
           type="text"
-          placeholder="Rechercher une pièce moto..."
+          placeholder="Rechercher une pièce..."
           [(ngModel)]="searchQuery"
           (input)="appliquerFiltres()"
         >
@@ -64,7 +64,7 @@
     </div>
   </div>
 
-  <!-- SOUS-CATÉGORIES MOTO -->
+  <!-- SOUS-CATÉGORIES -->
   <div class="sous-categories">
     <button
       *ngFor="let cat of sousCategoriesMoto"
@@ -72,7 +72,6 @@
       [class.active]="categorieActive === cat.key"
       (click)="setCategorieActive(cat.key)"
     >
-      <i class="bi" [class]="cat.icon"></i>
       {{ cat.label }}
     </button>
   </div>
@@ -102,21 +101,14 @@
           <input type="checkbox" [(ngModel)]="filtrePromo" (change)="appliquerFiltres()">
           <span class="cards"><i class="bi bi-percent"></i></span>
           En promotion
-          <span class="badge">89</span>
+          <span class="badge">{{ tousLesProduits | json | slice:0:0 }}{{ tousLesProduits.length }}</span>
         </label>
 
         <label class="quick-filter" [class.active-filter]="filtreNew">
           <input type="checkbox" [(ngModel)]="filtreNew" (change)="appliquerFiltres()">
           <span class="cards"><i class="bi bi-star"></i></span>
           Nouveautés
-          <span class="badge">67</span>
-        </label>
-
-        <label class="quick-filter" [class.active-filter]="filtreBestseller">
-          <input type="checkbox" [(ngModel)]="filtreBestseller" (change)="appliquerFiltres()">
-          <span class="cards"><i class="bi bi-graph-up"></i></span>
-          Bestsellers
-          <span class="badge">245</span>
+          <span class="badge">2</span>
         </label>
       </div>
 
@@ -137,18 +129,6 @@
             [(ngModel)]="prixMax"
             (input)="appliquerFiltres()"
           >
-        </div>
-      </div>
-
-      <!-- MARQUES MOTO -->
-      <div class="filter-section">
-        <h6><i class="bi bi-badge"></i> Marques</h6>
-        <div class="marque-grid">
-          <label class="marque-item" *ngFor="let marque of marquesMoto">
-            <input type="checkbox" [(ngModel)]="marque.selected" (change)="appliquerFiltres()">
-            <span class="marque-logo">{{ marque.logo }}</span>
-            {{ marque.name }}
-          </label>
         </div>
       </div>
 
@@ -175,254 +155,204 @@
     </aside>
 
     <!-- PRODUITS -->
-    
-    <div class="filters" [class.hide-filters]="!showFilters">
-    
-    <div class="filter-header">
-    
-    <p class="text-center">
-    <i class="bi bi-sliders"></i>
-    Filtres
-    </p>
-    
-    <p class="subtitle">Affinez votre recherche</p>
-    
-    </div>
-    
-    
-    <div class="filter-section">
-    
-    <h6>
-    <i class="bi bi-lightning-charge"></i>
-    Filtres rapides
-    </h6>
-    
-    <div class="quick-filter">
-    <span class="cards"><i class="bi bi-truck"></i></span>
-    Livraison
-    <span class="badge">156</span>
-    </div>
-    
-    <div class="quick-filter">
-    <span class="cards"><i class="bi bi-percent"></i></span>
-    En promotion
-    <span class="badge">89</span>
-    </div>
-    
-    <div class="quick-filter">
-    <span class="cards"><i class="bi bi-graph-up"></i></span>
-    Bestsellers
-    <span class="badge">245</span>
-    </div>
-    
-    <div class="quick-filter">
-    <span class="cards"><i class="bi bi-star"></i></span>
-    Nouveautés
-    <span class="badge">67</span>
-    </div>
-    
-    </div>
-    
-    
-    <div class="filter-section">
-    
-    <h6><i class="bi bi-currency-dollar"></i> Prix</h6>
-    
-    <input type="range" class="form-range">
-    
-    <div class="price-inputs">
-    
-    <input type="text" value="0 €">
-    <input type="text" value="500 €">
-    
-    </div>
-    
-    </div>
-    
-    </div>
-    
-    
-    <!-- PRODUCTS -->
-    
     <div class="products">
-    
-    <div class="daily-offers">
-    
-    <div>
-    <h4>Offres du jour</h4>
-    <p>Découvrez nos meilleures réductions</p>
+
+      <!-- BANNIÈRE OFFRES DU JOUR -->
+      <div class="daily-offers">
+        <div>
+          <h4><i class="bi bi-lightning-charge-fill"></i> Offres du jour</h4>
+          <p>Découvrez nos meilleures réductions automobile</p>
+        </div>
+        <div class="daily-count">
+          <strong>{{ produitsFiltres.length }}</strong>
+          <span>Produits</span>
+        </div>
+      </div>
+
+      <!-- SKELETON -->
+      <div class="product-grid" *ngIf="isLoading">
+        <div class="product-card skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line medium"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="!isLoading && produitsFiltres.length === 0">
+        <i class="bi bi-search"></i>
+        <p>Aucun produit ne correspond à vos critères.</p>
+        <button class="btn-reset" (click)="resetFiltres()">
+          <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser les filtres
+        </button>
+      </div>
+
+      <!-- ===================== GRID VIEW ===================== -->
+      <div *ngIf="viewMode === 'grid' && !isLoading && produitsFiltres.length > 0"
+           class="product-grid fade-switch">
+
+        <div
+          class="product-card"
+          *ngFor="let p of produitsFiltres"
+          [class.out-of-stock]="p.stock === 0"
+          (click)="goToProduit(p.id)"
+        >
+
+          <!-- BADGES -->
+          <div class="badges-row">
+            <span class="badge-discount" *ngIf="p.discount">-{{ p.discount }}%</span>
+            <span class="badge-new" *ngIf="p.isNew">✨ Nouveau</span>
+          </div>
+
+          <!-- STOCK FAIBLE -->
+          <div class="stock-faible" *ngIf="isStockFaible(p)">
+            <i class="bi bi-fire"></i> {{ p.stock }} restants
+          </div>
+
+          <!-- RUPTURE -->
+          <div class="stock-out" *ngIf="p.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture
+          </div>
+
+          <!-- IMAGE -->
+          <div class="product-img">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
+            <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
+          </div>
+
+          <!-- ACTIONS HOVER -->
+          <div class="product-actions">
+            <button
+              class="btn-fav"
+              [class.is-fav]="p.isFavori"
+              (click)="toggleFavori(p, $event)"
+            >
+              <i [class]="p.isFavori ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+              {{ p.isFavori ? 'Sauvé' : 'Favoris' }}
+            </button>
+            <button class="btn-v" (click)="goToProduit(p.id); $event.stopPropagation()">
+              <i class="bi bi-eye"></i> Voir
+            </button>
+          </div>
+
+          <h6 class="brand">{{ p.marque }}</h6>
+          <p class="product-name">{{ p.nom }}</p>
+
+          <!-- ÉTOILES -->
+          <div class="etoile">
+            <span class="stars">
+              <i *ngFor="let star of getEtoiles()"
+                [class]="isPleine(star, p.note) ? 'bi bi-star-fill'
+                        : isDemi(star, p.note) ? 'bi bi-star-half'
+                        : 'bi bi-star'"></i>
+            </span>
+            <span class="note-val">{{ p.note }}</span>
+            <span class="avis-count">({{ p.avis }})</span>
+          </div>
+
+          <div class="price">
+            <span class="new-price">{{ p.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <span class="old-price" *ngIf="p.prixAncien">{{ p.prixAncien | number:'1.2-2' }} FCFA</span>
+          </div>
+
+          <button
+            class="btn-cart"
+            [class.added]="produitAjoute === p.id"
+            [disabled]="p.stock === 0"
+            (click)="ajouterAuPanier(p, $event)"
+          >
+            <i class="bi" [class.bi-cart-plus]="produitAjoute !== p.id" [class.bi-check-lg]="produitAjoute === p.id"></i>
+            {{ produitAjoute === p.id ? 'Ajouté !' : 'Ajouter au panier' }}
+          </button>
+
+        </div>
+      </div>
+
+      <!-- ===================== LIST VIEW ===================== -->
+      <div *ngIf="viewMode === 'list' && !isLoading && produitsFiltres.length > 0"
+           class="product-list fade-switch">
+
+        <div
+          class="product-list-card"
+          *ngFor="let p of produitsFiltres"
+          [class.out-of-stock]="p.stock === 0"
+          (click)="goToProduit(p.id)"
+        >
+
+          <!-- IMAGE -->
+          <div class="product-img list-img">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
+            <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
+            <span class="badge-discount list-badge" *ngIf="p.discount">-{{ p.discount }}%</span>
+          </div>
+
+          <!-- MILIEU -->
+          <div class="product-middle">
+            <div class="brand-row-list">
+              <h6 class="brand">{{ p.marque }}</h6>
+              <span class="badge-new-sm" *ngIf="p.isNew">Nouveau</span>
+            </div>
+            <h5 class="product-title">{{ p.nom }}</h5>
+            <p class="product-desc">{{ p.description }}</p>
+            <div class="etoile">
+              <span class="stars">
+                <i *ngFor="let star of getEtoiles()"
+                  [class]="isPleine(star, p.note) ? 'bi bi-star-fill'
+                          : isDemi(star, p.note) ? 'bi bi-star-half'
+                          : 'bi bi-star'"></i>
+              </span>
+              <span class="note-val">{{ p.note }}</span>
+              <span class="avis-count">({{ p.avis }} avis)</span>
+            </div>
+            <div class="list-tags">
+              <span class="tag-livraison" *ngIf="p.livraison">
+                <i class="bi bi-truck"></i> Livraison gratuite
+              </span>
+              <span class="tag-stock-faible" *ngIf="isStockFaible(p)">
+                <i class="bi bi-fire"></i> {{ p.stock }} en stock
+              </span>
+              <span class="tag-rupture" *ngIf="p.stock === 0">
+                <i class="bi bi-x-circle"></i> Rupture
+              </span>
+            </div>
+          </div>
+
+          <!-- DROITE -->
+          <div class="product-right">
+            <div class="price-box">
+              <div class="new-price">{{ p.prixNouveau | number:'1.2-2' }} FCFA</div>
+              <div class="old-price" *ngIf="p.prixAncien">{{ p.prixAncien | number:'1.2-2' }} FCFA</div>
+            </div>
+
+            <div class="btnns">
+              <button
+                class="btn-cart"
+                [class.added]="produitAjoute === p.id"
+                [disabled]="p.stock === 0"
+                (click)="ajouterAuPanier(p, $event)"
+              >
+                <i class="bi" [class.bi-cart-plus]="produitAjoute !== p.id" [class.bi-check-lg]="produitAjoute === p.id"></i>
+                {{ produitAjoute === p.id ? 'Ajouté !' : 'Ajouter' }}
+              </button>
+
+              <div class="btn-row">
+                <button class="btn-fav" [class.is-fav]="p.isFavori" (click)="toggleFavori(p, $event)">
+                  <i [class]="p.isFavori ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                  {{ p.isFavori ? 'Sauvé' : 'Favoris' }}
+                </button>
+                <button class="btn-v" (click)="goToProduit(p.id); $event.stopPropagation()">
+                  <i class="bi bi-eye"></i> Voir
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-    
-    <div class="product-count">
-    <strong>6</strong> Produits
-    </div>
-    
-    </div>
-    
-    
-    <div
-        class="product-grid"
-        [ngClass]="{
-        'grid-view': viewMode === 'grid',
-        'list-view': viewMode === 'list'
-        }">
-    
-    
-    <!-- PRODUCT 1 -->
-    
-    <div class="product-card">
-    
-    <span class="badge-discount">-32%</span>
-    
-    <div class="product-img"></div>
-    
-    <div class="product-actions">
-    
-    <button class="btn-fav">
-    <i class="bi bi-heart"></i> Favoris
-    </button>
-    
-    <button class="btn-view">
-    <i class="bi bi-eye"></i> Voir
-    </button>
-    
-    </div>
-    
-    <h6 class="brand">MONROE</h6>
-    
-    <p class="product-name">
-    <br>Amortisseur arriere Peugeot 206/207/208
-    </p>
-    
-    <div class="rating">
-    
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star"></i>
-    
-    <span>4.8</span>
-    
-    </div>
-    
-    <div class="price">
-    
-    <span class="new-price">89.99 €</span>
-    <span class="old-price">129.99 €</span>
-    
-    </div>
-    
-    <button class="btn-cart">
-    
-    <i class="bi bi-cart"></i>
-    Ajouter au panier
-    
-    </button>
-    
-    </div>
-    
-    
-    <!-- PRODUCT 2 -->
-    
-    <div class="product-card">
-    
-    <span class="badge-discount">-20%</span>
-    
-    <div class="product-img"></div>
-    
-    <div class="product-actions">
-    
-    <button class="btn-fav">
-    <i class="bi bi-heart"></i> Favoris
-    </button>
-    
-    <button class="btn-view">
-    <i class="bi bi-eye"></i> Voir
-    </button>
-    
-    </div>
-    
-    <h6 class="brand">BREMBO</h6>
-    
-    <p class="product-name">
-    Plaquettes de frein Renault Clio
-    </p>
-    
-    <div class="rating">
-    
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-fill"></i>
-    <i class="bi bi-star-half"></i>
-    
-    <span>4.6</span>
-    
-    </div>
-    
-    <div class="price">
-    
-    <span class="new-price">59.99 €</span>
-    <span class="old-price">79.99 €</span>
-    
-    </div>
-    
-    <button class="btn-cart">
-    
-    <i class="bi bi-cart"></i>
-    Ajouter au panier
-    
-    </button>
-    
-    </div>
-    
-    
-    <!-- PRODUCT 3 - RUPTURE STOCK -->
-    
-    <div class="product-card">
-    
-    <div class="stock-out">
-    Rupture de stock
-    </div>
-    
-    <div class="product-img"></div>
-    
-    <div class="product-actions">
-    
-    <button class="btn-fav">
-    <i class="bi bi-heart"></i> Favoris
-    </button>
-    
-    <button class="btn-view">
-    <i class="bi bi-eye"></i> Voir
-    </button>
-    
-    </div>
-    
-    <h6 class="brand">BOSCH</h6>
-    
-    <p class="product-name">
-    Disque de frein BMW Série 3
-    </p>
-    
-    <div class="price">
-    
-    <span class="new-price">79.99 €</span>
-    <span class="old-price">99.99 €</span>
-    
-    </div>
-    
-    <button class="btn-disabled">
-    Indisponible
-    </button>
-    
-    </div>
-    
-    </div>
-    
-    </div>
-    
-    </div>
-    
-    </div>
+  </div>
+</div>

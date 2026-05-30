@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { VeloListComponen } from './velo-list.component';
+import { VeloListComponent } from './velo-list.component';
 
-describe('PoidLourdsListComponent', () => {
-  let component: VeloListComponen;
-  let fixture: ComponentFixture<VeloListComponen>;
+describe('VeloListComponent', () => {
+  let component: VeloListComponent;
+  let fixture: ComponentFixture<VeloListComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [VeloListComponen]
+      imports: [VeloListComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(VeloListComponen);
+    fixture = TestBed.createComponent(VeloListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

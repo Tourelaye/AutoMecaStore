@@ -1,110 +1,191 @@
-<!-- FOOTER -->
 <footer class="footer">
 
-<!-- NEWSLETTER -->
-<section class="newsletter">
+  <!-- ============ NEWSLETTER ============ -->
+  <section class="newsletter-section">
+    <div class="nl-bg-orb nl-orb-1"></div>
+    <div class="nl-bg-orb nl-orb-2"></div>
+    <div class="nl-grid"></div>
 
-<div class="container text-center">
+    <div class="container">
+      <div class="newsletter-inner">
 
-<h3>
-<i class="bi bi-envelope-paper newsletter-icon"></i>
-Newsletter AutoMecaStore
-</h3>
+        <div class="nl-left">
+          <div class="nl-tag">
+            <i class="bi bi-lightning-charge-fill"></i>
+            OFFRE EXCLUSIVE
+          </div>
+          <h3>
+            <span class="nl-icon-wrap">
+              <i class="bi bi-envelope-paper-fill"></i>
+            </span>
+            Rejoignez la newsletter
+          </h3>
+          <p>
+            Recevez nos meilleures offres, nouveautés et codes promo.
+            <br>
+            <strong>−10% sur votre première commande !</strong>
+          </p>
+        </div>
 
-<p>
-Recevez nos meilleures offres, nouveautés et codes promotionnels
-directement dans votre boîte mail
-</p>
+        <div class="nl-right">
+          <!-- SUCCÈS -->
+          <div class="nl-success" *ngIf="subscribeSuccess">
+            <i class="bi bi-check-circle-fill"></i>
+            Inscription réussie ! Vérifiez votre boîte mail.
+          </div>
 
-<div class="newsletter-form">
+          <!-- FORM -->
+          <div class="nl-form" *ngIf="!subscribeSuccess">
+            <div class="nl-input-wrap" [class.nl-error]="subscribeError">
+              <i class="bi bi-envelope nl-input-icon"></i>
+              <input
+                type="email"
+                [(ngModel)]="email"
+                placeholder="votre@email.com"
+                (keyup.enter)="onSubscribe()"
+              >
+            </div>
+            <button class="nl-btn" (click)="onSubscribe()">
+              <i class="bi bi-gift-fill"></i>
+              S'abonner
+            </button>
+          </div>
 
-<input type="email" placeholder="Votre adresse email">
+          <p class="nl-hint" *ngIf="subscribeError">
+            <i class="bi bi-exclamation-circle"></i>
+            Veuillez entrer un email valide.
+          </p>
+          <p class="nl-hint" *ngIf="!subscribeError">
+            <i class="bi bi-shield-check"></i>
+            Pas de spam. Désabonnement en 1 clic.
+          </p>
+        </div>
 
-<button>
-<i class="bi bi-gift"></i>
-S'abonner
-</button>
+      </div>
+    </div>
+  </section>
 
-</div>
+  <!-- ============ MAIN FOOTER ============ -->
+  <div class="footer-main">
+    <div class="container">
+      <div class="footer-grid">
 
-<p class="small">
-<i class="bi bi-tag"></i>
-Recevez une réduction de 10% sur votre première commande
-</p>
+        <!-- BRAND -->
+        <div class="footer-brand">
+          <div class="brand-logo">
+            <div class="brand-icon"><i class="bi bi-gear-fill"></i></div>
+            <span>AutoMecaStore</span>
+          </div>
+          <p class="brand-desc">
+            Votre spécialiste en pièces détachées auto,
+            moto et vélo depuis {{ currentYear }}. Livraison partout au Sénégal.
+          </p>
 
-</div>
+          <!-- SOCIALS -->
+          <div class="socials">
+            <a
+              *ngFor="let s of socials"
+              [href]="s.url"
+              class="social-btn"
+              [style.--sc]="s.color"
+              target="_blank"
+            >
+              <i class="bi {{ s.icon }}"></i>
+            </a>
+          </div>
 
-</section>
+          <!-- CONTACT RAPIDE -->
+          <div class="contact-info">
+            <div class="contact-item">
+              <i class="bi bi-telephone-fill"></i>
+              <span>+221 78 449 25 68</span>
+            </div>
+            <div class="contact-item">
+              <i class="bi bi-envelope-fill"></i>
+              <span>contact&#64;automeca.sn</span>
+            </div>
+            <div class="contact-item">
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>Dakar, Sénégal</span>
+            </div>
+          </div>
+        </div>
 
-<div class="container">
+        <!-- CATÉGORIES -->
+        <div class="footer-col">
+          <h6 class="col-title">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            Catégories
+          </h6>
+          <ul>
+            <li *ngFor="let c of categories">
+              <a [routerLink]="c.route">
+                <i class="bi bi-chevron-right"></i>
+                {{ c.label }}
+              </a>
+            </li>
+          </ul>
+        </div>
 
-<div class="row">
+        <!-- SERVICES -->
+        <div class="footer-col">
+          <h6 class="col-title">
+            <i class="bi bi-headset"></i>
+            Services Client
+          </h6>
+          <ul>
+            <li *ngFor="let s of services">
+              <a [routerLink]="s.route">
+                <i class="bi bi-chevron-right"></i>
+                {{ s.label }}
+              </a>
+            </li>
+          </ul>
+        </div>
 
-<!-- BRAND -->
-<div class="col-md-3">
-<h5 class="brand">
-<i class="bi bi-gear-fill"></i>
-AutoMecaStore
-</h5>
+        <!-- COMPTE -->
+        <div class="footer-col">
+          <h6 class="col-title">
+            <i class="bi bi-person-circle"></i>
+            Mon Compte
+          </h6>
+          <ul>
+            <li *ngFor="let c of compte">
+              <a [routerLink]="c.route">
+                <i class="bi bi-chevron-right"></i>
+                {{ c.label }}
+              </a>
+            </li>
+          </ul>
 
-<p>
-Votre spécialiste en pièces détachées auto,
-moto et vélo depuis 2026.
-</p>
+          <!-- BADGES PAIEMENT -->
+          <div class="payment-badges">
+            <div class="pay-badge"><i class="bi bi-phone-fill"></i> Mobile Money</div>
+            <div class="pay-badge"><i class="bi bi-cash-coin"></i> Cash</div>
+            <div class="pay-badge"><i class="bi bi-credit-card-fill"></i> Carte</div>
+          </div>
+        </div>
 
-<div class="socials">
+      </div>
 
-<i class="bi bi-facebook"></i>
-<i class="bi bi-instagram"></i>
-<i class="bi bi-twitter-x"></i>
-<i class="bi bi-youtube"></i>
+      <!-- BOTTOM BAR -->
+      <div class="footer-bottom">
+        <div class="bottom-left">
+          <span>
+            <i class="bi bi-c-circle"></i>
+            {{ currentYear }} AutoMecaStore. Tous droits réservés.
+          </span>
+        </div>
+        <div class="bottom-right">
+          <a href="#">Politique de confidentialité</a>
+          <span class="sep">·</span>
+          <a href="#">Conditions d'utilisation</a>
+          <span class="sep">·</span>
+          <a href="#">Cookies</a>
+        </div>
+      </div>
 
-</div>
-
-</div>
-
-<!-- CATEGORIES -->
-<div class="col-md-3">
-<h6><i class="bi bi-grid"></i> Catégories</h6>
-<ul>
-<li>Automobile</li>
-<li>Moto & Scooter</li>
-<li>Vélo & E-bike</li>
-<li>Poids Lourds</li>
-</ul>
-</div>
-
-<!-- SERVICES -->
-<div class="col-md-3">
-<h6><i class="bi bi-headset"></i> Services Client</h6>
-<ul>
-<li>FAQ</li>
-<li>Contact</li>
-<li>Retours & Remboursements</li>
-<li>Garantie</li>
-</ul>
-</div>
-
-<!-- ACCOUNT -->
-<div class="col-md-3">
-<h6><i class="bi bi-person-circle"></i> Mon Compte</h6>
-<ul>
-<li>Connexion</li>
-<li>Inscription</li>
-<li>Mes commandes</li>
-<li>Ma liste d'envies</li>
-</ul>
-</div>
-
-</div>
-
-<hr>
-
-<p class="text-center copyright">
-<i class="bi bi-c-circle"></i>
-2026 AutoMecaStore. Tous droits réservés.
-</p>
-
-</div>
+    </div>
+  </div>
 
 </footer>

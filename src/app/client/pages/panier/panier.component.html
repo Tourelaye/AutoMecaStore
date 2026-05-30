@@ -18,7 +18,7 @@
     </div>
 
     <!-- PANIER VIDE -->
-    <div class="empty-container" *ngIf="items.length === 0">
+    <div class="empty-container" *ngIf="items.length === 0 && !commandeConfirmee">
       <div class="empty-icon-wrap">
         <i class="bi bi-cart3 empty-icon"></i>
         <div class="empty-sparkle">✨</div>
@@ -28,6 +28,43 @@
       <a routerLink="/" class="btn-shop">
         <i class="bi bi-shop"></i> Parcourir le catalogue
       </a>
+    </div>
+
+    <!-- CONFIRMATION COMMANDE -->
+    <div class="confirmation-overlay" *ngIf="commandeConfirmee && commandeDetails">
+      <div class="confirmation-card" [@pageAnimation]>
+        <div class="confirmation-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2>Commande envoyée avec succès</h2>
+        <p class="confirmation-message">
+          Merci pour votre commande. Votre commande a bien été enregistrée et sera traitée dans les plus brefs délais.
+        </p>
+        
+        <div class="order-details">
+          <div class="detail-row">
+            <span class="detail-label">Numéro de commande :</span>
+            <span class="detail-value">#{{ commandeDetails.reference || commandeDetails.id }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Date :</span>
+            <span class="detail-value">{{ commandeDetails.date_commande | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Montant total :</span>
+            <span class="detail-value">{{ commandeDetails.montant_total | number:'1.2-2' }} FCFA</span>
+          </div>
+        </div>
+
+        <div class="confirmation-actions">
+          <button class="btn-secondary" (click)="continuerAchats()">
+            <i class="bi bi-arrow-left"></i> Continuer mes achats
+          </button>
+          <button class="btn-primary" (click)="voirMesCommandes()">
+            Voir mes commandes <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- PANIER REMPLI -->

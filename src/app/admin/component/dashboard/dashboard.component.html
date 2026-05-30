@@ -7,12 +7,20 @@
     <div class="dashboard-content">
 
       <!-- WELCOME HEADER -->
-      <div class="welcome-header">
+      <div class="welcome-header fade-up">
         <div class="welcome-text">
-          <h1>Bienvenue, Admin</h1>
+          <div class="welcome-tag">
+            <span class="status-dot"></span>
+            Système opérationnel
+          </div>
+          <h1>Bienvenue, <span class="name-gradient">Admin</span> 👋</h1>
           <p>{{ currentDate }}</p>
         </div>
         <div class="welcome-actions">
+          <button class="btn-refresh" (click)="loadDashboardData()">
+            <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+            Actualiser
+          </button>
           <button class="btn-export">
             <i class="bi bi-download"></i>
             Exporter
@@ -22,75 +30,72 @@
 
       <!-- STATS CARDS -->
       <div class="stats-row">
-        <div class="stat-card">
+
+        <div class="stat-card fade-up delay-1">
+          <div class="stat-glow glow-blue"></div>
           <div class="stat-header">
-            <span class="stat-label">Total Revenue</span>
-            <div class="stat-icon revenue">
-              <i class="bi bi-currency-euro"></i>
-            </div>
+            <span class="stat-label">Chiffre d'affaires</span>
+            <div class="stat-icon icon-blue"><i class="bi bi-graph-up-arrow"></i></div>
           </div>
-          <div class="stat-value">42,850€</div>
-          <div class="stat-change up">
-            <i class="bi bi-arrow-up-right"></i>
-            +12.5%
-          </div>
+          <div class="stat-value" *ngIf="!loading">{{ totalRevenue | number:'1.0-0' }} FCFA</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-change up"><i class="bi bi-arrow-up-right"></i> +12.5% ce mois</div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card fade-up delay-2">
+          <div class="stat-glow glow-green"></div>
           <div class="stat-header">
             <span class="stat-label">Commandes</span>
-            <div class="stat-icon orders">
-              <i class="bi bi-bag"></i>
-            </div>
+            <div class="stat-icon icon-green"><i class="bi bi-cart-check-fill"></i></div>
           </div>
-          <div class="stat-value">156</div>
-          <div class="stat-change up">
-            <i class="bi bi-arrow-up-right"></i>
-            +4%
-          </div>
+          <div class="stat-value" *ngIf="!loading">{{ totalOrders }}</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-change up"><i class="bi bi-arrow-up-right"></i> +4% cette semaine</div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card fade-up delay-3">
+          <div class="stat-glow glow-purple"></div>
           <div class="stat-header">
-            <span class="stat-label">Nouveaux clients</span>
-            <div class="stat-icon customers">
-              <i class="bi bi-people"></i>
-            </div>
+            <span class="stat-label">Total Produits</span>
+            <div class="stat-icon icon-purple"><i class="bi bi-box-seam-fill"></i></div>
           </div>
-          <div class="stat-value">24</div>
-          <div class="stat-change up">
-            <i class="bi bi-arrow-up-right"></i>
-            +18%
-          </div>
+          <div class="stat-value" *ngIf="!loading">{{ totalProducts }}</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-change up"><i class="bi bi-arrow-up-right"></i> +18% ce mois</div>
         </div>
 
-        <div class="stat-card critical">
+        <div class="stat-card critical fade-up delay-4">
+          <div class="stat-glow glow-red"></div>
           <div class="stat-header">
             <span class="stat-label">Stock Critique</span>
-            <div class="stat-icon stock">
-              <i class="bi bi-exclamation-triangle"></i>
-            </div>
+            <div class="stat-icon icon-red"><i class="bi bi-exclamation-triangle-fill"></i></div>
           </div>
-          <div class="stat-value">12</div>
-          <div class="stat-subtitle">Pieces a reapprovisionner</div>
+          <div class="stat-value danger" *ngIf="!loading">{{ lowStockCount }}</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-subtitle"><i class="bi bi-fire"></i> Pièces à réapprovisionner</div>
         </div>
+
       </div>
 
-      <!-- MIDDLE SECTION: Chart + Sidebar -->
+      <!-- SECTION PRINCIPALE -->
       <div class="middle-section">
-        <!-- Weekly Sales Chart -->
-        <div class="chart-card">
+
+        <!-- GRAPHIQUE VENTES -->
+        <div class="chart-card fade-up delay-2">
           <div class="card-header">
-            <h3>Ventes Hebdomadaires</h3>
+            <div>
+              <h3>Ventes Hebdomadaires</h3>
+              <small>Comparatif ventes réelles vs objectifs</small>
+            </div>
             <select class="filter-dropdown">
-              <option>Last 7 days</option>
-              <option>Last 30 days</option>
-              <option>This month</option>
+              <option>7 derniers jours</option>
+              <option>30 derniers jours</option>
+              <option>Ce mois</option>
             </select>
           </div>
+
           <div class="chart-container">
             <div class="sales-chart">
-              <!-- Lignes de grille -->
               <div class="grid-lines">
                 <div class="grid-line"></div>
                 <div class="grid-line"></div>
@@ -98,176 +103,130 @@
                 <div class="grid-line"></div>
                 <div class="grid-line"></div>
               </div>
-              
-              <!-- Barres des ventes -->
+
               <div class="bars-container">
-                <div class="bar-group">
+                <div class="bar-group" *ngFor="let bar of chartBars; let i = index" [style.--i]="i">
+                  <div class="bar-tooltip">{{ bar.value }}</div>
                   <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 65%"></div>
-                    <div class="bar-target" style="height: 75%"></div>
+                    <div class="bar-real"   [style.height]="bar.real   + '%'"></div>
+                    <div class="bar-target" [style.height]="bar.target + '%'"></div>
                   </div>
-                  <span class="bar-label">Lun</span>
-                  <span class="bar-value">6.5k€</span>
-                </div>
-                <div class="bar-group">
-                  <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 82%"></div>
-                    <div class="bar-target" style="height: 70%"></div>
-                  </div>
-                  <span class="bar-label">Mar</span>
-                  <span class="bar-value">8.2k€</span>
-                </div>
-                <div class="bar-group">
-                  <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 45%"></div>
-                    <div class="bar-target" style="height: 60%"></div>
-                  </div>
-                  <span class="bar-label">Mer</span>
-                  <span class="bar-value">4.5k€</span>
-                </div>
-                <div class="bar-group">
-                  <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 91%"></div>
-                    <div class="bar-target" style="height: 80%"></div>
-                  </div>
-                  <span class="bar-label">Jeu</span>
-                  <span class="bar-value">9.1k€</span>
-                </div>
-                <div class="bar-group">
-                  <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 73%"></div>
-                    <div class="bar-target" style="height: 65%"></div>
-                  </div>
-                  <span class="bar-label">Ven</span>
-                  <span class="bar-value">7.3k€</span>
-                </div>
-                <div class="bar-group">
-                  <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 56%"></div>
-                    <div class="bar-target" style="height: 50%"></div>
-                  </div>
-                  <span class="bar-label">Sam</span>
-                  <span class="bar-value">5.6k€</span>
-                </div>
-                <div class="bar-group">
-                  <div class="bar-wrapper">
-                    <div class="bar-real" style="height: 38%"></div>
-                    <div class="bar-target" style="height: 40%"></div>
-                  </div>
-                  <span class="bar-label">Dim</span>
-                  <span class="bar-value">3.8k€</span>
+                  <span class="bar-label">{{ bar.label }}</span>
                 </div>
               </div>
-              
-              <!-- Légende -->
+
               <div class="chart-legend">
-                <div class="legend-item">
-                  <span class="legend-dot real"></span>
-                  <span>Ventes réelles</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-dot target"></span>
-                  <span>Objectif</span>
-                </div>
+                <div class="legend-item"><span class="legend-dot real"></span> Ventes réelles</div>
+                <div class="legend-item"><span class="legend-dot target"></span> Objectif</div>
               </div>
             </div>
+          </div>
+
+          <div class="chart-summary">
+            <div class="cs-item"><span>Total semaine</span><strong>45.0k FCFA</strong></div>
+            <div class="cs-item"><span>Meilleur jour</span><strong>Jeudi — 9.1k</strong></div>
+            <div class="cs-item"><span>Performance</span><strong class="text-green">+7.2% ↑</strong></div>
           </div>
         </div>
 
-        <!-- Stock Alerts Sidebar -->
-        <div class="sidebar-widgets">
-          <div class="widget-card alerts">
-            <div class="card-header">
-              <h3>Stock Alerts</h3>
-              <span class="alert-count">2</span>
+        <!-- ALERTES STOCK -->
+        <div class="widget-card alerts fade-up delay-3">
+          <div class="card-header">
+            <div>
+              <h3>Alertes stock</h3>
+              <small>Produits à réapprovisionner</small>
             </div>
-            <div class="alert-list">
-              <div class="alert-item critical">
-                <div class="alert-info">
-                  <span class="alert-name">Oil Filter X-200</span>
-                  <span class="alert-stock">2 left</span>
+            <span class="alert-count-badge">{{ lowStockProducts.length }}</span>
+          </div>
+
+          <div class="alert-skeleton-list" *ngIf="loading">
+            <div class="alert-skeleton" *ngFor="let i of [1,2,3]"></div>
+          </div>
+
+          <div class="alert-list" *ngIf="!loading">
+            <div class="alert-item critical" *ngFor="let p of lowStockProducts; let i = index" [style.--i]="i">
+              <div class="alert-icon-wrap"><i class="bi bi-exclamation-triangle-fill"></i></div>
+              <div class="alert-info">
+                <span class="alert-name">{{ p.nom }}</span>
+                <div class="alert-stock-bar">
+                  <div class="stock-bar-bg">
+                    <div class="stock-bar-fill" [style.width]="getStockPct(p) + '%'"></div>
+                  </div>
+                  <span class="alert-stock-count">{{ p.stock }} unités</span>
                 </div>
-                <span class="alert-badge red">Critical</span>
               </div>
-              <div class="alert-item warning">
-                <div class="alert-info">
-                  <span class="alert-name">Brake Pads Brembo</span>
-                  <span class="alert-stock">5 left</span>
-                </div>
-                <span class="alert-badge orange">Low</span>
-              </div>
+              <span class="alert-badge red">Critique</span>
+            </div>
+
+            <div class="empty-alerts" *ngIf="lowStockProducts.length === 0">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Tous les stocks sont OK</span>
             </div>
           </div>
+
+          <div class="widget-footer">
+            <button class="btn-voir-tout">
+              Voir toutes les alertes <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
         </div>
+
       </div>
 
-      <!-- RECENT ORDERS TABLE -->
-      <div class="table-card">
+      <!-- TABLE COMMANDES -->
+      <div class="table-card fade-up delay-4">
         <div class="card-header">
-          <h3>Recent Orders</h3>
-          <button class="btn-view-all">View All</button>
+          <div>
+            <h3>Commandes récentes</h3>
+            <small>{{ recentOrders.length }} commandes affichées</small>
+          </div>
+          <button class="btn-view-all">Tout voir <i class="bi bi-arrow-right"></i></button>
         </div>
-        <div class="table-container">
+
+        <div class="table-skeleton" *ngIf="loading">
+          <div class="ts-row" *ngFor="let i of [1,2,3,4,5]">
+            <div class="ts-cell w-sm"></div>
+            <div class="ts-cell w-lg"></div>
+            <div class="ts-cell w-md"></div>
+            <div class="ts-cell w-sm"></div>
+            <div class="ts-cell w-xs"></div>
+          </div>
+        </div>
+
+        <div class="table-container" *ngIf="!loading">
           <table>
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Customer</th>
-                <th>Product</th>
+                <th>Client</th>
+                <th>Produits</th>
                 <th>Total</th>
-                <th>Status</th>
+                <th>Statut</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="order-id">#ORD-001</td>
-                <td class="customer">
-                  <div class="avatar">JD</div>
-                  <span>John Doe</span>
+              <tr *ngFor="let order of recentOrders; let i = index" [style.--i]="i">
+                <td class="order-id">#ORD-{{ order.id }}</td>
+                <td class="customer-cell">
+                  <div class="avatar">{{ order.client?.substring(0,2).toUpperCase() || 'NA' }}</div>
+                  <span>{{ order.client || 'Client inconnu' }}</span>
                 </td>
-                <td>Brake Disc Brembo</td>
-                <td class="total">245.00€</td>
-                <td><span class="status shipped">Shipped</span></td>
+                <td class="prod-count">
+                  <i class="bi bi-box-seam"></i> {{ order.produits?.length || 0 }} produit(s)
+                </td>
+                <td class="total-cell">{{ order.total | number:'1.2-2' }} FCFA</td>
+                <td>
+                  <span class="status" [ngClass]="getStatutClass(order.statut)">
+                    {{ getStatutLabel(order.statut) }}
+                  </span>
+                </td>
               </tr>
-              <tr>
-                <td class="order-id">#ORD-002</td>
-                <td class="customer">
-                  <div class="avatar">AS</div>
-                  <span>Alice Smith</span>
+              <tr class="empty-row" *ngIf="recentOrders.length === 0 && !loading">
+                <td colspan="5">
+                  <div class="empty-table">
+                    <i class="bi bi-inbox"></i><span>Aucune commande récente</span>
+                  </div>
                 </td>
-                <td>Oil Filter X-200</td>
-                <td class="total">89.50€</td>
-                <td><span class="status pending">Pending</span></td>
-              </tr>
-              <tr>
-                <td class="order-id">#ORD-003</td>
-                <td class="customer">
-                  <div class="avatar">MK</div>
-                  <span>Mike King</span>
-                </td>
-                <td>Spark Plug NGK</td>
-                <td class="total">156.00€</td>
-                <td><span class="status validated">Validated</span></td>
-              </tr>
-              <tr>
-                <td class="order-id">#ORD-004</td>
-                <td class="customer">
-                  <div class="avatar">SJ</div>
-                  <span>Sarah Jones</span>
-                </td>
-                <td>Air Filter Bosch</td>
-                <td class="total">312.00€</td>
-                <td><span class="status shipped">Shipped</span></td>
-              </tr>
-              <tr>
-                <td class="order-id">#ORD-005</td>
-                <td class="customer">
-                  <div class="avatar">RL</div>
-                  <span>Robert Lee</span>
-                </td>
-                <td>Brake Pads Brembo</td>
-                <td class="total">178.00€</td>
-                <td><span class="status pending">Pending</span></td>
               </tr>
             </tbody>
           </table>

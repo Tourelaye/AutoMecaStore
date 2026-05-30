@@ -7,7 +7,9 @@ import { trigger, transition, style, animate, query, stagger } from '@angular/an
 
 import { PanierService } from '../../../core/services/panier.service';
 import { CommandeClientService } from '../../../core/services/commande-client.service';
+import { MonCompteService, PanierItem as BackendPanierItem } from '../../../core/services/mon-compte.service';
 import { PanierItem } from '../../../models/panier.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 type ModeLivraison = 'standard' | 'express' | 'retrait';
 
@@ -74,17 +76,46 @@ export class PanierComponent implements OnInit, OnDestroy {
   isCommandeEnCours = false;
   commandeErreur = '';
   commandeSucces = false;
+  commandeConfirmee = false;
+  commandeDetails: any = null;
 
   constructor(
     private panierService: PanierService,
     private commandeService: CommandeClientService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    private monCompteService: MonCompteService
   ) {}
 
   ngOnInit(): void {
-    this.sub = this.panierService.items$.subscribe(items => {
-      this.items = items;
-    });
+    if (this.authService.isLoggedIn()) {
+      // Use backend cart when authenticated
+      this.monCompteService.getPanier().subscribe();
+      this.sub = this.monCompteService.panier$.subscribe(panierResponse => {
+        if (panierResponse) {
+          this.items = panierResponse.items.map(item => ({
+            id: item.id,
+            produit: {
+              id: item.produit_id,
+              nom: item.produit_nom,
+              prix: item.prix,
+              image: item.image
+            } as any,
+            nom: item.produit_nom,
+            prix: item.prix,
+            quantite: item.quantite,
+            favori: false
+          }));
+        } else {
+          this.items = [];
+        }
+      });
+    } else {
+      // Use localStorage when not authenticated
+      this.sub = this.panierService.items$.subscribe(items => {
+        this.items = items;
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -131,12 +162,28 @@ export class PanierComponent implements OnInit, OnDestroy {
   // Quantités
   // -------------------------------------------------------
   increaseQty(item: PanierItem): void {
-    this.panierService.augmenterQuantite(item);
+    if (this.authService.isLoggedIn()) {
+      // Use backend when authenticated
+      if (item.id !== undefined) {
+        this.monCompteService.mettreAJourQuantite(item.id, item.quantite + 1).subscribe();
+      }
+    } else {
+      // Use localStorage when not authenticated
+      this.panierService.augmenterQuantite(item);
+    }
   }
 
   decreaseQty(item: PanierItem): void {
-    if (item.quantite <= 1) return;
-    this.panierService.diminuerQuantite(item);
+    if (this.authService.isLoggedIn()) {
+      // Use backend when authenticated
+      if (item.id !== undefined && item.quantite > 1) {
+        this.monCompteService.mettreAJourQuantite(item.id, item.quantite - 1).subscribe();
+      }
+    } else {
+      // Use localStorage when not authenticated
+      if (item.quantite <= 1) return;
+      this.panierService.diminuerQuantite(item);
+    }
   }
 
   // -------------------------------------------------------
@@ -145,14 +192,33 @@ export class PanierComponent implements OnInit, OnDestroy {
   removeItem(item: PanierItem): void {
     this.suppressionEnCours = item.produit.id;
     setTimeout(() => {
-      this.panierService.supprimerLigne(item);
+      if (this.authService.isLoggedIn()) {
+        // Use backend when authenticated
+        if (item.id !== undefined) {
+          this.monCompteService.supprimerDuPanier(item.id).subscribe();
+        }
+      } else {
+        // Use localStorage when not authenticated
+        this.panierService.supprimerLigne(item);
+      }
       this.suppressionEnCours = null;
     }, 200);
   }
 
   viderPanier(): void {
     if (confirm('Vider tout le panier ?')) {
-      this.panierService.viderPanier();
+      if (this.authService.isLoggedIn()) {
+        // For authenticated users, we need to delete all items one by one
+        // or implement a bulk delete endpoint
+        this.monCompteService.getPanier().subscribe(panier => {
+          panier.items.forEach(item => {
+            this.monCompteService.supprimerDuPanier(item.id).subscribe();
+          });
+        });
+      } else {
+        // Use localStorage when not authenticated
+        this.panierService.viderPanier();
+      }
     }
   }
 
@@ -190,40 +256,72 @@ export class PanierComponent implements OnInit, OnDestroy {
   // Commande
   // -------------------------------------------------------
   passerCommande(): void {
+    console.log('🔍 passerCommande appelé');
+    console.log('📦 Items:', this.items);
+    console.log('🔐 Authentifié:', this.authService.isLoggedIn());
+    
     if (this.items.length === 0) {
       this.commandeErreur = 'Votre panier est vide';
+      console.log('❌ Panier vide');
       return;
     }
 
     if (!confirm('Confirmer votre commande ? Vous recevrez une confirmation par email.')) {
+      console.log('❌ Utilisateur a annulé');
       return;
     }
 
+    console.log('✅ Confirmation acceptée, création commande...');
     this.isCommandeEnCours = true;
     this.commandeErreur = '';
     this.commandeSucces = false;
 
     this.commandeService.creerCommandeDepuisPanier(this.items).subscribe({
       next: (commande) => {
-        console.log('Commande créée avec succès:', commande);
+        console.log('✅ Commande créée avec succès:', commande);
         this.commandeSucces = true;
         this.isCommandeEnCours = false;
+        this.commandeConfirmee = true;
+        this.commandeDetails = commande;
+        console.log('🎉 commandeConfirmee:', this.commandeConfirmee);
+        console.log('🎉 commandeDetails:', this.commandeDetails);
         
         // Vider le panier après commande réussie
-        this.panierService.viderPanier();
-        
-        // Afficher message de succès
-        setTimeout(() => {
-          alert(`Commande #${commande.reference || commande.id} créée avec succès !`);
-          this.router.navigate(['/mes-commandes']);
-        }, 1000);
+        if (this.authService.isLoggedIn()) {
+          console.log('🔐 Utilisateur authentifié, vidage backend...');
+          // Clear backend cart
+          this.monCompteService.getPanier().subscribe(panier => {
+            console.log('📦 Panier backend:', panier);
+            panier.items.forEach(item => {
+              this.monCompteService.supprimerDuPanier(item.id).subscribe(() => {
+                console.log('🗑️ Item supprimé:', item.id);
+              });
+            });
+          });
+        } else {
+          console.log('🔓 Utilisateur non authentifié, vidage localStorage...');
+          // Clear localStorage
+          this.panierService.viderPanier();
+        }
       },
       error: (err) => {
-        console.error('Erreur lors de la création de la commande:', err);
+        console.error('❌ Erreur lors de la création de la commande:', err);
         this.commandeErreur = 'Erreur lors de la création de la commande. Veuillez réessayer.';
         this.isCommandeEnCours = false;
       }
     });
+  }
+
+  continuerAchats(): void {
+    this.commandeConfirmee = false;
+    this.commandeDetails = null;
+    this.router.navigate(['/catalogue']);
+  }
+
+  voirMesCommandes(): void {
+    this.commandeConfirmee = false;
+    this.commandeDetails = null;
+    this.router.navigate(['/mon-compte'], { fragment: 'commandes' });
   }
 
   // -------------------------------------------------------

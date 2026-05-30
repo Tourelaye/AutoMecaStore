@@ -1,8 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, FormGroup } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+
+export interface Country {
+  code: string;
+  name: string;
+  dialCode: string;
+  flag: string;
+  pattern: RegExp;
+  minLength: number;
+  maxLength: number;
+  example: string;
+}
 
 @Component({
   selector: 'app-register',
@@ -22,6 +33,123 @@ export class RegisterComponent {
   showPassword = false;
   showConfirm  = false;
 
+  // Phone input
+  selectedCountry: Country;
+  countries: Country[] = [
+    {
+      code: 'intl',
+      name: 'International (Autre)',
+      dialCode: '+',
+      flag: '🌍',
+      pattern: /^\d+$/,
+      minLength: 8,
+      maxLength: 15,
+      example: 'Votre numéro international'
+    },
+    {
+      code: 'sn',
+      name: 'Sénégal',
+      dialCode: '+221',
+      flag: '🇸🇳',
+      pattern: /^77|78|76|70|75/,
+      minLength: 9,
+      maxLength: 9,
+      example: '77 123 45 67'
+    },
+    {
+      code: 'fr',
+      name: 'France',
+      dialCode: '+33',
+      flag: '🇫🇷',
+      pattern: /^[67]/,
+      minLength: 9,
+      maxLength: 9,
+      example: '6 12 34 56 78'
+    },
+    {
+      code: 'ci',
+      name: 'Côte d\'Ivoire',
+      dialCode: '+225',
+      flag: '🇨🇮',
+      pattern: /^07|05|01/,
+      minLength: 10,
+      maxLength: 10,
+      example: '07 01 02 03 04'
+    },
+    {
+      code: 'us',
+      name: 'États-Unis',
+      dialCode: '+1',
+      flag: '🇺🇸',
+      pattern: /^[2-9]/,
+      minLength: 10,
+      maxLength: 10,
+      example: '555 123 4567'
+    },
+    {
+      code: 'ml',
+      name: 'Mali',
+      dialCode: '+223',
+      flag: '🇲🇱',
+      pattern: /^[2-9]/,
+      minLength: 8,
+      maxLength: 8,
+      example: '20 21 22 23'
+    },
+    {
+      code: 'bf',
+      name: 'Burkina Faso',
+      dialCode: '+226',
+      flag: '🇧🇫',
+      pattern: /^[67]/,
+      minLength: 8,
+      maxLength: 8,
+      example: '70 01 02 03'
+    },
+    {
+      code: 'ne',
+      name: 'Niger',
+      dialCode: '+227',
+      flag: '🇳🇪',
+      pattern: /^[89]/,
+      minLength: 8,
+      maxLength: 8,
+      example: '90 01 02 03'
+    },
+    {
+      code: 'gh',
+      name: 'Ghana',
+      dialCode: '+233',
+      flag: '🇬🇭',
+      pattern: /^[2-5]/,
+      minLength: 9,
+      maxLength: 9,
+      example: '20 123 4567'
+    },
+    {
+      code: 'ng',
+      name: 'Nigeria',
+      dialCode: '+234',
+      flag: '🇳🇬',
+      pattern: /^[78]/,
+      minLength: 10,
+      maxLength: 10,
+      example: '801 234 5678'
+    },
+    {
+      code: 'cm',
+      name: 'Cameroun',
+      dialCode: '+237',
+      flag: '🇨🇲',
+      pattern: /^[67]/,
+      minLength: 9,
+      maxLength: 9,
+      example: '6 12 34 56 78'
+    }
+  ];
+
+  countryDropdownOpen = false;
+
   registerForm!: FormGroup;
 
   constructor(
@@ -29,11 +157,14 @@ export class RegisterComponent {
     private authService: AuthService,
     private router: Router
   ) {
+    // Default to International option - user can select specific country
+    this.selectedCountry = this.countries[0];
+    
     this.registerForm = this.fb.group(
       {
         prenom:             ['', [Validators.required, Validators.minLength(2)]],
         nom:                ['', [Validators.required, Validators.minLength(2)]],
-        telephone:          [''],
+        telephone:          ['', [Validators.required, this.phoneValidator()]],
         email:              ['', [Validators.required, Validators.email]],
         password:           ['', [Validators.required, Validators.minLength(8),
                               Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)]],
@@ -117,8 +248,14 @@ export class RegisterComponent {
 
     this.isLoading = true;
     
-    // Données envoyées pour debug
-    const registerData = this.registerForm.value;
+    // Prepare registration data with full phone number
+    const registerData = {
+      ...this.registerForm.value,
+      telephone: this.getFullPhoneNumber(), // Send full international format
+      country: this.selectedCountry.code, // Send country code
+      dialCode: this.selectedCountry.dialCode // Send dial code separately
+    };
+    
     console.log('Tentative d\'inscription avec:', registerData);
     
     // Appel API pour l'inscription
@@ -172,7 +309,7 @@ export class RegisterComponent {
   // Validation interne
   // -------------------------------------------------------
   private isStepValid(step: 1 | 2 | 3): boolean {
-    if (step === 1) return this.f.prenom.valid && this.f.nom.valid;
+    if (step === 1) return this.f.prenom.valid && this.f.nom.valid && this.f.telephone.valid;
     if (step === 2) {
       return this.f.email.valid &&
              this.f.password.valid &&
@@ -183,7 +320,7 @@ export class RegisterComponent {
   }
 
   private markStepTouched(step: 1 | 2 | 3): void {
-    if (step === 1) { this.f.prenom.markAsTouched(); this.f.nom.markAsTouched(); return; }
+    if (step === 1) { this.f.prenom.markAsTouched(); this.f.nom.markAsTouched(); this.f.telephone.markAsTouched(); return; }
     if (step === 2) { this.f.email.markAsTouched(); this.f.password.markAsTouched(); this.f.confirmPassword.markAsTouched(); return; }
     this.f.conditionsAccepted.markAsTouched();
   }
@@ -193,6 +330,10 @@ export class RegisterComponent {
     if (this.f.prenom.hasError('minlength'))  return 'Le Prénom doit contenir au moins 2 caractères.';
     if (this.f.nom.hasError('required'))      return 'Le Nom est obligatoire.';
     if (this.f.nom.hasError('minlength'))     return 'Le Nom doit contenir au moins 2 caractères.';
+    if (this.f.telephone.hasError('required')) return 'Le numéro de téléphone est requis.';
+    if (this.f.telephone.hasError('phoneTooShort')) return `Numéro trop court (minimum ${this.selectedCountry.minLength} chiffres)`;
+    if (this.f.telephone.hasError('phoneTooLong')) return `Numéro trop long (maximum ${this.selectedCountry.maxLength} chiffres)`;
+    if (this.f.telephone.hasError('phoneInvalidPattern')) return `Numéro invalide pour ${this.selectedCountry.name}. Format: ${this.selectedCountry.example}`;
     return 'Veuillez compléter vos informations personnelles.';
   }
 
@@ -210,5 +351,172 @@ export class RegisterComponent {
     const cp = group.get('confirmPassword')?.value;
     if (!p || !cp) return null;
     return p === cp ? null : { passwordsMismatch: true };
+  }
+
+  // Phone validator based on selected country
+  private phoneValidator(): Validators {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value) return null;
+
+      // Remove all non-digit characters
+      const digits = value.replace(/\D/g, '');
+      
+      // For International option, be more flexible
+      if (this.selectedCountry.code === 'intl') {
+        // Just check if it's a reasonable length for international numbers
+        if (digits.length < 8) {
+          return { phoneTooShort: true };
+        }
+        if (digits.length > 15) {
+          return { phoneTooLong: true };
+        }
+        // No pattern check for international - just digits
+        return null;
+      }
+      
+      // For specific countries, use strict validation
+      // Check length
+      if (digits.length < this.selectedCountry.minLength) {
+        return { phoneTooShort: true };
+      }
+      if (digits.length > this.selectedCountry.maxLength) {
+        return { phoneTooLong: true };
+      }
+
+      // Check pattern
+      if (!this.selectedCountry.pattern.test(digits)) {
+        return { phoneInvalidPattern: true };
+      }
+
+      return null;
+    };
+  }
+
+  // Country change handler
+  onCountryChange(country: Country): void {
+    this.selectedCountry = country;
+    this.countryDropdownOpen = false;
+    
+    // Re-validate phone field when country changes
+    const phoneControl = this.registerForm.get('telephone');
+    if (phoneControl && phoneControl.value) {
+      phoneControl.updateValueAndValidity();
+    }
+  }
+
+  // Phone input handler for formatting
+  onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, ''); // Remove all non-digits
+
+    // Format based on country
+    if (this.selectedCountry.code === 'intl') {
+      // International: no specific formatting, just add spaces for readability
+      value = value.replace(/(\d{3})(?=\d)/g, '$1 ');
+    } else if (this.selectedCountry.code === 'sn') {
+      // Senegal: 77 123 45 67
+      if (value.length > 2) value = value.slice(0, 2) + ' ' + value.slice(2);
+      if (value.length > 5) value = value.slice(0, 5) + ' ' + value.slice(5);
+      if (value.length > 8) value = value.slice(0, 8) + ' ' + value.slice(8);
+    } else if (this.selectedCountry.code === 'fr') {
+      // France: 6 12 34 56 78
+      if (value.length > 1) value = value.slice(0, 1) + ' ' + value.slice(1);
+      if (value.length > 4) value = value.slice(0, 4) + ' ' + value.slice(4);
+      if (value.length > 7) value = value.slice(0, 7) + ' ' + value.slice(7);
+    } else if (this.selectedCountry.code === 'ci') {
+      // Côte d'Ivoire: 07 01 02 03 04
+      if (value.length > 2) value = value.slice(0, 2) + ' ' + value.slice(2);
+      if (value.length > 5) value = value.slice(0, 5) + ' ' + value.slice(5);
+      if (value.length > 8) value = value.slice(0, 8) + ' ' + value.slice(8);
+    } else if (this.selectedCountry.code === 'us') {
+      // USA: 555 123 4567
+      if (value.length > 3) value = value.slice(0, 3) + ' ' + value.slice(3);
+      if (value.length > 7) value = value.slice(0, 7) + ' ' + value.slice(7);
+    } else {
+      // Default: add space every 3 digits
+      value = value.replace(/(\d{3})(?=\d)/g, '$1 ');
+    }
+
+    input.value = value;
+  }
+
+  // Get phone error message
+  getPhoneErrorMessage(): string {
+    const phoneControl = this.registerForm.get('telephone');
+    if (!phoneControl) return '';
+
+    if (phoneControl.hasError('required')) {
+      return 'Le numéro de téléphone est requis';
+    }
+    if (phoneControl.hasError('phoneTooShort')) {
+      if (this.selectedCountry.code === 'intl') {
+        return 'Numéro trop court (minimum 8 chiffres)';
+      }
+      return `Numéro trop court (minimum ${this.selectedCountry.minLength} chiffres)`;
+    }
+    if (phoneControl.hasError('phoneTooLong')) {
+      if (this.selectedCountry.code === 'intl') {
+        return 'Numéro trop long (maximum 15 chiffres)';
+      }
+      return `Numéro trop long (maximum ${this.selectedCountry.maxLength} chiffres)`;
+    }
+    if (phoneControl.hasError('phoneInvalidPattern')) {
+      if (this.selectedCountry.code === 'intl') {
+        return 'Numéro invalide. Entrez uniquement des chiffres.';
+      }
+      return `Numéro invalide pour ${this.selectedCountry.name}. Format: ${this.selectedCountry.example}`;
+    }
+
+    return 'Numéro invalide';
+  }
+
+  // Toggle country dropdown
+  toggleCountryDropdown(): void {
+    this.countryDropdownOpen = !this.countryDropdownOpen;
+  }
+
+  // Get full phone number with country code
+  getFullPhoneNumber(): string {
+    const phoneControl = this.registerForm.get('telephone');
+    if (!phoneControl || !phoneControl.value) return '';
+    
+    const digits = phoneControl.value.replace(/\D/g, '');
+    
+    // For International option, user should include country code in the number
+    if (this.selectedCountry.code === 'intl') {
+      // If user didn't include country code, just use the digits
+      // Otherwise, keep what they typed (they should include +country_code)
+      const value = phoneControl.value.trim();
+      if (value.startsWith('+')) {
+        return value.replace(/\D/g, ''); // Return just the digits with + added later
+      }
+      return '+' + digits;
+    }
+    
+    return this.selectedCountry.dialCode + digits;
+  }
+
+  // Filter countries for search
+  filteredCountries: Country[] = [];
+  countrySearchQuery = '';
+
+  filterCountries(query: string): void {
+    this.countrySearchQuery = query.toLowerCase();
+    this.filteredCountries = this.countries.filter(country =>
+      country.name.toLowerCase().includes(this.countrySearchQuery) ||
+      country.code.toLowerCase().includes(this.countrySearchQuery) ||
+      country.dialCode.includes(this.countrySearchQuery)
+    );
+  }
+
+  // Close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const dropdown = document.querySelector('.phone-input-wrapper');
+    if (dropdown && !dropdown.contains(target)) {
+      this.countryDropdownOpen = false;
+    }
   }
 }

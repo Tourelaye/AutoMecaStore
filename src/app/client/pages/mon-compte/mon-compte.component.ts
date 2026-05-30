@@ -4,16 +4,16 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService, Utilisateur } from '../../../core/services/auth.service';
-import { MonCompteService, ClientInfo, CommandesResponse, FavorisResponse, Commande, Favori } from '../../../core/services/mon-compte.service';
+import { MonCompteService, ClientInfo, CommandesResponse, FavorisResponse, Commande, Favori, PanierResponse, PanierItem } from '../../../core/services/mon-compte.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PanierService } from '../../../core/services/panier.service';
 
-type OngletType = 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris';
+type OngletType = 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris' | 'panier';
 
 @Component({
   selector: 'app-mon-compte',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './mon-compte.component.html',
   styleUrls: ['./mon-compte.component.css']
 })
@@ -26,16 +26,19 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   clientInfo: ClientInfo | null = null;
   commandesResponse: CommandesResponse | null = null;
   favorisResponse: FavorisResponse | null = null;
+  panierResponse: PanierResponse | null = null;
   
   // États de chargement
   isLoadingClient = false;
   isLoadingCommandes = false;
   isLoadingFavoris = false;
+  isLoadingPanier = false;
   
   // Erreurs
   clientError: string | null = null;
   commandesError: string | null = null;
   favorisError: string | null = null;
+  panierError: string | null = null;
 
   // Formulaire profil
   profilForm!: FormGroup;
@@ -72,11 +75,15 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('🚀 MON COMPTE COMPONENT INIT');
     this.sub = this.authService.utilisateur$.subscribe(u => {
       this.utilisateur = u;
       if (u) {
+        console.log('👤 Utilisateur disponible:', u);
         this.initProfilForm(u);
         this.loadClientData();
+        // Also refresh all data from MonCompteService to ensure synchronization
+        this.monCompteService.refreshAllData();
       }
     });
 
@@ -87,6 +94,7 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       else if (last === 'confidentialite') this.ongletActif = 'confidentialite';
       else if (last === 'commandes') this.ongletActif = 'commandes';
       else if (last === 'favoris') this.ongletActif = 'favoris';
+      else if (last === 'panier') this.ongletActif = 'panier';
       else                           this.ongletActif = 'profil';
     });
 
@@ -128,14 +136,16 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     this.profilError  = '';
 
     this.authService.updateProfil(this.profilForm.value).subscribe({
-      next: () => {
+      next: (updatedUser) => {
         this.profilSaving = false;
         this.profilSuccess = true;
+        this.utilisateur = updatedUser;
         setTimeout(() => this.profilSuccess = false, 3000);
       },
-      error: () => {
+      error: (err) => {
         this.profilSaving = false;
         this.profilError = 'Erreur lors de la mise à jour. Veuillez réessayer.';
+        console.error('Erreur update profil:', err);
       }
     });
   }
@@ -221,30 +231,30 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   ajouterAuPanierDepuisFavori(favori: Favori): void {
     this.panierService.ajouterProduit({
-      id: favori.id,
+      id: favori.produit_id,
       nom: favori.produit_nom,
       prix: favori.prix,
-      image: favori.image,
-      description: '', // Description vide pour les favoris
-      quantite: 1,
-      stock: 1,
-      categorie: 0,
-      gestionnaire_stock: 0
-    });
-
+      quantite: 1
+    } as any);
+    
     this.notificationService.success(
       `${favori.produit_nom} a été ajouté au panier`,
-      'Produit ajouté'
+      'Ajouté au panier'
     );
+    
+    // Refresh cart data
+    this.refreshPanier();
   }
 
   retirerDesFavoris(favori: Favori): void {
-    this.monCompteService.retirerFavori(favori.id).subscribe({
+    this.monCompteService.retirerFavori(favori.produit_id).subscribe({
       next: () => {
         this.notificationService.warning(
           `${favori.produit_nom} a été retiré des favoris`,
           'Favori supprimé'
         );
+        // Refresh the favorites list
+        this.refreshFavoris();
       },
       error: () => {
         this.notificationService.error(
@@ -253,6 +263,53 @@ export class MonCompteComponent implements OnInit, OnDestroy {
         );
       }
     });
+  }
+
+  // -------------------------------------------------------
+  // ACTIONS PANIER
+  // -------------------------------------------------------
+  supprimerDuPanier(item: PanierItem): void {
+    this.monCompteService.supprimerDuPanier(item.id).subscribe({
+      next: () => {
+        this.notificationService.warning(
+          `${item.produit_nom} a été retiré du panier`,
+          'Produit supprimé'
+        );
+        // Refresh the cart
+        this.refreshPanier();
+      },
+      error: () => {
+        this.notificationService.error(
+          'Impossible de supprimer du panier',
+          'Erreur'
+        );
+      }
+    });
+  }
+
+  mettreAJourQuantite(item: PanierItem, nouvelleQuantite: number): void {
+    if (nouvelleQuantite < 1) return;
+    
+    this.monCompteService.mettreAJourQuantite(item.id, nouvelleQuantite).subscribe({
+      next: () => {
+        // Refresh the cart
+        this.refreshPanier();
+      },
+      error: () => {
+        this.notificationService.error(
+          'Impossible de mettre à jour la quantité',
+          'Erreur'
+        );
+      }
+    });
+  }
+
+  passerCommande(): void {
+    // TODO: Implement checkout logic
+    this.notificationService.info(
+      'La fonctionnalité de commande sera bientôt disponible',
+      'Information'
+    );
   }
 
   // -------------------------------------------------------
@@ -288,6 +345,22 @@ export class MonCompteComponent implements OnInit, OnDestroy {
 
   hasFavoris(): boolean {
     return this.getFavoris().length > 0;
+  }
+
+  getPanierItems(): PanierItem[] {
+    return this.panierResponse?.items || [];
+  }
+
+  hasPanierItems(): boolean {
+    return this.getPanierItems().length > 0;
+  }
+
+  getPanierTotal(): number {
+    return this.panierResponse?.total || 0;
+  }
+
+  getPanierNombreItems(): number {
+    return this.panierResponse?.nombre_items || 0;
   }
 
   private loadClientData(): void {
@@ -337,27 +410,84 @@ export class MonCompteComponent implements OnInit, OnDestroy {
         console.error('Erreur favoris:', error);
       }
     });
+
+    // Charger le panier
+    this.isLoadingPanier = true;
+    this.monCompteService.getPanier().subscribe({
+      next: (panier) => {
+        this.panierResponse = panier;
+        this.isLoadingPanier = false;
+        this.panierError = null;
+      },
+      error: (error) => {
+        this.panierError = 'Impossible de charger votre panier';
+        this.isLoadingPanier = false;
+        console.error('Erreur panier:', error);
+      }
+    });
   }
 
   private setupDataSubscriptions(): void {
+    console.log('🔧 SETUP DATA SUBSCRIPTIONS APPELE');
+    
     // S'abonner aux mises à jour automatiques
     const clientSub = this.monCompteService.clientInfo$.subscribe(info => {
+      console.log('👤 CLIENT INFO UPDATE:', info);
       this.clientInfo = info;
     });
 
     const commandesSub = this.monCompteService.commandes$.subscribe(commandes => {
+      console.log('📦 COMMANDES UPDATE:', commandes);
       this.commandesResponse = commandes;
     });
 
     const favorisSub = this.monCompteService.favoris$.subscribe(favoris => {
+      console.log('❤️ FAVORIS UPDATE:', favoris);
       this.favorisResponse = favoris;
     });
 
-    this.monCompteSubscriptions = [clientSub, commandesSub, favorisSub];
+    const panierSub = this.monCompteService.panier$.subscribe(panier => {
+      console.log('🛒 PANIER UPDATE:', panier);
+      this.panierResponse = panier;
+    });
+
+    this.monCompteSubscriptions = [clientSub, commandesSub, favorisSub, panierSub];
   }
 
   refreshData(): void {
     this.loadClientData();
+  }
+
+  refreshFavoris(): void {
+    this.isLoadingFavoris = true;
+    this.monCompteService.getFavoris().subscribe({
+      next: (favoris) => {
+        this.favorisResponse = favoris;
+        this.isLoadingFavoris = false;
+        this.favorisError = null;
+      },
+      error: (error) => {
+        this.favorisError = 'Impossible de charger vos favoris';
+        this.isLoadingFavoris = false;
+        console.error('Erreur favoris:', error);
+      }
+    });
+  }
+
+  refreshPanier(): void {
+    this.isLoadingPanier = true;
+    this.monCompteService.getPanier().subscribe({
+      next: (panier) => {
+        this.panierResponse = panier;
+        this.isLoadingPanier = false;
+        this.panierError = null;
+      },
+      error: (error) => {
+        this.panierError = 'Impossible de charger votre panier';
+        this.isLoadingPanier = false;
+        console.error('Erreur panier:', error);
+      }
+    });
   }
 
   // -------------------------------------------------------

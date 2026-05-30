@@ -1,23 +1,25 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription, debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 import { PanierService } from '../../../core/services/panier.service';
 import { AuthService, Utilisateur } from '../../../core/services/auth.service';
 import { ProduitService, Produit } from '../../../core/services/produit.service';
+import { MonCompteService } from '../../../core/services/mon-compte.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, RouterLinkActive, CommonModule, FormsModule],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
 
   totalPanier = 0;
+  totalFavoris = 0;
   notification: string | null = null;
   isLoggedIn = false;
   utilisateur: Utilisateur | null = null;
@@ -35,14 +37,31 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private panierService: PanierService,
     private authService: AuthService,
     private produitService: ProduitService,
+    private monCompteService: MonCompteService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    // Subscribe to PanierService for local cart (non-authenticated users)
     const sub1 = this.panierService.items$.subscribe(items => {
       this.totalPanier = items.reduce((t, i) => t + i.quantite, 0);
     });
-    const sub2 = this.panierService.lastAdded$.subscribe(name => {
+    
+    // Subscribe to MonCompteService for backend cart (authenticated users)
+    const sub2 = this.monCompteService.panier$.subscribe(panier => {
+      if (this.authService.isLoggedIn() && panier) {
+        this.totalPanier = panier.nombre_items || 0;
+      }
+    });
+    
+    // Subscribe to MonCompteService for favorites (authenticated users)
+    const sub3 = this.monCompteService.favoris$.subscribe(favoris => {
+      if (this.authService.isLoggedIn() && favoris) {
+        this.totalFavoris = favoris.total || 0;
+      }
+    });
+    
+    const sub4 = this.panierService.lastAdded$.subscribe(name => {
       if (!name) { this.notification = null; return; }
       this.notification = `✅ ${name} ajouté au panier`;
       if (this.hideTimer) clearTimeout(this.hideTimer);
@@ -51,9 +70,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.panierService.clearNotification();
       }, 2500);
     });
-    const sub3 = this.authService.isLoggedIn$.subscribe(v => this.isLoggedIn = v);
-    const sub4 = this.authService.utilisateur$.subscribe(u => this.utilisateur = u);
-    const sub5 = this.searchSubject.pipe(debounceTime(350), distinctUntilChanged()).subscribe(q => {
+    
+    const sub5 = this.authService.isLoggedIn$.subscribe(v => {
+      this.isLoggedIn = v;
+      // Refresh data when login state changes
+      if (v) {
+        this.monCompteService.refreshAllData();
+      }
+    });
+    
+    const sub6 = this.authService.utilisateur$.subscribe(u => this.utilisateur = u);
+    
+    const sub7 = this.searchSubject.pipe(debounceTime(350), distinctUntilChanged()).subscribe(q => {
       if (q.trim().length >= 2) {
         this.isSearching = true;
         this.produitService.rechercherProduits(q).subscribe({
@@ -69,7 +97,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.showResults = false;
       }
     });
-    this.subscriptions.push(sub1, sub2, sub3, sub4, sub5);
+    
+    this.subscriptions.push(sub1, sub2, sub3, sub4, sub5, sub6, sub7);
   }
 
   ngOnDestroy(): void {
@@ -162,10 +191,23 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!target.closest('.search-box')) {
       this.showResults = false;
     }
-    if (!target.closest('.user-menu-wrapper')) {
+    if (!target.closest('.user-menu-wrapper') && !target.closest('.user-dropdown')) {
       if (this.showUserMenu) {
         this.showUserMenu = false;
         this.toggleBodyScroll();
+      }
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.showUserMenu) {
+        this.showUserMenu = false;
+        this.toggleBodyScroll();
+      }
+      if (this.showResults) {
+        this.showResults = false;
       }
     }
   }

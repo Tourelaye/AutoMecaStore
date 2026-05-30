@@ -61,7 +61,7 @@
             </div>
             <span>{{ produit.nom }}</span>
             <span class="categorie">{{ produit.categorie_nom || produit.categorie_detail?.nom || 'Sans catégorie' }}</span>
-            <span>{{ produit.prix | number:'1.2-2' }} €</span>
+            <span>{{ produit.prix | number:'1.2-2' }} Fcfa</span>
             <span class="stock" [class.low]="produit.stock > 0 && produit.stock <= 5" [class.critical]="produit.stock === 0">{{ produit.stock }}</span>
             <span>
               <span class="badge" [class.in]="getStockStatus(produit.stock) === 'in'" [class.out]="getStockStatus(produit.stock) === 'out'" [class.low]="getStockStatus(produit.stock) === 'low'">
@@ -127,7 +127,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Prix (€) *</label>
+            <label>Prix (Fcfa) *</label>
             <input type="number" [(ngModel)]="produitForm.prix" name="prix" placeholder="Ex: 45.00" min="0" step="0.01" required />
           </div>
 
@@ -155,7 +155,7 @@
 
         <div class="form-row" *ngIf="produitForm.est_en_promo">
           <div class="form-group">
-            <label>Prix promo (€)</label>
+            <label>Prix promo (Fcfa)</label>
             <input type="number" [(ngModel)]="produitForm.prix_promo" name="prix_promo" placeholder="Ex: 39.00" min="0" step="0.01" />
           </div>
           <div class="form-group">
