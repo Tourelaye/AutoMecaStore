@@ -9,9 +9,10 @@ from catalog.models import Produit
 class Commande(models.Model):
     STATUT_CHOICES = [
         ('en_attente', 'En attente'),
-        ('en_cours', 'En cours'),
-        ('paye', 'Payé'),
-        ('livre', 'Livré'),
+        ('validee', 'Validée'),
+        ('expediee', 'Expédiée'),
+        ('livree', 'Livrée'),
+        ('annulee', 'Annulée'),
     ]
 
     date_commande = models.DateTimeField(auto_now_add=True)
@@ -24,9 +25,13 @@ class Commande(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.reference:
-            # Générer référence automatique
+            # Générer référence automatique unique
             import datetime
-            self.reference = f"CMD{datetime.date.today().strftime('%Y%m%d')}-{self.id or 'NEW'}"
+            import random
+            import string
+            date_str = datetime.date.today().strftime('%Y%m%d')
+            random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            self.reference = f"CMD{date_str}-{random_str}"
         super().save(*args, **kwargs)
 
     def __str__(self):

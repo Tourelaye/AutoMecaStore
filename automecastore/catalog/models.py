@@ -67,7 +67,7 @@ class Produit(models.Model):
     gestionnaire_stock = models.ForeignKey(GestionnaireStock, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Champs pour les ventes flash
-    image           = models.ImageField(upload_to='produits/', blank=True, null=True)
+    image           = models.ImageField(upload_to='', blank=True, null=True)
     est_en_promo    = models.BooleanField(default=False)
     prix_promo      = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     date_fin_promo  = models.DateTimeField(blank=True, null=True)

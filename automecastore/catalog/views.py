@@ -9,7 +9,7 @@ from .models import Categorie, Produit, ProduitFavoris
 from .serializers import CategorieSerializer, ProduitSerializer, ProduitFavorisSerializer
 from account.permissions import IsAdmin
 from orders.models import LigneCommande, PanierItem
-
+from rest_framework import parsers
 # Configuration du logger
 logger = logging.getLogger(__name__)
 
@@ -45,15 +45,24 @@ class ProduitListCreateView(generics.ListCreateAPIView):
     """
     Liste les produits actifs ou crée un nouveau produit.
     GET: Retourne uniquement les produits actifs (y compris ceux avec is_active=NULL)
-    POST: Crée un nouveau produit
+          Peut filtrer par catégorie avec le paramètre ?categorie=<id>
+    POST: Crée un nouveau produit (supporte multipart/form-data pour les images)
     """
     serializer_class = ProduitSerializer
     permission_classes = [permissions.AllowAny]  # Temporairement ouvert
+    parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
 
     def get_queryset(self):
         """Retourne uniquement les produits actifs (y compris ceux avec is_active=NULL)"""
         from django.db.models import Q
-        return Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True))
+        queryset = Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True))
+        
+        # Filtrer par catégorie si le paramètre est fourni
+        categorie_id = self.request.query_params.get('categorie')
+        if categorie_id:
+            queryset = queryset.filter(categorie_id=categorie_id)
+        
+        return queryset
 
     def create(self, request, *args, **kwargs):
         """Création d'un produit avec gestion d'erreurs"""
@@ -92,8 +101,10 @@ class ProduitDetailView(APIView):
     """
     Gestion d'un produit spécifique (GET, PUT, PATCH, DELETE)
     Implémente le SOFT DELETE pour la suppression
+    Supporte multipart/form-data pour les uploads d'images
     """
     permission_classes = [permissions.AllowAny]  # Temporairement ouvert
+    parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
 
     def get_object(self, pk):
         """Récupère un produit par son ID"""

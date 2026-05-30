@@ -114,3 +114,20 @@ class Livreur(models.Model):
     #     managed = False
     #     db_table = 'livreur'
 
+# -----------------------------
+# Favori
+# -----------------------------
+class Favori(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='favoris')
+    produit = models.ForeignKey('catalog.Produit', on_delete=models.CASCADE, related_name='favoris')
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['client', 'produit']  # Un client ne peut ajouter le même produit qu'une fois
+        verbose_name = 'Favori'
+        verbose_name_plural = 'Favoris'
+        ordering = ['-date_ajout']
+
+    def __str__(self):
+        return f"{self.client.user.email} - {self.produit.nom}"
+

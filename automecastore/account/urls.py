@@ -5,7 +5,7 @@ from .views import (
     ClientListView, ClientDetailView, ClientToggleActiveView, ClientDeleteView, ClientStatsView,
     AdminNotificationsView, CreateAdminView
 )
-from .mon_compte_views import MeView, MesCommandesView, FavorisView
+from .mon_compte_views import MeView, MesCommandesView, FavorisView, PanierView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -20,9 +20,9 @@ urlpatterns = [
     
     # URLs pour la gestion des clients (admin)
     path('clients/', ClientListView.as_view(), name='client_list'),
-    path('clients/<int:pk>/', ClientDetailView.as_view(), name='client_detail'),
-    path('clients/<int:pk>/toggle-active/', ClientToggleActiveView.as_view(), name='client_toggle_active'),
-    path('clients/<int:pk>/delete/', ClientDeleteView.as_view(), name='client_delete'),
+    path('clients/<int:user_id>/', ClientDetailView.as_view(), name='client_detail'),
+    path('clients/<int:user_id>/toggle-active/', ClientToggleActiveView.as_view(), name='client_toggle_active'),
+    path('clients/<int:user_id>/delete/', ClientDeleteView.as_view(), name='client_delete'),
     path('clients/stats/', ClientStatsView.as_view(), name='client_stats'),
     
     # URLs pour les notifications admin
@@ -35,4 +35,7 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
     path('mes-commandes/', MesCommandesView.as_view(), name='mes_commandes'),
     path('favoris/', FavorisView.as_view(), name='favoris'),
+    path('panier/', PanierView.as_view(), name='panier'),
+    path('panier/add/', PanierView.as_view(), name='panier_add'),
+    path('panier/<int:item_id>/', PanierView.as_view(), name='panier_item'),
 ]

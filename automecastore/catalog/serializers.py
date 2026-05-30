@@ -40,6 +40,8 @@ class ProduitSerializer(serializers.ModelSerializer):
     categorie_detail = CategorieSimpleSerializer(source='categorie', read_only=True)
     # En lecture : juste le nom (pour compatibilité)
     categorie_nom = serializers.CharField(source='categorie.nom', read_only=True)
+    # Image field - pour gérer l'upload correctement
+    image = serializers.ImageField(required=False, allow_null=True)
     
     class Meta:
         model = Produit
@@ -50,6 +52,12 @@ class ProduitSerializer(serializers.ModelSerializer):
             'reference', 'marque', 'is_active', 'date_suppression'
         ]
         read_only_fields = ['date_suppression', 'categorie_detail', 'categorie_nom']
+    
+    def create(self, validated_data):
+        """Assure que is_active est True par défaut lors de la création"""
+        if 'is_active' not in validated_data:
+            validated_data['is_active'] = True
+        return super().create(validated_data)
 
 
 
