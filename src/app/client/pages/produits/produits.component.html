@@ -94,7 +94,7 @@
 
         <!-- MARQUE & BADGES -->
         <div class="product-meta">
-          <span class="brand-tag">Mann-Filter</span>
+          <span class="brand-tag">{{ produit.marque || 'AutoMecaStore' }}</span>
           <span class="verified-badge">
             <i class="bi bi-patch-check-fill"></i> Certifié OEM
           </span>
@@ -251,27 +251,27 @@
         <div class="specs-grid">
           <div class="spec-row">
             <span class="spec-key">Référence</span>
-            <span class="spec-val">MF-HU925/4X</span>
-          </div>
-          <div class="spec-row">
-            <span class="spec-key">EAN</span>
-            <span class="spec-val">4011558290000</span>
-          </div>
-          <div class="spec-row">
-            <span class="spec-key">Type</span>
-            <span class="spec-val">Filtre à cartouche</span>
-          </div>
-          <div class="spec-row">
-            <span class="spec-key">Température max</span>
-            <span class="spec-val">150°C</span>
+            <span class="spec-val">{{ produit.reference || 'N/A' }}</span>
           </div>
           <div class="spec-row">
             <span class="spec-key">Marque</span>
-            <span class="spec-val">Mann-Filter</span>
+            <span class="spec-val">{{ produit.marque || 'N/A' }}</span>
           </div>
           <div class="spec-row">
-            <span class="spec-key">Poids</span>
-            <span class="spec-val">320 g</span>
+            <span class="spec-key">Catégorie</span>
+            <span class="spec-val">{{ produit.categorie_nom || 'N/A' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Type de pièce</span>
+            <span class="spec-val">{{ produit.type_piece_nom || 'N/A' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Stock</span>
+            <span class="spec-val">{{ produit.stock }} unités</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Prix</span>
+            <span class="spec-val">{{ produit.prix / 100 | number:'1.2-2' }} FCFA</span>
           </div>
         </div>
       </div>
@@ -332,8 +332,9 @@
         >
           <!-- IMAGE -->
           <div class="sim-img">
-            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
-            <div class="sim-placeholder" *ngIf="!p.image">
+            <img *ngIf="p.image_url" [src]="p.image_url" [alt]="p.nom">
+            <img *ngIf="!p.image_url && p.image" [src]="p.image" [alt]="p.nom">
+            <div class="sim-placeholder" *ngIf="!p.image_url && !p.image">
               <i class="bi bi-gear-wide-connected"></i>
             </div>
             <div class="sim-overlay">
@@ -345,7 +346,7 @@
 
           <!-- INFO -->
           <div class="sim-info">
-            <span class="sim-brand">Mann-Filter</span>
+            <span class="sim-brand">{{ p.marque || 'AutoMecaStore' }}</span>
             <h6 class="sim-name">{{ p.nom }}</h6>
 
             <div class="sim-stars">

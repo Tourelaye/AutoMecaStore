@@ -4,104 +4,265 @@
   <app-header></app-header>
 
   <main class="content">
-    <div class="page-header">
-      <div>
-        <h2>Categories de Produits</h2>
-        <p>Organisez vos produits par categories</p>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Catalogue
+        </div>
+        <h2>Catégories de Produits</h2>
+        <p>Organisez votre catalogue par catégories</p>
+      </div>
+      <div class="header-stats">
+        <div class="hs-item">
+          <span class="hs-val">{{ categories.length }}</span>
+          <span class="hs-lbl">Total</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-green">{{ getActiveCount() }}</span>
+          <span class="hs-lbl">Actives</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-gray">{{ getInactiveCount() }}</span>
+          <span class="hs-lbl">Inactives</span>
+        </div>
       </div>
     </div>
 
-    <div class="toolbar">
-      <div class="search-box">
-        <i class="bi bi-search"></i>
-        <input type="text" placeholder="Rechercher une categorie..." [(ngModel)]="searchTerm" (keyup.enter)="searchCategories()">
+    <!-- TOOLBAR -->
+    <div class="toolbar fade-up delay-1">
+      <div class="search-box" [class.focused]="searchFocused">
+        <i class="bi bi-search search-ic"></i>
+        <input
+          type="text"
+          placeholder="Rechercher une catégorie..."
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="searchCategories()"
+          (focus)="searchFocused = true"
+          (blur)="searchFocused = false"
+        >
+        <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; loadCategories()">
+          <i class="bi bi-x"></i>
+        </button>
       </div>
+
       <div class="toolbar-actions">
-        <button class="btn-filter"><i class="bi bi-funnel"></i> Filtrer</button>
+        <button class="btn-filter" (click)="toggleFilter()">
+          <i class="bi bi-funnel-fill"></i>
+          Filtrer
+          <span class="filter-pill" *ngIf="activeFilter !== 'all'">{{ activeFilter }}</span>
+        </button>
+
+        <!-- FILTRE DROPDOWN -->
+        <div class="filter-drop" *ngIf="showFilter" (click)="$event.stopPropagation()">
+          <button [class.active]="activeFilter === 'all'"    (click)="setFilter('all')">Toutes</button>
+          <button [class.active]="activeFilter === 'actif'"  (click)="setFilter('actif')">Actives</button>
+          <button [class.active]="activeFilter === 'inactif'"(click)="setFilter('inactif')">Inactives</button>
+        </div>
+
         <button class="btn-add" (click)="openAddModal()">
-          <i class="bi bi-plus-lg"></i> Nouvelle categorie
+          <i class="bi bi-plus-lg"></i> Nouvelle catégorie
         </button>
       </div>
     </div>
 
-    <div class="panel">
-      <!-- Loading -->
-      <div class="loading-state" *ngIf="loading">
-        <i class="bi bi-arrow-repeat spinning"></i>
-        <p>Chargement des categories...</p>
-      </div>
+    <!-- PANEL -->
+    <div class="panel fade-up delay-2">
 
-      <!-- Grid -->
-      <div class="categories-grid" *ngIf="!loading && categories.length > 0">
-        <div class="category-card" *ngFor="let categorie of categories">
-          <div class="category-icon">
-            <i class="bi" [ngClass]="categorie.icone"></i>
+      <!-- LOADING SKELETON -->
+      <div class="skeleton-grid" *ngIf="loading">
+        <div class="cat-skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+          <div class="sk-icon"></div>
+          <div class="sk-lines">
+            <div class="sk-line"></div>
+            <div class="sk-line short"></div>
           </div>
-          <div class="category-info">
-            <h4>{{ categorie.nom }}</h4>
-            <p>{{ categorie.description }}</p>
-          </div>
-          <div class="category-stats">
-            <span class="products-count">{{ categorie.nombre_produits }} produits</span>
-            <span class="badge" [ngClass]="getStatutClass(categorie.etat)">{{ categorie.etat }}</span>
-          </div>
-          <div class="category-actions">
-            <button class="btn-edit" (click)="openEditModal(categorie)"><i class="bi bi-pencil"></i></button>
-            <button class="btn-delete" (click)="deleteCategorie(categorie)"><i class="bi bi-trash"></i></button>
+          <div class="sk-footer">
+            <div class="sk-badge"></div>
+            <div class="sk-btns">
+              <div class="sk-btn"></div>
+              <div class="sk-btn"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Empty -->
-      <div class="empty-state" *ngIf="!loading && categories.length === 0">
-        <i class="bi bi-folder-x"></i>
-        <p>Aucune categorie trouvee</p>
+      <!-- CATEGORIES GRID -->
+      <div class="categories-grid" *ngIf="!loading && filteredCategories.length > 0">
+        <div
+          class="category-card"
+          *ngFor="let cat of filteredCategories; let i = index"
+          [style.--i]="i"
+          [class.inactive-card]="cat.etat !== 'actif'"
+        >
+          <!-- GLOW -->
+          <div class="card-glow"></div>
+
+          <!-- CARD TOP -->
+          <div class="card-top">
+            <div class="cat-icon-wrap">
+              <div class="cat-icon">
+                <i class="bi {{ cat.icone || 'bi-folder' }}"></i>
+              </div>
+              <div class="cat-icon-ring"></div>
+            </div>
+            <div class="cat-info">
+              <h4>{{ cat.nom }}</h4>
+              <p>{{ cat.description || 'Aucune description' }}</p>
+            </div>
+          </div>
+
+          <!-- CARD BODY -->
+          <div class="card-body">
+            <div class="info-row">
+              <i class="bi bi-box-seam-fill"></i>
+              <span>{{ cat.nombre_produits || 0 }} produit(s)</span>
+            </div>
+            <div class="info-row">
+              <i class="bi bi-calendar3"></i>
+              <span>Créée le {{ formatDate(cat.datecreation) }}</span>
+            </div>
+          </div>
+
+          <!-- CARD FOOTER -->
+          <div class="card-footer">
+            <span class="status-badge" [class.active]="cat.etat === 'actif'" [class.inactive]="cat.etat !== 'actif'">
+              <span class="badge-dot"></span>
+              {{ cat.etat === 'actif' ? 'Active' : 'Inactive' }}
+            </span>
+
+            <div class="card-actions">
+              <button class="ca-btn edit" (click)="openEditModal(cat)" title="Modifier">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="ca-btn delete" (click)="openDeleteModal(cat)" title="Supprimer">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
       </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="!loading && filteredCategories.length === 0">
+        <div class="empty-icon"><i class="bi bi-folder-x"></i></div>
+        <h4>Aucune catégorie trouvée</h4>
+        <p>{{ searchTerm ? 'Modifiez votre recherche.' : 'Commencez par créer une catégorie.' }}</p>
+        <button class="btn-add" (click)="openAddModal()">
+          <i class="bi bi-plus-lg"></i> Créer une catégorie
+        </button>
+      </div>
+
     </div>
   </main>
 </div>
 
-<!-- Modal -->
+<!-- ══ MODAL AJOUTER / MODIFIER ══ -->
 <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>{{ editingCategorie ? 'Modifier' : 'Nouvelle' }} categorie</h3>
-      <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon-wrap" [class.edit-mode]="!!editingCategorie">
+          <i class="bi" [class.bi-plus-lg]="!editingCategorie" [class.bi-pencil-fill]="!!editingCategorie"></i>
+        </div>
+        <div>
+          <h3>{{ editingCategorie ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}</h3>
+          <small>{{ editingCategorie ? 'Modifiez les informations ci-dessous' : 'Remplissez les champs requis' }}</small>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
     </div>
+
     <div class="modal-body">
       <form (ngSubmit)="saveCategorie()">
+
+        <!-- NOM -->
         <div class="form-group">
-          <label>Nom de la categorie</label>
-          <input type="text" [(ngModel)]="categorieForm.nom" name="nom" required>
+          <label><i class="bi bi-tag"></i> Nom de la catégorie *</label>
+          <input type="text" [(ngModel)]="categorieForm.nom" name="nom" placeholder="Ex: Freinage, Moteur..." required>
         </div>
+
+        <!-- DESCRIPTION -->
         <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="categorieForm.description" name="description" rows="3"></textarea>
+          <label><i class="bi bi-card-text"></i> Description</label>
+          <textarea [(ngModel)]="categorieForm.description" name="description" rows="3" placeholder="Description de la catégorie..."></textarea>
         </div>
-        <div class="form-group">
-          <label>Icone</label>
-          <select [(ngModel)]="categorieForm.icone" name="icone">
-            <option *ngFor="let icone of iconesDisponibles" [value]="icone.value">{{ icone.label }}</option>
-          </select>
+
+        <!-- ICÔNE + ÉTAT -->
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="bi bi-emoji-smile"></i> Icône</label>
+            <select [(ngModel)]="categorieForm.icone" name="icone">
+              <option *ngFor="let ic of iconesDisponibles" [value]="ic.value">{{ ic.label }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="bi bi-toggle-on"></i> État</label>
+            <select [(ngModel)]="categorieForm.etat" name="etat" required>
+              <option value="actif">Actif</option>
+              <option value="inactif">Inactif</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Etat</label>
-          <select [(ngModel)]="categorieForm.etat" name="etat" required>
-            <option value="actif">Actif</option>
-            <option value="inactif">Inactif</option>
-          </select>
+
+        <!-- APERÇU ICÔNE -->
+        <div class="icon-preview" *ngIf="categorieForm.icone">
+          <div class="preview-icon"><i class="bi {{ categorieForm.icone }}"></i></div>
+          <span>Aperçu de l'icône</span>
         </div>
+
+        <!-- ACTIONS -->
         <div class="form-actions">
-          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
-          <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> {{ editingCategorie ? 'Mettre a jour' : 'Enregistrer' }}</button>
+          <button type="button" class="mf-btn cancel" (click)="closeModal()">
+            <i class="bi bi-x"></i> Annuler
+          </button>
+          <button type="submit" class="mf-btn save">
+            <i class="bi" [class.bi-plus-lg]="!editingCategorie" [class.bi-check-lg]="!!editingCategorie"></i>
+            {{ editingCategorie ? 'Mettre à jour' : 'Créer la catégorie' }}
+          </button>
         </div>
+
       </form>
     </div>
   </div>
 </div>
 
-<!-- Notification -->
-<div class="notification" [class.success]="notification.type === 'success'" [class.error]="notification.type === 'error'" *ngIf="notification">
+<!-- ══ MODAL SUPPRESSION ══ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+    <div class="delete-icon-wrap">
+      <i class="bi bi-trash-fill"></i>
+    </div>
+    <div class="modal-head center">
+      <h3>Supprimer la catégorie</h3>
+    </div>
+    <div class="modal-body text-center">
+      <p>Voulez-vous supprimer <strong>"{{ categorieToDelete?.nom }}"</strong> ?</p>
+      <p class="warning-note">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Cette action est irréversible.
+      </p>
+    </div>
+    <div class="modal-foot center">
+      <button class="mf-btn cancel" (click)="closeDeleteModal()"><i class="bi bi-x"></i> Annuler</button>
+      <button class="mf-btn danger" (click)="confirmDelete()">
+        <i class="bi bi-trash-fill"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif-toast"
+  *ngIf="notification"
+  [class.success]="notification.type === 'success'"
+  [class.error]="notification.type === 'error'"
+>
   <i class="bi" [class.bi-check-circle-fill]="notification.type === 'success'" [class.bi-exclamation-circle-fill]="notification.type === 'error'"></i>
-  {{ notification.message }}
+  <span>{{ notification.message }}</span>
+  <i class="bi bi-x notif-x" (click)="notification = null"></i>
 </div>

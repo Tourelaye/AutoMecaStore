@@ -53,12 +53,10 @@ export class MotoListComponent implements OnInit {
 
   sousCategoriesMoto = [
     { key: 'tous',        label: 'Toutes' },
-    { key: 'freinage',    label: '🔴 Freinage' },
-    { key: 'moteur',      label: '⚙️ Moteur' },
-    { key: 'filtration',  label: '🌀 Filtration' },
-    { key: 'suspension',  label: '🔧 Suspension' },
-    { key: 'transmission',label: '⛓️ Transmission' },
-    { key: 'eclairage',   label: '💡 Éclairage' },
+    { key: 'freinage',    label: '🔴 Freinage Moto' },
+    { key: 'kit_chaine', label: '⛓️ Kit Chaîne' },
+    { key: 'carenage',   label: '🛡️ Carénage' },
+    { key: 'echappement',label: '� Échappement' },
   ];
 
   // Tous les produits (source)
@@ -91,7 +89,7 @@ export class MotoListComponent implements OnInit {
           nom: p.nom,
           marque: p.marque ?? 'AutoMecaStore',
           description: p.description || 'Description du produit',
-          image: p.image ? `http://localhost:8000${p.image}` : null,
+          image: p.image_url || p.image_2_url || p.image_3_url || p.image_4_url || null, // Utiliser la première image disponible
           prixNouveau: parseFloat(p.prix_promo ?? p.prix),
           prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
           discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
@@ -101,7 +99,7 @@ export class MotoListComponent implements OnInit {
           livraison: true,
           isFavori: false,
           isNew: false,
-          categorie: 'freinage' // Default subcategory for moto products
+          categorie: this.mapCategorieToMoto(p.type_piece_nom || '')
         }));
 
         this.appliquerFiltres();
@@ -117,16 +115,19 @@ export class MotoListComponent implements OnInit {
   }
 
   // Mapper la catégorie de l'API vers les sous-catégories moto
-  private mapCategorieToMoto(categorie: string): string {
+  private mapCategorieToMoto(typePieceNom: string): string {
     const mapping: { [key: string]: string } = {
+      'Freinage Moto': 'freinage',
+      'Kit Chaîne': 'kit_chaine',
+      'Carénage': 'carenage',
+      'Échappement': 'echappement',
+      'Echappement': 'echappement',
       'freinage': 'freinage',
-      'moteur': 'moteur',
-      'filtration': 'filtration',
-      'suspension': 'suspension',
-      'transmission': 'transmission',
-      'eclairage': 'eclairage'
+      'kit_chaine': 'kit_chaine',
+      'carenage': 'carenage',
+      'echappement': 'echappement'
     };
-    return mapping[categorie] || 'freinage';
+    return mapping[typePieceNom] || 'tous';
   }
 
   // Charger les données mock en cas d'erreur API

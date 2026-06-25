@@ -15,31 +15,32 @@ import { Subscription, interval } from 'rxjs';
   styleUrls: ['./client.component.css']
 })
 export class ClientComponent implements OnInit, OnDestroy {
-  clients: Client[] = [];
-  filteredClients: Client[] = [];
-  stats: ClientStats | null = null;
-  
-  // État du composant
+
+  clients: Client[]          = [];
+  filteredClients: Client[]  = [];
+  stats: ClientStats | null  = null;
+
+  // État
   isLoading = false;
   error: string | null = null;
-  
-  // Filtres et recherche
-  searchQuery = '';
+
+  // Filtres
+  searchQuery      = '';
   selectedStatut: 'all' | 'actif' | 'inactif' = 'all';
   selectedOrdering = '-date_inscription';
-  
-  // Modal et actions
-  showModal = false;
+
+  // Modal
+  showModal      = false;
   selectedClient: Client | null = null;
   actionType: 'details' | 'toggle' | 'delete' | null = null;
-  
-  // Synchronisation temps réel
+
+  // Sync temps réel
   private syncSubscription: Subscription | null = null;
-  
+
   // Pagination
-  currentPage = 1;
+  currentPage  = 1;
   itemsPerPage = 10;
-  totalItems = 0;
+  totalItems   = 0;
 
   constructor(
     private clientService: ClientService,
@@ -52,39 +53,36 @@ export class ClientComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.syncSubscription) {
-      this.syncSubscription.unsubscribe();
-    }
+    this.syncSubscription?.unsubscribe();
   }
 
-  // =========================
-  // CHARGEMENT DES DONNÉES
-  // =========================
-  private loadInitialData(): void {
+  // ─────────────────────────────────────────
+  // CHARGEMENT
+  // ─────────────────────────────────────────
+
+  loadInitialData(): void {
     this.isLoading = true;
     this.error = null;
-    
-    // Charger les clients et les stats en parallèle
     this.loadClients();
     this.loadStats();
   }
 
-  private loadClients(): void {
+  loadClients(): void {
     const filters: ClientFilters = {
-      search: this.searchQuery || undefined,
-      statut: this.selectedStatut === 'all' ? undefined : this.selectedStatut,
+      search:   this.searchQuery || undefined,
+      statut:   this.selectedStatut === 'all' ? undefined : this.selectedStatut,
       ordering: this.selectedOrdering
     };
 
     this.clientService.getClients(filters).subscribe({
       next: (clients) => {
-        this.clients = clients;
+        this.clients         = clients;
         this.filteredClients = clients;
-        this.totalItems = clients.length;
-        this.isLoading = false;
+        this.totalItems      = clients.length;
+        this.isLoading       = false;
       },
       error: (err) => {
-        this.error = err.message;
+        this.error     = err.message;
         this.isLoading = false;
         this.notificationService.error('Impossible de charger les clients', 'Erreur');
       }
@@ -93,168 +91,115 @@ export class ClientComponent implements OnInit, OnDestroy {
 
   private loadStats(): void {
     this.clientService.getClientStats().subscribe({
-      next: (stats) => {
-        this.stats = stats;
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des stats:', err);
-      }
+      next:  (stats) => { this.stats = stats; },
+      error: (err)   => { console.error('Stats:', err); }
     });
   }
 
-  // =========================
-  // SYNCHRONISATION TEMPS RÉEL
-  // =========================
+  // ─────────────────────────────────────────
+  // SYNC TEMPS RÉEL (toutes les 30s)
+  // ─────────────────────────────────────────
+
   private startRealTimeSync(): void {
-    // Synchronisation toutes les 30 secondes
     this.syncSubscription = interval(30000).subscribe(() => {
       this.loadClients();
       this.loadStats();
-      this.checkNotifications(); // Vérifier les nouvelles notifications
+      this.checkNotifications();
     });
-    
-    // Vérifier les notifications au démarrage
     this.checkNotifications();
   }
 
   private checkNotifications(): void {
     this.clientService.getAdminNotifications().subscribe({
       next: (data) => {
-        if (data.notifications && data.notifications.length > 0) {
-          // Traiter les notifications de nouveaux clients
-          const newClientNotifications = data.notifications.filter(
-            (notif: any) => notif.type === 'new_client'
-          );
-          
-          if (newClientNotifications.length > 0) {
-            // Notifier l'admin des nouveaux clients
-            const latestNotification = newClientNotifications[0];
-            this.notificationService.info(
-              latestNotification.message,
-              'Nouveau client inscrit'
-            );
-            
-            // Recharger la liste des clients
-            this.loadClients();
-            this.loadStats();
-          }
+        if (!data.notifications?.length) return;
+        const newClients = data.notifications.filter((n: any) => n.type === 'new_client');
+        if (newClients.length) {
+          this.notificationService.info(newClients[0].message, 'Nouveau client inscrit');
+          this.loadClients();
+          this.loadStats();
         }
       },
-      error: (err) => {
-        console.error('Erreur lors de la vérification des notifications:', err);
-      }
+      error: (err) => console.error('Notifications:', err)
     });
   }
 
-  // =========================
-  // FILTRES ET RECHERCHE
-  // =========================
-  onSearch(): void {
-    this.currentPage = 1;
-    this.loadClients();
-  }
+  // ─────────────────────────────────────────
+  // FILTRES & RECHERCHE
+  // ─────────────────────────────────────────
 
-  onStatutFilter(): void {
-    this.currentPage = 1;
-    this.loadClients();
-  }
-
-  onOrderingChange(): void {
-    this.currentPage = 1;
-    this.loadClients();
-  }
+  onSearch(): void       { this.currentPage = 1; this.loadClients(); }
+  onStatutFilter(): void { this.currentPage = 1; this.loadClients(); }
+  onOrderingChange(): void { this.currentPage = 1; this.loadClients(); }
 
   resetFilters(): void {
-    this.searchQuery = '';
-    this.selectedStatut = 'all';
+    this.searchQuery      = '';
+    this.selectedStatut   = 'all';
     this.selectedOrdering = '-date_inscription';
-    this.currentPage = 1;
+    this.currentPage      = 1;
     this.loadClients();
   }
 
-  // =========================
-  // ACTIONS SUR LES CLIENTS
-  // =========================
+  // ─────────────────────────────────────────
+  // ACTIONS CLIENT
+  // ─────────────────────────────────────────
+
   viewClientDetails(client: Client): void {
     this.selectedClient = client;
-    this.actionType = 'details';
-    this.showModal = true;
+    this.actionType     = 'details';
+    this.showModal      = true;
   }
 
   toggleClientStatus(client: Client): void {
     this.selectedClient = client;
-    this.actionType = 'toggle';
-    this.showModal = true;
+    this.actionType     = 'toggle';
+    this.showModal      = true;
   }
 
   confirmToggleClient(): void {
     if (!this.selectedClient) return;
-
     this.clientService.toggleClientActive(this.selectedClient.user).subscribe({
-      next: (response) => {
-        this.notificationService.success(response.message, 'Succès');
-        this.showModal = false;
-        this.selectedClient = null;
-        this.loadClients(); // Recharger pour voir les changements
+      next: (res) => {
+        this.notificationService.success(res.message, 'Succès');
+        this.closeModal();
+        this.loadClients();
       },
-      error: (err) => {
-        this.notificationService.error(err.message, 'Erreur');
-      }
+      error: (err) => this.notificationService.error(err.message, 'Erreur')
     });
   }
 
   deleteClient(client: Client): void {
     this.selectedClient = client;
-    this.actionType = 'delete';
-    this.showModal = true;
+    this.actionType     = 'delete';
+    this.showModal      = true;
   }
 
   confirmDeleteClient(): void {
     if (!this.selectedClient) return;
-
     this.clientService.deleteClient(this.selectedClient.user).subscribe({
-      next: (response) => {
-        this.notificationService.success(response.message, 'Succès');
-        this.showModal = false;
-        this.selectedClient = null;
-        this.loadClients(); // Recharger pour voir les changements
-        this.loadStats(); // Recharger les stats
+      next: (res) => {
+        this.notificationService.success(res.message, 'Succès');
+        this.closeModal();
+        this.loadClients();
+        this.loadStats();
       },
-      error: (err) => {
-        this.notificationService.error(err.message, 'Erreur');
-      }
+      error: (err) => this.notificationService.error(err.message, 'Erreur')
     });
   }
 
   closeModal(): void {
-    this.showModal = false;
+    this.showModal      = false;
     this.selectedClient = null;
-    this.actionType = null;
+    this.actionType     = null;
   }
 
-  // =========================
-  // UTILITAIRES
-  // =========================
-  formatDate(dateString: string): string {
-    return this.clientService.formatDate(dateString);
-  }
+  // ─────────────────────────────────────────
+  // PAGINATION
+  // ─────────────────────────────────────────
 
-  formatStatut(statut: string): {label: string; class: string} {
-    return this.clientService.formatStatut(statut);
-  }
-
-  getInitials(nomComplet: string): string {
-    const parts = nomComplet.split(' ');
-    const nom = parts[0] || '';
-    const prenom = parts[1] || '';
-    return this.clientService.getInitials(nom, prenom);
-  }
-
-  // Pagination
   get paginatedClients(): Client[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    const end = start + this.itemsPerPage;
-    return this.filteredClients.slice(start, end);
+    return this.filteredClients.slice(start, start + this.itemsPerPage);
   }
 
   get totalPages(): number {
@@ -262,19 +207,46 @@ export class ClientComponent implements OnInit, OnDestroy {
   }
 
   changePage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
+    if (page >= 1 && page <= this.totalPages) this.currentPage = page;
   }
 
-  // Refresh manuel
+  // ─────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────
+
+  formatDate(dateString: string): string {
+    return this.clientService.formatDate(dateString);
+  }
+
+  formatStatut(statut: string): { label: string; class: string } {
+    return this.clientService.formatStatut(statut);
+  }
+
+  getInitials(nomComplet: string): string {
+    const parts  = nomComplet.trim().split(' ');
+    const nom    = parts[0] || '';
+    const prenom = parts[1] || '';
+    return this.clientService.getInitials(nom, prenom);
+  }
+
+  getInStockCount(): number {
+    return this.stats?.clients_actifs ?? this.clients.filter(c => c.statut === 'actif').length;
+  }
+
+  getInactiveCount(): number {
+    return this.stats?.clients_inactifs ?? this.clients.filter(c => c.statut === 'inactif').length;
+  }
+
   refreshData(): void {
     this.loadInitialData();
     this.notificationService.info('Données actualisées', 'Synchronisation');
   }
 
-  // Optimisation du rendu
-  trackByClientId(index: number, client: Client): number {
+  trackByClientId(_: number, client: Client): number {
     return client.user;
+  }
+
+  getToggleActionText(): string {
+    return this.selectedClient?.statut === 'actif' ? 'désactiver' : 'activer';
   }
 }

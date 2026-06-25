@@ -5,112 +5,243 @@
     <app-header></app-header>
 
     <div class="content">
-      <!-- MESSAGE -->
-      <div class="notification" *ngIf="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+
+      <!-- NOTIFICATION -->
+      <div class="notif-toast"
+        *ngIf="message"
+        [class.success]="messageType === 'success'"
+        [class.error]="messageType === 'error'"
+        (click)="message = ''"
+      >
         <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
-        {{ message }}
+        <span>{{ message }}</span>
+        <i class="bi bi-x notif-x"></i>
       </div>
 
-      <!-- EN-TÊTE -->
-      <div class="page-header">
-        <div>
+      <!-- PAGE HEADER -->
+      <div class="page-header fade-up">
+        <div class="page-title">
+          <div class="page-tag">
+            <i class="bi bi-sliders2"></i>
+            Configuration
+          </div>
           <h2>Paramètres</h2>
-          <p>Configurez votre boutique</p>
+          <p>Configurez votre boutique AutoMecaStore</p>
+        </div>
+        <div class="header-actions">
+          <div class="unsaved-badge" *ngIf="hasUnsaved()">
+            <i class="bi bi-circle-fill"></i>
+            {{ getModifiedCount() }} modification(s)
+          </div>
+          <button class="btn-save-all" (click)="saveAll()" [disabled]="saving || !hasUnsaved()">
+            <i class="bi bi-floppy-fill" [class.spin]="saving"></i>
+            {{ saving ? 'Sauvegarde...' : 'Tout sauvegarder' }}
+          </button>
         </div>
       </div>
 
       <!-- TABS -->
-      <div class="tabs">
-        <button class="tab" [class.active]="activeTab === 'general'" (click)="setTab('general')">
-          <i class="bi bi-gear"></i> Général
+      <div class="tabs-bar fade-up delay-1">
+        <button
+          class="tab-btn"
+          *ngFor="let tab of tabs"
+          [class.active]="activeTab === tab.key"
+          (click)="setTab(tab.key)"
+          [style.--tab-color]="tab.color"
+        >
+          <i class="bi {{ tab.icon }}"></i>
+          {{ tab.label }}
+          <span class="tab-dot" *ngIf="hasModifiedInTab(tab.key)"></span>
         </button>
-        <button class="tab" [class.active]="activeTab === 'livraison'" (click)="setTab('livraison')">
-          <i class="bi bi-truck"></i> Livraison
-        </button>
-        <button class="tab" [class.active]="activeTab === 'paiement'" (click)="setTab('paiement')">
-          <i class="bi bi-credit-card"></i> Paiement
+      </div>
+
+      <!-- SEARCH + ADD -->
+      <div class="toolbar fade-up delay-2">
+        <div class="search-box" [class.focused]="searchFocused">
+          <i class="bi bi-search search-ic"></i>
+          <input
+            type="text"
+            placeholder="Rechercher un paramètre..."
+            [(ngModel)]="searchQuery"
+            (focus)="searchFocused = true"
+            (blur)="searchFocused = false"
+          >
+          <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery = ''">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        <button class="btn-add" (click)="openAddModal()">
+          <i class="bi bi-plus-lg"></i> Ajouter un paramètre
         </button>
       </div>
 
       <!-- PANEL -->
-      <div class="panel">
-        <!-- TOOLBAR -->
-        <div class="toolbar">
-          <div class="search-box">
-            <i class="bi bi-search"></i>
-            <input type="text" placeholder="Rechercher un paramètre..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" />
+      <div class="panel fade-up delay-3">
+
+        <!-- SECTION TITRE -->
+        <div class="section-head">
+          <div class="sh-left">
+            <div class="sh-icon">
+              <i class="bi {{ getActiveTab().icon }}"></i>
+            </div>
+            <div>
+              <h3>{{ getActiveTab().label }}</h3>
+              <small>{{ getParametresByCategorie().length }} paramètre(s)</small>
+            </div>
           </div>
-          <div class="toolbar-actions">
+        </div>
+
+        <!-- LISTE -->
+        <div class="parametres-list">
+
+          <div
+            class="parametre-item"
+            *ngFor="let param of getParametresByCategorie(); let i = index"
+            [style.--i]="i"
+            [class.modified]="param.modifie"
+          >
+            <!-- BADGE MODIFIÉ -->
+            <div class="modified-dot" *ngIf="param.modifie"></div>
+
+            <!-- INFOS -->
+            <div class="param-info">
+              <div class="param-cle">{{ param.cle }}</div>
+              <h4>{{ param.nom }}</h4>
+              <p>{{ param.description }}</p>
+            </div>
+
+            <!-- CONTRÔLE -->
+            <div class="param-control">
+
+              <!-- BOOLEAN TOGGLE -->
+              <div class="toggle-wrap" *ngIf="param.type === 'boolean'">
+                <button class="toggle-btn" [class.on]="getBoolValue(param.valeur)" (click)="toggleBool(param)">
+                  <span class="toggle-thumb"></span>
+                </button>
+                <span class="toggle-label" [class.on]="getBoolValue(param.valeur)">
+                  {{ getBoolValue(param.valeur) ? 'Activé' : 'Désactivé' }}
+                </span>
+              </div>
+
+              <!-- SELECT -->
+              <select
+                *ngIf="param.type === 'select'"
+                [(ngModel)]="param.valeur"
+                (ngModelChange)="onParamChange(param)"
+                class="param-select"
+              >
+                <option *ngFor="let opt of param.options" [value]="opt">{{ opt }}</option>
+              </select>
+
+              <!-- NUMBER -->
+              <input
+                *ngIf="param.type === 'number'"
+                type="number"
+                [(ngModel)]="param.valeur"
+                (ngModelChange)="onParamChange(param)"
+                class="param-input"
+              >
+
+              <!-- TEXT (défaut) -->
+              <input
+                *ngIf="param.type === 'text'"
+                type="text"
+                [(ngModel)]="param.valeur"
+                (ngModelChange)="onParamChange(param)"
+                class="param-input"
+              >
+
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="param-actions">
+              <button
+                class="pa-btn save"
+                [class.saving]="savingId === param.id"
+                [class.saved]="!param.modifie && savingId !== param.id"
+                (click)="saveParametre(param)"
+                title="Sauvegarder"
+              >
+                <i class="bi"
+                  [class.bi-check-lg]="savingId !== param.id"
+                  [class.bi-arrow-clockwise]="savingId === param.id"
+                  [class.spin]="savingId === param.id"
+                ></i>
+              </button>
+              <button class="pa-btn reset" (click)="resetParametre(param)" title="Réinitialiser">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- EMPTY -->
+          <div class="empty-state" *ngIf="getParametresByCategorie().length === 0">
+            <div class="empty-icon"><i class="bi bi-sliders"></i></div>
+            <h4>Aucun paramètre trouvé</h4>
+            <p>{{ searchQuery ? 'Essayez un autre terme.' : 'Aucun paramètre dans cette catégorie.' }}</p>
             <button class="btn-add" (click)="openAddModal()">
               <i class="bi bi-plus-lg"></i> Ajouter
             </button>
           </div>
-        </div>
 
-        <!-- PARAMETRES -->
-        <div class="parametres-list">
-          <div class="parametre-item" *ngFor="let param of getParametresByCategorie()">
-            <div class="parametre-info">
-              <h4>{{ param.nom }}</h4>
-              <p>{{ param.description }}</p>
-            </div>
-            <div class="parametre-value">
-              <input type="text" [(ngModel)]="param.valeur" name="valeur-{{ param.id }}" />
-            </div>
-            <div class="parametre-actions">
-              <button class="btn-icon" title="Sauvegarder">
-                <i class="bi bi-check-lg"></i>
-              </button>
-            </div>
-          </div>
-
-          <div *ngIf="getParametresByCategorie().length === 0" class="empty-state">
-            <i class="bi bi-sliders"></i>
-            <p>Aucun paramètre dans cette catégorie</p>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- ══ MODAL AJOUTER ══ -->
 <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Ajouter un paramètre</h3>
-      <button class="btn-close" (click)="closeModal()">
-        <i class="bi bi-x-lg"></i>
-      </button>
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon-wrap">
+          <i class="bi bi-plus-lg"></i>
+        </div>
+        <div>
+          <h3>Nouveau paramètre</h3>
+          <small>Ajoutez un paramètre personnalisé</small>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
     </div>
+
     <div class="modal-body">
-      <form (ngSubmit)="saveParametre()">
+      <form (ngSubmit)="addParametre()">
+
         <div class="form-group">
-          <label>Nom du paramètre *</label>
-          <input type="text" [(ngModel)]="parametreForm.nom" name="nom" placeholder="Ex: Nom du site" required />
+          <label><i class="bi bi-tag"></i> Nom du paramètre *</label>
+          <input type="text" [(ngModel)]="parametreForm.nom" name="nom" placeholder="Ex: Nom du site" required>
         </div>
+
         <div class="form-group">
-          <label>Valeur *</label>
-          <input type="text" [(ngModel)]="parametreForm.valeur" name="valeur" placeholder="Valeur..." required />
+          <label><i class="bi bi-input-cursor-text"></i> Valeur *</label>
+          <input type="text" [(ngModel)]="parametreForm.valeur" name="valeur" placeholder="Valeur..." required>
         </div>
+
         <div class="form-group">
-          <label>Description</label>
-          <textarea [(ngModel)]="parametreForm.description" name="description" rows="2" placeholder="Description du paramètre..."></textarea>
+          <label><i class="bi bi-card-text"></i> Description</label>
+          <textarea [(ngModel)]="parametreForm.description" name="description" rows="2" placeholder="Description..."></textarea>
         </div>
+
         <div class="form-group">
-          <label>Catégorie</label>
+          <label><i class="bi bi-grid-3x3-gap"></i> Catégorie</label>
           <select [(ngModel)]="parametreForm.categorie" name="categorie">
-            <option value="general">Général</option>
-            <option value="livraison">Livraison</option>
-            <option value="paiement">Paiement</option>
+            <option *ngFor="let tab of tabs" [value]="tab.key">{{ tab.label }}</option>
           </select>
         </div>
+
         <div class="form-actions">
-          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
-          <button type="submit" class="btn-save">
-            <i class="bi bi-check-lg"></i> Ajouter
+          <button type="button" class="mf-btn cancel" (click)="closeModal()">
+            <i class="bi bi-x"></i> Annuler
+          </button>
+          <button type="submit" class="mf-btn save">
+            <i class="bi bi-plus-lg"></i> Ajouter
           </button>
         </div>
+
       </form>
     </div>
   </div>

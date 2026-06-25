@@ -54,10 +54,8 @@ export class PoidLourdsListComponent implements OnInit {
   sousCategoriesPoidLourds = [
     { key: 'tous',        label: 'Toutes' },
     { key: 'freinage',    label: '🔴 Freinage' },
-    { key: 'moteur',      label: '⚙️ Moteur' },
-    { key: 'filtration',  label: '🌀 Filtration' },
-    { key: 'suspension',  label: '🔧 Suspension' },
     { key: 'transmission',label: '⛓️ Transmission' },
+    { key: 'pneumatiques',label: '🛞 Pneumatiques' },
     { key: 'eclairage',   label: '💡 Éclairage' },
   ];
 
@@ -91,7 +89,7 @@ export class PoidLourdsListComponent implements OnInit {
           nom: p.nom,
           marque: p.marque ?? 'AutoMecaStore',
           description: p.description || 'Description du produit',
-          image: p.image ? `http://localhost:8000${p.image}` : null,
+          image: p.image_url || p.image_2_url || p.image_3_url || p.image_4_url || null, // Utiliser la première image disponible
           prixNouveau: parseFloat(p.prix_promo ?? p.prix),
           prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
           discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
@@ -101,7 +99,7 @@ export class PoidLourdsListComponent implements OnInit {
           livraison: true,
           isFavori: false,
           isNew: false,
-          categorie: 'freinage' // Default subcategory for poids lourds products
+          categorie: this.mapCategorieToPoidLourds(p.type_piece_nom || '')
         }));
 
         this.appliquerFiltres();
@@ -117,16 +115,19 @@ export class PoidLourdsListComponent implements OnInit {
   }
 
   // Mapper la catégorie de l'API vers les sous-catégories poids lourds
-  private mapCategorieToPoidLourds(categorie: string): string {
+  private mapCategorieToPoidLourds(typePieceNom: string): string {
     const mapping: { [key: string]: string } = {
+      'Freinage': 'freinage',
+      'Transmission': 'transmission',
+      'Pneumatiques': 'pneumatiques',
+      'Éclairage': 'eclairage',
+      'Eclairage': 'eclairage',
       'freinage': 'freinage',
-      'moteur': 'moteur',
-      'filtration': 'filtration',
-      'suspension': 'suspension',
       'transmission': 'transmission',
+      'pneumatiques': 'pneumatiques',
       'eclairage': 'eclairage'
     };
-    return mapping[categorie] || 'freinage';
+    return mapping[typePieceNom] || 'tous';
   }
 
   // Charger les données mock en cas d'erreur API

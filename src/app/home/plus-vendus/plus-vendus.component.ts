@@ -2,8 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
-import { Produit } from '../../models/produit.model';
-// import { ProduitService } from '../../../core/services/produit.service'; // ← décommenter quand Django prêt
+import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
 
 export interface PlusVenduProduit {
   id: number;
@@ -38,7 +37,7 @@ interface TimerDisplay {
 })
 export class PlusVendusComponent implements OnInit, OnDestroy {
 
-  isLoading = false;
+  isLoading = true;
   errorMessage = '';
   produitAjoute: number | null = null;
   timers: TimerDisplay[] = [];
@@ -46,115 +45,59 @@ export class PlusVendusComponent implements OnInit, OnDestroy {
 
   produits: PlusVenduProduit[] = [];
 
-  constructor(private panierService: PanierService) {}
+  constructor(
+    private panierService: PanierService,
+    private homeService: HomeService
+  ) {}
 
   ngOnInit(): void {
-
-    // -------------------------------------------------------
-    // MOCK DATA — remplacer par appel API quand Django prêt
-    // -------------------------------------------------------
-    this.produits = [
-      {
-        id: 1,
-        nom: 'Huile moteur Castrol 5W30',
-        marque: 'CASTROL',
-        image: 'assets/products/filter.png',
-        prixNouveau: 12.99,
-        prixAncien: 18.99,
-        note: 5,
-        avis: 412,
-        badge: '🏆 Top ventes',
-        expirationDate: this.addHours(12, 45),
-        stock: 32,
-        livraison: true,
-        rang: 1,
-        ventesSemaine: 847
-      },
-      {
-        id: 2,
-        nom: 'Filtre à air universel',
-        marque: 'BOSCH',
-        image: 'assets/products/brake.png',
-        prixNouveau: 24.99,
-        prixAncien: 34.99,
-        note: 4,
-        avis: 287,
-        badge: '⭐ Populaire',
-        expirationDate: this.addHours(8, 20),
-        stock: 5,
-        livraison: true,
-        rang: 2,
-        ventesSemaine: 623
-      },
-      {
-        id: 3,
-        nom: 'Plaquettes de frein Brembo',
-        marque: 'BREMBO',
-        image: 'assets/products/shock.png',
-        prixNouveau: 49.99,
-        prixAncien: null,
-        note: 4,
-        avis: 195,
-        badge: '🔥 Recommandé',
-        expirationDate: this.addHours(5, 10),
-        stock: 18,
-        livraison: false,
-        rang: 3,
-        ventesSemaine: 498
-      },
-      {
-        id: 4,
-        nom: 'Kit vidange complet',
-        marque: 'TOTAL',
-        image: 'assets/products/kit.png',
-        prixNouveau: 39.99,
-        prixAncien: 54.99,
-        note: 5,
-        avis: 163,
-        badge: '💎 Premium',
-        expirationDate: this.addHours(3, 30),
-        stock: 2,
-        livraison: true,
-        rang: 4,
-        ventesSemaine: 341
-      }
-    ];
-
-    this.updateTimers();
+    this.loadBestSellers();
     this.intervalId = setInterval(() => this.updateTimers(), 1000);
+  }
 
-    // -------------------------------------------------------
-    // APPEL API DJANGO — décommenter quand les produits existent
-    // -------------------------------------------------------
-    // this.isLoading = true;
-    // this.produitService.getProduits().subscribe({
-    //   next: (data: any) => {
-    //     const list = Array.isArray(data) ? data : data.results;
-    //     this.produits = list.slice(0, 6).map((p: any, i: number) => ({
-    //       id: p.id,
-    //       nom: p.nom,
-    //       marque: p.marque ?? 'AutoMecaStore',
-    //       image: p.image ?? null,
-    //       prixNouveau: parseFloat(p.prix_promo ?? p.prix),
-    //       prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
-    //       note: 4 + Math.random(),
-    //       avis: Math.floor(Math.random() * 400) + 100,
-    //       badge: i === 0 ? '🏆 Top ventes' : i === 1 ? '⭐ Populaire' : '🔥 Recommandé',
-    //       expirationDate: this.addHours(6 + i * 2, 0),
-    //       stock: p.stock,
-    //       livraison: true,
-    //       rang: i + 1,
-    //       ventesSemaine: Math.floor(Math.random() * 800) + 200
-    //     }));
-    //     this.updateTimers();
-    //     this.intervalId = setInterval(() => this.updateTimers(), 1000);
-    //     this.isLoading = false;
-    //   },
-    //   error: () => {
-    //     this.errorMessage = 'Impossible de charger les produits.';
-    //     this.isLoading = false;
-    //   }
-    // });
+  loadBestSellers(): void {
+    this.homeService.getBestSellers(6).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          this.produits = response.data.map((p: HomeProduit, i: number) => this.mapToPlusVendu(p, i));
+          this.updateTimers();
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des bestsellers:', err);
+        this.errorMessage = 'Impossible de charger les produits les plus vendus.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private mapToPlusVendu(p: HomeProduit, index: number): PlusVenduProduit {
+    const prixNouveau = p.prix_promo || p.prix;
+    const prixAncien = p.prix_promo ? p.prix : null;
+
+    // Badge selon le rang
+    let badge = '🔥 Recommandé';
+    if (index === 0) badge = '🏆 Top ventes';
+    else if (index === 1) badge = '⭐ Populaire';
+    else if (index === 2) badge = '💎 Premium';
+
+    return {
+      id: p.id,
+      nom: p.nom,
+      marque: p.marque || 'AutoMecaStore',
+      image: p.image_url || null,
+      prixNouveau,
+      prixAncien,
+      note: 4 + Math.random(), // Simulation de note
+      avis: Math.floor(Math.random() * 400) + 100, // Simulation d'avis
+      badge,
+      expirationDate: this.addHours(24, 0), // 24h par défaut
+      stock: p.stock,
+      livraison: true,
+      rang: index + 1,
+      ventesSemaine: p.nombre_ventes || 0
+    };
   }
 
   ngOnDestroy(): void {
@@ -210,7 +153,7 @@ export class PlusVendusComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     if (produit.stock === 0) return;
 
-    const p: Produit & { quantite: number } = {
+    const p = {
       id: produit.id,
       nom: produit.nom,
       description: '',
@@ -221,7 +164,7 @@ export class PlusVendusComponent implements OnInit, OnDestroy {
       gestionnaire_stock: null,
       quantite: 1
     };
-    this.panierService.ajouterProduit(p);
+    this.panierService.ajouterProduit(p as any);
 
     this.produitAjoute = produit.id;
     setTimeout(() => {

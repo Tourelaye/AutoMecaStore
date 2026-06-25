@@ -250,7 +250,7 @@ export class MonCompteService {
   supprimerDuPanier(itemId: number): Observable<any> {
     const headers = this.getAuthHeaders();
 
-    return this.http.delete(`${this.API_URL}/panier/${itemId}/`, { headers }).pipe(
+    return this.http.delete(`${this.API_URL}/panier/delete/${itemId}/`, { headers }).pipe(
       tap(() => {
         // Rafraîchir le panier après suppression
         this.getPanier().subscribe();
@@ -265,7 +265,7 @@ export class MonCompteService {
   mettreAJourQuantite(itemId: number, quantite: number): Observable<any> {
     const headers = this.getAuthHeaders();
 
-    return this.http.patch(`${this.API_URL}/panier/${itemId}/`, { quantite }, { headers }).pipe(
+    return this.http.patch(`${this.API_URL}/panier/update/${itemId}/`, { quantite }, { headers }).pipe(
       tap(() => {
         // Rafraîchir le panier après mise à jour
         this.getPanier().subscribe();

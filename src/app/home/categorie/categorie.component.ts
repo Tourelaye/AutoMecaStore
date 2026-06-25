@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { CategorieService } from '../../core/services/categorie.service';
-import { Categorie } from '../../models/categorie.model';
+import { HomeService, Categorie } from '../../core/services/home.service';
 
 // Config visuelle associée à chaque catégorie selon son nom
 interface CategorieVisuelle {
@@ -11,7 +10,6 @@ interface CategorieVisuelle {
   route: string;      // Route Angular
   sousTitre: string;  // Sous-titre affiché
   badge?: string;     // Badge optionnel
-  mockCount: string;  // Compteur affiché (mock en attendant l'API)
 }
 
 // Correspondance nom de catégorie → config visuelle
@@ -23,8 +21,7 @@ const VISUEL_MAP: { keywords: string[]; config: CategorieVisuelle }[] = [
       cssClass: 'auto',
       route: '/catalog/auto',
       sousTitre: 'Pièces & Accessoires',
-      badge: '🔥 Tendance',
-      mockCount: '10 500+'
+      badge: '🔥 Tendance'
     }
   },
   {
@@ -33,8 +30,7 @@ const VISUEL_MAP: { keywords: string[]; config: CategorieVisuelle }[] = [
       icon: 'fa-solid fa-motorcycle',
       cssClass: 'moto',
       route: '/catalog/moto',
-      sousTitre: 'Équipements & Pièces',
-      mockCount: '3 200+'
+      sousTitre: 'Équipements & Pièces'
     }
   },
   {
@@ -43,8 +39,7 @@ const VISUEL_MAP: { keywords: string[]; config: CategorieVisuelle }[] = [
       icon: 'fa-solid fa-truck',
       cssClass: 'truck',
       route: '/catalog/poidLourds',
-      sousTitre: 'Pièces Industrielles',
-      mockCount: '1 800+'
+      sousTitre: 'Pièces Industrielles'
     }
   },
   {
@@ -53,8 +48,7 @@ const VISUEL_MAP: { keywords: string[]; config: CategorieVisuelle }[] = [
       icon: 'fa-solid fa-bicycle',
       cssClass: 'bike',
       route: '/catalog/velo',
-      sousTitre: 'Composants & Accessoires',
-      mockCount: '800+'
+      sousTitre: 'Composants & Accessoires'
     }
   }
 ];
@@ -64,8 +58,7 @@ const VISUEL_DEFAULT: CategorieVisuelle = {
   icon: 'fa-solid fa-gears',
   cssClass: 'auto',
   route: '/produits',
-  sousTitre: 'Pièces & Accessoires',
-  mockCount: '500+'
+  sousTitre: 'Pièces & Accessoires'
 };
 
 export interface CategorieAffichee extends Categorie {
@@ -85,71 +78,26 @@ export class CategorieComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
 
-  // -------------------------------------------------------
-  // MOCK DATA — actif tant que Django n'a pas de catégories
-  // -------------------------------------------------------
-  private mockCategories: Categorie[] = [
-    {
-      id: 1,
-      nom: 'Automobile',
-      description: 'Toutes les pièces pour votre voiture',
-      datecreation: new Date().toISOString(),
-      datemodification: new Date().toISOString(),
-      etat: 'true',
-      categorieid: null
-    },
-    {
-      id: 2,
-      nom: 'Moto & Scooter',
-      description: 'Équipements et pièces pour deux-roues',
-      datecreation: new Date().toISOString(),
-      datemodification: new Date().toISOString(),
-      etat: 'true',
-      categorieid: null
-    },
-    {
-      id: 3,
-      nom: 'Poids Lourds',
-      description: 'Pièces industrielles pour poids lourds',
-      datecreation: new Date().toISOString(),
-      datemodification: new Date().toISOString(),
-      etat: 'true',
-      categorieid: null
-    },
-    {
-      id: 4,
-      nom: 'Vélo & E-bike',
-      description: 'Composants et accessoires pour vélos',
-      datecreation: new Date().toISOString(),
-      datemodification: new Date().toISOString(),
-      etat: 'true',
-      categorieid: null
-    }
-  ];
-
-  constructor(private categorieService: CategorieService) {}
+  constructor(private homeService: HomeService) {}
 
   ngOnInit(): void {
-    // -------------------------------------------------------
-    // APPEL API DJANGO — décommenter quand les catégories
-    // sont créées dans Django
-    // -------------------------------------------------------
-    // this.categorieService.getCategories().subscribe({
-    //   next: (data) => {
-    //     this.categories = data
-    //       .filter(c => c.etat === 'true' || c.etat === true)
-    //       .map(c => this.enrichirCategorie(c));
-    //     this.isLoading = false;
-    //   },
-    //   error: () => {
-    //     this.errorMessage = 'Impossible de charger les catégories.';
-    //     this.isLoading = false;
-    //   }
-    // });
+    this.loadCategories();
+  }
 
-    // MOCK — retirer quand l'API est prête
-    this.categories = this.mockCategories.map(c => this.enrichirCategorie(c));
-    this.isLoading = false;
+  loadCategories(): void {
+    this.homeService.getCategories().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.categories = response.data.map(c => this.enrichirCategorie(c));
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des catégories:', err);
+        this.errorMessage = 'Impossible de charger les catégories.';
+        this.isLoading = false;
+      }
+    });
   }
 
   // -------------------------------------------------------

@@ -2,8 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
-import { Produit } from '../../models/produit.model';
-// import { ProduitService } from '../../../core/services/produit.service'; // ← décommenter quand Django prêt
+import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
 
 export interface VogueProduit {
   id: number;
@@ -32,7 +31,7 @@ export interface VogueProduit {
 })
 export class VogueComponent implements OnInit, OnDestroy {
 
-  isLoading = false;
+  isLoading = true;
   errorMessage = '';
   produitAjoute: number | null = null;
   activeFilter = 'tous';
@@ -51,117 +50,65 @@ export class VogueComponent implements OnInit, OnDestroy {
   // Produits filtrés (affichés)
   produits: VogueProduit[] = [];
 
-  constructor(private panierService: PanierService) {}
+  constructor(
+    private panierService: PanierService,
+    private homeService: HomeService
+  ) {}
 
   ngOnInit(): void {
-    this.tousLesProduits = [
-      {
-        id: 1,
-        nom: 'Huile moteur Castrol 5W30',
-        marque: 'CASTROL',
-        image: 'assets/products/filter.png',
-        prixNouveau: 12.99,
-        prixAncien: 18.99,
-        discount: 30,
-        tendance: 45,
-        note: 4.8,
-        avis: 312,
-        livraison: true,
-        badge: '🔥 Trending',
-        stock: 28,
-        categorie: 'auto',
-        isNew: false
+    this.loadTrending();
+  }
+
+  loadTrending(): void {
+    this.homeService.getTrending(8).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          this.tousLesProduits = response.data.map((p: HomeProduit, i: number) => this.mapToVogue(p, i));
+          this.produits = [...this.tousLesProduits];
+        }
+        this.isLoading = false;
       },
-      {
-        id: 2,
-        nom: 'Filtre à air Sport',
-        marque: 'K&N',
-        image: 'assets/products/brake.png',
-        prixNouveau: 34.99,
-        prixAncien: 44.99,
-        discount: 22,
-        tendance: 62,
-        note: 4.9,
-        avis: 187,
-        livraison: true,
-        badge: '⚡ Hot',
-        stock: 4,
-        categorie: 'auto',
-        isNew: true
-      },
-      {
-        id: 3,
-        nom: 'Pneu moto Michelin',
-        marque: 'MICHELIN',
-        image: 'assets/products/shock.png',
-        prixNouveau: 89.99,
-        prixAncien: 119.99,
-        discount: 25,
-        tendance: 38,
-        note: 4.7,
-        avis: 94,
-        livraison: false,
-        badge: '🌟 Tendance',
-        stock: 12,
-        categorie: 'moto',
-        isNew: false
-      },
-      {
-        id: 4,
-        nom: 'Kit transmission vélo',
-        marque: 'SHIMANO',
-        image: 'assets/products/kit.png',
-        prixNouveau: 59.99,
-        prixAncien: null,
-        discount: null,
-        tendance: 78,
-        note: 4.6,
-        avis: 56,
-        livraison: true,
-        badge: '🚀 Viral',
-        stock: 7,
-        categorie: 'velo',
-        isNew: true
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des tendances:', err);
+        this.errorMessage = 'Impossible de charger les tendances.';
+        this.isLoading = false;
       }
-    ];
+    });
+  }
 
-    this.produits = [...this.tousLesProduits];
+  private mapToVogue(p: HomeProduit, index: number): VogueProduit {
+    const prixNouveau = p.prix_promo || p.prix;
+    const prixAncien = p.prix_promo ? p.prix : null;
+    const discount = p.pourcentage_reduction || (p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null);
 
-    // -------------------------------------------------------
-    // APPEL API DJANGO — décommenter quand les produits existent
-    // -------------------------------------------------------
-    // this.isLoading = true;
-    // this.produitService.getProduits().subscribe({
-    //   next: (data: any) => {
-    //     const list = Array.isArray(data) ? data : data.results;
-    //     this.tousLesProduits = list.map((p: any, i: number) => ({
-    //       id: p.id,
-    //       nom: p.nom,
-    //       marque: p.marque ?? 'AutoMecaStore',
-    //       image: p.image ?? null,
-    //       prixNouveau: parseFloat(p.prix_promo ?? p.prix),
-    //       prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
-    //       discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
-    //       tendance: Math.floor(Math.random() * 80) + 20,
-    //       note: 4.5 + Math.random() * 0.5,
-    //       avis: Math.floor(Math.random() * 300) + 50,
-    //       livraison: true,
-    //       badge: ['🔥 Trending', '⚡ Hot', '🌟 Tendance', '🚀 Viral'][i % 4],
-    //       stock: p.stock,
-    //       categorie: p.categorie?.nom?.toLowerCase().includes('moto') ? 'moto'
-    //                : p.categorie?.nom?.toLowerCase().includes('velo') ? 'velo'
-    //                : p.categorie?.nom?.toLowerCase().includes('poids') ? 'poids'
-    //                : 'auto',
-    //       isNew: i < 2
-    //     }));
-    //     this.produits = [...this.tousLesProduits];
-    //     this.isLoading = false;
-    //   },
-    //   error: () => {
-    //     this.errorMessage = 'Impossible de charger les tendances.';
-    //     this.isLoading = false;
-    //   }
-    // });
+    // Déterminer la catégorie pour le filtre
+    const categorieNom = (p.categorie_nom || '').toLowerCase();
+    let categorie = 'auto';
+    if (categorieNom.includes('moto')) categorie = 'moto';
+    else if (categorieNom.includes('velo') || categorieNom.includes('bike')) categorie = 'velo';
+    else if (categorieNom.includes('poids') || categorieNom.includes('lourd')) categorie = 'poids';
+
+    // Badge selon l'index
+    const badges = ['🔥 Trending', '⚡ Hot', '🌟 Tendance', '🚀 Viral'];
+    const badge = badges[index % badges.length];
+
+    return {
+      id: p.id,
+      nom: p.nom,
+      marque: p.marque || 'AutoMecaStore',
+      image: p.image_url || null,
+      prixNouveau,
+      prixAncien,
+      discount,
+      tendance: Math.floor(Math.random() * 80) + 20, // Simulation de tendance
+      note: 4.5 + Math.random() * 0.5, // Simulation de note
+      avis: Math.floor(Math.random() * 300) + 50, // Simulation d'avis
+      livraison: true,
+      badge,
+      stock: p.stock,
+      categorie,
+      isNew: index < 2 // Les 2 premiers sont considérés comme nouveaux
+    };
   }
 
   ngOnDestroy(): void {}
@@ -207,7 +154,7 @@ export class VogueComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     if (produit.stock === 0) return;
 
-    const p: Produit & { quantite: number } = {
+    const p = {
       id: produit.id,
       nom: produit.nom,
       description: '',
@@ -218,7 +165,7 @@ export class VogueComponent implements OnInit, OnDestroy {
       gestionnaire_stock: null,
       quantite: 1
     };
-    this.panierService.ajouterProduit(p);
+    this.panierService.ajouterProduit(p as any);
 
     this.produitAjoute = produit.id;
     setTimeout(() => {

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-// import { ProduitService } from '../../../core/services/produit.service'; // ← décommenter quand Django est prêt
+import { HomeService, Produit } from '../../core/services/home.service';
 
 export interface PromoProduct {
   id: number;
@@ -32,98 +32,72 @@ interface TimerDisplay {
 })
 export class PromotionComponent implements OnInit, OnDestroy {
 
-  // -------------------------------------------------------
-  // MOCK DATA — remplacer par l'appel API quand Django prêt
-  // -------------------------------------------------------
-  produits: PromoProduct[] = [
-    {
-      id: 1,
-      nom: 'Kit Freinage',
-      image: null,
-      prixAncien: 129.99,
-      prixNouveau: 89.99,
-      discount: 31,
-      stock: 20,
-      stockRestant: 9,
-      expirationDate: this.addHours(2, 45),
-      categorie: 'Automobile'
-    },
-    {
-      id: 2,
-      nom: 'Batterie 12V',
-      image: null,
-      prixAncien: 159.99,
-      prixNouveau: 119.99,
-      discount: 25,
-      stock: 10,
-      stockRestant: 3,
-      expirationDate: this.addHours(1, 20),
-      categorie: 'Automobile'
-    },
-    {
-      id: 3,
-      nom: 'Kit Embrayage',
-      image: null,
-      prixAncien: 299.99,
-      prixNouveau: 199.99,
-      discount: 33,
-      stock: 15,
-      stockRestant: 11,
-      expirationDate: this.addHours(4, 15),
-      categorie: 'Moto & Scooter'
-    }
-  ];
+  produits: PromoProduct[] = [];
 
   // Timers en temps réel, un par produit
   timers: TimerDisplay[] = [];
 
-  isLoading = false;
+  isLoading = true;
   errorMessage = '';
 
   private intervalId: any;
 
-  constructor(
-    // private produitService: ProduitService  // ← décommenter quand Django prêt
-  ) {}
+  constructor(private homeService: HomeService) {}
 
   ngOnInit(): void {
-    // Initialise les timers
-    this.updateTimers();
+    this.loadFlashSales();
 
     // Met à jour toutes les secondes
     this.intervalId = setInterval(() => this.updateTimers(), 1000);
+  }
 
-    // -------------------------------------------------------
-    // APPEL API DJANGO — décommenter quand les produits existent
-    // -------------------------------------------------------
-    // this.isLoading = true;
-    // this.produitService.getProduits().subscribe({
-    //   next: (data: any) => {
-    //     const produits = Array.isArray(data) ? data : data.results;
-    //     this.produits = produits.slice(0, 4).map((p: any, i: number) => ({
-    //       id: p.id,
-    //       nom: p.nom,
-    //       image: p.image ?? null,
-    //       prixAncien: parseFloat(p.prix) * 1.3,
-    //       prixNouveau: parseFloat(p.prix),
-    //       discount: 30,
-    //       stock: p.stock,
-    //       stockRestant: Math.floor(p.stock * 0.4),
-    //       expirationDate: this.addHours(2 + i, 0),
-    //       categorie: p.categorie?.nom ?? 'Pièce'
-    //     }));
-    //     this.updateTimers();
-    //     this.isLoading = false;
-    //   },
-    //   error: () => {
-    //     this.errorMessage = 'Impossible de charger les promotions.';
-    //     this.isLoading = false;
-    //   }
-    // });
+  loadFlashSales(): void {
+    this.homeService.getFlashSales().subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          this.produits = response.data.map((p: Produit) => this.mapToPromoProduct(p));
+          this.updateTimers();
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des ventes flash:', err);
+        this.errorMessage = 'Impossible de charger les promotions.';
+        this.isLoading = false;
+      }
+    });
   }
 
   ngOnDestroy(): void {
     if (this.intervalId) clearInterval(this.intervalId);
+  }
+
+  private mapToPromoProduct(p: Produit): PromoProduct {
+    const prixOriginal = p.prix;
+    const prixPromo = p.prix_promo || p.prix;
+    const discount = p.pourcentage_reduction || 0;
+
+    // Calculer le prix original barré si on a un pourcentage de réduction
+    const prixAncien = discount > 0 ? prixOriginal : (prixOriginal * 1.3);
+    const prixNouveau = prixPromo;
+
+    // Date d'expiration de la promo
+    const expirationDate = p.date_fin_promo
+      ? new Date(p.date_fin_promo)
+      : this.addHours(24, 0); // 24h par défaut si pas de date
+
+    return {
+      id: p.id,
+      nom: p.nom,
+      image: p.image_url || null,
+      prixAncien,
+      prixNouveau,
+      discount,
+      stock: p.stock,
+      stockRestant: Math.floor(p.stock * 0.5), // Simulation pour la barre de progression
+      expirationDate,
+      categorie: p.categorie_nom || 'Pièce'
+    };
   }
 
   // -------------------------------------------------------

@@ -24,6 +24,27 @@ export interface RecentOrder {
   statut: string;
 }
 
+export interface TopProduct {
+  id: number;
+  nom: string;
+  categorie_nom?: string;
+  categorie?: string;
+  ventes: number;
+  pct?: number;
+  icon?: string;
+  color?: string;
+  total_revenue?: number;
+}
+
+export interface Kpi {
+  label: string;
+  value: string;
+  icon: string;
+  bg: string;
+  color: string;
+  trend: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -79,5 +100,28 @@ export class DashboardService {
         return orders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
       })
     );
+  }
+
+  // Get top products by sales
+  getTopProducts(limit: number = 5): Observable<TopProduct[]> {
+    return this.http.get<any>(`${this.baseUrl}/produits/`).pipe(
+      map((data: any) => {
+        const products = Array.isArray(data) ? data : (data.results || []);
+        // Sort by a hypothetical sales count field (will need to be implemented in backend)
+        // For now, we'll return products and the component will handle the display
+        return products.slice(0, limit).map((p: any) => ({
+          id: p.id,
+          nom: p.nom,
+          categorie_nom: p.categorie_nom || p.categorie_detail?.nom || 'Non classé',
+          ventes: 0, // Will need to be calculated from order items in backend
+          total_revenue: 0
+        }));
+      })
+    );
+  }
+
+  // Get KPI data
+  getKPIs(): Observable<Kpi[]> {
+    return this.http.get<Kpi[]>(`${this.baseUrl}/dashboard/kpi/`);
   }
 }

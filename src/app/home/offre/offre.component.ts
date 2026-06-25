@@ -2,8 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
-import { Produit } from '../../models/produit.model';
-// import { ProduitService } from '../../../core/services/produit.service'; // ← décommenter quand Django prêt
+import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
 
 export interface OffreProduit {
   id: number;
@@ -29,105 +28,66 @@ export interface OffreProduit {
 })
 export class OffreComponent implements OnInit {
 
-  isLoading = false;
+  isLoading = true;
   errorMessage = '';
   produitAjoute: number | null = null; // ID du produit récemment ajouté
 
-  // -------------------------------------------------------
-  // MOCK DATA — remplacer par appel API quand Django prêt
-  // -------------------------------------------------------
-  produits: OffreProduit[] = [
-    {
-      id: 1,
-      nom: 'Filtre à huile BMW',
-      marque: 'MANN-FILTER',
-      image: 'assets/products/filter.png',
-      prixNouveau: 12.99,
-      prixAncien: 18.99,
-      discount: 32,
-      note: 4.8,
-      avis: 159,
-      livraison: true,
-      badge: { label: '🔥 Bestseller', type: 'orange' },
-      stock: 45
-    },
-    {
-      id: 2,
-      nom: 'Plaquettes frein avant',
-      marque: 'BREMBO',
-      image: 'assets/products/brake.png',
-      prixNouveau: 49.99,
-      prixAncien: 69.99,
-      discount: 29,
-      note: 4.9,
-      avis: 234,
-      livraison: true,
-      badge: { label: '⭐ Choice', type: 'orange' },
-      stock: 18
-    },
-    {
-      id: 3,
-      nom: 'Amortisseur arrière',
-      marque: 'MONROE',
-      image: 'assets/products/shock.png',
-      prixNouveau: 78.99,
-      prixAncien: null,
-      discount: null,
-      note: 4.7,
-      avis: 124,
-      livraison: false,
-      badge: null,
-      stock: 7
-    },
-    {
-      id: 4,
-      nom: 'Kit distribution',
-      marque: 'GATES',
-      image: 'assets/products/kit.png',
-      prixNouveau: 189.99,
-      prixAncien: 249.99,
-      discount: 24,
-      note: 4.6,
-      avis: 89,
-      livraison: true,
-      badge: { label: '💰 Best Price', type: 'green' },
-      stock: 3
-    }
-  ];
+  produits: OffreProduit[] = [];
 
-  constructor(private panierService: PanierService) {}
+  constructor(
+    private panierService: PanierService,
+    private homeService: HomeService
+  ) {}
 
   ngOnInit(): void {
-    // -------------------------------------------------------
-    // APPEL API DJANGO — décommenter quand les produits existent
-    // -------------------------------------------------------
-    // this.isLoading = true;
-    // this.produitService.getProduits().subscribe({
-    //   next: (data: any) => {
-    //     const produits = Array.isArray(data) ? data : data.results;
-    //     this.produits = produits.slice(0, 8).map((p: any) => ({
-    //       id: p.id,
-    //       nom: p.nom,
-    //       marque: p.marque ?? 'AutoMecaStore',
-    //       image: p.image ?? null,
-    //       prixNouveau: parseFloat(p.prix_promo ?? p.prix),
-    //       prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
-    //       discount: p.prix_promo
-    //         ? Math.round((1 - p.prix_promo / p.prix) * 100)
-    //         : null,
-    //       note: 4.5,
-    //       avis: Math.floor(Math.random() * 200) + 50,
-    //       livraison: true,
-    //       badge: p.est_en_promo ? { label: '🔥 Promo', type: 'orange' } : null,
-    //       stock: p.stock
-    //     }));
-    //     this.isLoading = false;
-    //   },
-    //   error: () => {
-    //     this.errorMessage = 'Impossible de charger les offres.';
-    //     this.isLoading = false;
-    //   }
-    // });
+    this.loadOffers();
+  }
+
+  loadOffers(): void {
+    this.homeService.getRecommended(8).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          this.produits = response.data.map((p: HomeProduit) => this.mapToOffre(p));
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des offres:', err);
+        this.errorMessage = 'Impossible de charger les offres.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private mapToOffre(p: HomeProduit): OffreProduit {
+    const prixNouveau = p.prix_promo || p.prix;
+    const prixAncien = p.prix_promo ? p.prix : null;
+    const discount = p.pourcentage_reduction || (p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null);
+
+    // Déterminer le badge selon les tags
+    let badge = null;
+    if (p.est_bestseller) {
+      badge = { label: '🏆 Bestseller', type: 'orange' as const };
+    } else if (p.est_vedette) {
+      badge = { label: '⭐ Choice', type: 'orange' as const };
+    } else if (p.est_en_promo && discount && discount >= 30) {
+      badge = { label: '💰 Best Price', type: 'green' as const };
+    }
+
+    return {
+      id: p.id,
+      nom: p.nom,
+      marque: p.marque || 'AutoMecaStore',
+      image: p.image_url || null,
+      prixNouveau,
+      prixAncien,
+      discount,
+      note: 4.5 + Math.random() * 0.5, // Simulation de note
+      avis: Math.floor(Math.random() * 200) + 50, // Simulation d'avis
+      livraison: true,
+      badge,
+      stock: p.stock
+    };
   }
 
   // -------------------------------------------------------
@@ -153,7 +113,7 @@ export class OffreComponent implements OnInit {
 
     if (produit.stock === 0) return;
 
-    const p: Produit & { quantite: number } = {
+    const p = {
       id: produit.id,
       nom: produit.nom,
       description: '',
@@ -164,7 +124,7 @@ export class OffreComponent implements OnInit {
       gestionnaire_stock: null,
       quantite: 1
     };
-    this.panierService.ajouterProduit(p);
+    this.panierService.ajouterProduit(p as any);
 
     // Animation feedback
     this.produitAjoute = produit.id;

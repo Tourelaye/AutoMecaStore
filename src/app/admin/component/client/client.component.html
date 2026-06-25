@@ -6,271 +6,341 @@
 
     <div class="content">
 
-      <!-- EN-TÊTE -->
-      <div class="page-header">
-        <div class="header-title">
+      <!-- PAGE HEADER -->
+      <div class="page-header fade-up">
+        <div class="page-title">
+          <div class="page-tag">
+            <i class="bi bi-people-fill"></i> Clients
+          </div>
           <h1>Gestion des Clients</h1>
-          <p>Gérez votre base de clients en temps réel</p>
+          <p>Base de clients en temps réel — synchronisation toutes les 30s</p>
         </div>
-        <button class="btn-primary" (click)="refreshData()" [disabled]="isLoading">
-          <i class="bi bi-arrow-clockwise" [class.spinning]="isLoading"></i>
+        <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise" [class.spin]="isLoading"></i>
           Actualiser
         </button>
       </div>
-      
-      <!-- STATISTIQUES -->
-      <div class="stats-section" *ngIf="stats">
+
+      <!-- STATS -->
+      <div class="stats-grid fade-up delay-1" *ngIf="stats">
+
         <div class="stat-card stat-blue">
-          <div class="stat-icon">
-            <i class="bi bi-people-fill"></i>
-          </div>
-          <div class="stat-content">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+          <div class="stat-body">
             <div class="stat-value">{{ stats.total_clients }}</div>
-            <div class="stat-label">Total Clients</div>
+            <div class="stat-label">Total clients</div>
+          </div>
+          <div class="stat-trend up">
+            <i class="bi bi-arrow-up-right"></i>
           </div>
         </div>
+
         <div class="stat-card stat-green">
-          <div class="stat-icon">
-            <i class="bi bi-person-check-fill"></i>
-          </div>
-          <div class="stat-content">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-person-check-fill"></i></div>
+          <div class="stat-body">
             <div class="stat-value">{{ stats.clients_actifs }}</div>
-            <div class="stat-label">Clients Actifs</div>
+            <div class="stat-label">Clients actifs</div>
+          </div>
+          <div class="stat-trend up">
+            <i class="bi bi-arrow-up-right"></i>
           </div>
         </div>
+
         <div class="stat-card stat-red">
-          <div class="stat-icon">
-            <i class="bi bi-person-x-fill"></i>
-          </div>
-          <div class="stat-content">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-person-x-fill"></i></div>
+          <div class="stat-body">
             <div class="stat-value">{{ stats.clients_inactifs }}</div>
-            <div class="stat-label">Clients Inactifs</div>
+            <div class="stat-label">Clients inactifs</div>
           </div>
         </div>
+
         <div class="stat-card stat-purple">
-          <div class="stat-icon">
-            <i class="bi bi-person-plus-fill"></i>
-          </div>
-          <div class="stat-content">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
+          <div class="stat-body">
             <div class="stat-value">{{ stats.nouveaux_clients_ce_mois }}</div>
             <div class="stat-label">Nouveaux ce mois</div>
           </div>
+          <div class="stat-trend up">
+            <i class="bi bi-arrow-up-right"></i>
+          </div>
         </div>
+
       </div>
 
       <!-- ERREUR -->
-      <div class="error-alert" *ngIf="error">
-        <i class="bi bi-exclamation-circle"></i>
+      <div class="error-bar" *ngIf="error">
+        <i class="bi bi-exclamation-circle-fill"></i>
         <span>{{ error }}</span>
-        <button class="btn-close" (click)="error = null">
-          <i class="bi bi-x"></i>
-        </button>
+        <button (click)="error = null"><i class="bi bi-x"></i></button>
       </div>
 
       <!-- PANEL PRINCIPAL -->
-      <div class="main-panel">
+      <div class="main-panel fade-up delay-2">
+
         <!-- TOOLBAR -->
         <div class="toolbar">
-          <div class="search-section">
-            <div class="search-input-wrapper">
-              <i class="bi bi-search"></i>
-              <input 
-                type="text" 
-                placeholder="Rechercher un client..." 
-                [(ngModel)]="searchQuery" 
-                (keyup.enter)="onSearch()" 
-              />
-            </div>
+          <div class="search-wrap">
+            <i class="bi bi-search search-ic"></i>
+            <input
+              type="text"
+              placeholder="Rechercher un client par nom, email..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()"
+            >
+            <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; loadClients()">
+              <i class="bi bi-x"></i>
+            </button>
           </div>
-          <div class="filters-section">
-            <select class="filter-dropdown" [(ngModel)]="selectedStatut" (change)="onStatutFilter()">
+
+          <div class="filters-wrap">
+            <select [(ngModel)]="selectedStatut" (change)="onStatutFilter()">
               <option value="all">Tous les statuts</option>
               <option value="actif">Actifs</option>
               <option value="inactif">Inactifs</option>
             </select>
-            <select class="filter-dropdown" [(ngModel)]="selectedOrdering" (change)="onOrderingChange()">
+
+            <select [(ngModel)]="selectedOrdering" (change)="onOrderingChange()">
               <option value="-date_inscription">Plus récents</option>
               <option value="date_inscription">Plus anciens</option>
-              <option value="user__nom">Nom (A-Z)</option>
-              <option value="-user__nom">Nom (Z-A)</option>
+              <option value="user__nom">Nom A→Z</option>
+              <option value="-user__nom">Nom Z→A</option>
             </select>
-          </div>
-          <div class="actions-section">
-            <button class="btn-secondary" (click)="resetFilters()">
+
+            <button class="btn-reset" (click)="resetFilters()">
               <i class="bi bi-arrow-counterclockwise"></i>
               Réinitialiser
             </button>
           </div>
         </div>
 
-        <!-- CLIENTS GRID -->
-        <div class="clients-grid">
-          <!-- LOADING -->
-          <div class="loading-container" *ngIf="isLoading">
-            <div class="loading-spinner">
-              <i class="bi bi-hourglass-split"></i>
-              <span>Chargement...</span>
+        <!-- LOADING SKELETON -->
+        <div class="clients-grid" *ngIf="isLoading">
+          <div class="client-skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+            <div class="sk-header">
+              <div class="sk-av"></div>
+              <div class="sk-lines">
+                <div class="sk-line"></div>
+                <div class="sk-line short"></div>
+              </div>
+            </div>
+            <div class="sk-body">
+              <div class="sk-line"></div>
+              <div class="sk-line"></div>
+              <div class="sk-line short"></div>
+            </div>
+            <div class="sk-footer">
+              <div class="sk-btn"></div>
+              <div class="sk-btn"></div>
+              <div class="sk-btn sm"></div>
             </div>
           </div>
+        </div>
 
-          <!-- CLIENT CARDS -->
-          <div class="client-card" *ngFor="let client of paginatedClients; trackBy: trackByClientId">
-            <div class="card-header">
-              <div class="client-avatar">
+        <!-- GRID CLIENTS -->
+        <div class="clients-grid" *ngIf="!isLoading">
+
+          <div
+            class="client-card"
+            *ngFor="let client of paginatedClients; let i = index; trackBy: trackByClientId"
+            [style.--i]="i"
+          >
+
+            <!-- CARD HEADER -->
+            <div class="card-top">
+              <div class="client-avatar" [class.actif]="client.statut === 'actif'" [class.inactif]="client.statut === 'inactif'">
                 {{ getInitials(client.nom_complet) }}
               </div>
-              <div class="client-info">
+              <div class="client-meta">
                 <h3>{{ client.nom_complet }}</h3>
-                <span class="client-id">ID: {{ client.user }}</span>
+                <span class="client-id">#{{ client.user }}</span>
               </div>
-              <div class="status-indicator" [ngClass]="client.statut">
-                <i class="bi bi-circle-fill"></i>
+              <div class="status-dot" [class.active]="client.statut === 'actif'" [class.inactive]="client.statut === 'inactif'">
+                <span class="dot-ring"></span>
               </div>
             </div>
-            
+
+            <!-- CARD BODY -->
             <div class="card-body">
               <div class="info-row">
-                <i class="bi bi-envelope"></i>
-                <span>Email à charger</span>
+                <i class="bi bi-calendar3"></i>
+                <span>Inscrit le {{ formatDate(client.date_inscription) }}</span>
               </div>
               <div class="info-row">
-                <i class="bi bi-telephone"></i>
-                <span>Téléphone à charger</span>
-              </div>
-              <div class="info-row">
-                <i class="bi bi-calendar"></i>
-                <span>{{ formatDate(client.date_inscription) }}</span>
-              </div>
-              <div class="info-row">
-                <i class="bi bi-bag"></i>
+                <i class="bi bi-bag-check-fill"></i>
                 <span>{{ client.nombre_commandes }} commande(s)</span>
               </div>
+              <div class="info-row">
+                <i class="bi bi-star-fill"></i>
+                <span>{{ client.point_fidelite || 0 }} points fidélité</span>
+              </div>
+              <div class="status-pill-row">
+                <span class="status-pill" [class.actif]="client.statut === 'actif'" [class.inactif]="client.statut === 'inactif'">
+                  <span class="pill-dot"></span>
+                  {{ client.statut === 'actif' ? 'Actif' : 'Inactif' }}
+                </span>
+              </div>
             </div>
-            
+
+            <!-- CARD FOOTER -->
             <div class="card-footer">
-              <button class="btn-view" (click)="viewClientDetails(client)">
-                <i class="bi bi-eye"></i>
-                Détails
+              <button class="fc-btn view" (click)="viewClientDetails(client)">
+                <i class="bi bi-eye-fill"></i> Détails
               </button>
-              <button class="btn-toggle" (click)="toggleClientStatus(client)">
+              <button
+                class="fc-btn toggle"
+                (click)="toggleClientStatus(client)"
+                [class.deactivate]="client.statut === 'actif'"
+              >
                 <i class="bi" [class.bi-toggle-on]="client.statut === 'actif'" [class.bi-toggle-off]="client.statut === 'inactif'"></i>
               </button>
-              <button class="btn-delete" (click)="deleteClient(client)">
-                <i class="bi bi-trash"></i>
+              <button class="fc-btn delete" (click)="deleteClient(client)">
+                <i class="bi bi-trash-fill"></i>
               </button>
             </div>
+
           </div>
 
           <!-- EMPTY STATE -->
-          <div class="empty-state" *ngIf="!isLoading && paginatedClients.length === 0">
-            <div class="empty-icon">
-              <i class="bi bi-people"></i>
-            </div>
+          <div class="empty-state" *ngIf="paginatedClients.length === 0">
+            <div class="empty-icon"><i class="bi bi-people"></i></div>
             <h3>Aucun client trouvé</h3>
-            <p>{{ searchQuery ? 'Aucun client ne correspond à votre recherche.' : 'Aucun client enregistré.' }}</p>
+            <p>{{ searchQuery ? 'Modifiez votre recherche pour voir d\'autres résultats.' : 'Aucun client enregistré pour le moment.' }}</p>
           </div>
+
         </div>
 
         <!-- PAGINATION -->
         <div class="pagination" *ngIf="totalPages > 1">
-          <button 
-            class="page-btn" 
-            [disabled]="currentPage === 1" 
-            (click)="changePage(currentPage - 1)"
-          >
+          <button class="page-btn" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
             <i class="bi bi-chevron-left"></i>
           </button>
-          
-          <div class="page-numbers">
-            <span class="page-info">
-              Page {{ currentPage }} sur {{ totalPages }}
-            </span>
-            <span class="total-info">({{ totalItems }} clients)</span>
+
+          <div class="page-info">
+            <span class="page-current">{{ currentPage }}</span>
+            <span class="page-sep">sur</span>
+            <span class="page-total">{{ totalPages }}</span>
+            <span class="page-count">({{ totalItems }} clients)</span>
           </div>
-          
-          <button 
-            class="page-btn" 
-            [disabled]="currentPage === totalPages" 
-            (click)="changePage(currentPage + 1)"
-          >
+
+          <button class="page-btn" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
             <i class="bi bi-chevron-right"></i>
           </button>
         </div>
+
       </div>
     </div>
   </div>
 </div>
 
-<!-- MODAL DÉTAILS CLIENT -->
+<!-- ══ MODAL DÉTAILS ══ -->
 <div class="modal-overlay" *ngIf="showModal && actionType === 'details'" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Détails du client</h3>
-      <button class="btn-close" (click)="closeModal()">
-        <i class="bi bi-x-lg"></i>
-      </button>
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon-wrap blue"><i class="bi bi-person-fill"></i></div>
+        <div>
+          <h3>Fiche client</h3>
+          <small>Informations détaillées</small>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
     </div>
+
     <div class="modal-body" *ngIf="selectedClient">
-      <div class="client-detail-card">
-        <div class="detail-avatar">
+      <div class="detail-hero">
+        <div class="detail-av" [class.actif]="selectedClient.statut === 'actif'">
           {{ getInitials(selectedClient.nom_complet) }}
         </div>
-        <div class="detail-header">
+        <div>
           <h2>{{ selectedClient.nom_complet }}</h2>
-          <span class="detail-id">ID: {{ selectedClient.user }}</span>
-        </div>
-      </div>
-      
-      <div class="detail-grid">
-        <div class="detail-item">
-          <label>Date d'inscription</label>
-          <p>{{ formatDate(selectedClient.date_inscription) }}</p>
-        </div>
-        <div class="detail-item">
-          <label>Statut</label>
-          <p>
-            <span class="status-badge" [ngClass]="formatStatut(selectedClient.statut).class">
+          <span class="detail-id">Client #{{ selectedClient.user }}</span>
+          <div class="mt-8">
+            <span class="status-pill" [class.actif]="selectedClient.statut === 'actif'" [class.inactif]="selectedClient.statut === 'inactif'">
+              <span class="pill-dot"></span>
               {{ formatStatut(selectedClient.statut).label }}
             </span>
-          </p>
-        </div>
-        <div class="detail-item">
-          <label>Nombre de commandes</label>
-          <p>{{ selectedClient.nombre_commandes }}</p>
-        </div>
-        <div class="detail-item">
-          <label>Points de fidélité</label>
-          <p>{{ selectedClient.point_fidelite || 0 }}</p>
+          </div>
         </div>
       </div>
+
+      <div class="detail-cards">
+        <div class="dc-item">
+          <label><i class="bi bi-calendar3"></i> Inscription</label>
+          <strong>{{ formatDate(selectedClient.date_inscription) }}</strong>
+        </div>
+        <div class="dc-item">
+          <label><i class="bi bi-bag-check"></i> Commandes</label>
+          <strong>{{ selectedClient.nombre_commandes }}</strong>
+        </div>
+        <div class="dc-item">
+          <label><i class="bi bi-star-fill"></i> Points fidélité</label>
+          <strong>{{ selectedClient.point_fidelite || 0 }}</strong>
+        </div>
+        <div class="dc-item">
+          <label><i class="bi bi-person-badge"></i> Statut</label>
+          <strong>{{ formatStatut(selectedClient.statut).label }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="mf-btn cancel" (click)="closeModal()">Fermer</button>
+      <button class="mf-btn primary" (click)="toggleClientStatus(selectedClient!); closeModal()">
+        <i class="bi bi-toggle-on"></i> Changer le statut
+      </button>
     </div>
   </div>
 </div>
 
-<!-- MODAL CONFIRMATION -->
-<div class="modal-overlay" *ngIf="showModal && (actionType === 'toggle' || actionType === 'delete')" (click)="closeModal()">
-  <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3 *ngIf="actionType === 'toggle'">Changer le statut</h3>
-      <h3 *ngIf="actionType === 'delete'">Supprimer le client</h3>
-      <button class="btn-close" (click)="closeModal()">
-        <i class="bi bi-x-lg"></i>
+<!-- ══ MODAL CONFIRMATION TOGGLE ══ -->
+<div class="modal-overlay" *ngIf="showModal && actionType === 'toggle'" (click)="closeModal()">
+  <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+    <div class="confirm-icon toggle-icon">
+      <i class="bi bi-toggle-on"></i>
+    </div>
+    <div class="modal-head center">
+      <h3>Changer le statut</h3>
+    </div>
+    <div class="modal-body text-center">
+      <p>
+        Voulez-vous <strong [innerHTML]="getToggleActionText()"></strong> le client
+        <strong>{{ selectedClient?.nom_complet }}</strong> ?
+      </p>
+    </div>
+    <div class="modal-foot center">
+      <button class="mf-btn cancel" (click)="closeModal()"><i class="bi bi-x"></i> Annuler</button>
+      <button class="mf-btn primary" (click)="confirmToggleClient()">
+        <i class="bi bi-check-lg"></i> Confirmer
       </button>
     </div>
-    <div class="modal-body">
-      <p *ngIf="actionType === 'toggle'">
-        Êtes-vous sûr de vouloir {{ selectedClient?.statut === 'actif' ? 'désactiver' : 'activer' }} le client 
-        <strong>{{ selectedClient?.nom_complet }}</strong> ?
-      </p>
-      <p *ngIf="actionType === 'delete'" class="warning-text">
-        ⚠️ Attention : Cette action est irréversible. Êtes-vous sûr de vouloir supprimer le client 
-        <strong>{{ selectedClient?.nom_complet }}</strong> ?
+  </div>
+</div>
+
+<!-- ══ MODAL CONFIRMATION SUPPRESSION ══ -->
+<div class="modal-overlay" *ngIf="showModal && actionType === 'delete'" (click)="closeModal()">
+  <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+    <div class="confirm-icon delete-icon">
+      <i class="bi bi-trash-fill"></i>
+    </div>
+    <div class="modal-head center">
+      <h3>Supprimer le client</h3>
+    </div>
+    <div class="modal-body text-center">
+      <p>Voulez-vous supprimer <strong>{{ selectedClient?.nom_complet }}</strong> ?</p>
+      <p class="warning-note">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Cette action est irréversible.
       </p>
     </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" (click)="closeModal()">Annuler</button>
-      <button class="btn-confirm" (click)="actionType === 'toggle' ? confirmToggleClient() : confirmDeleteClient()">
-        {{ actionType === 'toggle' ? 'Confirmer' : 'Supprimer' }}
+    <div class="modal-foot center">
+      <button class="mf-btn cancel" (click)="closeModal()"><i class="bi bi-x"></i> Annuler</button>
+      <button class="mf-btn danger" (click)="confirmDeleteClient()">
+        <i class="bi bi-trash-fill"></i> Supprimer
       </button>
     </div>
   </div>

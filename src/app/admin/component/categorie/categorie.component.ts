@@ -22,6 +22,11 @@ export class CategorieComponent implements OnInit {
   loading = false;
   showModal = false;
   editingCategorie: CategorieDisplay | null = null;
+  searchFocused = false;
+  activeFilter = 'all';
+  showFilter = false;
+  showDeleteModal = false;
+  categorieToDelete: CategorieDisplay | null = null;
   
   categorieForm: Partial<CategorieDisplay> = {
     nom: '',
@@ -177,5 +182,74 @@ export class CategorieComponent implements OnInit {
 
   getStatutClass(etat: string): string {
     return etat === 'actif' ? 'active' : 'inactive';
+  }
+
+  // 🔢 Obtenir le nombre de catégories actives
+  getActiveCount(): number {
+    return this.categories.filter(c => c.etat === 'actif').length;
+  }
+
+  // 🔢 Obtenir le nombre de catégories inactives
+  getInactiveCount(): number {
+    return this.categories.filter(c => c.etat === 'inactif').length;
+  }
+
+  // 🔍 Obtenir les catégories filtrées
+  get filteredCategories(): CategorieDisplay[] {
+    let filtered = this.categories;
+
+    // Appliquer le filtre de statut
+    if (this.activeFilter !== 'all') {
+      filtered = filtered.filter(c => c.etat === this.activeFilter);
+    }
+
+    // Appliquer la recherche
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(cat =>
+        cat.nom.toLowerCase().includes(term) ||
+        cat.description?.toLowerCase().includes(term)
+      );
+    }
+
+    return filtered;
+  }
+
+  // 🏷️ Définir le filtre actif
+  setFilter(filter: string): void {
+    this.activeFilter = filter;
+    this.showFilter = false;
+  }
+
+  // 🔀 Basculer le menu de filtre
+  toggleFilter(): void {
+    this.showFilter = !this.showFilter;
+  }
+
+  // 📅 Formater une date
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  // 🗑️ Ouvrir le modal de suppression
+  openDeleteModal(categorie: CategorieDisplay): void {
+    this.categorieToDelete = categorie;
+    this.showDeleteModal = true;
+  }
+
+  // ❌ Fermer le modal de suppression
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.categorieToDelete = null;
+  }
+
+  // ✅ Confirmer la suppression
+  confirmDelete(): void {
+    if (this.categorieToDelete) {
+      this.deleteCategorie(this.categorieToDelete);
+      this.closeDeleteModal();
+    }
   }
 }

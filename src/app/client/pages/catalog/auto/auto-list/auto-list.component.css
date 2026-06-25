@@ -547,8 +547,8 @@
   }
   
   .product-img img {
-    max-width: 100px;
-    height: auto;
+    max-width: 200px;
+    height: 200px;
     object-fit: contain;
     transition: transform 0.4s ease;
   }

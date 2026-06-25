@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, forwardRef } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { PanierService } from './panier.service';
 
 export interface Utilisateur {
   id: number;
@@ -30,6 +31,10 @@ export class AuthService {
 
   constructor(private http: HttpClient) {
     this.checkTokenAtStartup();
+  }
+
+  private get panierService(): PanierService {
+    return inject(forwardRef(() => PanierService));
   }
 
   private checkTokenAtStartup(): void {
@@ -66,7 +71,10 @@ export class AuthService {
         localStorage.setItem('user', JSON.stringify(userFromToken));
 
         // Charge le profil complet depuis /me/
-        this.fetchProfil().subscribe();
+        this.fetchProfil().subscribe(() => {
+          // Sync localStorage cart to backend after login
+          this.panierService.syncLocalStorageToBackend();
+        });
       })
     );
   }

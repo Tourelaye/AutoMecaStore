@@ -62,18 +62,13 @@
 
         <!-- COMPTEUR -->
         <div class="count-wrap">
-          <span class="count">{{ cat.visuel.mockCount }}</span>
+          <span class="count">{{ cat.nombre_produits || 0 }}</span>
           <small>produits disponibles</small>
         </div>
 
         <!-- BOUTON VOIR -->
         <div class="card-btn">
           Explorer <i class="bi bi-arrow-right"></i>
-        </div>
-
-        <!-- OVERLAY INACTIF -->
-        <div class="inactive-overlay" *ngIf="cat.etat === 'false'">
-          <i class="bi bi-lock-fill"></i> Indisponible
         </div>
 
       </div>

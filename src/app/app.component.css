@@ -140,4 +140,5 @@ html, body {
   height: 100%;
   overflow-x: hidden;  /* ✅ Permet le scroll vertical mais bloque le scroll horizontal */
   background: #080e1a;
+  color: #ffffff;  /* Ajout pour éviter texte invisible sur fond sombre */
 }

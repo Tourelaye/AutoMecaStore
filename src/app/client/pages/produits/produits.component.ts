@@ -5,6 +5,7 @@ import { PanierService } from '../../../core/services/panier.service';
 import { ProduitService, Produit } from '../../../core/services/produit.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MonCompteService } from '../../../core/services/mon-compte.service';
+import { HomeService } from '../../../core/services/home.service';
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 import {
   trigger,
@@ -83,6 +84,7 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     private produitService: ProduitService,
     private notificationService: NotificationService,
     private monCompteService: MonCompteService,
+    private homeService: HomeService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -112,9 +114,29 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     this.produitService.getProduit(id).subscribe({
       next: (produit) => {
         this.produit = produit;
-        this.images = produit.image
-          ? [produit.image]
-          : ['https://via.placeholder.com/600x400?text=Produit'];
+        
+        // Incrémenter les vues du produit
+        this.homeService.incrementProductViews(id).subscribe({
+          next: () => {
+            console.log('Vues incrémentées pour le produit', id);
+          },
+          error: (err) => {
+            console.error('Erreur lors de l\'incrémentation des vues:', err);
+          }
+        });
+
+        // Construire la liste des images avec les URLs complètes
+        this.images = [];
+        if (produit.image_url) this.images.push(produit.image_url);
+        if (produit.image_2_url) this.images.push(produit.image_2_url);
+        if (produit.image_3_url) this.images.push(produit.image_3_url);
+        if (produit.image_4_url) this.images.push(produit.image_4_url);
+
+        // Si aucune image, utiliser une image par défaut
+        if (this.images.length === 0) {
+          this.images = ['https://via.placeholder.com/600x400?text=Produit'];
+        }
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -130,7 +152,15 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     this.produitService.getProduits().subscribe({
       next: (data) => {
         const list = Array.isArray(data) ? data : (data as any).results ?? data;
-        this.produits = list;
+        // Filtrer les produits similaires par catégorie ou type de pièce
+        if (this.produit) {
+          this.produits = list.filter((p: Produit) =>
+            p.id !== this.produit!.id && // Exclure le produit actuel
+            (p.categorie === this.produit!.categorie || p.type_piece === this.produit!.type_piece)
+          );
+        } else {
+          this.produits = list;
+        }
         // Si aucun produit unique sélectionné, activer le loading ici
         if (!this.produit) this.isLoading = false;
       },

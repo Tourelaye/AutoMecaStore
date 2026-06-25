@@ -1,6 +1,7 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HomeService } from '../../core/services/home.service';
 
 export interface RechercheItem {
   label: string;
@@ -26,34 +27,47 @@ export interface TendanceItem {
   templateUrl: './recherche.component.html',
   styleUrl: './recherche.component.css'
 })
-export class RechercheComponent implements AfterViewInit {
+export class RechercheComponent implements AfterViewInit, OnInit {
 
-  recherches: RechercheItem[] = [
-    { label: 'Plaquettes frein',      icon: 'bi-stop-circle-fill',    categorie: 'Freinage',     trending: true,  count: '24K', color: '#ef4444', tag: 'Populaire', tagColor: '#ef4444', route: '/produits?search=plaquettes' },
-    { label: 'Batterie auto',         icon: 'bi-lightning-fill',      categorie: 'Électrique',   trending: true,  count: '18K', color: '#f59e0b', tag: 'Trending', tagColor: '#f59e0b', route: '/produits?search=batterie' },
-    { label: 'Filtre à air',          icon: 'bi-wind',                categorie: 'Filtration',   trending: false, count: '15K', color: '#3b82f6', route: '/produits?search=filtre' },
-    { label: 'Pneus Michelin',        icon: 'bi-circle-fill',         categorie: 'Pneumatiques', trending: true,  count: '21K', color: '#10b981', tag: 'Top', tagColor: '#10b981', route: '/produits?search=pneus' },
-    { label: 'Amortisseurs',          icon: 'bi-arrows-collapse',     categorie: 'Suspension',   trending: false, count: '9K',  color: '#8b5cf6', route: '/produits?search=amortisseurs' },
-    { label: 'Essuie-glaces',         icon: 'bi-moisture',            categorie: 'Visibilité',   trending: false, count: '7K',  color: '#06b6d4', route: '/produits?search=essuie-glaces' },
-    { label: 'Embrayage',             icon: 'bi-gear-wide-connected', categorie: 'Transmission', trending: false, count: '11K', color: '#f97316', route: '/produits?search=embrayage' },
-    { label: 'Courroie distribution', icon: 'bi-link-45deg',          categorie: 'Moteur',       trending: true,  count: '13K', color: '#d32f2f', tag: 'Urgent', tagColor: '#d32f2f', route: '/produits?search=courroie' },
-  ];
+  isLoading = true;
+  errorMessage = '';
 
-  tendances: TendanceItem[] = [
-    { label: 'Freinage', route: '/produits?category=freinage' },
-    { label: 'Moteur', route: '/produits?category=moteur' },
-    { label: 'Suspension', route: '/produits?category=suspension' },
-    { label: 'Électrique', route: '/produits?category=electrique' },
-  ];
+  recherches: RechercheItem[] = [];
+  tendances: TendanceItem[] = [];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private homeService: HomeService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadPopularSearches();
+  }
+
+  loadPopularSearches(): void {
+    this.homeService.getPopularSearches().subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          this.recherches = response.data.searches || [];
+          this.tendances = response.data.trends || [];
+          
+          // Extraire les catégories uniques pour le filtre
+          const categoriesSet = new Set(this.recherches.map(r => r.categorie));
+          this.categories = ['Tous', ...Array.from(categoriesSet)];
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des recherches populaires:', err);
+        this.errorMessage = 'Impossible de charger les recherches populaires.';
+        this.isLoading = false;
+      }
+    });
+  }
 
   categorieActive = 'Tous';
 
-  categories = [
-    'Tous', 'Freinage', 'Filtration', 'Pneumatiques',
-    'Suspension', 'Électrique', 'Moteur', 'Transmission', 'Visibilité'
-  ];
+  categories: string[] = ['Tous'];
 
   get recherchesFiltrees(): RechercheItem[] {
     if (this.categorieActive === 'Tous') return this.recherches;
@@ -66,7 +80,7 @@ export class RechercheComponent implements AfterViewInit {
 
   onSearch(label: string): void {
     console.log('Recherche:', label);
-    // TODO: this.router.navigate(['/produits'], { queryParams: { search: label } });
+    this.router.navigate(['/produits'], { queryParams: { search: label } });
   }
 
   goTo(r: RechercheItem): void {

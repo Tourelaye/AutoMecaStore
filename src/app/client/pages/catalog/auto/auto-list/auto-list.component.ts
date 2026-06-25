@@ -61,6 +61,9 @@ export class AutoListComponent implements OnInit {
     { key: 'eclairage',   label: '💡 Éclairage' },
   ];
 
+  // Mapping des types de pièce (nom -> ID)
+  typePiecesMap: { [key: string]: number } = {};
+
   // Tous les produits (source)
   public tousLesProduits: AutoProduit[] = [];
 
@@ -80,18 +83,73 @@ export class AutoListComponent implements OnInit {
     // CHARGEMENT DYNAMIQUE DES PRODUITS DEPUIS L'API
     // -------------------------------------------------------
     this.isLoading = true;
-    // Filtrer par catégorie Automobile (ID: 1)
-    this.produitService.getProduits({ categorie: 1 }).subscribe({
+    // Charger d'abord les types de pièces pour avoir les IDs corrects
+    this.loadTypePieces();
+  }
+
+  loadTypePieces(): void {
+    // Charger les types de pièces pour la catégorie Automobile (ID: 1)
+    this.produitService.getTypesPieces(1).subscribe({
+      next: (typesPieces) => {
+        console.log('Types de pièces chargés:', typesPieces);
+        // Créer le mapping nom -> ID
+        typesPieces.forEach((tp: any) => {
+          const normalizedNom = tp.nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          this.typePiecesMap[normalizedNom] = tp.id;
+          // Aussi mapper avec le nom original
+          this.typePiecesMap[tp.nom] = tp.id;
+        });
+        console.log('Mapping des types de pièces:', this.typePiecesMap);
+        // Ensuite charger les produits
+        this.loadProduits();
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des types de pièces:', err);
+        // En cas d'erreur, utiliser le mapping par défaut et charger les produits
+        this.loadProduits();
+      }
+    });
+  }
+
+  loadProduits(): void {
+    // Paramètres de filtrage
+    const params: any = { categorie: 1 }; // Catégorie Automobile (ID: 1)
+
+    // Si un type de pièce est sélectionné, filtrer par type_piece
+    if (this.categorieActive !== 'tous') {
+      const typePieceId = this.getTypePieceIdFromKey(this.categorieActive);
+      console.log('Type piece ID pour', this.categorieActive, ':', typePieceId);
+      if (typePieceId) {
+        params.type_piece = typePieceId;
+      }
+    }
+
+    console.log('=== PARAMÈTRES API ===');
+    console.log('Catégorie active:', this.categorieActive);
+    console.log('Params envoyés:', params);
+    console.log('Mapping des types de pièces:', this.typePiecesMap);
+
+    this.produitService.getProduits(params).subscribe({
       next: (data: any) => {
-        console.log('Produits chargés depuis API:', data);
+        console.log('=== RÉPONSE API ===');
+        console.log('Données brutes:', data);
         const list = Array.isArray(data) ? data : data.results || data;
+        console.log('Nombre de produits reçus:', list.length);
+        console.log('Détail des produits:', list.map((p: any) => ({
+          id: p.id,
+          nom: p.nom,
+          type_piece: p.type_piece,
+          type_piece_nom: p.type_piece_nom,
+          categorie: p.categorie,
+          categorie_nom: p.categorie_nom
+        })));
 
         this.tousLesProduits = list.map((p: any) => ({
           id: p.id,
           nom: p.nom,
           marque: p.marque ?? 'AutoMecaStore',
           description: p.description || 'Description du produit',
-          image: p.image ? `http://localhost:8000${p.image}` : null,
+          image: p.image_url || p.image_2_url || p.image_3_url || p.image_4_url || null, // Utiliser la première image disponible
           prixNouveau: parseFloat(p.prix_promo ?? p.prix),
           prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
           discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
@@ -101,9 +159,10 @@ export class AutoListComponent implements OnInit {
           livraison: true,
           isFavori: false,
           isNew: false,
-          categorie: 'freinage' // Default subcategory for auto products
+          categorie: this.mapCategorieToAuto(p.type_piece_nom || '')
         }));
 
+        console.log('Produits mappés:', this.tousLesProduits);
         this.appliquerFiltres();
         this.isLoading = false;
       },
@@ -116,9 +175,55 @@ export class AutoListComponent implements OnInit {
     });
   }
 
+  // Obtenir l'ID du type de pièce à partir de la clé de sous-catégorie
+  private getTypePieceIdFromKey(key: string): number | null {
+    // Mapping des clés frontend vers les noms de types de pièce
+    const keyToNameMapping: { [key: string]: string } = {
+      'freinage': 'Freinage',
+      'moteur': 'Moteur',
+      'filtration': 'Filtration',
+      'suspension': 'Suspension',
+      'transmission': 'Transmission',
+      'eclairage': 'Éclairage'
+    };
+
+    const typePieceNom = keyToNameMapping[key];
+    if (!typePieceNom) return null;
+
+    // Chercher dans le mapping chargé depuis l'API
+    // Essayer d'abord avec le nom exact, puis avec une version normalisée
+    if (this.typePiecesMap[typePieceNom]) {
+      return this.typePiecesMap[typePieceNom];
+    }
+
+    const normalizedNom = typePieceNom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (this.typePiecesMap[normalizedNom]) {
+      return this.typePiecesMap[normalizedNom];
+    }
+
+    // Fallback: mapping temporaire (à utiliser uniquement si l'API ne retourne pas les types)
+    const fallbackMapping: { [key: string]: number } = {
+      'freinage': 1,
+      'moteur': 2,
+      'filtration': 3,
+      'suspension': 4,
+      'transmission': 5,
+      'eclairage': 6
+    };
+    console.warn('Using fallback mapping for type_piece:', key);
+    return fallbackMapping[key] || null;
+  }
+
   // Mapper la catégorie de l'API vers les sous-catégories auto
-  private mapCategorieToAuto(categorie: string): string {
+  private mapCategorieToAuto(typePieceNom: string): string {
     const mapping: { [key: string]: string } = {
+      'Freinage': 'freinage',
+      'Moteur': 'moteur',
+      'Filtration': 'filtration',
+      'Suspension': 'suspension',
+      'Transmission': 'transmission',
+      'Éclairage': 'eclairage',
+      'Eclairage': 'eclairage',
       'freinage': 'freinage',
       'moteur': 'moteur',
       'filtration': 'filtration',
@@ -126,7 +231,7 @@ export class AutoListComponent implements OnInit {
       'transmission': 'transmission',
       'eclairage': 'eclairage'
     };
-    return mapping[categorie] || 'freinage';
+    return mapping[typePieceNom] || 'tous';
   }
 
   // Charger les données mock en cas d'erreur API
@@ -189,7 +294,10 @@ export class AutoListComponent implements OnInit {
   // Filtres & Tri
   // -------------------------------------------------------
   appliquerFiltres(): void {
+    console.log('=== APPLICATION DES FILTRES ===');
+    console.log('Catégorie active:', this.categorieActive);
     let result = [...this.tousLesProduits];
+    console.log('Produits avant filtrage:', result.length);
 
     // Recherche
     if (this.searchQuery.trim()) {
@@ -201,10 +309,9 @@ export class AutoListComponent implements OnInit {
       );
     }
 
-    // Sous-catégorie
-    if (this.categorieActive !== 'tous') {
-      result = result.filter(p => p.categorie === this.categorieActive);
-    }
+    // NOTE: Le filtrage par catégorie est maintenant fait par le backend
+    // Donc on n'a plus besoin de filtrer ici par categorie
+    // On garde seulement les autres filtres
 
     // Filtres rapides
     if (this.filtrePromo)     result = result.filter(p => p.discount !== null);
@@ -227,6 +334,7 @@ export class AutoListComponent implements OnInit {
     }
 
     this.produitsFiltres = result;
+    console.log('Produits après tous les filtres:', result.length);
   }
 
   resetFiltres(): void {
@@ -251,7 +359,9 @@ export class AutoListComponent implements OnInit {
 
   setCategorieActive(key: string): void {
     this.categorieActive = key;
-    this.appliquerFiltres();
+    console.log('Catégorie active changée:', key);
+    // Recharger les produits depuis l'API avec le nouveau filtre
+    this.loadProduits();
   }
 
   toggleFavori(produit: AutoProduit, event: Event): void {

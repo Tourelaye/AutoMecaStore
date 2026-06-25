@@ -284,8 +284,64 @@ export class PanierService {
   }
 
   // =========================
-  // PASSER COMMANDE
+  // SYNC LOCAL STORAGE TO BACKEND
   // =========================
+  syncLocalStorageToBackend(): void {
+    if (!this.authService.isLoggedIn()) {
+      return;
+    }
+
+    const localItems = this.items;
+    if (localItems.length === 0) {
+      return;
+    }
+
+    console.log('🔄 Syncing localStorage cart to backend:', localItems);
+
+    // Add each item to backend
+    localItems.forEach(item => {
+      this.ajouterAuPanierBackend(item.produit.id, item.quantite).subscribe({
+        next: () => {
+          console.log('✅ Item synced:', item.nom);
+        },
+        error: (error) => {
+          console.error('❌ Error syncing item:', error);
+        }
+      });
+    });
+
+    // Clear localStorage after sync
+    this.viderPanier();
+  }
+
+  // =========================
+  // SYNC BACKEND TO LOCAL STORAGE
+  // =========================
+  syncBackendToLocal(): void {
+    if (!this.authService.isLoggedIn()) {
+      return;
+    }
+
+    this.monCompteService.getPanier().subscribe(panier => {
+      if (panier && panier.items.length > 0) {
+        const localItems: PanierItem[] = panier.items.map(item => ({
+          id: item.id,
+          produit: {
+            id: item.produit_id,
+            nom: item.produit_nom,
+            prix: item.prix,
+            image: item.image
+          } as any,
+          nom: item.produit_nom,
+          prix: item.prix,
+          quantite: item.quantite,
+          favori: false
+        }));
+        this.save(localItems);
+        console.log('🔄 Backend cart synced to localStorage:', localItems);
+      }
+    });
+  }
   passerCommande(): Observable<any> {
     if (this.items.length === 0) {
       this.notificationService.error('Votre panier est vide');

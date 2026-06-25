@@ -23,6 +23,9 @@ export class CommandeComponent implements OnInit, OnDestroy {
   error: string | null = null;
   searchTerm = '';
   notification: { message: string; type: 'success' | 'error' | 'info' } | null = null;
+  searchFocused = false;
+  activeFilter = 'all';
+  updatingId: number | null = null;
   
   // Pour le polling (vérification des nouvelles commandes)
   private pollingSubscription: Subscription | null = null;
@@ -112,49 +115,103 @@ export class CommandeComponent implements OnInit, OnDestroy {
 
   // 🔄 Mettre à jour le statut d'une commande
   updateStatutCommande(commande: Commande, nouveauStatut: string): void {
-    this.loading = true;
-    
+    this.updatingId = commande.id;
+    // Arrêter temporairement le polling pour éviter les conflits
+    this.stopPolling();
+
     const updateData: CommandeUpdate = { statut: nouveauStatut };
-    
+
     this.commandeService.updateCommande(commande.id, updateData).subscribe({
       next: (updatedCommande) => {
         console.log('Statut mis à jour:', updatedCommande);
-        
+
         // Mettre à jour la commande dans la liste
         const index = this.commandes.findIndex(c => c.id === commande.id);
         if (index !== -1) {
           this.commandes[index] = updatedCommande;
           this.applyFilters();
         }
-        
+
         this.showNotification(`Statut de la commande ${commande.reference} mis à jour`, 'success');
         this.loading = false;
+        this.updatingId = null;
+
+        // Redémarrer le polling après la mise à jour
+        this.startPolling();
       },
       error: (err) => {
         console.error('Erreur lors de la mise à jour du statut:', err);
         this.showNotification('Erreur lors de la mise à jour du statut', 'error');
         this.loading = false;
+        this.updatingId = null;
+
+        // Redémarrer le polling même en cas d'erreur
+        this.startPolling();
       }
     });
   }
 
   // 🔍 Filtrer les commandes
   applyFilters(): void {
-    if (!this.searchTerm.trim()) {
-      this.commandesFiltrees = [...this.commandes];
-    } else {
+    let filtered = [...this.commandes];
+
+    // Apply status filter
+    if (this.activeFilter !== 'all') {
+      filtered = filtered.filter(c => c.statut === this.activeFilter);
+    }
+
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      this.commandesFiltrees = this.commandes.filter(commande =>
+      filtered = filtered.filter(commande =>
         commande.reference?.toLowerCase().includes(term) ||
         commande.id.toString().includes(term) ||
         commande.montant_total?.toString().includes(term)
       );
     }
+
+    this.commandesFiltrees = filtered;
   }
 
   // 🔍 Recherche
   searchCommandes(): void {
     this.applyFilters();
+  }
+
+  // 🏷️ Définir le filtre actif
+  setFilter(filter: string): void {
+    this.activeFilter = filter;
+    this.applyFilters();
+  }
+
+  // 🏷️ Obtenir le libellé du filtre
+  getFilterLabel(filter: string): string {
+    const filterMap: { [key: string]: string } = {
+      'all': 'Toutes',
+      'en_attente': 'En attente',
+      'validee': 'Validées',
+      'expediee': 'Expédiées',
+      'livree': 'Livrées',
+      'annulee': 'Annulées'
+    };
+    return filterMap[filter] || filter;
+  }
+
+  // 🔢 Obtenir le nombre de commandes pour un filtre
+  getFilterCount(filter: string): number {
+    return this.commandes.filter(c => c.statut === filter).length;
+  }
+
+  // 👤 Obtenir les initiales du client
+  getClientInitials(clientId: number | undefined): string {
+    if (!clientId) return '?';
+    return `C${clientId}`;
+  }
+
+  // 💰 Obtenir le montant total des commandes filtrées
+  getTotalMontant(): string {
+    const total = this.commandesFiltrees.reduce((sum, c) => sum + (c.montant_total || 0), 0);
+    return this.formatMontant(total);
   }
 
   // 📢 Afficher une notification
