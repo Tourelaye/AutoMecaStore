@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 from .models import Utilisateur, Client
-from orders.models import Commande, LigneCommande
+from orders.models import Commande, LigneCommande, Panier, PanierItem
 from catalog.models import Produit
 from .permissions import IsClient
 
@@ -162,3 +162,163 @@ class FavorisView(APIView):
             'message': 'Produit retiré des favoris',
             'produit_id': produit_id
         })
+
+class PanierView(APIView):
+    """
+    Gestion du panier du client connecté
+    """
+    permission_classes = [IsClient]
+    
+    def get(self, request):
+        """Retourne le panier du client"""
+        try:
+            client = Client.objects.get(user=request.user)
+            panier, _ = Panier.objects.get_or_create(client=client)
+            
+            items_data = []
+            for item in panier.items.all():
+                items_data.append({
+                    'id': item.id,
+                    'produit_id': item.produit.id,
+                    'produit_nom': item.produit.nom,
+                    'prix': float(item.produit.prix),
+                    'image': item.produit.image.url if item.produit.image else None,
+                    'quantite': item.quantite,
+                    'sous_total': float(item.produit.prix * item.quantite)
+                })
+            
+            total = sum(item['sous_total'] for item in items_data)
+            
+            return Response({
+                'items': items_data,
+                'total': total,
+                'nombre_items': len(items_data)
+            })
+            
+        except Client.DoesNotExist:
+            return Response(
+                {'error': 'Profil client non trouvé'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class AjouterAuPanierView(APIView):
+    """
+    Ajouter un produit au panier
+    """
+    permission_classes = [IsClient]
+    
+    def post(self, request):
+        try:
+            client = Client.objects.get(user=request.user)
+            panier, _ = Panier.objects.get_or_create(client=client)
+            
+            produit_id = request.data.get('produit_id')
+            quantite = int(request.data.get('quantite', 1))
+            
+            if quantite <= 0:
+                return Response(
+                    {"error": "Quantité invalide"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            try:
+                produit = Produit.objects.get(id=produit_id)
+            except Produit.DoesNotExist:
+                return Response(
+                    {"error": "Produit introuvable"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            if produit.stock < quantite:
+                return Response(
+                    {"error": "Stock insuffisant"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            item, created = PanierItem.objects.get_or_create(
+                panier=panier,
+                produit=produit
+            )
+            
+            if not created:
+                item.quantite += quantite
+            else:
+                item.quantite = quantite
+            
+            item.save()
+            
+            # Retourner le panier mis à jour
+            return Response({
+                'success': True,
+                'message': 'Produit ajouté au panier'
+            })
+            
+        except Client.DoesNotExist:
+            return Response(
+                {'error': 'Profil client non trouvé'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class SupprimerDuPanierView(APIView):
+    """
+    Supprimer un article du panier
+    """
+    permission_classes = [IsClient]
+    
+    def delete(self, request, item_id):
+        try:
+            client = Client.objects.get(user=request.user)
+            panier = Panier.objects.get(client=client)
+            item = PanierItem.objects.get(id=item_id, panier=panier)
+            item.delete()
+            
+            return Response({
+                'success': True,
+                'message': 'Article supprimé du panier'
+            })
+            
+        except (Client.DoesNotExist, Panier.DoesNotExist, PanierItem.DoesNotExist):
+            return Response(
+                {'error': 'Article introuvable'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class MettreAJourQuantiteView(APIView):
+    """
+    Mettre à jour la quantité d'un article du panier
+    """
+    permission_classes = [IsClient]
+    
+    def patch(self, request, item_id):
+        try:
+            client = Client.objects.get(user=request.user)
+            panier = Panier.objects.get(client=client)
+            item = PanierItem.objects.get(id=item_id, panier=panier)
+            
+            quantite = int(request.data.get('quantite', 1))
+            
+            if quantite <= 0:
+                return Response(
+                    {"error": "Quantité invalide"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if item.produit.stock < quantite:
+                return Response(
+                    {"error": "Stock insuffisant"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            item.quantite = quantite
+            item.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Quantité mise à jour'
+            })
+            
+        except (Client.DoesNotExist, Panier.DoesNotExist, PanierItem.DoesNotExist):
+            return Response(
+                {'error': 'Article introuvable'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )

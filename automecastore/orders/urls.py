@@ -9,7 +9,8 @@ from .views import (
     CreerCommandeDepuisPanierView,
     DashboardStatsView,
     WeeklySalesView,
-    RecentOrdersView
+    RecentOrdersView,
+    KPIView
 )
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
     path('dashboard/stats/', DashboardStatsView.as_view(), name='dashboard_stats'),
     path('dashboard/weekly-sales/', WeeklySalesView.as_view(), name='weekly_sales'),
     path('dashboard/recent-orders/', RecentOrdersView.as_view(), name='recent_orders'),
+    path('dashboard/kpi/', KPIView.as_view(), name='kpi'),
 ]

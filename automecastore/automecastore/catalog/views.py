@@ -1,12 +1,12 @@
-from rest_framework import generics, permissions, status, serializers
+from rest_framework import generics, permissions, status, serializers, parsers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import IntegrityError
 from django.utils import timezone
 import logging
 
-from .models import Categorie, Produit, ProduitFavoris
-from .serializers import CategorieSerializer, ProduitSerializer, ProduitFavorisSerializer
+from .models import Categorie, Produit, ProduitFavoris, SousCategorie
+from .serializers import CategorieSerializer, ProduitSerializer, ProduitFavorisSerializer, SousCategorieSerializer
 from account.permissions import IsAdmin
 from orders.models import LigneCommande, PanierItem
 
@@ -38,6 +38,44 @@ class CategorieDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 # -----------------------------
+# SousCategorie (Type de pièce)
+# -----------------------------
+class SousCategorieListCreateView(generics.ListCreateAPIView):
+    """
+    Liste les sous-catégories ou en crée une nouvelle
+    GET: Retourne toutes les sous-catégories (optionnellement filtrées par catégorie)
+    POST: Crée une nouvelle sous-catégorie
+    """
+    serializer_class = SousCategorieSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdmin()]
+        return [permissions.AllowAny()]
+
+    def get_queryset(self):
+        """Filtrer par catégorie si le paramètre 'categorie' est fourni"""
+        queryset = SousCategorie.objects.all()
+        categorie_id = self.request.query_params.get('categorie')
+        if categorie_id:
+            queryset = queryset.filter(categorie_id=categorie_id)
+        return queryset
+
+
+class SousCategorieDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Détail, mise à jour ou suppression d'une sous-catégorie
+    """
+    queryset = SousCategorie.objects.all()
+    serializer_class = SousCategorieSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAdmin()]
+        return [permissions.AllowAny()]
+
+
+# -----------------------------
 # Produit - Vues personnalisées avec Soft Delete
 # -----------------------------
 
@@ -49,6 +87,7 @@ class ProduitListCreateView(generics.ListCreateAPIView):
     """
     serializer_class = ProduitSerializer
     permission_classes = [permissions.AllowAny]  # Temporairement ouvert
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]  # Pour gérer les uploads d'images
 
     def get_queryset(self):
         """Retourne uniquement les produits actifs (y compris ceux avec is_active=NULL)"""
@@ -59,12 +98,15 @@ class ProduitListCreateView(generics.ListCreateAPIView):
         """Création d'un produit avec gestion d'erreurs"""
         try:
             logger.info(f"Création d'un nouveau produit: {request.data.get('nom', 'N/A')}")
+            logger.info(f"Files dans la requête: {request.FILES}")
+            logger.info(f"Data dans la requête: {request.data}")
             
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             
             logger.info(f"Produit créé avec succès: ID {serializer.instance.id}")
+            logger.info(f"Image du produit: {serializer.instance.image}")
             
             return Response({
                 'success': True,
@@ -94,6 +136,7 @@ class ProduitDetailView(APIView):
     Implémente le SOFT DELETE pour la suppression
     """
     permission_classes = [permissions.AllowAny]  # Temporairement ouvert
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]  # Pour gérer les uploads d'images
 
     def get_object(self, pk):
         """Récupère un produit par son ID"""
@@ -159,11 +202,13 @@ class ProduitDetailView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             logger.info(f"Mise à jour produit {pk}: {request.data}")
-
+            logger.info(f"Files dans la requête: {request.FILES}")
+            
             serializer = ProduitSerializer(produit, data=request.data, partial=partial)
             if serializer.is_valid():
                 serializer.save()
                 logger.info(f"Produit {pk} mis à jour avec succès")
+                logger.info(f"Image du produit après mise à jour: {serializer.instance.image}")
                 return Response({
                     'success': True,
                     'message': 'Produit mis à jour avec succès',

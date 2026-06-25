@@ -144,8 +144,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # Media files (User uploaded content)
-MEDIA_URL = '/assets/image/'
-MEDIA_ROOT =  'Frontend/automecastore-frontend/src/assets/image/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

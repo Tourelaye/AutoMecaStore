@@ -31,6 +31,26 @@ class Categorie(models.Model):
 
 
 # -----------------------------
+# SousCategorie (Type de pièce)
+# -----------------------------
+class SousCategorie(models.Model):
+    nom = models.CharField(max_length=100)
+    categorie = models.ForeignKey(Categorie, on_delete=models.CASCADE, related_name='sous_categories')
+    description = models.TextField(blank=True, null=True)
+    datecreation = models.DateTimeField(auto_now_add=True)
+    datemodification = models.DateTimeField(auto_now=True)
+    etat = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.categorie.nom} - {self.nom}"
+
+    class Meta:
+        verbose_name = "Sous-catégorie"
+        verbose_name_plural = "Sous-catégories"
+        ordering = ['categorie', 'nom']
+
+
+# -----------------------------
 # GestionnaireStock
 # -----------------------------
 class GestionnaireStock(models.Model):
@@ -64,6 +84,7 @@ class Produit(models.Model):
     prix = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
     categorie = models.ForeignKey(Categorie, on_delete=models.SET_NULL, null=True, blank=True, related_name='produits')
+    sous_categorie = models.ForeignKey(SousCategorie, on_delete=models.SET_NULL, null=True, blank=True, related_name='produits')
     gestionnaire_stock = models.ForeignKey(GestionnaireStock, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Champs pour les ventes flash

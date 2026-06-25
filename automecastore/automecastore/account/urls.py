@@ -5,7 +5,7 @@ from .views import (
     ClientListView, ClientDetailView, ClientToggleActiveView, ClientDeleteView, ClientStatsView,
     AdminNotificationsView, CreateAdminView
 )
-from .mon_compte_views import MeView, MesCommandesView, FavorisView
+from .mon_compte_views import MeView, MesCommandesView, FavorisView, PanierView, AjouterAuPanierView, SupprimerDuPanierView, MettreAJourQuantiteView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -35,4 +35,10 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='me'),
     path('mes-commandes/', MesCommandesView.as_view(), name='mes_commandes'),
     path('favoris/', FavorisView.as_view(), name='favoris'),
+    
+    # URLs pour le panier
+    path('panier/', PanierView.as_view(), name='panier'),
+    path('panier/add/', AjouterAuPanierView.as_view(), name='panier_add'),
+    path('panier/delete/<int:item_id>/', SupprimerDuPanierView.as_view(), name='panier_delete'),
+    path('panier/update/<int:item_id>/', MettreAJourQuantiteView.as_view(), name='panier_update'),
 ]
