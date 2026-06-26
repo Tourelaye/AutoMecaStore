@@ -98,6 +98,21 @@
           <span class="verified-badge">
             <i class="bi bi-patch-check-fill"></i> Certifié OEM
           </span>
+          <span class="badge-admin" *ngIf="produit.est_vedette">
+            <i class="bi bi-star-fill"></i> Vedette
+          </span>
+          <span class="badge-admin badge-trending" *ngIf="produit.est_tendance">
+            <i class="bi bi-fire"></i> Tendance
+          </span>
+          <span class="badge-admin badge-bestseller" *ngIf="produit.est_bestseller">
+            <i class="bi bi-trophy-fill"></i> Bestseller
+          </span>
+          <span class="badge-admin badge-recommande" *ngIf="produit.est_recommande">
+            <i class="bi bi-heart-fill"></i> Recommandé
+          </span>
+          <span class="badge-admin badge-eclair" *ngIf="produit.vente_eclair">
+            <i class="bi bi-lightning-fill"></i> Vente Éclair
+          </span>
         </div>
 
         <!-- NOM -->
@@ -110,16 +125,30 @@
             <i class="bi bi-star-half"></i>
           </div>
           <span class="rating-val">4.8</span>
-          <span class="rating-count">(156 avis)</span>
+          <span class="rating-count">({{ produit.nombre_vues || 0 }} vues)</span>
           <span class="sep">·</span>
-          <span class="sold-count"><i class="bi bi-bag-check-fill"></i> 2.4k vendus</span>
+          <span class="sold-count"><i class="bi bi-bag-check-fill"></i> {{ produit.nombre_ventes || 0 }} vendus</span>
+          <span class="sep">·</span>
+          <span class="fav-count"><i class="bi bi-heart-fill"></i> {{ produit.nombre_favoris || 0 }} favoris</span>
         </div>
 
         <!-- PRIX -->
         <div class="price-block">
-          <div class="price-main">{{ produit.prix / 100 | number:'1.2-2' }} FCFA</div>
-          <div class="price-old">{{ (produit.prix / 100 * 1.2) | number:'1.2-2' }} FCFA</div>
-          <div class="price-discount">-20%</div>
+          <div class="price-main" *ngIf="!produit.est_en_promo || !produit.prix_promo">
+            {{ produit.prix / 100 | number:'1.2-2' }} FCFA
+          </div>
+          <div class="price-main" *ngIf="produit.est_en_promo && produit.prix_promo">
+            {{ produit.prix_promo / 100 | number:'1.2-2' }} FCFA
+          </div>
+          <div class="price-old" *ngIf="produit.est_en_promo && produit.prix_promo">
+            {{ produit.prix / 100 | number:'1.2-2' }} FCFA
+          </div>
+          <div class="price-discount" *ngIf="produit.est_en_promo && produit.pourcentage_reduction">
+            -{{ produit.pourcentage_reduction }}%
+          </div>
+          <div class="price-discount" *ngIf="produit.est_en_promo && !produit.pourcentage_reduction && produit.prix_promo">
+            -{{ calculerPourcentageReduction() }}%
+          </div>
         </div>
 
         <!-- STOCK -->
@@ -133,6 +162,12 @@
         <div class="low-stock-warn" *ngIf="produit.stock > 0 && produit.stock <= 5">
           <i class="bi bi-fire"></i>
           Plus que {{ produit.stock }} en stock — commandez vite !
+        </div>
+
+        <!-- INFO PROMO -->
+        <div class="promo-info" *ngIf="produit.est_en_promo && produit.date_fin_promo">
+          <i class="bi bi-clock-fill"></i>
+          Offre valable jusqu'au {{ produit.date_fin_promo | date:'dd/MM/yyyy' }}
         </div>
 
         <!-- LIVRAISON -->
@@ -229,20 +264,6 @@
       <div class="tab-panel" *ngIf="activeTab === 'description'" @fadeSlide>
         <h5><i class="bi bi-file-text-fill"></i> Description</h5>
         <p>{{ produit.description }}</p>
-        <div class="desc-features">
-          <div class="df-item">
-            <i class="bi bi-check-circle-fill"></i>
-            Filtration haute performance jusqu'à 30 000 km
-          </div>
-          <div class="df-item">
-            <i class="bi bi-check-circle-fill"></i>
-            Conforme aux normes constructeur d'origine
-          </div>
-          <div class="df-item">
-            <i class="bi bi-check-circle-fill"></i>
-            Résistant aux températures extrêmes (−40°C à +150°C)
-          </div>
-        </div>
       </div>
 
       <!-- CARACTÉRISTIQUES -->
@@ -279,10 +300,11 @@
       <!-- COMPATIBILITÉ -->
       <div class="tab-panel" *ngIf="activeTab === 'compatibilite'" @fadeSlide>
         <h5><i class="bi bi-car-front-fill"></i> Véhicules compatibles</h5>
-        <div class="compat-grid">
-          <div class="compat-item" *ngFor="let v of ['BMW Série 3 (E90)', 'BMW Série 3 (E91)', 'BMW Série 3 (E92)', 'BMW Série 3 (E93)', 'BMW Série 5 (E60)', 'BMW X3 (E83)']">
-            <i class="bi bi-check2"></i>
-            {{ v }}
+        <p *ngIf="!produit.reference">Les informations de compatibilité seront bientôt disponibles.</p>
+        <div class="compat-grid" *ngIf="produit.reference">
+          <div class="compat-item">
+            <i class="bi bi-info-circle"></i>
+            Consultez la référence {{ produit.reference }} pour vérifier la compatibilité avec votre véhicule.
           </div>
         </div>
       </div>
@@ -291,17 +313,9 @@
       <div class="tab-panel" *ngIf="activeTab === 'avis'" @fadeSlide>
         <h5><i class="bi bi-star-half"></i> Avis clients</h5>
         <div class="avis-summary">
-          <div class="avis-score">
-            <span class="score-val">4.8</span>
-            <div class="score-stars">
-              <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4]"></i>
-              <i class="bi bi-star-half"></i>
-            </div>
-            <span class="score-count">156 avis</span>
-          </div>
           <div class="avis-empty-note">
             <i class="bi bi-chat-left-text"></i>
-            <p>Soyez le premier à partager votre expérience !</p>
+            <p>Soyez le premier à partager votre expérience sur ce produit !</p>
             <button class="btn-write-review">
               <i class="bi bi-pencil-fill"></i>
               Écrire un avis
@@ -378,5 +392,24 @@
   <button class="lightbox-close" (click)="closeLightbox()">
     <i class="bi bi-x-lg"></i>
   </button>
-  <img [src]="images[currentImageIndex]" [alt]="produit?.nom" (click)="$event.stopPropagation()">
+  
+  <!-- Navigation précédente -->
+  <button class="lightbox-nav prev" (click)="prevImage(); $event.stopPropagation()" *ngIf="images.length > 1">
+    <i class="bi bi-chevron-left"></i>
+  </button>
+  
+  <!-- Image principale -->
+  <div class="lightbox-content" (click)="$event.stopPropagation()">
+    <img [src]="images[currentImageIndex]" [alt]="produit?.nom">
+  </div>
+  
+  <!-- Navigation suivante -->
+  <button class="lightbox-nav next" (click)="nextImage(); $event.stopPropagation()" *ngIf="images.length > 1">
+    <i class="bi bi-chevron-right"></i>
+  </button>
+  
+  <!-- Indicateur d'image -->
+  <div class="lightbox-counter" *ngIf="images.length > 1">
+    {{ currentImageIndex + 1 }} / {{ images.length }}
+  </div>
 </div>

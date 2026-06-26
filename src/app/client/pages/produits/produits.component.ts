@@ -272,6 +272,15 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     this.lightboxOpen = false;
   }
 
+  // ── Calculs ───────────────────────────────────────────────────────────────
+
+  calculerPourcentageReduction(): number {
+    if (!this.produit || !this.produit.prix_promo || !this.produit.prix) {
+      return 0;
+    }
+    return Math.round((1 - this.produit.prix_promo / this.produit.prix) * 100);
+  }
+
   // ── Wishlist ───────────────────────────────────────────────────────────────
 
   toggleWishlist(): void {
