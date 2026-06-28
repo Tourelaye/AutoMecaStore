@@ -1,0 +1,47 @@
+from django.urls import path
+from .views import (
+    CategorieListCreateView,
+    CategorieDetailView,
+    TypePieceListCreateView,
+    TypePieceDetailView,
+    ProduitListCreateView,
+    ProduitDetailView,
+    ProduitFavorisListCreateView,
+    ProduitRestaurerView,
+    ProduitVerifierUtilisationView,
+    LivraisonListCreateView,
+    LivraisonDetailView,
+    HomeCategoriesView,
+    HomeFlashSalesView,
+    HomeBestSellersView,
+    HomeTrendingView,
+    HomeFlashDealsView,
+    HomeFeaturedView,
+    HomeRecommendedView,
+    HomePopularSearchesView,
+    IncrementProductViewsView
+)
+
+urlpatterns = [
+    path('categories/', CategorieListCreateView.as_view(), name='categorie_list_create'),
+    path('categories/<int:pk>/', CategorieDetailView.as_view(), name='categorie_detail'),
+    path('types-pieces/', TypePieceListCreateView.as_view(), name='type_piece_list_create'),
+    path('types-pieces/<int:pk>/', TypePieceDetailView.as_view(), name='type_piece_detail'),
+    path('produits/', ProduitListCreateView.as_view(), name='produit_list_create'),
+    path('produits/<int:pk>/', ProduitDetailView.as_view(), name='produit_detail'),
+    path('produits/<int:pk>/restaurer/', ProduitRestaurerView.as_view(), name='produit_restaurer'),
+    path('produits/<int:pk>/verifier-utilisation/', ProduitVerifierUtilisationView.as_view(), name='produit_verifier_utilisation'),
+    path('produits/<int:pk>/increment-views/', IncrementProductViewsView.as_view(), name='produit_increment_views'),
+    path('produits/favoris/', ProduitFavorisListCreateView.as_view(), name='produit_favoris_create'),
+    path('livraisons/', LivraisonListCreateView.as_view(), name='livraison_list_create'),
+    path('livraisons/<int:pk>/', LivraisonDetailView.as_view(), name='livraison_detail'),
+    # Home page endpoints
+    path('home/categories/', HomeCategoriesView.as_view(), name='home_categories'),
+    path('home/flash-sales/', HomeFlashSalesView.as_view(), name='home_flash_sales'),
+    path('home/bestsellers/', HomeBestSellersView.as_view(), name='home_bestsellers'),
+    path('home/trending/', HomeTrendingView.as_view(), name='home_trending'),
+    path('home/flash-deals/', HomeFlashDealsView.as_view(), name='home_flash_deals'),
+    path('home/featured/', HomeFeaturedView.as_view(), name='home_featured'),
+    path('home/recommended/', HomeRecommendedView.as_view(), name='home_recommended'),
+    path('home/popular-searches/', HomePopularSearchesView.as_view(), name='home_popular_searches'),
+]

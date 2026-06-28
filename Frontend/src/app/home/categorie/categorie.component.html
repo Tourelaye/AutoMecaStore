@@ -1,0 +1,85 @@
+<section class="categories">
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="section-header">
+      <div class="header-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        CATÉGORIES
+      </div>
+      <h2 class="title">Acheter par <span class="highlight">catégorie</span></h2>
+      <p class="subtitle">Explorez nos catégories de produits premium sélectionnés pour vous</p>
+    </div>
+
+    <!-- SKELETON LOADING -->
+    <div class="cards" *ngIf="isLoading">
+      <div class="card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-icon"></div>
+        <div class="skeleton-lines">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line count"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      {{ errorMessage }}
+    </div>
+
+    <!-- CARDS CATÉGORIES -->
+    <div class="cards" *ngIf="!isLoading && !errorMessage">
+
+      <div
+        class="card {{ cat.visuel.cssClass }}"
+        *ngFor="let cat of categories; let i = index"
+        [routerLink]="cat.visuel.route"
+        [style.--delay]="(i * 0.1) + 's'"
+      >
+        <!-- GLOW BG -->
+        <div class="card-glow"></div>
+
+        <!-- BADGE -->
+        <span class="badge" *ngIf="cat.visuel.badge">
+          {{ cat.visuel.badge }}
+        </span>
+
+        <!-- ICÔNE -->
+        <div class="icon-wrap">
+          <div class="icon">
+            <i [class]="cat.visuel.icon"></i>
+          </div>
+          <div class="icon-ring"></div>
+        </div>
+
+        <!-- NOM -->
+        <h3>{{ cat.nom }}</h3>
+
+        <!-- SOUS-TITRE -->
+        <p class="sous-titre">{{ cat.visuel.sousTitre }}</p>
+
+        <!-- COMPTEUR -->
+        <div class="count-wrap">
+          <span class="count">{{ cat.nombre_produits || 0 }}</span>
+          <small>produits disponibles</small>
+        </div>
+
+        <!-- BOUTON VOIR -->
+        <div class="card-btn">
+          Explorer <i class="bi bi-arrow-right"></i>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && categories.length === 0">
+      <i class="bi bi-folder-x"></i>
+      <p>Aucune catégorie disponible pour le moment.</p>
+    </div>
+
+  </div>
+</section>

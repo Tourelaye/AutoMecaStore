@@ -1,0 +1,289 @@
+<section class="panier-page">
+  <div class="container" [@pageAnimation]>
+
+    <!-- HEADER -->
+    <div class="panier-header">
+      <a routerLink="/" class="back">
+        <i class="bi bi-arrow-left"></i> Continuer mes achats
+      </a>
+      <div class="panier-title">
+        <h2>
+          <i class="bi bi-cart3"></i> Mon Panier
+          <span class="nb-articles" *ngIf="nbArticles > 0">{{ nbArticles }}</span>
+        </h2>
+      </div>
+      <button class="btn-vider" (click)="viderPanier()" *ngIf="items.length > 0">
+        <i class="bi bi-trash3"></i> Vider
+      </button>
+    </div>
+
+    <!-- PANIER VIDE -->
+    <div class="empty-container" *ngIf="items.length === 0 && !commandeConfirmee">
+      <div class="empty-icon-wrap">
+        <i class="bi bi-cart3 empty-icon"></i>
+        <div class="empty-sparkle">✨</div>
+      </div>
+      <h3>Votre panier est vide</h3>
+      <p>Découvrez notre catalogue de pièces détachées</p>
+      <a routerLink="/" class="btn-shop">
+        <i class="bi bi-shop"></i> Parcourir le catalogue
+      </a>
+    </div>
+
+    <!-- CONFIRMATION COMMANDE -->
+    <div class="confirmation-overlay" *ngIf="commandeConfirmee && commandeDetails">
+      <div class="confirmation-card" [@pageAnimation]>
+        <div class="confirmation-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2>Commande envoyée avec succès</h2>
+        <p class="confirmation-message">
+          Merci pour votre commande. Votre commande a bien été enregistrée et sera traitée dans les plus brefs délais.
+        </p>
+        
+        <div class="order-details">
+          <div class="detail-row">
+            <span class="detail-label">Numéro de commande :</span>
+            <span class="detail-value">#{{ commandeDetails.reference || commandeDetails.id }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Date :</span>
+            <span class="detail-value">{{ commandeDetails.date_commande | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Montant total :</span>
+            <span class="detail-value">{{ commandeDetails.montant_total | number:'1.2-2' }} FCFA</span>
+          </div>
+        </div>
+
+        <div class="confirmation-actions">
+          <button class="btn-secondary" (click)="continuerAchats()">
+            <i class="bi bi-arrow-left"></i> Continuer mes achats
+          </button>
+          <button class="btn-primary" (click)="voirMesCommandes()">
+            Voir mes commandes <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANIER REMPLI -->
+    <div class="panier-layout" *ngIf="items.length > 0">
+
+      <!-- ========== LEFT ========== -->
+      <div class="panier-left">
+
+        <!-- BARRE LIVRAISON GRATUITE -->
+        <div class="livraison-progress-card" *ngIf="!livraisonGratuite">
+          <div class="lp-text">
+            <i class="bi bi-truck"></i>
+            Plus que
+            <strong>{{ (100 - sousTotal) | number:'1.2-2' }} FCFA</strong>
+            pour la livraison gratuite !
+          </div>
+          <div class="lp-bar">
+            <div class="lp-fill" [style.width.%]="progressLivraisonGratuite"></div>
+          </div>
+        </div>
+
+        <div class="livraison-offerte" *ngIf="livraisonGratuite">
+          <i class="bi bi-check-circle-fill"></i>
+          Félicitations ! Vous bénéficiez de la livraison gratuite 🎉
+        </div>
+
+        <!-- ITEMS -->
+        <div [@listAnimation]="items.length">
+          <div
+            class="panier-item"
+            *ngFor="let item of items; trackBy: trackById"
+            [@itemAnimation]
+            [class.removing]="suppressionEnCours === item.produit.id"
+          >
+
+            <!-- IMAGE -->
+            <div class="item-img-wrap">
+              <img
+                *ngIf="item.image || item.produit?.image; else imgPlaceholder"
+                [src]="item.image || item.produit.image"
+                class="item-img"
+                [alt]="item.nom"
+              >
+              <ng-template #imgPlaceholder>
+                <div class="img-placeholder">
+                  <i class="bi bi-gear-wide-connected"></i>
+                </div>
+              </ng-template>
+              <span class="item-qty-badge">{{ item.quantite }}</span>
+            </div>
+
+            <!-- INFO -->
+            <div class="item-info">
+              <span class="item-brand" *ngIf="item.produit?.nom">
+                {{ item.produit.nom | slice:0:15 }}...
+              </span>
+              <h4 class="item-nom">{{ item.nom }}</h4>
+              <p class="item-prix-unit">
+                {{ item.prix | number:'1.2-2' }} FCFA / unité
+              </p>
+
+              <!-- CONTRÔLE QUANTITÉ -->
+              <div class="qty-control">
+                <button
+                  class="qty-btn"
+                  (click)="decreaseQty(item)"
+                  [disabled]="item.quantite <= 1"
+                >
+                  <i class="bi bi-dash"></i>
+                </button>
+                <span class="qty-val">{{ item.quantite }}</span>
+                <button class="qty-btn" (click)="increaseQty(item)">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="item-actions">
+              <span class="item-total-price">
+                {{ item.prix * item.quantite | number:'1.2-2' }} FCFA
+              </span>
+
+              <div class="actions-icons">
+
+                <!-- FAVORIS -->
+                <button
+                  class="action-btn fav"
+                  (click)="toggleFavorite(item)"
+                  [class.is-fav]="item.favori"
+                  [title]="item.favori ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                >
+                  <i class="bi" [class.bi-heart-fill]="item.favori" [class.bi-heart]="!item.favori"></i>
+                </button>
+
+                <!-- SUPPRIMER -->
+                <button
+                  class="action-btn delete"
+                  (click)="removeItem(item)"
+                  title="Supprimer"
+                >
+                  <i class="bi bi-trash3"></i>
+                </button>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========== RIGHT ========== -->
+      <div class="panier-right">
+
+        <!-- CODE PROMO -->
+        <div class="card">
+          <div class="card-title">
+            <i class="bi bi-gift"></i> Code promo
+          </div>
+
+          <div class="promo-box" *ngIf="!promoAppliquee">
+            <input
+              type="text"
+              placeholder="Ex: AUTO10"
+              [(ngModel)]="codePromo"
+              (keyup.enter)="appliquerPromo()"
+              [class.input-error]="promoErreur"
+            >
+            <button (click)="appliquerPromo()">Appliquer</button>
+          </div>
+
+          <div class="promo-error" *ngIf="promoErreur">
+            <i class="bi bi-x-circle"></i> Code invalide ou expiré
+          </div>
+
+          <div class="promo-success" *ngIf="promoAppliquee">
+            <i class="bi bi-check-circle-fill"></i>
+            Code <strong>{{ codePromo.toUpperCase() }}</strong> appliqué — -{{ remisePromo }}%
+            <button class="btn-retirer-promo" (click)="retirerPromo()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- LIVRAISON -->
+        <div class="card">
+          <div class="card-title">
+            <i class="bi bi-truck"></i> Mode de livraison
+          </div>
+
+          <div class="livraison-options">
+            <label
+              *ngFor="let opt of optionsLivraison"
+              class="livraison-option"
+              [class.selected]="modeLivraison === opt.key"
+            >
+              <input type="radio" [(ngModel)]="modeLivraison" [value]="opt.key" name="livraison">
+              <div class="opt-info">
+                <span class="opt-label">{{ opt.label }}</span>
+                <span class="opt-delai">{{ opt.delai }}</span>
+              </div>
+              <span class="opt-prix" [class.gratuit]="opt.prix === 0 || livraisonGratuite">
+                {{ (opt.prix === 0 || livraisonGratuite) ? 'Gratuit' : (opt.prix | number:'1.2-2') + ' FCFA' }}
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- RÉCAPITULATIF -->
+        <div class="card total-box">
+          <div class="card-title">
+            <i class="bi bi-receipt"></i> Récapitulatif
+          </div>
+
+          <div class="total-lines">
+            <div class="line">
+              <span>Sous-total ({{ nbArticles }} article{{ nbArticles > 1 ? 's' : '' }})</span>
+              <span>{{ sousTotal | number:'1.2-2' }} FCFA</span>
+            </div>
+
+            <div class="line promo-line" *ngIf="promoAppliquee">
+              <span><i class="bi bi-tag-fill"></i> Remise ({{ remisePromo }}%)</span>
+              <span class="remise">- {{ montantRemise | number:'1.2-2' }} FCFA</span>
+            </div>
+
+            <div class="line">
+              <span>Livraison</span>
+              <span [class.gratuit]="fraisLivraison === 0 || livraisonGratuite">
+                {{ (fraisLivraison === 0 || livraisonGratuite)
+                  ? 'Gratuite 🎉'
+                  : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
+              </span>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="line total-final">
+              <span>Total TTC</span>
+              <span>{{ total | number:'1.2-2' }} FCFA</span>
+            </div>
+          </div>
+
+          <button class="checkout" (click)="passerCommande()">
+            <i class="bi bi-credit-card-fill"></i>
+            Passer la commande
+            <i class="bi bi-arrow-right"></i>
+          </button>
+
+          <div class="secure">
+            <span><i class="bi bi-shield-lock-fill"></i> Paiement sécurisé</span>
+            <span><i class="bi bi-lightning-charge-fill"></i> Livraison rapide</span>
+            <span><i class="bi bi-arrow-return-left"></i> Retour 30 jours</span>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>

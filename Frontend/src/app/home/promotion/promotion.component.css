@@ -1,0 +1,392 @@
+/* ================================================
+   FLASH SALES — AutoMecaStore
+   ================================================ */
+
+   .flash-sales {
+    background: linear-gradient(90deg, #d32f2f, #ff5a00, #ff8c42);
+    padding: 15px 0;
+    color: white;
+    background-size: 200% 200%;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    transition: all 0.3s ease;
+    animation: gradientMove 3s ease infinite;
+  }
+  
+  @keyframes gradientMove {
+    0%   { background-position: 0%; }
+    50%  { background-position: 100%; }
+    100% { background-position: 0%; }
+  }
+  
+  /* ---------------------------------
+     HEADER
+  --------------------------------- */
+  .flash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .flash-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    flex-wrap: wrap;
+  }
+  
+  .flash-icon {
+    font-size: 22px;
+    color: #ffd54f;
+    animation: flashJump 1.2s infinite;
+  }
+  
+  @keyframes flashJump {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+  
+  .limited-offer {
+    background: white;
+    color: #ff5a00;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    margin-left: 15px;
+    animation: blink 1.5s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+  
+  .see-all {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 18px;
+    border: 1.5px solid rgba(255,255,255,0.6);
+    border-radius: 20px;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  
+  .see-all:hover {
+    background: rgba(255,255,255,0.15);
+  }
+  
+  /* ---------------------------------
+     PRODUCTS GRID
+  --------------------------------- */
+  .products {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  
+  /* ---------------------------------
+     PRODUCT CARD
+  --------------------------------- */
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    color: #333;
+    border-radius: 14px;
+    padding: 20px;
+    width: 260px;
+    position: relative;
+    transition: transform 0.25s, box-shadow 0.25s;
+    flex-shrink: 0;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* ---------------------------------
+     BADGES
+  --------------------------------- */
+  .discount {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    background: #e53935;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    animation: blink 1.5s infinite;
+    z-index: 1;
+  }
+  
+  .expired-badge {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: #9e9e9e;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 1;
+  }
+  
+  /* ---------------------------------
+     IMAGE
+  --------------------------------- */
+  .product-image {
+    width: 100%;
+    height: 110px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+  }
+  
+  .image-placeholder i {
+    font-size: 42px;
+    color: #bbb;
+  }
+  
+  /* ---------------------------------
+     INFOS PRODUIT
+  --------------------------------- */
+  .categorie-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: #ff5a00;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  
+  .product-info h6 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+  }
+  
+  /* ---------------------------------
+     PRIX
+  --------------------------------- */
+  .price {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  
+  .new-price {
+    color: #e53935;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  
+  .old-price {
+    text-decoration: line-through;
+    font-size: 12px;
+    color: #aaa;
+  }
+  
+  /* ---------------------------------
+     TIMER
+  --------------------------------- */
+  .timer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  
+  .timer-unit {
+    background: #fff3e0;
+    color: #e65100;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    min-width: 26px;
+    text-align: center;
+  }
+  
+  .expired-timer {
+    color: #aaa;
+  }
+  
+  /* ---------------------------------
+     STOCK
+  --------------------------------- */
+  .stock-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+  
+  .stock-restant {
+    font-weight: 600;
+    color: #e53935;
+  }
+  
+  .progress {
+    height: 6px;
+    background: #eee;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  
+  .progress-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #d32f2f, #ff5a00, #ff8c42);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+  
+  .progress-bar.progress-danger {
+    background: #e53935;
+    animation: blink 1s infinite;
+  }
+  
+  /* ---------------------------------
+     BOUTON AJOUTER
+  --------------------------------- */
+  .btn-add {
+    width: 100%;
+    padding: 9px 0;
+    background: linear-gradient(90deg, #d32f2f, #ff5a00);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+    margin-top: auto;
+  }
+  
+  .btn-add:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+  
+  .btn-add:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* ---------------------------------
+     SKELETON LOADING
+  --------------------------------- */
+  .loading-state {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  
+  .skeleton-card {
+    width: 260px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  
+  .skeleton-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.25);
+    animation: shimmer 1.4s infinite;
+    flex-shrink: 0;
+  }
+  
+  .skeleton-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .skeleton-line {
+    height: 14px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.25);
+    animation: shimmer 1.4s infinite;
+  }
+  
+  .skeleton-line.short {
+    width: 60%;
+  }
+  
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.8; }
+  }
+  
+  /* ---------------------------------
+     ERREUR
+  --------------------------------- */
+  .error-state {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* ---------------------------------
+     RESPONSIVE
+  --------------------------------- */
+  @media (max-width: 992px) {
+    .products { gap: 18px; justify-content: center; }
+    .product-card { width: min(300px, 100%); }
+  }
+  
+  @media (max-width: 576px) {
+    .flash-sales { padding-top: 30px; padding-bottom: 30px; }
+    .flash-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .limited-offer { margin-left: 0; display: inline-block; margin-top: 6px; }
+    .product-card { padding: 16px; width: 100%; }
+  }

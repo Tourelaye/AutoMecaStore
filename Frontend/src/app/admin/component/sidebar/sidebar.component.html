@@ -1,0 +1,74 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+
+  <!-- ══ LOGO ══ -->
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <i class="bi bi-shield-fill-check"></i>
+    </div>
+    <div class="logo-text" *ngIf="!isCollapsed">
+      <span class="logo-name">AutoMeca</span>
+      <span class="logo-env">Admin Panel</span>
+    </div>
+    <button class="collapse-btn" (click)="toggleSidebar()" [title]="isCollapsed ? 'Ouvrir' : 'Réduire'">
+      <i class="bi" [class.bi-chevron-left]="!isCollapsed" [class.bi-chevron-right]="isCollapsed"></i>
+    </button>
+  </div>
+
+  <!-- ══ PROFIL ══ -->
+  <div class="sidebar-profile" [class.profile-collapsed]="isCollapsed">
+    <div class="profile-av">{{ adminInfo.initiales }}</div>
+
+    <div class="profile-details" *ngIf="!isCollapsed">
+      <strong>{{ adminInfo.nom }}</strong>
+      <span>{{ adminInfo.role }}</span>
+    </div>
+
+    <div class="online-pill" *ngIf="!isCollapsed">
+      <span class="dot"></span> En ligne
+    </div>
+  </div>
+
+  <!-- ══ NAVIGATION ══ -->
+  <nav class="sidebar-nav">
+    <p class="nav-section-label" *ngIf="!isCollapsed">Navigation</p>
+
+    <a
+      *ngFor="let item of navItems"
+      class="nav-link"
+      [routerLink]="item.route"
+      routerLinkActive="active"
+      [title]="isCollapsed ? item.label : ''"
+    >
+      <i class="bi {{ item.icon }}"></i>
+      <span *ngIf="!isCollapsed">{{ item.label }}</span>
+
+      <!-- Badge visible -->
+      <span
+        class="badge"
+        *ngIf="item.badge && item.badge > 0 && !isCollapsed"
+        [class.pulse]="item.badge > 0"
+        [class.high-count]="item.badge >= 10"
+      >{{ item.badge }}</span>
+
+      <!-- Badge dot quand collapsed -->
+      <span class="badge-dot" *ngIf="item.badge && item.badge > 0 && isCollapsed"></span>
+    </a>
+  </nav>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="sidebar-footer">
+
+    <!-- VERSION -->
+    <div class="sidebar-version" *ngIf="!isCollapsed">
+      <i class="bi bi-cpu"></i>
+      <span>AutoMecaStore v2.0</span>
+    </div>
+
+    <button class="logout-btn" (click)="logout()" [title]="isCollapsed ? 'Déconnexion' : ''">
+      <i class="bi bi-box-arrow-left"></i>
+      <span *ngIf="!isCollapsed">Déconnexion</span>
+    </button>
+
+  </div>
+
+</aside>

@@ -1,0 +1,389 @@
+<!-- register.component.html -->
+<div class="register-page">
+
+    <!-- HEADER -->
+    <div class="register-header">
+      <div class="container d-flex justify-content-between align-items-center">
+        <div class="logo">
+          <img class="logo-img" src="/assets/image/logo.jpeg" alt="AutoMecaStore">
+        </div>
+        <div class="login-link">
+          Déjà inscrit ?
+          <a routerLink="/login">Se connecter</a>
+        </div>
+      </div>
+    </div>
+  
+    <div class="container">
+  
+      <!-- STEPPER -->
+      <div class="stepper" *ngIf="!accountCreated">
+        <div class="step" [class.active]="step >= 1" [class.done]="step > 1">
+          <div class="circle">
+            <i class="bi" [class.bi-check-lg]="step > 1" [class.bi-person]="step <= 1"></i>
+          </div>
+          <span>Informations</span>
+        </div>
+  
+        <div class="line" [class.line-done]="step > 1"></div>
+  
+        <div class="step" [class.active]="step >= 2" [class.done]="step > 2">
+          <div class="circle">
+            <i class="bi" [class.bi-check-lg]="step > 2" [class.bi-lock]="step <= 2"></i>
+          </div>
+          <span>Compte</span>
+        </div>
+  
+        <div class="line" [class.line-done]="step > 2"></div>
+  
+        <div class="step" [class.active]="step >= 3">
+          <div class="circle">
+            <i class="bi bi-check"></i>
+          </div>
+          <span>Finalisation</span>
+        </div>
+      </div>
+  
+      <!-- ============ SUCCÈS ============ -->
+      <div class="success-screen" *ngIf="accountCreated">
+        <div class="success-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2>Bienvenue sur AutoMecaStore ! 🎉</h2>
+        <p>Votre compte a été créé avec succès. Vous pouvez maintenant explorer notre catalogue.</p>
+        <a routerLink="/" class="btn-main">
+          <i class="bi bi-house-fill"></i> Aller à l'accueil
+        </a>
+      </div>
+  
+      <!-- ============ FORMULAIRE ============ -->
+      <div class="register-box" *ngIf="!accountCreated">
+  
+        <!-- BÉNÉFICES -->
+        <div class="benefits">
+          <div class="benefits-header">
+            <div class="benefits-icon-wrap">
+              <i class="bi bi-star-fill"></i>
+            </div>
+            <h4 class="benefit-title">Pourquoi nous rejoindre ?</h4>
+          </div>
+  
+          <ul>
+            <li>
+              <div class="benefit-icon"><i class="bi bi-star-fill"></i></div>
+              <div>
+                <strong>Accès privilégié</strong>
+                <p>Nouveautés et offres exclusives réservées aux membres</p>
+              </div>
+            </li>
+            <li>
+              <div class="benefit-icon"><i class="bi bi-truck"></i></div>
+              <div>
+                <strong>Livraison express</strong>
+                <p>Gratuite dès 50 000 FCFA d'achat</p>
+              </div>
+            </li>
+            <li>
+              <div class="benefit-icon"><i class="bi bi-shield-check"></i></div>
+              <div>
+                <strong>Garantie qualité</strong>
+                <p>Toutes nos pièces sont certifiées d'origine</p>
+              </div>
+            </li>
+            <li>
+              <div class="benefit-icon"><i class="bi bi-gift"></i></div>
+              <div>
+                <strong>Programme fidélité</strong>
+                <p>Gagnez des points à chaque achat</p>
+              </div>
+            </li>
+          </ul>
+  
+          <!-- STATS SOCIALES -->
+          <div class="social-proof">
+            <div class="proof-item">
+              <strong>2 000+</strong>
+              <span>clients satisfaits</span>
+            </div>
+            <div class="proof-divider"></div>
+            <div class="proof-item">
+              <strong>4.9⭐</strong>
+              <span>note moyenne</span>
+            </div>
+            <div class="proof-divider"></div>
+            <div class="proof-item">
+              <strong>24h</strong>
+              <span>livraison</span>
+            </div>
+          </div>
+        </div>
+  
+        <!-- FORMULAIRE -->
+        <div class="form-card">
+          <form [formGroup]="registerForm">
+  
+            <div class="form-header">
+              <h3>Créez votre compte client</h3>
+              <p class="subtitle">Rejoignez des milliers de clients satisfaits</p>
+  
+              <!-- PROGRESS BAR STEPS -->
+              <div class="step-progress">
+                <div class="step-progress-fill" [style.width.%]="(step / 3) * 100"></div>
+              </div>
+              <p class="step-label">Étape {{ step }} sur 3</p>
+            </div>
+  
+            <!-- ====== STEP 1 ====== -->
+            <div class="step-panel" *ngIf="step === 1">
+              <h4 class="step-title">
+                <span class="step-num">1</span>
+                Vos informations personnelles
+              </h4>
+              <p class="subtitle">Commençons par quelques informations de base</p>
+  
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="field-label">Prénom <span class="required">*</span></label>
+                  <div class="input-group custom-input" [class.input-error]="registerForm.get('prenom')?.invalid && registerForm.get('prenom')?.touched">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" class="form-control" placeholder="Ex: Mouhamed" formControlName="prenom">
+                  </div>
+                  <small class="field-error" *ngIf="registerForm.get('prenom')?.touched && registerForm.get('prenom')?.hasError('required')">
+                    <i class="bi bi-exclamation-circle"></i> Prénom requis
+                  </small>
+                </div>
+  
+                <div class="col-md-6">
+                  <label class="field-label">Nom <span class="required">*</span></label>
+                  <div class="input-group custom-input" [class.input-error]="registerForm.get('nom')?.invalid && registerForm.get('nom')?.touched">
+                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                    <input type="text" class="form-control" placeholder="Ex: Touré" formControlName="nom">
+                  </div>
+                  <small class="field-error" *ngIf="registerForm.get('nom')?.touched && registerForm.get('nom')?.hasError('required')">
+                    <i class="bi bi-exclamation-circle"></i> Nom requis
+                  </small>
+                </div>
+              </div>
+  
+              <label class="field-label">Téléphone <span class="required">*</span></label>
+              <div class="phone-input-wrapper" [class.input-error]="registerForm.get('telephone')?.invalid && registerForm.get('telephone')?.touched">
+                <!-- Country Selector -->
+                <div class="country-selector" (click)="toggleCountryDropdown()">
+                  <span class="country-flag">{{ selectedCountry.flag }}</span>
+                  <span class="country-code">{{ selectedCountry.dialCode }}</span>
+                  <i class="bi bi-chevron-down dropdown-arrow"></i>
+                </div>
+                
+                <!-- Phone Input -->
+                <input 
+                  type="tel" 
+                  class="phone-input" 
+                  [placeholder]="selectedCountry.example"
+                  formControlName="telephone"
+                  (input)="onPhoneInput($event)"
+                >
+                
+                <!-- Validation Icon -->
+                <div class="validation-icon" *ngIf="registerForm.get('telephone')?.touched">
+                  <i class="bi bi-check-circle-fill" *ngIf="registerForm.get('telephone')?.valid"></i>
+                  <i class="bi bi-x-circle-fill" *ngIf="registerForm.get('telephone')?.invalid"></i>
+                </div>
+                
+                <!-- Country Dropdown -->
+                <div class="country-dropdown" *ngIf="countryDropdownOpen">
+                  <div class="country-search">
+                    <i class="bi bi-search search-icon"></i>
+                    <input 
+                      type="text" 
+                      placeholder="Rechercher un pays..." 
+                      #countrySearchInput
+                      (input)="filterCountries(countrySearchInput.value)"
+                    >
+                  </div>
+                  <div class="country-list">
+                    <div 
+                      class="country-item" 
+                      *ngFor="let country of (countrySearchQuery ? filteredCountries : countries)"
+                      (click)="onCountryChange(country)"
+                      [class.selected]="country.code === selectedCountry.code"
+                    >
+                      <span class="country-flag">{{ country.flag }}</span>
+                      <span class="country-name">{{ country.name }}</span>
+                      <span class="country-code">{{ country.dialCode }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <small class="field-error" *ngIf="registerForm.get('telephone')?.touched && registerForm.get('telephone')?.invalid">
+                <i class="bi bi-exclamation-circle"></i> {{ getPhoneErrorMessage() }}
+              </small>
+              <small class="field-success" *ngIf="registerForm.get('telephone')?.valid && registerForm.get('telephone')?.touched">
+                <i class="bi bi-check-circle"></i> Numéro valide
+              </small>
+  
+              <div class="account-info">
+                <i class="bi bi-person-circle"></i>
+                <div>
+                  <strong>Compte Client</strong>
+                  <p class="subtitle">Accédez à notre catalogue et passez vos commandes facilement</p>
+                </div>
+              </div>
+  
+              <div class="form-error" *ngIf="stepError">
+                <i class="bi bi-exclamation-triangle-fill"></i> {{ stepError }}
+              </div>
+  
+              <div class="buttons">
+                <div></div>
+                <button class="btn-main" type="button" (click)="next()">
+                  Suivant <i class="bi bi-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+  
+            <!-- ====== STEP 2 ====== -->
+            <div class="step-panel" *ngIf="step === 2">
+              <h4 class="step-title">
+                <span class="step-num">2</span>
+                Informations de connexion
+              </h4>
+              <p class="subtitle">Sécurisez votre compte avec un mot de passe robuste</p>
+  
+              <label class="field-label">Email <span class="required">*</span></label>
+              <div class="input-group custom-input" [class.input-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control" placeholder="votre@email.com" formControlName="email">
+              </div>
+              <small class="field-error" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+                <i class="bi bi-exclamation-circle"></i> Email invalide
+              </small>
+  
+              <label class="field-label">Mot de passe <span class="required">*</span></label>
+              <div class="input-group custom-input" [class.input-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input [type]="showPassword ? 'text' : 'password'" class="form-control" placeholder="••••••••" formControlName="password">
+                <button type="button" class="toggle-pwd" (click)="showPassword = !showPassword">
+                  <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                </button>
+              </div>
+  
+              <!-- FORCE MOT DE PASSE -->
+              <div class="pwd-strength" *ngIf="registerForm.get('password')?.value">
+                <div class="strength-bars">
+                  <div class="bar" *ngFor="let i of [1,2,3,4]"
+                       [class.filled]="passwordStrength >= i"
+                       [class]="'bar bar-' + passwordStrengthClass"></div>
+                </div>
+                <span class="strength-label" [class]="passwordStrengthClass">
+                  {{ passwordStrengthLabel }}
+                </span>
+              </div>
+              <small class="field-hint">8 car. min, 1 majuscule, 1 minuscule, 1 chiffre</small>
+  
+              <label class="field-label">Confirmer le mot de passe <span class="required">*</span></label>
+              <div class="input-group custom-input" [class.input-error]="registerForm.errors?.['passwordsMismatch'] && registerForm.get('confirmPassword')?.touched">
+                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                <input [type]="showConfirm ? 'text' : 'password'" class="form-control" placeholder="••••••••" formControlName="confirmPassword">
+                <button type="button" class="toggle-pwd" (click)="showConfirm = !showConfirm">
+                  <i class="bi" [class.bi-eye]="!showConfirm" [class.bi-eye-slash]="showConfirm"></i>
+                </button>
+              </div>
+              <small class="field-error" *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.errors?.['passwordsMismatch']">
+                <i class="bi bi-exclamation-circle"></i> Les mots de passe ne correspondent pas
+              </small>
+              <small class="field-success" *ngIf="registerForm.get('confirmPassword')?.value && !registerForm.errors?.['passwordsMismatch']">
+                <i class="bi bi-check-circle"></i> Mots de passe identiques
+              </small>
+  
+              <div class="form-error" *ngIf="stepError">
+                <i class="bi bi-exclamation-triangle-fill"></i> {{ stepError }}
+              </div>
+  
+              <div class="buttons">
+                <button class="btn-light" type="button" (click)="prev()">
+                  <i class="bi bi-arrow-left"></i> Précédent
+                </button>
+                <button class="btn-main" type="button" (click)="next()">
+                  Suivant <i class="bi bi-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+  
+            <!-- ====== STEP 3 ====== -->
+            <div class="step-panel" *ngIf="step === 3">
+              <h4 class="step-title">
+                <span class="step-num">3</span>
+                Finalisation
+              </h4>
+              <p class="subtitle">Plus qu'une étape pour rejoindre AutoMecaStore !</p>
+  
+              <!-- RÉCAPITULATIF -->
+              <div class="summary-card">
+                <h6 class="summary-title">
+                  <i class="bi bi-file-earmark-check"></i> Récapitulatif de votre inscription
+                </h6>
+                <div class="summary-info">
+                  <div class="summary-row">
+                    <span><i class="bi bi-person"></i> Prénom</span>
+                    <strong>{{ prenomVal }}</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span><i class="bi bi-person-badge"></i> Nom</span>
+                    <strong>{{ nomVal }}</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span><i class="bi bi-envelope"></i> Email</span>
+                    <strong>{{ emailVal }}</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span><i class="bi bi-shield-check"></i> Type de compte</span>
+                    <strong class="badge-client">Client</strong>
+                  </div>
+                </div>
+              </div>
+  
+              <!-- CONDITIONS -->
+              <div class="conditions">
+                <label class="condition-item">
+                  <input type="checkbox" formControlName="conditionsAccepted">
+                  <span>
+                    J'accepte les <a href="#" target="_blank">conditions d'utilisation</a>
+                    et la <a href="#" target="_blank">politique de confidentialité</a> d'AutoMecaStore
+                  </span>
+                </label>
+                <label class="condition-item">
+                  <input type="checkbox" formControlName="marketingOptIn">
+                  <span>Je souhaite recevoir les offres promotionnelles par email</span>
+                </label>
+              </div>
+  
+              <div class="form-error" *ngIf="stepError">
+                <i class="bi bi-exclamation-triangle-fill"></i> {{ stepError }}
+              </div>
+  
+              <div class="buttons">
+                <button class="btn-light" type="button" (click)="prev()">
+                  <i class="bi bi-arrow-left"></i> Précédent
+                </button>
+                <button class="btn-main btn-create" type="button" (click)="createAccount()" [disabled]="isLoading">
+                  <span *ngIf="!isLoading">
+                    <i class="bi bi-person-plus"></i> Créer mon compte
+                  </span>
+                  <span *ngIf="isLoading" class="loading-dots">
+                    <i class="bi bi-hourglass-split spin"></i> Création en cours...
+                  </span>
+                </button>
+              </div>
+            </div>
+  
+            <div class="already">
+              Déjà inscrit ?
+              <a routerLink="/login">Connectez-vous ici</a>
+            </div>
+  
+          </form>
+        </div>
+  
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,258 @@
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div class="top-left">
+      <i class="bi bi-geo-alt-fill"></i> Livraison partout au Sénégal
+      <span class="ms-3"><i class="bi bi-telephone-fill"></i> +221 78 449 25 68</span>
+    </div>
+    <div class="top-right">
+      <a routerLink="/aide"><i class="bi bi-question-circle"></i> Aide</a>
+      <a class="ms-3" routerLink="/faq"><i class="bi bi-chat-left-text"></i> FAQ</a>
+      <a class="ms-3"><i class="bi bi-shop"></i> Vendez sur AutoMecaStore</a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN HEADER -->
+<div class="main-header">
+  <div class="container d-flex align-items-center justify-content-between">
+
+    <!-- LOGO -->
+    <div class="logo">
+      <a routerLink="/">
+        <img class="logo-img" src="assets/image/logo.jpeg" alt="AutoMecaStore">
+      </a>
+    </div>
+
+    <!-- SEARCH BAR -->
+    <div class="search-box" [class.search-focused]="showResults || isSearching">
+      <i class="bi bi-search search-prefix-icon"></i>
+      <input
+        type="text"
+        placeholder="Je recherche une pièce..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (keyup.enter)="onSearchSubmit()"
+        autocomplete="off"
+      >
+      <button class="search-clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; showResults=false">
+        <i class="bi bi-x"></i>
+      </button>
+      <button class="search-submit-btn" (click)="onSearchSubmit()">
+        <i class="bi bi-search"></i>
+      </button>
+
+      <!-- DROPDOWN RECHERCHE -->
+      <div class="search-dropdown" *ngIf="showResults || isSearching">
+
+        <div class="search-loading" *ngIf="isSearching">
+          <div class="search-spinner"></div>
+          Recherche en cours...
+        </div>
+
+        <div class="search-item" *ngFor="let p of searchResults" (click)="selectProduit(p)">
+          <div class="search-item-img">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
+            <i *ngIf="!p.image" class="bi bi-gear-wide-connected"></i>
+          </div>
+          <div class="search-item-info">
+            <span class="search-item-nom">{{ p.nom }}</span>
+            <span class="search-item-cat" *ngIf="p.categorie">
+              <i class="bi bi-tag-fill"></i> {{ p.categorie.nom }}
+            </span>
+          </div>
+          <span class="search-item-prix">{{ p.prix | number:'1.0-0' }} FCFA</span>
+        </div>
+
+        <div class="search-no-result" *ngIf="!isSearching && searchResults.length === 0 && searchQuery.length >= 2">
+          <i class="bi bi-search"></i>
+          <span>Aucun résultat pour "<strong>{{ searchQuery }}</strong>"</span>
+        </div>
+
+        <div class="search-see-all" *ngIf="searchResults.length > 0" (click)="onSearchSubmit()">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Voir tous les résultats pour "<strong>{{ searchQuery }}</strong>"
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AUTH + ACTIONS -->
+    <div class="auth-buttons">
+
+      <!-- NON CONNECTÉ -->
+      <ng-container *ngIf="!isLoggedIn">
+        <button class="btn btn-login" routerLink="/login">
+          <i class="bi bi-person"></i> Connexion
+        </button>
+        <button class="btn btn-register" routerLink="/register">
+          S'inscrire
+        </button>
+      </ng-container>
+
+      <!-- CONNECTÉ -->
+      <ng-container *ngIf="isLoggedIn && utilisateur">
+        <div class="user-menu-wrapper">
+
+          <button class="btn-avatar" (click)="toggleUserMenu()">
+            <div class="avatar-circle" [style.background]="getAvatarColor()">
+              {{ getInitiales() }}
+            </div>
+            <div class="avatar-info">
+              <span class="avatar-name">{{ utilisateur.prenom }}</span>
+              <span class="avatar-role">{{ getRoleLabel() }}</span>
+            </div>
+            <i class="bi bi-chevron-down chev" [class.chev-open]="showUserMenu"></i>
+          </button>
+
+          <!-- OVERLAY -->
+          <div class="user-dropdown-overlay" *ngIf="showUserMenu" (click)="toggleUserMenu()"></div>
+
+          <!-- DROPDOWN PROFIL -->
+          <div class="user-dropdown" *ngIf="showUserMenu">
+
+            <!-- EN-TÊTE -->
+            <div class="dropdown-profile-header">
+              <div class="dp-avatar" [style.background]="getAvatarColor()">{{ getInitiales() }}</div>
+              <div class="dp-info">
+                <strong>{{ utilisateur.prenom }} {{ utilisateur.nom }}</strong>
+                <span class="dp-email">{{ utilisateur.email }}</span>
+                <span class="dp-role-badge" [class.admin-badge]="utilisateur.role === 'admin'">
+                  <i class="bi" [class.bi-shield-fill]="utilisateur.role === 'admin'" [class.bi-person-fill]="utilisateur.role !== 'admin'"></i>
+                  {{ getRoleLabel() }}
+                </span>
+              </div>
+            </div>
+
+            <!-- INFOS RAPIDES -->
+            <div class="dp-quick-info" *ngIf="utilisateur.telephone || utilisateur.adresse">
+              <div class="dp-quick-item" *ngIf="utilisateur.telephone">
+                <i class="bi bi-telephone-fill"></i>
+                <span>{{ utilisateur.telephone }}</span>
+              </div>
+              <div class="dp-quick-item" *ngIf="utilisateur.adresse">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>{{ utilisateur.adresse }}</span>
+              </div>
+            </div>
+
+            <div class="dp-quick-info" *ngIf="!utilisateur.telephone && !utilisateur.adresse">
+              <div class="dp-quick-item incomplete">
+                <i class="bi bi-pencil-fill"></i>
+                <span>Profil incomplet —
+                  <a routerLink="/mon-compte" (click)="showUserMenu=false">Compléter</a>
+                </span>
+              </div>
+            </div>
+
+            <div class="dp-divider"></div>
+            <div class="dp-section-label">Mon espace</div>
+
+            <a class="dp-item" (click)="navigateToProfile()">
+              <div class="dp-item-icon icon-orange"><i class="bi bi-person-fill"></i></div>
+              <div class="dp-item-text">
+                <span>Mon profil</span>
+                <small>Informations personnelles</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <a class="dp-item" (click)="navigateToOrders()">
+              <div class="dp-item-icon icon-blue"><i class="bi bi-box-seam-fill"></i></div>
+              <div class="dp-item-text">
+                <span>Mes commandes</span>
+                <small>Suivi & historique</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <a class="dp-item" (click)="navigateToFavorites()">
+              <div class="dp-item-icon icon-red"><i class="bi bi-heart-fill"></i></div>
+              <div class="dp-item-text">
+                <span>Mes favoris</span>
+                <small>Produits enregistrés</small>
+              </div>
+              <span class="dp-count" *ngIf="totalFavoris > 0">{{ totalFavoris }}</span>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <div class="dp-divider"></div>
+            <div class="dp-section-label">Paramètres</div>
+
+            <a class="dp-item" (click)="navigateToSettings()">
+              <div class="dp-item-icon icon-green"><i class="bi bi-shield-lock-fill"></i></div>
+              <div class="dp-item-text">
+                <span>Paramètres</span>
+                <small>Préférences & sécurité</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <a class="dp-item" (click)="navigateToHelp()">
+              <div class="dp-item-icon icon-purple"><i class="bi bi-question-circle-fill"></i></div>
+              <div class="dp-item-text">
+                <span>Aide & Support</span>
+                <small>Centre d'assistance</small>
+              </div>
+              <i class="bi bi-chevron-right dp-arrow"></i>
+            </a>
+
+            <div class="dp-divider"></div>
+
+            <button class="dp-logout" (click)="logout()">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Se déconnecter</span>
+            </button>
+
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- FAVORIS -->
+      <button class="fav-btn" routerLink="/mes-favoris" title="Mes favoris">
+        <i class="bi bi-heart-fill"></i>
+        <span class="btn-badge" *ngIf="totalFavoris > 0">{{ totalFavoris }}</span>
+      </button>
+
+      <!-- PANIER -->
+      <button class="cart-btn" routerLink="/panier" title="Mon panier">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="btn-badge" *ngIf="totalPanier > 0">{{ totalPanier }}</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANIER -->
+<div class="cart-notification" *ngIf="notification">
+  <i class="bi bi-bag-check-fill"></i>
+  {{ notification }}
+</div>
+
+<!-- CATEGORY BAR -->
+<div class="category-bar">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div class="categories">
+      <a routerLink="/" routerLinkActive="cat-active" [routerLinkActiveOptions]="{exact:true}">
+        <i class="bi bi-grid-3x3-gap-fill"></i> Tout
+      </a>
+      <a routerLink="/catalog/auto" routerLinkActive="cat-active">
+        <i class="bi bi-car-front-fill"></i> Automobile
+      </a>
+      <a routerLink="/catalog/moto" routerLinkActive="cat-active">
+        <i class="bi bi-bicycle"></i> Moto & Scooter
+      </a>
+      <a routerLink="/catalog/poidLourds" routerLinkActive="cat-active">
+        <i class="bi bi-truck-front-fill"></i> Poids Lourds
+      </a>
+      <a routerLink="/catalog/velo" routerLinkActive="cat-active">
+        <i class="bi bi-bicycle"></i> Vélo & E-bike
+      </a>
+    </div>
+    <div class="cat-promo">
+      <i class="bi bi-lightning-charge-fill"></i>
+      Ventes flash — <strong>jusqu'à -40%</strong>
+    </div>
+  </div>
+</div>

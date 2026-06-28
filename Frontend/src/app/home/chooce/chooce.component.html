@@ -1,0 +1,83 @@
+<section class="why-us">
+
+  <!-- FOND DÉCO -->
+  <div class="bg-deco">
+    <div class="deco-orb orb-1"></div>
+    <div class="deco-orb orb-2"></div>
+    <div class="deco-grid"></div>
+  </div>
+
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="section-header">
+      <div class="header-tag">
+        <i class="bi bi-star-fill"></i>
+        POURQUOI NOUS CHOISIR
+      </div>
+      <h2 class="section-title">
+        La référence en pièces <span class="highlight">détachées</span>
+      </h2>
+      <p class="section-desc">
+        AutoMecaStore vous garantit qualité, rapidité et sécurité pour tous vos achats
+        de pièces auto, moto et vélo au Sénégal.
+      </p>
+    </div>
+
+    <!-- FEATURES GRID -->
+    <div class="features-grid">
+      <div
+        class="feature-card"
+        *ngFor="let f of features; let i = index"
+        [style.--delay]="(i * 0.1) + 's'"
+        [style.--color]="f.couleur"
+        [style.--bg]="f.bgColor"
+      >
+        <!-- GLOW -->
+        <div class="card-glow"></div>
+
+        <!-- NUMÉRO -->
+        <div class="card-number">0{{ i + 1 }}</div>
+
+        <!-- ICÔNE -->
+        <div class="icon-wrap">
+          <div class="icon-bg">
+            <i class="bi {{ f.icon }}" [style.color]="f.couleur"></i>
+          </div>
+          <div class="icon-ring"></div>
+        </div>
+
+        <!-- TEXTE -->
+        <h3>{{ f.titre }}</h3>
+        <p class="card-desc">{{ f.desc }}</p>
+        <p class="card-detail">{{ f.detail }}</p>
+
+        <!-- FLÈCHE -->
+        <div class="card-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+      <div
+        class="stat-item"
+        *ngFor="let s of stats; let i = index"
+        [style.--delay]="(i * 0.1) + 's'"
+      >
+        <div class="stat-icon-wrap">
+          <i class="bi {{ s.icon }}"></i>
+        </div>
+        <div class="stat-body">
+          <div class="stat-valeur">
+            <span class="counter" [attr.data-target]="s.valeur">0</span>{{ s.suffix }}
+          </div>
+          <div class="stat-label">{{ s.label }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

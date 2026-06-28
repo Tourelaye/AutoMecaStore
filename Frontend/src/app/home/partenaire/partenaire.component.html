@@ -1,0 +1,92 @@
+<section class="partenaires">
+
+  <!-- FOND DÉCO -->
+  <div class="bg-deco">
+    <div class="deco-orb orb-1"></div>
+    <div class="deco-orb orb-2"></div>
+    <div class="deco-grid"></div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="section-header">
+    <div class="header-tag">
+      <i class="bi bi-trophy-fill"></i>
+      PARTENAIRES PREMIUM
+    </div>
+    <h2 class="section-title">
+      Nos marques de <span class="highlight">confiance</span>
+    </h2>
+    <p class="section-desc">
+      Partenaires mondiaux leaders en pièces détachées automobiles et motocyclistes,
+      sélectionnés pour leur qualité et fiabilité.
+    </p>
+  </div>
+
+  <!-- BRANDS GRID -->
+  <div class="brands-grid">
+    <div
+      class="brand-card"
+      *ngFor="let p of partenaires; let i = index"
+      [style.--delay]="(i * 0.1) + 's'"
+      [style.--color]="p.couleur"
+    >
+      <!-- LOGO -->
+      <div class="brand-logo-wrap">
+        <div class="brand-logo" [style.background]="p.couleur" [style.color]="p.textColor">
+          {{ p.initiale }}
+        </div>
+        <div class="brand-ring"></div>
+      </div>
+
+      <!-- INFOS -->
+      <div class="brand-info">
+        <strong>{{ p.nom }}</strong>
+        <span>{{ p.description }}</span>
+      </div>
+
+      <!-- BADGE -->
+      <div class="brand-badge">
+        <i class="bi bi-patch-check-fill"></i>
+        Certifié
+      </div>
+
+      <!-- GLOW -->
+      <div class="brand-glow"></div>
+    </div>
+  </div>
+
+  <!-- CTA BLOCK -->
+  <div class="cta-block">
+    <div class="cta-orb-1"></div>
+    <div class="cta-orb-2"></div>
+
+    <div class="cta-left">
+      <div class="cta-icon"><i class="bi bi-handshake-fill"></i></div>
+      <div>
+        <h3>Rejoignez notre réseau de partenaires</h3>
+        <p>Vous représentez une marque reconnue et souhaitez collaborer avec AutoMecaStore ?</p>
+      </div>
+    </div>
+
+    <button class="cta-btn">
+      <i class="bi bi-send-fill"></i>
+      Proposer un partenariat
+    </button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div
+      class="stat-card"
+      *ngFor="let s of stats; let i = index"
+      [style.--delay]="(i * 0.1) + 's'"
+    >
+      <div class="stat-icon-wrap">
+        <i class="bi {{ s.icon }}"></i>
+      </div>
+      <div class="stat-valeur">{{ s.valeur }}</div>
+      <div class="stat-label">{{ s.label }}</div>
+    </div>
+  </div>
+
+</section>

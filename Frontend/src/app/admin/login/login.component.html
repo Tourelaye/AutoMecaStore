@@ -1,0 +1,198 @@
+<!-- admin login.component.html -->
+<div class="login-page">
+
+  <!-- FOND ANIMÉ -->
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="login-wrapper">
+
+    <!-- ====== LEFT PANEL ====== -->
+    <div class="left-panel">
+
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="bi bi-shield-fill-check"></i>
+        </div>
+        <div>
+          <h1>AutoMecaStore</h1>
+          <p>Espace Administration</p>
+        </div>
+      </div>
+
+      <div class="left-content">
+        <h2>Tableau de bord<br><span>sécurisé</span></h2>
+        <p class="left-desc">
+          Accédez à l'interface d'administration pour gérer vos produits,
+          commandes, clients et statistiques en temps réel.
+        </p>
+
+        <ul class="feature-list">
+          <li>
+            <div class="feat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+              <strong>Statistiques temps réel</strong>
+              <span>Ventes, visites et performances</span>
+            </div>
+          </li>
+          <li>
+            <div class="feat-icon"><i class="bi bi-box-seam-fill"></i></div>
+            <div>
+              <strong>Gestion des stocks</strong>
+              <span>Inventaire et approvisionnements</span>
+            </div>
+          </li>
+          <li>
+            <div class="feat-icon"><i class="bi bi-people-fill"></i></div>
+            <div>
+              <strong>Gestion clients</strong>
+              <span>Comptes, commandes et support</span>
+            </div>
+          </li>
+          <li>
+            <div class="feat-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <div>
+              <strong>Accès sécurisé SSL</strong>
+              <span>Connexion chiffrée et protégée</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="left-footer">
+        <span><i class="bi bi-circle-fill status-dot"></i> Système opérationnel</span>
+        <span>v2.0.1</span>
+      </div>
+
+    </div>
+
+    <!-- ====== RIGHT — FORMULAIRE ====== -->
+    <div class="right-panel">
+
+      <div class="form-card">
+
+        <!-- LOGO MOBILE -->
+        <div class="mobile-brand">
+          <div class="brand-icon sm"><i class="bi bi-shield-fill-check"></i></div>
+          <span>AutoMecaStore Admin</span>
+        </div>
+
+        <!-- TITRE -->
+        <div class="form-title">
+          <h3>Connexion administrateur</h3>
+          <p>Identifiez-vous pour accéder au panneau de gestion</p>
+        </div>
+
+        <!-- ALERTE ERREUR -->
+        <div class="alert-error" *ngIf="errorMessage">
+          <i class="bi bi-exclamation-octagon-fill"></i>
+          {{ errorMessage }}
+        </div>
+
+        <!-- ALERTE BLOCAGE -->
+        <div class="alert-block" *ngIf="loginAttempts >= 5">
+          <i class="bi bi-lock-fill"></i>
+          Accès temporairement suspendu après trop de tentatives.
+        </div>
+
+        <!-- FORMULAIRE -->
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+
+          <!-- EMAIL -->
+          <div class="field-group">
+            <label>Adresse email</label>
+            <div class="field-wrap" [class.field-filled]="email">
+              <i class="bi bi-envelope-fill field-icon"></i>
+              <input
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="admin@automeca.com"
+                required
+                autocomplete="email"
+                [disabled]="loginAttempts >= 5"
+              >
+              <i class="bi bi-check-circle-fill valid-icon" *ngIf="email && email.includes('@')"></i>
+            </div>
+          </div>
+
+          <!-- MOT DE PASSE -->
+          <div class="field-group">
+            <div class="label-row">
+              <label>Mot de passe</label>
+              <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+            </div>
+            <div class="field-wrap" [class.field-filled]="password">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="••••••••"
+                required
+                autocomplete="current-password"
+                [disabled]="loginAttempts >= 5"
+              >
+              <button type="button" class="toggle-eye" (click)="showPassword = !showPassword">
+                <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- BOUTON CONNEXION -->
+          <button
+            type="submit"
+            class="btn-login"
+            [disabled]="isLoading || loginAttempts >= 5"
+          >
+            <span *ngIf="!isLoading">
+              <i class="bi bi-box-arrow-in-right"></i>
+              Se connecter
+            </span>
+            <span *ngIf="isLoading" class="loading-row">
+              <span class="spinner"></span>
+              Authentification en cours...
+            </span>
+          </button>
+
+          <!-- SÉCURITÉ -->
+          <div class="security-row">
+            <span><i class="bi bi-shield-lock-fill"></i> SSL chiffré</span>
+            <span><i class="bi bi-eye-slash-fill"></i> Accès privé</span>
+            <span><i class="bi bi-clock-fill"></i> Session 8h</span>
+          </div>
+
+        </form>
+
+        <!-- COMPTES DÉMO -->
+        <!-- <div class="demo-section">
+          <div class="demo-label">
+            <div class="demo-line"></div>
+            <span>Comptes de démonstration</span>
+            <div class="demo-line"></div>
+          </div>
+
+          <div class="demo-accounts">
+
+            <button
+              class="demo-card"
+              type="button"
+              (click)="fillDemo({ email: 'admin@automeca.com', password: 'Admin@2025!', nom: 'Diallo', prenom: 'Ibrahima', role: 'Super Admin', avatar: 'ID' })"
+            >
+              <div class="demo-avatar super">SA</div>
+              <div class="demo-info">
+                <strong>Super Admin</strong>
+                <span>Accès complet</span>
+              </div>
+              <i class="bi bi-arrow-right-circle"></i>
+            </button>
+
+          </div>
+        </div> -->
+
+      </div>
+    </div>
+  </div>
+</div>

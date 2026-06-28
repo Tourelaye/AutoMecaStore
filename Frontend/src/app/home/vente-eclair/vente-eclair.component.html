@@ -1,0 +1,172 @@
+<section class="vente-eclair">
+  <div class="container">
+
+    <!-- HEADER AVEC TIMER GLOBAL -->
+    <div class="eclair-header">
+
+      <div class="header-left">
+        <span class="section-tag">
+          <i class="bi bi-lightning-charge-fill"></i> OFFRES LIMITÉES
+        </span>
+        <h2>Vente Éclair <span class="accent">— 24 heures</span></h2>
+        <p>Des réductions incroyables qui disparaissent vite !</p>
+      </div>
+
+      <!-- COMPTE À REBOURS GLOBAL -->
+      <div class="global-timer">
+        <div class="global-timer-label">
+          <i class="bi bi-clock-fill"></i> Fin des offres dans
+        </div>
+        <div class="global-timer-digits">
+          <div class="digit-block">
+            <span class="digit">{{ timerGlobal.heures }}</span>
+            <small>heures</small>
+          </div>
+          <span class="separator">:</span>
+          <div class="digit-block">
+            <span class="digit">{{ timerGlobal.minutes }}</span>
+            <small>min</small>
+          </div>
+          <span class="separator">:</span>
+          <div class="digit-block">
+            <span class="digit">{{ timerGlobal.secondes }}</span>
+            <small>sec</small>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SKELETON -->
+    <div class="offers-grid" *ngIf="isLoading">
+      <div class="product-card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line medium"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    </div>
+
+    <!-- GRILLE -->
+    <div class="offers-grid" *ngIf="!isLoading && !errorMessage">
+
+      <div
+        class="product-card"
+        *ngFor="let produit of produits; let i = index"
+        [class.urgence]="timers[i].urgence"
+        [class.out-of-stock]="produit.stock === 0"
+        [class.expired-card]="timers[i].expired"
+        routerLink="/produits"
+        [queryParams]="{ id: produit.id }"
+      >
+
+        <!-- IMAGE -->
+        <div class="product-image">
+
+          <!-- BADGE RÉDUCTION -->
+          <span class="badge badge-discount">-{{ produit.discount }}%</span>
+
+          <!-- TIMER INDIVIDUEL -->
+          <div
+            class="timer-chip"
+            [class.timer-urgence]="timers[i].urgence"
+            *ngIf="timers[i] && !timers[i].expired"
+          >
+            <i class="bi bi-clock-fill"></i>
+            {{ timers[i].heures }}h {{ timers[i].minutes }}m {{ timers[i].secondes }}s
+          </div>
+          <div class="timer-chip timer-expired" *ngIf="timers[i].expired">
+            <i class="bi bi-x-circle"></i> Offre expirée
+          </div>
+
+          <!-- STOCK CRITIQUE -->
+          <div class="stock-critique" *ngIf="isStockCritique(produit) && !timers[i].expired">
+            <i class="bi bi-fire"></i> Dernières pièces !
+          </div>
+
+          <!-- RUPTURE -->
+          <div class="rupture-overlay" *ngIf="produit.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture de stock
+          </div>
+
+          <!-- IMAGE -->
+          <img
+            *ngIf="produit.image; else placeholder"
+            [src]="produit.image"
+            [alt]="produit.nom"
+          >
+          <ng-template #placeholder>
+            <div class="img-placeholder">
+              <i class="bi bi-gear-wide-connected"></i>
+            </div>
+          </ng-template>
+
+        </div>
+
+        <!-- INFOS -->
+        <div class="product-info">
+
+          <span class="brand">{{ produit.marque }}</span>
+          <h3>{{ produit.nom }}</h3>
+
+          <!-- PRIX -->
+          <div class="price">
+            <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <span class="old-price">{{ produit.prixAncien | number:'1.2-2' }} FCFA</span>
+          </div>
+
+          <!-- BARRE DE STOCK -->
+          <div class="stock-section">
+            <div class="stock-labels">
+              <span>
+                <i class="bi bi-people-fill"></i>
+                {{ getStockVenduPct(produit) }}% vendu
+              </span>
+              <span [class.text-danger]="isStockCritique(produit)">
+                {{ produit.stock }} restants
+              </span>
+            </div>
+            <div class="stock-bar">
+              <div
+                class="stock-fill"
+                [style.width.%]="getStockVenduPct(produit)"
+                [class.fill-danger]="isStockCritique(produit)"
+              ></div>
+            </div>
+          </div>
+
+          <!-- LIVRAISON -->
+          <p class="delivery" *ngIf="produit.livraison">
+            <i class="bi bi-truck"></i> Livraison gratuite
+          </p>
+
+          <!-- BOUTON -->
+          <button
+            class="button-r"
+            [class.added]="produitAjoute === produit.id"
+            [class.btn-urgence]="timers[i].urgence && produitAjoute !== produit.id"
+            [disabled]="produit.stock === 0 || timers[i].expired"
+            (click)="ajouterAuPanier(produit, $event)"
+          >
+            <i
+              class="bi"
+              [class.bi-cart-plus]="produitAjoute !== produit.id"
+              [class.bi-check-lg]="produitAjoute === produit.id"
+            ></i>
+            {{ produitAjoute === produit.id ? 'Ajouté !' : 'Acheter maintenant' }}
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>

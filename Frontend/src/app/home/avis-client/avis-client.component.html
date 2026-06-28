@@ -1,0 +1,104 @@
+<section class="avis-section">
+
+  <!-- FOND DÉCORATIF -->
+  <div class="bg-deco">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="grid-lines"></div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="section-header">
+
+    <div class="header-tag">
+      <i class="bi bi-people-fill tag-icon"></i>
+      AVIS CLIENTS
+    </div>
+
+    <h2 class="section-title">
+      Ce que disent nos <span class="highlight">clients</span>
+    </h2>
+
+    <p class="section-sub">
+      Plus de <strong>50 000 clients satisfaits</strong> nous font confiance
+      pour leurs pièces détachées au Sénégal
+    </p>
+
+    <!-- STATS BAND -->
+    <div class="stats-band">
+      <div class="stat-item" *ngFor="let s of stats">
+        <div class="stat-val">{{ s.valeur }}</div>
+        <div class="stat-lbl">{{ s.label }}</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CARDS GRILLE -->
+  <div class="cards-grid">
+
+    <div
+      class="avis-card"
+      *ngFor="let a of avis; let i = index"
+      [style.--delay]="(i * 0.12) + 's'"
+      [style.--color]="a.couleur"
+    >
+
+      <!-- QUOTE ICON -->
+      <div class="quote-icon">
+        <i class="bi bi-quote"></i>
+      </div>
+
+      <!-- ÉTOILES -->
+      <div class="stars">
+        <i
+          class="bi"
+          *ngFor="let s of getEtoiles(a.note); let si = index"
+          [class.bi-star-fill]="isPleine(si + 1, a.note)"
+          [class.bi-star]="!isPleine(si + 1, a.note)"
+          [style.animation-delay]="(si * 0.08) + 's'"
+        ></i>
+        <span class="note-val">{{ a.note }}.0</span>
+      </div>
+
+      <!-- TEXTE -->
+      <p class="avis-texte">« {{ a.texte }} »</p>
+
+      <!-- PRODUIT ACHETÉ -->
+      <div class="produit-tag">
+        <i class="bi bi-bag-check-fill"></i>
+        {{ a.produit }}
+      </div>
+
+      <!-- UTILISATEUR -->
+      <div class="user-row">
+        <div class="avatar" [style.background]="a.couleur">
+          {{ a.initiale }}
+        </div>
+        <div class="user-info">
+          <strong>{{ a.nom }}</strong>
+          <span>
+            <i class="bi bi-geo-alt-fill"></i>
+            {{ a.ville }}
+          </span>
+        </div>
+        <div class="avis-date">{{ a.date }}</div>
+      </div>
+
+      <!-- BORDURE DÉCORATIVE -->
+      <div class="card-glow"></div>
+
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-row">
+    <p>Vous aussi, partagez votre expérience</p>
+    <button class="btn-avis">
+      <i class="bi bi-pencil-square"></i>
+      Laisser un avis
+    </button>
+  </div>
+
+</section>

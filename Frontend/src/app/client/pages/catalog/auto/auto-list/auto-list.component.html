@@ -1,0 +1,358 @@
+<div class="catalog-page container">
+
+  <!-- HEADER -->
+  <div class="catalog-header">
+
+    <div class="catalog-title">
+      <span class="catalog-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i> CATALOGUE
+      </span>
+      <h1>Pièces détachées <span class="accent">Automobile</span></h1>
+      <p class="catalog-count">
+        <span class="highlight-count">{{ produitsFiltres.length }}</span> produits disponibles
+      </p>
+      <div class="catalog-features">
+        <span><i class="bi bi-check-circle text-success"></i> Pièces d'origine</span>
+        <span><i class="bi bi-truck text-primary"></i> Livraison 24-48h</span>
+        <span><i class="bi bi-headset"></i> Support 24/7</span>
+      </div>
+    </div>
+
+    <div class="catalog-actions">
+
+      <!-- RECHERCHE -->
+      <div class="search-inline">
+        <i class="bi bi-search"></i>
+        <input
+          type="text"
+          placeholder="Rechercher une pièce..."
+          [(ngModel)]="searchQuery"
+          (input)="appliquerFiltres()"
+        >
+        <button *ngIf="searchQuery" (click)="searchQuery=''; appliquerFiltres()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <!-- TRI -->
+      <select class="form-select" [(ngModel)]="triActif" (change)="appliquerFiltres()">
+        <option value="pertinence">Pertinence</option>
+        <option value="note">Meilleures notes</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+        <option value="promo">Meilleures promos</option>
+      </select>
+
+      <!-- VUE GRID/LIST -->
+      <div class="view-buttons">
+        <button class="btn-view" (click)="setGrid()" [class.active]="viewMode === 'grid'" title="Vue grille">
+          <i class="bi bi-grid"></i>
+        </button>
+        <button class="btn-view" (click)="setList()" [class.active]="viewMode === 'list'" title="Vue liste">
+          <i class="bi bi-list-ul"></i>
+        </button>
+      </div>
+
+      <!-- TOGGLE FILTRES -->
+      <button class="btn-viewF" (click)="toggleFilters()">
+        <i class="bi bi-sliders"></i> Filtres
+        <span class="filter-count" *ngIf="getNbFiltresActifs() > 0">
+          {{ getNbFiltresActifs() }}
+        </span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- SOUS-CATÉGORIES -->
+  <div class="sous-categories">
+    <button
+      *ngFor="let cat of sousCategoriesAuto"
+      class="scat-btn"
+      [class.active]="categorieActive === cat.key"
+      (click)="setCategorieActive(cat.key)"
+    >
+      {{ cat.label }}
+    </button>
+  </div>
+
+  <div class="catalog-layout">
+
+    <!-- SIDEBAR FILTRES -->
+    <aside class="filters" [class.hide-filters]="!showFilters">
+
+      <div class="filter-header">
+        <i class="bi bi-sliders"></i> Filtres
+        <p class="subtitle">Affinez votre recherche</p>
+      </div>
+
+      <!-- FILTRES RAPIDES -->
+      <div class="filter-section">
+        <h6><i class="bi bi-lightning-charge"></i> Filtres rapides</h6>
+
+        <label class="quick-filter" [class.active-filter]="filtreLivraison">
+          <input type="checkbox" [(ngModel)]="filtreLivraison" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-truck"></i></span>
+          Livraison gratuite
+          <span class="badge">{{ tousLesProduits.length }}</span>
+        </label>
+
+        <label class="quick-filter" [class.active-filter]="filtrePromo">
+          <input type="checkbox" [(ngModel)]="filtrePromo" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-percent"></i></span>
+          En promotion
+          <span class="badge">{{ tousLesProduits | json | slice:0:0 }}{{ tousLesProduits.length }}</span>
+        </label>
+
+        <label class="quick-filter" [class.active-filter]="filtreNew">
+          <input type="checkbox" [(ngModel)]="filtreNew" (change)="appliquerFiltres()">
+          <span class="cards"><i class="bi bi-star"></i></span>
+          Nouveautés
+          <span class="badge">2</span>
+        </label>
+      </div>
+
+      <!-- FOURCHETTE DE PRIX -->
+      <div class="filter-section">
+        <h6><i class="bi bi-currency-exchange"></i> Prix (FCFA)</h6>
+        <div class="price-inputs">
+          <input
+            type="number"
+            placeholder="Min"
+            [(ngModel)]="prixMin"
+            (input)="appliquerFiltres()"
+          >
+          <span>—</span>
+          <input
+            type="number"
+            placeholder="Max"
+            [(ngModel)]="prixMax"
+            (input)="appliquerFiltres()"
+          >
+        </div>
+      </div>
+
+      <!-- NOTE MINIMALE -->
+      <div class="filter-section">
+        <h6><i class="bi bi-star-fill"></i> Note minimale</h6>
+        <div class="note-filter">
+          <button
+            *ngFor="let n of [1,2,3,4,5]"
+            class="note-btn"
+            [class.active]="noteMin === n"
+            (click)="noteMin = (noteMin === n ? 0 : n); appliquerFiltres()"
+          >
+            {{ n }}⭐
+          </button>
+        </div>
+      </div>
+
+      <!-- RESET -->
+      <button class="btn-reset" (click)="resetFiltres()" *ngIf="getNbFiltresActifs() > 0">
+        <i class="bi bi-x-circle"></i> Réinitialiser ({{ getNbFiltresActifs() }})
+      </button>
+
+    </aside>
+
+    <!-- PRODUITS -->
+    <div class="products">
+
+      <!-- BANNIÈRE OFFRES DU JOUR -->
+      <div class="daily-offers">
+        <div>
+          <h4><i class="bi bi-lightning-charge-fill"></i> Offres du jour</h4>
+          <p>Découvrez nos meilleures réductions automobile</p>
+        </div>
+        <div class="daily-count">
+          <strong>{{ produitsFiltres.length }}</strong>
+          <span>Produits</span>
+        </div>
+      </div>
+
+      <!-- SKELETON -->
+      <div class="product-grid" *ngIf="isLoading">
+        <div class="product-card skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line medium"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="!isLoading && produitsFiltres.length === 0">
+        <i class="bi bi-search"></i>
+        <p>Aucun produit ne correspond à vos critères.</p>
+        <!-- <button class="btn-reset" (click)="resetFiltres()">
+          <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser les filtres
+        </button> -->
+      </div>
+
+      <!-- ===================== GRID VIEW ===================== -->
+      <div *ngIf="viewMode === 'grid' && !isLoading && produitsFiltres.length > 0"
+           class="product-grid fade-switch">
+
+        <div
+          class="product-card"
+          *ngFor="let p of produitsFiltres"
+          [class.out-of-stock]="p.stock === 0"
+          (click)="goToProduit(p.id)"
+        >
+
+          <!-- BADGES -->
+          <div class="badges-row">
+            <span class="badge-discount" *ngIf="p.discount">-{{ p.discount }}%</span>
+            <span class="badge-new" *ngIf="p.isNew">✨ Nouveau</span>
+          </div>
+
+          <!-- STOCK FAIBLE -->
+          <div class="stock-faible" *ngIf="isStockFaible(p)">
+            <i class="bi bi-fire"></i> {{ p.stock }} restants
+          </div>
+
+          <!-- RUPTURE -->
+          <div class="stock-out" *ngIf="p.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture
+          </div>
+
+          <!-- IMAGE -->
+          <div class="product-img">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
+            <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
+          </div>
+
+          <!-- ACTIONS HOVER -->
+          <div class="product-actions">
+            <button
+              class="btn-fav"
+              [class.is-fav]="p.isFavori"
+              (click)="toggleFavori(p, $event)"
+            >
+              <i [class]="p.isFavori ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+              {{ p.isFavori ? 'Sauvé' : 'Favoris' }}
+            </button>
+            <button class="btn-v" (click)="goToProduit(p.id); $event.stopPropagation()">
+              <i class="bi bi-eye"></i> Voir
+            </button>
+          </div>
+
+          <h6 class="brand">{{ p.marque }}</h6>
+          <p class="product-name">{{ p.nom }}</p>
+
+          <!-- ÉTOILES -->
+          <div class="etoile">
+            <span class="stars">
+              <i *ngFor="let star of getEtoiles()"
+                [class]="isPleine(star, p.note) ? 'bi bi-star-fill'
+                        : isDemi(star, p.note) ? 'bi bi-star-half'
+                        : 'bi bi-star'"></i>
+            </span>
+            <span class="note-val">{{ p.note }}</span>
+            <span class="avis-count">({{ p.avis }})</span>
+          </div>
+
+          <div class="price">
+            <span class="new-price">{{ p.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <span class="old-price" *ngIf="p.prixAncien">{{ p.prixAncien | number:'1.2-2' }} FCFA</span>
+          </div>
+
+          <button
+            class="btn-cart"
+            [class.added]="produitAjoute === p.id"
+            [disabled]="p.stock === 0"
+            (click)="ajouterAuPanier(p, $event)"
+          >
+            <i class="bi" [class.bi-cart-plus]="produitAjoute !== p.id" [class.bi-check-lg]="produitAjoute === p.id"></i>
+            {{ produitAjoute === p.id ? 'Ajouté !' : 'Ajouter au panier' }}
+          </button>
+
+        </div>
+      </div>
+
+      <!-- ===================== LIST VIEW ===================== -->
+      <div *ngIf="viewMode === 'list' && !isLoading && produitsFiltres.length > 0"
+           class="product-list fade-switch">
+
+        <div
+          class="product-list-card"
+          *ngFor="let p of produitsFiltres"
+          [class.out-of-stock]="p.stock === 0"
+          (click)="goToProduit(p.id)"
+        >
+
+          <!-- IMAGE -->
+          <div class="product-img list-img">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
+            <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
+            <span class="badge-discount list-badge" *ngIf="p.discount">-{{ p.discount }}%</span>
+          </div>
+
+          <!-- MILIEU -->
+          <div class="product-middle">
+            <div class="brand-row-list">
+              <h6 class="brand">{{ p.marque }}</h6>
+              <span class="badge-new-sm" *ngIf="p.isNew">Nouveau</span>
+            </div>
+            <h5 class="product-title">{{ p.nom }}</h5>
+            <p class="product-desc">{{ p.description }}</p>
+            <div class="etoile">
+              <span class="stars">
+                <i *ngFor="let star of getEtoiles()"
+                  [class]="isPleine(star, p.note) ? 'bi bi-star-fill'
+                          : isDemi(star, p.note) ? 'bi bi-star-half'
+                          : 'bi bi-star'"></i>
+              </span>
+              <span class="note-val">{{ p.note }}</span>
+              <span class="avis-count">({{ p.avis }} avis)</span>
+            </div>
+            <div class="list-tags">
+              <span class="tag-livraison" *ngIf="p.livraison">
+                <i class="bi bi-truck"></i> Livraison gratuite
+              </span>
+              <span class="tag-stock-faible" *ngIf="isStockFaible(p)">
+                <i class="bi bi-fire"></i> {{ p.stock }} en stock
+              </span>
+              <span class="tag-rupture" *ngIf="p.stock === 0">
+                <i class="bi bi-x-circle"></i> Rupture
+              </span>
+            </div>
+          </div>
+
+          <!-- DROITE -->
+          <div class="product-right">
+            <div class="price-box">
+              <div class="new-price">{{ p.prixNouveau | number:'1.2-2' }} FCFA</div>
+              <div class="old-price" *ngIf="p.prixAncien">{{ p.prixAncien | number:'1.2-2' }} FCFA</div>
+            </div>
+
+            <div class="btnns">
+              <button
+                class="btn-cart"
+                [class.added]="produitAjoute === p.id"
+                [disabled]="p.stock === 0"
+                (click)="ajouterAuPanier(p, $event)"
+              >
+                <i class="bi" [class.bi-cart-plus]="produitAjoute !== p.id" [class.bi-check-lg]="produitAjoute === p.id"></i>
+                {{ produitAjoute === p.id ? 'Ajouté !' : 'Ajouter' }}
+              </button>
+
+              <div class="btn-row">
+                <button class="btn-fav" [class.is-fav]="p.isFavori" (click)="toggleFavori(p, $event)">
+                  <i [class]="p.isFavori ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                  {{ p.isFavori ? 'Sauvé' : 'Favoris' }}
+                </button>
+                <button class="btn-v" (click)="goToProduit(p.id); $event.stopPropagation()">
+                  <i class="bi bi-eye"></i> Voir
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

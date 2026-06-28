@@ -1,0 +1,90 @@
+<section class="faq-section">
+
+  <!-- FOND DÉCO -->
+  <div class="bg-deco">
+    <div class="deco-orb orb-1"></div>
+    <div class="deco-orb orb-2"></div>
+    <div class="deco-grid"></div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="faq-header">
+    <div class="header-tag">
+      <i class="bi bi-question-circle-fill"></i>
+      ASSISTANCE
+    </div>
+    <h2 class="section-title">
+      Questions <span class="highlight">fréquentes</span>
+    </h2>
+    <p class="section-desc">
+      Trouvez rapidement les réponses à vos questions les plus courantes
+    </p>
+  </div>
+
+  <!-- FAQ ITEMS -->
+  <div class="faq-container">
+    <div class="faq-item" *ngFor="let faq of filteredFaqs; let i = index">
+      <input 
+        type="checkbox" 
+        [id]="'q' + i"
+        [(ngModel)]="faq.open"
+        (change)="toggleFaq(i)"
+      >
+      <label [for]="'q' + i" class="faq-question">
+        <div class="question-left">
+          <div class="question-icon">
+            <i class="bi bi-question-lg"></i>
+          </div>
+          <span class="question-text">{{ faq.question }}</span>
+        </div>
+        <div class="question-right">
+          <span class="category-badge">{{ faq.category }}</span>
+          <i class="bi bi-chevron-down arrow"></i>
+        </div>
+      </label>
+      <div class="faq-answer">
+        <div class="answer-content">
+          <p>{{ faq.answer }}</p>
+          <div class="answer-meta" *ngIf="faq.helpful !== undefined">
+            <span class="meta-label">Cette réponse a-t-elle été utile ?</span>
+            <button class="helpful-btn" (click)="markHelpful(i, true)">
+              <i class="bi bi-hand-thumbs-up"></i>
+            </button>
+            <button class="helpful-btn" (click)="markHelpful(i, false)">
+              <i class="bi bi-hand-thumbs-down"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH BOX -->
+  <div class="faq-search">
+    <i class="bi bi-search search-icon"></i>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (input)="filterFaqs()"
+      placeholder="Rechercher dans les FAQ..."
+    >
+  </div>
+
+  <!-- SUPPORT BOX -->
+  <div class="support-box">
+    <div class="support-icon">
+      <i class="bi bi-headset"></i>
+    </div>
+    <h3>Vous n'avez pas trouvé votre réponse ?</h3>
+    <p>Notre équipe d'assistance est disponible 7j/7 pour vous aider</p>
+    <button class="support-btn">
+      <i class="bi bi-chat-dots-fill"></i>
+      Contacter le support
+    </button>
+    <div class="contact-info">
+      <span><i class="bi bi-telephone-fill"></i> +221 78 449 25 68</span>
+      <span><i class="bi bi-envelope-fill"></i> support&#64;automecastore.com</span>
+    </div>
+  </div>
+
+</section>

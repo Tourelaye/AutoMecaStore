@@ -1,0 +1,72 @@
+/* ============================= */
+/* SCROLL REVEAL ANIMATIONS */
+/* ============================= */
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: 
+    opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Effet stagger pour les listes */
+.scroll-reveal.stagger-item:nth-child(1) { --reveal-delay: 0ms; }
+.scroll-reveal.stagger-item:nth-child(2) { --reveal-delay: 100ms; }
+.scroll-reveal.stagger-item:nth-child(3) { --reveal-delay: 200ms; }
+.scroll-reveal.stagger-item:nth-child(4) { --reveal-delay: 300ms; }
+.scroll-reveal.stagger-item:nth-child(5) { --reveal-delay: 400ms; }
+.scroll-reveal.stagger-item:nth-child(6) { --reveal-delay: 500ms; }
+.scroll-reveal.stagger-item:nth-child(7) { --reveal-delay: 600ms; }
+.scroll-reveal.stagger-item:nth-child(8) { --reveal-delay: 700ms; }
+.scroll-reveal.stagger-item:nth-child(9) { --reveal-delay: 800ms; }
+.scroll-reveal.stagger-item:nth-child(10) { --reveal-delay: 900ms; }
+.scroll-reveal.stagger-item:nth-child(11) { --reveal-delay: 1000ms; }
+.scroll-reveal.stagger-item:nth-child(12) { --reveal-delay: 1100ms; }
+
+/* Animation alternative pour plus de variété */
+.scroll-reveal.slide-left {
+  transform: translateX(-30px);
+}
+
+.scroll-reveal.slide-left.revealed {
+  transform: translateX(0);
+}
+
+.scroll-reveal.slide-right {
+  transform: translateX(30px);
+}
+
+.scroll-reveal.slide-right.revealed {
+  transform: translateX(0);
+}
+
+.scroll-reveal.scale-up {
+  transform: scale(0.9);
+}
+
+.scroll-reveal.scale-up.revealed {
+  transform: scale(1);
+}
+
+/* Responsive : réduire les délais sur mobile */
+@media (max-width: 768px) {
+  .scroll-reveal.stagger-item:nth-child(1) { --reveal-delay: 0ms; }
+  .scroll-reveal.stagger-item:nth-child(2) { --reveal-delay: 50ms; }
+  .scroll-reveal.stagger-item:nth-child(3) { --reveal-delay: 100ms; }
+  .scroll-reveal.stagger-item:nth-child(4) { --reveal-delay: 150ms; }
+  .scroll-reveal.stagger-item:nth-child(5) { --reveal-delay: 200ms; }
+  .scroll-reveal.stagger-item:nth-child(6) { --reveal-delay: 250ms; }
+  .scroll-reveal.stagger-item:nth-child(7) { --reveal-delay: 300ms; }
+  .scroll-reveal.stagger-item:nth-child(8) { --reveal-delay: 350ms; }
+  .scroll-reveal.stagger-item:nth-child(9) { --reveal-delay: 400ms; }
+  .scroll-reveal.stagger-item:nth-child(10) { --reveal-delay: 450ms; }
+  .scroll-reveal.stagger-item:nth-child(11) { --reveal-delay: 500ms; }
+  .scroll-reveal.stagger-item:nth-child(12) { --reveal-delay: 550ms; }
+}

@@ -1,0 +1,197 @@
+<!-- slide.component.html -->
+<section
+  class="slider-wrapper"
+  (mouseenter)="stopAutoplay()"
+  (mouseleave)="startAutoplay()"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)"
+>
+
+  <!-- SLIDES -->
+  <div class="slides-track">
+    <div
+      *ngFor="let slide of slides; let i = index"
+      class="slide"
+      [class.slide--active]="i === currentIndex()"
+      [class.slide--prev]="i === (currentIndex() - 1 + slides.length) % slides.length"
+    >
+
+      <!-- FOND + OVERLAY -->
+      <div class="slide__bg" [style.background-image]="'url(' + slide.bgImage + ')'"></div>
+      <div class="slide__overlay" [style.background]="slide.gradient"></div>
+
+      <!-- GRILLE DÉCORATIVE -->
+      <div class="slide__grid"></div>
+
+      <!-- PARTICULES FLOTTANTES -->
+      <div class="slide__particles" *ngIf="i === currentIndex()">
+        <span class="particle" *ngFor="let p of [1,2,3,4,5,6,7,8]"></span>
+      </div>
+
+      <!-- CERCLES DÉCORATIFS DROITE -->
+      <div class="slide__circles">
+        <div class="circle circle--large"></div>
+        <div class="circle circle--medium"></div>
+        <div class="circle circle--small"></div>
+
+        <!-- STAT CENTRALE -->
+        <div class="stat-bubble">
+          <span class="stat-value">{{ slide.stat.value }}</span>
+          <span class="stat-label">{{ slide.stat.label }}</span>
+        </div>
+
+        <!-- VÉHICULES SVG -->
+        <div class="vehicle vehicle--car">
+          <svg viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="14" width="56" height="18" rx="4" fill="white" opacity="0.9"/>
+            <path d="M12 14 L20 4 H44 L52 14Z" fill="white" opacity="0.8"/>
+            <circle cx="16" cy="34" r="6" fill="#333"/>
+            <circle cx="16" cy="34" r="3" fill="#aaa"/>
+            <circle cx="48" cy="34" r="6" fill="#333"/>
+            <circle cx="48" cy="34" r="3" fill="#aaa"/>
+            <rect x="22" y="6" width="20" height="8" rx="2" fill="#87CEEB" opacity="0.7"/>
+          </svg>
+        </div>
+
+        <div class="vehicle vehicle--moto">
+          <svg viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10" cy="22" r="8" stroke="white" stroke-width="3" fill="none"/>
+            <circle cx="38" cy="22" r="8" stroke="white" stroke-width="3" fill="none"/>
+            <path d="M10 22 L20 10 L30 8 L40 14 L38 22" stroke="white" stroke-width="2.5" fill="none"/>
+            <path d="M22 10 L26 4 L32 4" stroke="white" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+
+        <div class="vehicle vehicle--truck">
+          <svg viewBox="0 0 72 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="10" width="48" height="26" rx="3" fill="white" opacity="0.9"/>
+            <rect x="50" y="18" width="20" height="18" rx="2" fill="white" opacity="0.8"/>
+            <rect x="52" y="20" width="10" height="8" rx="1" fill="#87CEEB" opacity="0.7"/>
+            <circle cx="14" cy="38" r="5" fill="#444"/>
+            <circle cx="14" cy="38" r="2.5" fill="#888"/>
+            <circle cx="36" cy="38" r="5" fill="#444"/>
+            <circle cx="36" cy="38" r="2.5" fill="#888"/>
+            <circle cx="60" cy="38" r="5" fill="#444"/>
+            <circle cx="60" cy="38" r="2.5" fill="#888"/>
+          </svg>
+        </div>
+
+        <!-- BADGES FLOTTANTS -->
+        <div class="float-badge float-badge--1">
+          <i class="bi bi-shield-check"></i> Certifié
+        </div>
+        <div class="float-badge float-badge--2">
+          <i class="bi bi-truck"></i> Express
+        </div>
+      </div>
+
+      <!-- CONTENU GAUCHE -->
+      <div class="slide__content">
+
+        <!-- TAG -->
+        <div class="slide-tag">{{ slide.tag }}</div>
+
+        <!-- BADGE -->
+        <div class="badge" [class.badge--promo]="slide.badgeType === 'promo'"
+             [class.badge--info]="slide.badgeType === 'info'"
+             [class.badge--urgent]="slide.badgeType === 'urgent'">
+          <span class="badge__dot"></span>
+          <span class="badge__text">{{ slide.badge }}</span>
+        </div>
+
+        <!-- URGENCY -->
+        <div class="urgency-bar">
+          <span class="urgency-icon">⚡</span>
+          <span>{{ slide.urgencyText }}</span>
+        </div>
+
+        <!-- TITRE -->
+        <h1 class="slide__title">{{ slide.string }}</h1>
+
+        <!-- SOUS-TITRE -->
+        <p class="slide__subtitle">{{ slide.subtitle }}</p>
+
+        <!-- FEATURES -->
+        <ul class="features-list">
+          <li
+            *ngFor="let feature of slide.features; let fi = index"
+            class="feature-item"
+            [style.animation-delay]="(0.6 + fi * 0.12) + 's'"
+          >
+            <span class="feature-check">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 7L5.5 10.5L12 3.5" stroke="white" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span>{{ feature }}</span>
+          </li>
+        </ul>
+
+        <!-- CTA -->
+        <div class="cta-group">
+          <a routerLink="/catalog/auto" class="btn btn--primary">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+            Voir les produits
+          </a>
+          <a routerLink="/catalog/auto" class="btn btn--secondary">
+            <i class="bi bi-lightning-charge-fill"></i>
+            Commander
+          </a>
+        </div>
+
+        <!-- COMPTEUR DE CONFIANCE -->
+        <div class="trust-strip">
+          <span><i class="bi bi-people-fill"></i> +2 000 clients</span>
+          <span class="sep">•</span>
+          <span><i class="bi bi-star-fill"></i> 4.9/5</span>
+          <span class="sep">•</span>
+          <span><i class="bi bi-award-fill"></i> Qualité garantie</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FLÈCHES -->
+  <button class="nav-arrow nav-arrow--prev" (click)="prevSlide()" aria-label="Slide précédent">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M13 4L7 10L13 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <button class="nav-arrow nav-arrow--next" (click)="nextSlide()" aria-label="Slide suivant">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M7 4L13 10L7 16" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <!-- COMPTEUR SLIDES -->
+  <div class="slide-counter">
+    <span class="counter-current">{{ getSlideNumber() }}</span>
+    <span class="counter-sep">/</span>
+    <span class="counter-total">{{ getTotalSlides() }}</span>
+  </div>
+
+  <!-- DOTS -->
+  <div class="dots-nav">
+    <button
+      *ngFor="let slide of slides; let i = index"
+      class="dot"
+      [class.dot--active]="i === currentIndex()"
+      (click)="goToSlide(i)"
+      [attr.aria-label]="'Aller au slide ' + (i + 1)"
+    ></button>
+  </div>
+
+  <!-- BARRE DE PROGRESSION -->
+  <div class="progress-bar">
+    <div class="progress-bar__fill" [class.progress-bar__fill--running]="isPlaying()"></div>
+  </div>
+
+  <!-- BOUTON PLAY/PAUSE -->
+  <button class="play-btn" (click)="isPlaying() ? stopAutoplay() : startAutoplay()" [title]="isPlaying() ? 'Pause' : 'Lecture'">
+    <i class="bi" [class.bi-pause-fill]="isPlaying()" [class.bi-play-fill]="!isPlaying()"></i>
+  </button>
+
+</section>

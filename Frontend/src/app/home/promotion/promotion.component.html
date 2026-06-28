@@ -1,0 +1,119 @@
+<section class="flash-sales">
+    <div class="container">
+  
+      <!-- HEADER -->
+      <div class="flash-header">
+        <div class="left">
+          <h2 class="flash-title">
+            <i class="bi bi-lightning-charge-fill flash-icon"></i>
+            Ventes Flash
+            <span class="limited-offer">
+              <i class="bi bi-clock"></i>
+              Offres limitées
+            </span>
+          </h2>
+          <p>Profitez d'offres exceptionnelles avec notre plateforme</p>
+        </div>
+  
+        <a class="see-all" routerLink="/catalog/auto">
+          Voir tout <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+  
+      <!-- LOADING -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3]">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- ERREUR -->
+      <div class="error-state" *ngIf="errorMessage && !isLoading">
+        <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+      </div>
+  
+      <!-- PRODUCTS -->
+      <div class="products" *ngIf="!isLoading && !errorMessage">
+  
+        <div
+          class="product-card"
+          *ngFor="let produit of produits; let i = index"
+        >
+          <!-- BADGE REDUCTION -->
+          <span class="discount">-{{ produit.discount }}%</span>
+  
+          <!-- BADGE EXPIRÉ -->
+          <span class="expired-badge" *ngIf="timers[i]?.expired">
+            <i class="bi bi-x-circle"></i> Expiré
+          </span>
+  
+          <!-- IMAGE -->
+          <div class="product-image">
+            <img
+              *ngIf="produit.image; else noImage"
+              [src]="produit.image"
+              [alt]="produit.nom"
+            >
+            <ng-template #noImage>
+              <div class="image-placeholder">
+                <i class="bi bi-gear-wide-connected"></i>
+              </div>
+            </ng-template>
+          </div>
+  
+          <!-- INFOS -->
+          <div class="product-info">
+  
+            <span class="categorie-tag">{{ produit.categorie }}</span>
+            <h6>{{ produit.nom }}</h6>
+  
+            <!-- PRIX -->
+            <div class="price">
+              <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
+              <span class="old-price">{{ produit.prixAncien | number:'1.2-2' }} FCFA</span>
+            </div>
+  
+            <!-- TIMER -->
+            <div class="timer" *ngIf="timers[i] && !timers[i].expired">
+              <i class="bi bi-clock"></i>
+              <span class="timer-unit">{{ timers[i].heures }}</span>h
+              <span class="timer-unit">{{ timers[i].minutes }}</span>m
+              <span class="timer-unit">{{ timers[i].secondes }}</span>s
+            </div>
+            <div class="timer expired-timer" *ngIf="timers[i]?.expired">
+              <i class="bi bi-clock-history"></i> Offre expirée
+            </div>
+  
+            <!-- BARRE DE STOCK -->
+            <div class="stock-info">
+              <span>{{ getStockVendu(produit) }} vendus sur {{ produit.stock }}</span>
+              <span class="stock-restant">{{ produit.stockRestant }} restants</span>
+            </div>
+            <div class="progress">
+              <div
+                class="progress-bar"
+                [style.width.%]="getProgressPercent(produit)"
+                [class.progress-danger]="produit.stockRestant <= 3"
+              ></div>
+            </div>
+  
+            <!-- BOUTON -->
+            <button 
+                class="btn-add"
+                [disabled]="produit.stockRestant === 0 || timers[i].expired"
+            >
+            <i class="bi bi-cart-plus"></i>
+                {{ produit.stockRestant === 0 ? 'Rupture' : 'Ajouter au panier' }}
+            </button>
+  
+          </div>
+        </div>
+  
+      </div>
+  
+    </div>
+  </section>

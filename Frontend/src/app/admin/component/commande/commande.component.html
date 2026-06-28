@@ -1,0 +1,255 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <app-header></app-header>
+
+  <main class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-cart-check-fill"></i>
+          Commandes
+        </div>
+        <h2>Gestion des Commandes</h2>
+        <p>Suivez et gérez toutes les commandes clients en temps réel</p>
+      </div>
+      <div class="header-right">
+        <div class="sync-badge">
+          <span class="sync-dot"></span>
+          Auto-sync 10s
+        </div>
+        <button class="btn-refresh" (click)="refreshCommandes()" [disabled]="loading">
+          <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+          Actualiser
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid fade-up delay-1">
+
+      <div class="stat-card stat-blue">
+        <div class="stat-glow"></div>
+        <div class="stat-icon"><i class="bi bi-cart-check-fill"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">{{ getStats().total }}</div>
+          <div class="stat-label">Total commandes</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-orange">
+        <div class="stat-glow"></div>
+        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">{{ getStats().enAttente }}</div>
+          <div class="stat-label">En attente</div>
+        </div>
+        <div class="stat-badge" *ngIf="getStats().enAttente > 0">
+          <i class="bi bi-exclamation-circle-fill"></i>
+        </div>
+      </div>
+
+      <div class="stat-card stat-indigo">
+        <div class="stat-glow"></div>
+        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">{{ getStats().validees }}</div>
+          <div class="stat-label">Validées</div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-green">
+        <div class="stat-glow"></div>
+        <div class="stat-icon"><i class="bi bi-truck-front-fill"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">{{ getStats().expediees }}</div>
+          <div class="stat-label">Expédiées</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar fade-up delay-2">
+      <div class="search-box" [class.focused]="searchFocused">
+        <i class="bi bi-search search-ic"></i>
+        <input
+          type="text"
+          placeholder="Rechercher par référence, client, montant..."
+          [(ngModel)]="searchTerm"
+          (input)="searchCommandes()"
+          (focus)="searchFocused = true"
+          (blur)="searchFocused = false"
+        >
+        <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; searchCommandes()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="toolbar-right">
+        <div class="filter-pills">
+          <button
+            class="fpill"
+            *ngFor="let s of ['all', 'en_attente', 'validee', 'expediee', 'livree', 'annulee']"
+            [class.active]="activeFilter === s"
+            (click)="setFilter(s)"
+          >
+            {{ getFilterLabel(s) }}
+            <span class="fpill-count" *ngIf="s !== 'all'">{{ getFilterCount(s) }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL TABLE -->
+    <div class="panel fade-up delay-3">
+
+      <!-- LOADING -->
+      <div class="loading-state" *ngIf="loading && commandes.length === 0">
+        <div class="spinner"></div>
+        <p>Chargement des commandes...</p>
+      </div>
+
+      <!-- ERREUR -->
+      <div class="error-state" *ngIf="error && !loading">
+        <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h4>Erreur de chargement</h4>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="loadCommandes()">
+          <i class="bi bi-arrow-clockwise"></i> Réessayer
+        </button>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap" *ngIf="!error">
+
+        <!-- HEADER -->
+        <div class="table-head">
+          <span class="th">Référence</span>
+          <span class="th">Date</span>
+          <span class="th">Client</span>
+          <span class="th text-right">Montant</span>
+          <span class="th">Statut</span>
+          <span class="th">Changer statut</span>
+        </div>
+
+        <!-- SKELETON -->
+        <div class="skeleton-rows" *ngIf="loading && commandes.length === 0">
+          <div class="sk-row" *ngFor="let i of [1,2,3,4,5]">
+            <div class="sk-ref"></div>
+            <div class="sk-line"></div>
+            <div class="sk-client"></div>
+            <div class="sk-line sm"></div>
+            <div class="sk-badge"></div>
+            <div class="sk-select"></div>
+          </div>
+        </div>
+
+        <!-- ROWS -->
+        <div
+          class="table-row"
+          *ngFor="let c of commandesFiltrees; let i = index; trackBy: trackByCommandeId"
+          [style.--i]="i"
+          [class.updating]="updatingId === c.id"
+        >
+
+          <!-- RÉFÉRENCE -->
+          <div class="td">
+            <span class="ref-badge">{{ c.reference || '#' + c.id }}</span>
+          </div>
+
+          <!-- DATE -->
+          <div class="td">
+            <span class="date-chip">
+              <i class="bi bi-calendar3"></i>
+              {{ formatDate(c.date_commande) }}
+            </span>
+          </div>
+
+          <!-- CLIENT -->
+          <div class="td">
+            <div class="client-cell">
+              <div class="client-av">{{ getClientInitials(c.client) }}</div>
+              <span>Client #{{ c.client }}</span>
+            </div>
+          </div>
+
+          <!-- MONTANT -->
+          <div class="td text-right">
+            <span class="montant-chip">{{ formatMontant(c.montant_total) }}</span>
+          </div>
+
+          <!-- STATUT -->
+          <div class="td">
+            <span class="status-badge" [ngClass]="getStatutClass(c.statut)">
+              <i class="bi" [ngClass]="getStatutIcon(c.statut)"></i>
+              {{ getStatutLabel(c.statut) }}
+            </span>
+          </div>
+
+          <!-- ACTION SELECT -->
+          <div class="td">
+            <div class="select-wrap">
+              <select
+                [value]="c.statut"
+                (change)="updateStatutCommande(c, $any($event.target).value)"
+                [disabled]="loading || updatingId === c.id"
+              >
+                <option *ngFor="let s of statutsPossibles" [value]="s.value">
+                  {{ s.label }}
+                </option>
+              </select>
+              <i class="bi bi-chevron-down sel-icon"></i>
+              <div class="sel-loading" *ngIf="updatingId === c.id">
+                <div class="mini-spinner"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div class="empty-state" *ngIf="!loading && commandesFiltrees.length === 0">
+          <div class="empty-icon"><i class="bi bi-cart-x"></i></div>
+          <h4>Aucune commande trouvée</h4>
+          <p *ngIf="searchTerm">Aucun résultat pour "{{ searchTerm }}"</p>
+          <p *ngIf="!searchTerm && activeFilter !== 'all'">Aucune commande avec ce statut.</p>
+          <p *ngIf="!searchTerm && activeFilter === 'all'">Aucune commande pour le moment.</p>
+        </div>
+
+      </div>
+
+      <!-- FOOTER TABLE -->
+      <div class="table-footer" *ngIf="commandesFiltrees.length > 0">
+        <span>{{ commandesFiltrees.length }} commande(s) affichée(s)</span>
+        <span class="tf-total">
+          Total : {{ getTotalMontant() }}
+        </span>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notif-stack">
+  <div
+    class="notif-toast"
+    *ngIf="notification"
+    [class.success]="notification.type === 'success'"
+    [class.error]="notification.type === 'error'"
+    [class.info]="notification.type === 'info'"
+  >
+    <i class="bi"
+      [class.bi-check-circle-fill]="notification.type === 'success'"
+      [class.bi-exclamation-circle-fill]="notification.type === 'error'"
+      [class.bi-info-circle-fill]="notification.type === 'info'"
+    ></i>
+    <span>{{ notification.message }}</span>
+    <button class="notif-close" (click)="notification = null">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+</div>

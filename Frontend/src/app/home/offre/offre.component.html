@@ -1,0 +1,148 @@
+<section class="offers">
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="offers-header">
+      <div>
+        <h2>Meilleures offres</h2>
+        <p>Découvrez nos produits sélectionnés avec les meilleurs prix</p>
+      </div>
+      <a class="see-all" routerLink="/catalog/auto">
+        Voir tout <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- SKELETON LOADING -->
+    <div class="offers-grid" *ngIf="isLoading">
+      <div class="product-card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    </div>
+
+    <!-- GRILLE PRODUITS -->
+    <div class="offers-grid" *ngIf="!isLoading && !errorMessage">
+
+      <div
+        class="product-card"
+        *ngFor="let produit of produits"
+        [class.out-of-stock]="produit.stock === 0"
+        routerLink="/produits"
+        [queryParams]="{ id: produit.id }"
+      >
+
+        <!-- IMAGE ZONE -->
+        <div class="product-image">
+
+          <!-- BADGES -->
+          <div class="badges-top">
+            <span
+              class="badge"
+              [class.badge-orange]="produit.badge.type === 'orange'"
+              [class.badge-green]="produit.badge.type === 'green'"
+              [class.badge-blue]="produit.badge.type === 'blue'"
+              *ngIf="produit.badge"
+            >
+              {{ produit.badge!.label }}
+            </span>
+            <span class="badge badge-red" *ngIf="produit.discount">
+              -{{ produit.discount }}%
+            </span>
+          </div>
+
+          <!-- RUPTURE -->
+          <div class="rupture-overlay" *ngIf="produit.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture de stock
+          </div>
+
+          <!-- STOCK FAIBLE -->
+          <div class="stock-faible" *ngIf="isStockFaible(produit)">
+            <i class="bi bi-fire"></i> Plus que {{ produit.stock }} en stock !
+          </div>
+
+          <!-- IMAGE ou PLACEHOLDER -->
+          <img
+            *ngIf="produit.image; else placeholder"
+            [src]="produit.image"
+            [alt]="produit.nom"
+          >
+          <ng-template #placeholder>
+            <div class="img-placeholder">
+              <i class="bi bi-gear-wide-connected"></i>
+            </div>
+          </ng-template>
+
+          <!-- BOUTON PANIER -->
+          <button
+            class="cart-btn"
+            [class.added]="produitAjoute === produit.id"
+            [disabled]="produit.stock === 0"
+            (click)="ajouterAuPanier(produit, $event)"
+          >
+            <i
+              class="fa-solid"
+              [class.fa-cart-shopping]="produitAjoute !== produit.id"
+              [class.fa-check]="produitAjoute === produit.id"
+            ></i>
+          </button>
+
+        </div>
+
+        <!-- INFOS PRODUIT -->
+        <div class="product-info">
+
+          <span class="brand">{{ produit.marque }}</span>
+          <h3>{{ produit.nom }}</h3>
+
+          <!-- ÉTOILES -->
+          <div class="rating">
+            <span class="stars">
+              <i
+                *ngFor="let i of getEtoiles(produit.note)"
+                class="fa-star"
+                [class.fa-solid]="isEtoilePleine(i, produit.note)"
+                [class.fa-regular]="!isEtoilePleine(i, produit.note) && !isEtoileDemi(i, produit.note)"
+                [class.fa-duotone]="isEtoileDemi(i, produit.note)"
+              ></i>
+            </span>
+            <span class="note-val">{{ produit.note }}</span>
+            <span class="avis-count">({{ produit.avis }} avis)</span>
+          </div>
+
+          <!-- PRIX -->
+          <div class="price">
+            <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <span class="old-price" *ngIf="produit.prixAncien">
+              {{ produit.prixAncien | number:'1.2-2' }} FCFA
+            </span>
+          </div>
+
+          <!-- LIVRAISON -->
+          <p class="delivery" *ngIf="produit.livraison">
+            <i class="bi bi-truck"></i> Livraison gratuite
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && produits.length === 0">
+      <i class="bi bi-box-seam"></i>
+      <p>Aucune offre disponible pour le moment.</p>
+    </div>
+
+  </div>
+</section>

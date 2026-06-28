@@ -1,0 +1,363 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <div class="main">
+    <app-header></app-header>
+
+    <div class="content">
+
+      <!-- NOTIFICATION -->
+      <div class="notif-toast"
+        *ngIf="message"
+        [class.success]="messageType === 'success'"
+        [class.error]="messageType === 'error'"
+        (click)="message = ''"
+      >
+        <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
+        <span>{{ message }}</span>
+        <i class="bi bi-x notif-x"></i>
+      </div>
+
+      <!-- PAGE HEADER -->
+      <div class="page-header fade-up">
+        <div class="page-title">
+          <div class="page-tag">
+            <i class="bi bi-truck-front-fill"></i>
+            Logistique
+          </div>
+          <h2>Gestion des Livraisons</h2>
+          <p>Suivez et gérez toutes les livraisons en temps réel</p>
+        </div>
+        <div class="header-stats">
+          <div class="hs-item">
+            <span class="hs-val">{{ getStats().total }}</span>
+            <span class="hs-lbl">Total</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-blue">{{ getStats().enCours }}</span>
+            <span class="hs-lbl">En cours</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-green">{{ getStats().livrees }}</span>
+            <span class="hs-lbl">Livrées</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-red">{{ getStats().annulees }}</span>
+            <span class="hs-lbl">Annulées</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS CARDS -->
+      <div class="stats-grid fade-up delay-1">
+
+        <div class="stat-card stat-yellow">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-box-seam-fill"></i></div>
+          <div class="stat-body">
+            <div class="stat-value">{{ getStats().enPreparation }}</div>
+            <div class="stat-label">En préparation</div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-blue">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-truck-front-fill"></i></div>
+          <div class="stat-body">
+            <div class="stat-value">{{ getStats().enCours }}</div>
+            <div class="stat-label">En cours de livraison</div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-green">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+          <div class="stat-body">
+            <div class="stat-value">{{ getStats().livrees }}</div>
+            <div class="stat-label">Livrées</div>
+          </div>
+        </div>
+
+        <div class="stat-card stat-red">
+          <div class="stat-glow"></div>
+          <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+          <div class="stat-body">
+            <div class="stat-value">{{ getStats().annulees }}</div>
+            <div class="stat-label">Annulées</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PANEL -->
+      <div class="panel fade-up delay-2">
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="search-box" [class.focused]="searchFocused">
+            <i class="bi bi-search search-ic"></i>
+            <input
+              type="text"
+              placeholder="Rechercher par client, commande, adresse..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()"
+              (focus)="searchFocused = true"
+              (blur)="searchFocused = false"
+            >
+            <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; onSearch()">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+
+          <div class="toolbar-actions">
+            <!-- FILTER PILLS -->
+            <div class="filter-pills">
+              <button class="fpill" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
+                Toutes <span class="fpill-count">{{ livraisons.length }}</span>
+              </button>
+              <button class="fpill" [class.active]="activeFilter === 'en_preparation'" (click)="setFilter('en_preparation')">
+                Préparation <span class="fpill-count">{{ getFilterCount('en_preparation') }}</span>
+              </button>
+              <button class="fpill" [class.active]="activeFilter === 'en_cours'" (click)="setFilter('en_cours')">
+                En cours <span class="fpill-count">{{ getFilterCount('en_cours') }}</span>
+              </button>
+              <button class="fpill" [class.active]="activeFilter === 'livree'" (click)="setFilter('livree')">
+                Livrées <span class="fpill-count">{{ getFilterCount('livree') }}</span>
+              </button>
+              <button class="fpill" [class.active]="activeFilter === 'annulee'" (click)="setFilter('annulee')">
+                Annulées <span class="fpill-count">{{ getFilterCount('annulee') }}</span>
+              </button>
+            </div>
+
+            <button class="btn-add" (click)="openAddModal()">
+              <i class="bi bi-plus-lg"></i> Nouvelle livraison
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLE HEADER -->
+        <div class="table-head">
+          <span class="th">ID</span>
+          <span class="th">Commande</span>
+          <span class="th">Client</span>
+          <span class="th">Adresse</span>
+          <span class="th">Statut</span>
+          <span class="th">Transporteur</span>
+          <span class="th">Date</span>
+          <span class="th">Actions</span>
+        </div>
+
+        <!-- TABLE BODY -->
+        <div class="table-body">
+
+          <div
+            class="table-row"
+            *ngFor="let l of livraisonsFiltrees; let i = index"
+            [style.--i]="i"
+          >
+            <!-- ID -->
+            <div class="td">
+              <span class="id-chip">#{{ l.id }}</span>
+            </div>
+
+            <!-- COMMANDE -->
+            <div class="td">
+              <span class="cmd-chip">
+                <i class="bi bi-cart-check"></i>
+                {{ l.commandeId }}
+              </span>
+            </div>
+
+            <!-- CLIENT -->
+            <div class="td">
+              <div class="client-cell">
+                <div class="client-av">{{ l.client.substring(0,2).toUpperCase() }}</div>
+                <span>{{ l.client }}</span>
+              </div>
+            </div>
+
+            <!-- ADRESSE -->
+            <div class="td">
+              <span class="adresse-text">
+                <i class="bi bi-geo-alt-fill"></i>
+                {{ l.adresse }}
+              </span>
+            </div>
+
+            <!-- STATUT -->
+            <div class="td">
+              <span class="status-badge"
+                [class.en-preparation]="l.statut === 'en_preparation'"
+                [class.en-cours]="l.statut === 'en_cours'"
+                [class.livree]="l.statut === 'livree'"
+                [class.annulee]="l.statut === 'annulee'"
+              >
+                <i class="bi {{ getStatutIcon(l.statut) }}"></i>
+                {{ getStatutLabel(l.statut) }}
+              </span>
+            </div>
+
+            <!-- TRANSPORTEUR -->
+            <div class="td">
+              <span class="transport-chip" *ngIf="l.transporteur">
+                <i class="bi bi-truck"></i>
+                {{ l.transporteur }}
+              </span>
+              <span class="no-data" *ngIf="!l.transporteur">—</span>
+            </div>
+
+            <!-- DATE -->
+            <div class="td">
+              <span class="date-chip">
+                <i class="bi bi-calendar3"></i>
+                {{ formatDate(l.dateLivraison || l.dateCreation) }}
+              </span>
+            </div>
+
+            <!-- ACTIONS DROPDOWN -->
+            <div class="td actions-td" (click)="$event.stopPropagation()">
+              <button class="btn-actions" (click)="toggleMenu(l.id); $event.stopPropagation()">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <div class="dropdown-menu" [class.show]="activeMenu === l.id" *ngIf="activeMenu === l.id">
+                <button class="dropdown-item" (click)="openEditModal(l)">
+                  <i class="bi bi-pencil-fill"></i> Modifier
+                </button>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item delete" (click)="openDeleteModal(l)">
+                  <i class="bi bi-trash-fill"></i> Supprimer
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- EMPTY STATE -->
+          <div class="empty-state" *ngIf="livraisonsFiltrees.length === 0">
+            <div class="empty-icon"><i class="bi bi-truck"></i></div>
+            <h4>Aucune livraison trouvée</h4>
+            <p>{{ searchQuery ? 'Modifiez votre recherche.' : 'Aucune livraison pour ce statut.' }}</p>
+            <button class="btn-add" (click)="openAddModal()">
+              <i class="bi bi-plus-lg"></i> Créer une livraison
+            </button>
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="table-footer" *ngIf="livraisonsFiltrees.length > 0">
+          <span>{{ livraisonsFiltrees.length }} livraison(s) affichée(s)</span>
+          <span class="tf-right">
+            <i class="bi bi-check2-circle text-green"></i> {{ getStats().livrees }} livrées ce mois
+          </span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL AJOUTER / MODIFIER ══ -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon-wrap" [class.edit-mode]="isEditing">
+          <i class="bi" [class.bi-plus-lg]="!isEditing" [class.bi-pencil-fill]="isEditing"></i>
+        </div>
+        <div>
+          <h3>{{ isEditing ? 'Modifier la livraison' : 'Nouvelle livraison' }}</h3>
+          <small>{{ isEditing ? 'Modifiez les informations ci-dessous' : 'Remplissez les champs requis' }}</small>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveLivraison()">
+
+        <!-- COMMANDE + CLIENT -->
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="bi bi-cart-check"></i> N° Commande *</label>
+            <input type="text" [(ngModel)]="livraisonForm.commandeId" name="commandeId" placeholder="CMD-001" required>
+          </div>
+          <div class="form-group">
+            <label><i class="bi bi-person"></i> Client *</label>
+            <input type="text" [(ngModel)]="livraisonForm.client" name="client" placeholder="Nom du client" required>
+          </div>
+        </div>
+
+        <!-- ADRESSE -->
+        <div class="form-group">
+          <label><i class="bi bi-geo-alt"></i> Adresse de livraison</label>
+          <textarea [(ngModel)]="livraisonForm.adresse" name="adresse" rows="2" placeholder="Adresse complète..."></textarea>
+        </div>
+
+        <!-- STATUT + TRANSPORTEUR -->
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="bi bi-tag"></i> Statut</label>
+            <select [(ngModel)]="livraisonForm.statut" name="statut">
+              <option *ngFor="let s of statutsPossibles" [value]="s.value">{{ s.label }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="bi bi-truck"></i> Transporteur</label>
+            <input type="text" [(ngModel)]="livraisonForm.transporteur" name="transporteur" placeholder="Ex: DHL, Chronopost...">
+          </div>
+        </div>
+
+        <!-- TRACKING -->
+        <div class="form-group">
+          <label><i class="bi bi-qr-code"></i> Numéro de tracking</label>
+          <input type="text" [(ngModel)]="livraisonForm.tracking" name="tracking" placeholder="Ex: DHL123456789">
+        </div>
+
+        <!-- DATE LIVRAISON -->
+        <div class="form-group" *ngIf="livraisonForm.statut === 'livree'">
+          <label><i class="bi bi-calendar-check"></i> Date de livraison effective</label>
+          <input type="date" [(ngModel)]="livraisonForm.dateLivraison" name="dateLivraison">
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+          <button type="button" class="mf-btn cancel" (click)="closeModal()">
+            <i class="bi bi-x"></i> Annuler
+          </button>
+          <button type="submit" class="mf-btn save">
+            <i class="bi" [class.bi-plus-lg]="!isEditing" [class.bi-check-lg]="isEditing"></i>
+            {{ isEditing ? 'Mettre à jour' : 'Créer la livraison' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SUPPRESSION ══ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+    <div class="delete-icon-wrap">
+      <i class="bi bi-trash-fill"></i>
+    </div>
+    <div class="modal-head center">
+      <h3>Supprimer la livraison</h3>
+    </div>
+    <div class="modal-body text-center">
+      <p>Voulez-vous supprimer la livraison de la commande <strong>{{ livraisonToDelete?.commandeId }}</strong> pour <strong>{{ livraisonToDelete?.client }}</strong> ?</p>
+      <p class="warning-note">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Cette action est irréversible.
+      </p>
+    </div>
+    <div class="modal-foot center">
+      <button class="mf-btn cancel" (click)="closeDeleteModal()"><i class="bi bi-x"></i> Annuler</button>
+      <button class="mf-btn danger" (click)="confirmDelete()">
+        <i class="bi bi-trash-fill"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

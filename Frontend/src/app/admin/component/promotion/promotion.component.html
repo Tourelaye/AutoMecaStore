@@ -1,0 +1,136 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <div class="main">
+    <app-header></app-header>
+
+    <div class="content">
+      <!-- MESSAGE -->
+      <div class="notification" *ngIf="message" [class.success]="messageType === 'success'" [class.error]="messageType === 'error'">
+        <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
+        {{ message }}
+      </div>
+
+      <!-- EN-TÊTE -->
+      <div class="page-header">
+        <div>
+          <h2>Promotions & Codes</h2>
+          <p>Gérez vos codes promo et réductions</p>
+        </div>
+      </div>
+
+      <!-- PANEL -->
+      <div class="panel">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Rechercher un code..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" />
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn-filter" (click)="onSearch()">
+              <i class="bi bi-funnel"></i> Rechercher
+            </button>
+            <button class="btn-add" (click)="openAddModal()">
+              <i class="bi bi-plus-lg"></i> Nouveau code
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table">
+          <div class="table-header">
+            <span>Nom</span>
+            <span>Code</span>
+            <span>Réduction</span>
+            <span>Période</span>
+            <span>Utilisations</span>
+            <span>Statut</span>
+            <span>Actions</span>
+          </div>
+
+          <div class="table-row" *ngFor="let promo of promotions">
+            <span class="nom">{{ promo.nom }}</span>
+            <span class="code">{{ promo.code }}</span>
+            <span class="reduction">{{ getReductionLabel(promo) }}</span>
+            <span class="periode">{{ promo.dateDebut | date:'dd/MM' }} - {{ promo.dateFin | date:'dd/MM/yy' }}</span>
+            <span class="utilisations">{{ promo.utilisations }}</span>
+            <span>
+              <span class="badge" [class.active]="promo.statut === 'active'" [class.expiree]="promo.statut === 'expiree'" [class.desactivee]="promo.statut === 'desactivee'">
+                {{ promo.statut === 'active' ? 'Active' : promo.statut === 'expiree' ? 'Expirée' : 'Désactivée' }}
+              </span>
+            </span>
+            <span class="actions">
+              <i class="bi bi-three-dots-vertical"></i>
+            </span>
+          </div>
+
+          <div *ngIf="promotions.length === 0" class="empty-state">
+            <i class="bi bi-tag"></i>
+            <p>Aucune promotion active</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Modifier la promotion' : 'Nouvelle promotion' }}</h3>
+      <button class="btn-close" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="savePromotion()">
+        <div class="form-group">
+          <label>Nom de la promotion *</label>
+          <input type="text" [(ngModel)]="promotionForm.nom" name="nom" placeholder="Ex: Soldes d'hiver" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Code promo *</label>
+            <input type="text" [(ngModel)]="promotionForm.code" name="code" placeholder="Ex: HIVER24" required />
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select [(ngModel)]="promotionForm.type" name="type">
+              <option value="pourcentage">Pourcentage (%)</option>
+              <option value="montant">Montant (€)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Réduction *</label>
+          <input type="number" [(ngModel)]="promotionForm.reduction" name="reduction" placeholder="Ex: 20" min="0" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date début</label>
+            <input type="date" [(ngModel)]="promotionForm.dateDebut" name="dateDebut" />
+          </div>
+          <div class="form-group">
+            <label>Date fin</label>
+            <input type="date" [(ngModel)]="promotionForm.dateFin" name="dateFin" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Statut</label>
+          <select [(ngModel)]="promotionForm.statut" name="statut">
+            <option value="active">Active</option>
+            <option value="desactivee">Désactivée</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-save">
+            <i class="bi bi-check-lg"></i> {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

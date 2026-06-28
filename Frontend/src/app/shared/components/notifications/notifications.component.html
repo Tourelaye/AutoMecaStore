@@ -1,0 +1,23 @@
+<div class="notifications-container" *ngIf="notifications$ | async as notifications">
+  <div 
+    *ngFor="let notification of notifications" 
+    class="notification"
+    [class]="getNotificationClass(notification.type)"
+    [@fadeInOut]
+  >
+    <div class="notification-content">
+      <span class="notification-icon">{{ getNotificationIcon(notification.type) }}</span>
+      <div class="notification-text">
+        <div class="notification-title">{{ notification.title }}</div>
+        <div class="notification-message">{{ notification.message }}</div>
+      </div>
+      <button 
+        class="notification-close" 
+        (click)="removeNotification(notification.id)"
+        aria-label="Fermer"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+</div>

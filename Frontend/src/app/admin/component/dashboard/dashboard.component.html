@@ -1,0 +1,416 @@
+<app-sidebar></app-sidebar>
+
+<div class="dashboard-layout">
+  <div class="dashboard-main">
+    <app-header></app-header>
+
+    <div class="dashboard-content">
+
+      <!-- ══ WELCOME HEADER ══ -->
+      <div class="welcome-header fade-up">
+        <div class="welcome-text">
+          <div class="welcome-tag">
+            <span class="status-dot"></span>
+            Système opérationnel
+            <span class="live-indicator">
+              <span class="live-dot"></span>
+              Live
+            </span>
+          </div>
+          <h1>Bonjour, <span class="name-gradient">{{ adminName }}</span> 👋</h1>
+          <p>{{ currentDate }} — Vue d'ensemble du tableau de bord</p>
+        </div>
+        <div class="welcome-actions">
+          <div class="date-range-selector">
+            <button *ngFor="let option of dateRangeOptions"
+                    class="date-range-btn"
+                    [class.active]="selectedDateRange === option.value"
+                    (click)="onDateRangeChange(option.value)">
+              {{ option.label }}
+            </button>
+          </div>
+          <button class="btn-refresh" (click)="loadDashboardData()" [disabled]="loading">
+            <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+            Actualiser
+          </button>
+          <button class="btn-export">
+            <i class="bi bi-download"></i>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ ERROR MESSAGE ══ -->
+      <div *ngIf="error" class="error-message fade-in">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ error }}
+        <button class="btn-close-error" (click)="error = ''">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- ══ STATS CARDS ══ -->
+      <div class="stats-row">
+
+        <div class="stat-card fade-up delay-1">
+          <div class="stat-glow glow-blue"></div>
+          <div class="stat-header">
+            <span class="stat-label">Chiffre d'affaires</span>
+            <div class="stat-icon icon-blue"><i class="bi bi-graph-up-arrow"></i></div>
+          </div>
+          <div class="stat-value" *ngIf="!loading">{{ totalRevenue | number:'1.0-0' }} <span class="stat-unit">FCFA</span></div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-change up"><i class="bi bi-arrow-up-right"></i> +12.5% ce mois</div>
+          <div class="stat-sparkline">
+            <div class="sparkline-bar" *ngFor="let h of sparkRevenue" [style.height]="h + '%'"></div>
+          </div>
+        </div>
+
+        <div class="stat-card fade-up delay-2">
+          <div class="stat-glow glow-green"></div>
+          <div class="stat-header">
+            <span class="stat-label">Commandes</span>
+            <div class="stat-icon icon-green"><i class="bi bi-cart-check-fill"></i></div>
+          </div>
+          <div class="stat-value" *ngIf="!loading">{{ totalOrders }}</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-change up"><i class="bi bi-arrow-up-right"></i> +4% cette semaine</div>
+          <div class="stat-sparkline">
+            <div class="sparkline-bar green" *ngFor="let h of sparkOrders" [style.height]="h + '%'"></div>
+          </div>
+        </div>
+
+        <div class="stat-card fade-up delay-3">
+          <div class="stat-glow glow-purple"></div>
+          <div class="stat-header">
+            <span class="stat-label">Produits</span>
+            <div class="stat-icon icon-purple"><i class="bi bi-box-seam-fill"></i></div>
+          </div>
+          <div class="stat-value" *ngIf="!loading">{{ totalProducts }}</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-change up"><i class="bi bi-arrow-up-right"></i> +18% ce mois</div>
+          <div class="stat-sparkline">
+            <div class="sparkline-bar purple" *ngFor="let h of sparkProducts" [style.height]="h + '%'"></div>
+          </div>
+        </div>
+
+        <div class="stat-card critical fade-up delay-4">
+          <div class="stat-glow glow-red"></div>
+          <div class="stat-header">
+            <span class="stat-label">Stock Critique</span>
+            <div class="stat-icon icon-red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          </div>
+          <div class="stat-value danger" *ngIf="!loading">{{ lowStockCount }}</div>
+          <div class="stat-skeleton" *ngIf="loading"></div>
+          <div class="stat-subtitle"><i class="bi bi-fire"></i> Pièces à réapprovisionner</div>
+        </div>
+
+      </div>
+
+      <!-- ══ KPI MINI BAND ══ -->
+      <div class="kpi-band fade-up delay-2">
+        <div class="kpi-item" *ngFor="let k of kpis">
+          <div class="kpi-icon" [style.background]="k.bg" [style.color]="k.color">
+            <i class="bi {{ k.icon }}"></i>
+          </div>
+          <div class="kpi-body">
+            <strong>{{ k.value }}</strong>
+            <span>{{ k.label }}</span>
+          </div>
+          <div class="kpi-trend" [class.up]="k.trend > 0" [class.down]="k.trend < 0">
+            <i class="bi" [class.bi-arrow-up]="k.trend > 0" [class.bi-arrow-down]="k.trend < 0" [class.bi-dash]="k.trend === 0"></i>
+            {{ k.trend > 0 ? '+' : '' }}{{ k.trend }}%
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SECTION PRINCIPALE ══ -->
+      <div class="middle-section">
+
+        <!-- GRAPHIQUE VENTES -->
+        <div class="chart-card fade-up delay-2">
+          <div class="card-header">
+            <div>
+              <h3>Évolution des Ventes</h3>
+              <small>Ventes réelles vs objectifs hebdomadaires</small>
+            </div>
+            <select class="filter-dropdown">
+              <option>7 derniers jours</option>
+              <option>30 derniers jours</option>
+              <option>Ce mois</option>
+            </select>
+          </div>
+
+          <div class="chart-container">
+            <div class="sales-chart">
+              <div class="grid-lines">
+                <div class="grid-line" *ngFor="let i of [1,2,3,4,5]"></div>
+              </div>
+              <div class="bars-container">
+                <div class="bar-group" *ngFor="let bar of chartBars; let i = index" [style.--i]="i">
+                  <div class="bar-tooltip">{{ bar.value }}</div>
+                  <div class="bar-wrapper">
+                    <div class="bar-real"   [style.height]="bar.real   + '%'"></div>
+                    <div class="bar-target" [style.height]="bar.target + '%'"></div>
+                  </div>
+                  <span class="bar-label">{{ bar.label }}</span>
+                </div>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item"><span class="legend-dot real"></span> Ventes réelles</div>
+                <div class="legend-item"><span class="legend-dot target"></span> Objectif</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-summary">
+            <div class="cs-item"><span>Total semaine</span><strong>45.0k FCFA</strong></div>
+            <div class="cs-item"><span>Meilleur jour</span><strong>Jeudi — 9.1k</strong></div>
+            <div class="cs-item"><span>Performance</span><strong class="text-green">+7.2% ↑</strong></div>
+          </div>
+        </div>
+
+        <!-- ALERTES STOCK -->
+        <div class="widget-card alerts fade-up delay-3">
+          <div class="card-header">
+            <div>
+              <h3>Alertes stock</h3>
+              <small>Produits à réapprovisionner</small>
+            </div>
+            <span class="alert-count-badge">{{ lowStockProducts.length }}</span>
+          </div>
+
+          <div class="alert-skeleton-list" *ngIf="loading">
+            <div class="alert-skeleton" *ngFor="let i of [1,2,3]"></div>
+          </div>
+
+          <div class="alert-list-container" *ngIf="!loading">
+            <div class="alert-list">
+              <div class="alert-item critical" *ngFor="let p of lowStockProducts; let i = index" [style.--i]="i">
+                <div class="alert-icon-wrap"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div class="alert-info">
+                  <span class="alert-name">{{ p.nom }}</span>
+                  <div class="alert-stock-bar">
+                    <div class="stock-bar-bg">
+                      <div class="stock-bar-fill" [style.width]="getStockPct(p) + '%'"></div>
+                    </div>
+                    <span class="alert-stock-count">{{ p.stock }} unités</span>
+                  </div>
+                </div>
+                <span class="alert-badge red">Critique</span>
+              </div>
+              <div class="empty-alerts" *ngIf="lowStockProducts.length === 0">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Tous les stocks sont OK</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget-footer">
+            <button class="btn-voir-tout">
+              Voir toutes les alertes <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ ACTIVITÉ RÉCENTE + TOP PRODUITS ══ -->
+      <div class="bottom-section">
+
+        <!-- ACTIVITÉ RÉCENTE -->
+        <div class="activity-card fade-up delay-3">
+          <div class="card-header">
+            <div>
+              <h3>Activité récente</h3>
+              <small>Dernières actions sur la plateforme</small>
+            </div>
+            <div class="live-badge">
+              <span class="live-dot"></span> En direct
+            </div>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item" *ngFor="let a of activities; let i = index" [style.--i]="i">
+              <div class="act-icon" [style.background]="a.bg" [style.color]="a.color">
+                <i class="bi {{ a.icon }}"></i>
+              </div>
+              <div class="act-body">
+                <p>{{ a.message }}</p>
+                <span>{{ a.time }}</span>
+              </div>
+              <div class="act-dot" [style.background]="a.color"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP PRODUITS -->
+        <div class="top-products-card fade-up delay-4">
+          <div class="card-header">
+            <div>
+              <h3>Top Produits</h3>
+              <small>Les plus vendus ce mois</small>
+            </div>
+            <span class="tp-badge">Ce mois</span>
+          </div>
+
+          <div class="top-products-list">
+            <div class="tp-item" *ngFor="let p of topProducts; let i = index" [style.--i]="i">
+              <div class="tp-rank" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">
+                {{ i + 1 }}
+              </div>
+              <div class="tp-icon"><i class="bi {{ p.icon }}"></i></div>
+              <div class="tp-info">
+                <strong>{{ p.nom }}</strong>
+                <span>{{ p.categorie }}</span>
+              </div>
+              <div class="tp-stats">
+                <div class="tp-bar-bg">
+                  <div class="tp-bar-fill" [style.width]="p.pct + '%'" [style.background]="p.color"></div>
+                </div>
+                <span class="tp-sales">{{ p.ventes }} ventes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RÉPARTITION STATUTS ══ -->
+        <div class="status-card fade-up delay-4">
+          <div class="card-header">
+            <div>
+              <h3>Statuts Commandes</h3>
+              <small>Répartition actuelle</small>
+            </div>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut-chart">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="12"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="12"
+                  [attr.stroke-dasharray]="getArc(getStats().enAttente, getStats().total) + ' 251'"
+                  [attr.stroke-dashoffset]="0" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#60a5fa" stroke-width="12"
+                  [attr.stroke-dasharray]="getArc(getStats().validees, getStats().total) + ' 251'"
+                  [attr.stroke-dashoffset]="-getArc(getStats().enAttente, getStats().total)" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#4ade80" stroke-width="12"
+                  [attr.stroke-dasharray]="getArc(getStats().expediees, getStats().total) + ' 251'"
+                  [attr.stroke-dashoffset]="-(getArc(getStats().enAttente, getStats().total) + getArc(getStats().validees, getStats().total))" transform="rotate(-90 50 50)"/>
+                <text x="50" y="47" text-anchor="middle" fill="#f1f5f9" font-size="14" font-weight="800">{{ getStats().total }}</text>
+                <text x="50" y="59" text-anchor="middle" fill="#475569" font-size="7">total</text>
+              </svg>
+            </div>
+            <div class="donut-legend">
+              <div class="dl-item">
+                <span class="dl-dot" style="background:#f59e0b"></span>
+                <span>En attente</span>
+                <strong>{{ getStats().enAttente }}</strong>
+              </div>
+              <div class="dl-item">
+                <span class="dl-dot" style="background:#60a5fa"></span>
+                <span>Validées</span>
+                <strong>{{ getStats().validees }}</strong>
+              </div>
+              <div class="dl-item">
+                <span class="dl-dot" style="background:#4ade80"></span>
+                <span>Expédiées</span>
+                <strong>{{ getStats().expediees }}</strong>
+              </div>
+              <div class="dl-item">
+                <span class="dl-dot" style="background:#f87171"></span>
+                <span>Annulées</span>
+                <strong>{{ getStats().annulees }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ TABLE COMMANDES RÉCENTES ══ -->
+      <div class="table-card fade-up delay-4">
+        <div class="card-header">
+          <div>
+            <h3>Commandes récentes</h3>
+            <small>{{ recentOrders.length }} commandes affichées</small>
+          </div>
+          <button class="btn-view-all" routerLink="/admin/commandes">
+            Tout voir <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="table-skeleton" *ngIf="loading">
+          <div class="ts-row" *ngFor="let i of [1,2,3,4,5]">
+            <div class="ts-cell w-sm"></div>
+            <div class="ts-cell w-lg"></div>
+            <div class="ts-cell w-md"></div>
+            <div class="ts-cell w-sm"></div>
+            <div class="ts-cell w-xs"></div>
+          </div>
+        </div>
+
+        <div class="table-container" *ngIf="!loading">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Client</th>
+                <th>Produits</th>
+                <th>Total</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of recentOrders; let i = index" [style.--i]="i">
+                <td class="order-id">#ORD-{{ order.id }}</td>
+                <td class="customer-cell">
+                  <div class="avatar">{{ order.client?.substring(0,2)?.toUpperCase() || 'NA' }}</div>
+                  <span>{{ order.client || 'Client inconnu' }}</span>
+                </td>
+                <td class="prod-count">
+                  <i class="bi bi-box-seam"></i> {{ order.produits?.length || 0 }} produit(s)
+                </td>
+                <td class="total-cell">{{ order.total | number:'1.2-2' }} FCFA</td>
+                <td>
+                  <span class="status" [ngClass]="getStatutClass(order.statut)">
+                    {{ getStatutLabel(order.statut) }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <div class="dropdown-wrapper">
+                    <button class="btn-action" (click)="toggleOrderMenu(order.id)" [class.active]="activeOrderMenu === order.id">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <div class="dropdown-menu" [class.show]="activeOrderMenu === order.id">
+                      <button class="dropdown-item" (click)="viewOrderDetails(order)">
+                        <i class="bi bi-eye"></i> Voir détails
+                      </button>
+                      <button class="dropdown-item" (click)="updateOrderStatus(order)">
+                        <i class="bi bi-pencil"></i> Modifier statut
+                      </button>
+                      <button class="dropdown-item" (click)="printInvoice(order)">
+                        <i class="bi bi-printer"></i> Imprimer facture
+                      </button>
+                      <div class="dropdown-divider"></div>
+                      <button class="dropdown-item danger" (click)="deleteOrder(order)">
+                        <i class="bi bi-trash"></i> Supprimer
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr class="empty-row" *ngIf="recentOrders.length === 0 && !loading">
+                <td colspan="6">
+                  <div class="empty-table">
+                    <i class="bi bi-inbox"></i><span>Aucune commande récente</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
