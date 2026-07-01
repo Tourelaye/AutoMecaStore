@@ -1,0 +1,146 @@
+<div class="dashboard-container">
+  <div class="page-header">
+    <h1>Tableau de bord</h1>
+    <p class="page-subtitle">Vue d ensemble de votre activite fournisseur</p>
+  </div>
+
+  <!-- Statistiques Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon">
+        <i class="bi bi-box-seam"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{stats.totalProduits}}</h3>
+        <p>Produits</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-success">
+      <div class="stat-icon">
+        <i class="bi bi-receipt"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{stats.totalCommandes}}</h3>
+        <p>Commandes</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+      <div class="stat-icon">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{stats.produitsRupture}}</h3>
+        <p>En rupture</p>
+      </div>
+    </div>
+
+    <div class="stat-card stat-info">
+      <div class="stat-icon">
+        <i class="bi bi-currency-euro"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{stats.chiffreAffaires | number:'1.0-0'}}</h3>
+        <p>Chiffre d affaires (€)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tables Section -->
+  <div class="tables-section">
+    <!-- Recent Orders -->
+    <div class="table-card">
+      <div class="card-header">
+        <h3>Dernieres commandes</h3>
+        <a routerLink="/fournisseur/commandes" class="btn-link">Voir tout</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID Commande</th>
+              <th>Client</th>
+              <th>Date</th>
+              <th>Montant</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let order of recentOrders">
+              <td><a routerLink="/fournisseur/commandes/{{order.id}}" class="order-link">{{order.id}}</a></td>
+              <td>{{order.client}}</td>
+              <td>{{order.date | date:'dd/MM/yyyy'}}</td>
+              <td>{{order.montant | number:'1.0-0'}} €</td>
+              <td><span class="badge {{getStatutClass(order.statut)}}">{{order.statut}}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Low Stock Products -->
+    <div class="table-card">
+      <div class="card-header">
+        <h3>Produits en rupture de stock</h3>
+        <a routerLink="/fournisseur/produits" class="btn-link">Voir tout</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Categorie</th>
+              <th>Stock</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of lowStockProducts">
+              <td>{{product.nom}}</td>
+              <td>{{product.categorie}}</td>
+              <td><span class="stock-warning">{{product.stock}}</span></td>
+              <td>
+                <button class="btn-sm btn-primary">Reapprovisionner</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Selling Products -->
+  <div class="top-products-section">
+    <div class="table-card">
+      <div class="card-header">
+        <h3>Produits les plus vendus</h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Ventes</th>
+              <th>Revenus</th>
+              <th>Tendance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of topSellingProducts">
+              <td>{{product.nom}}</td>
+              <td>{{product.ventes}}</td>
+              <td>{{product.revenus | number:'1.0-0'}} €</td>
+              <td>
+                <span class="trend-up">
+                  <i class="bi bi-arrow-up"></i>
+                  +{{getRandomTrend()}}%
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

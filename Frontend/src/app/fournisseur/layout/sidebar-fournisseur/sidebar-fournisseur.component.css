@@ -1,0 +1,351 @@
+/* =============================================
+   AutoMecaStore – Sidebar Fournisseur
+   Thème : vert foncé #0d2818 → #1a3d25
+   ============================================= */
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 260px;
+  background: linear-gradient(180deg, #0d2818 0%, #0f3020 40%, #0d2818 100%);
+  color: #c8e6c9;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 68px;
+}
+
+/* ---- HEADER / LOGO ---- */
+.sidebar-header {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: #1db954;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+
+.logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.logo-auto  { color: #ffffff; }
+.logo-meca  { color: #1db954; }
+.logo-store { color: #ffffff; }
+
+/* ---- PROFIL FOURNISSEUR ---- */
+.fournisseur-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.profile-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.2);
+  border: 2px solid rgba(29, 185, 84, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-initials {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1db954;
+  text-transform: uppercase;
+}
+
+.fournisseur-profile-collapsed {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.profile-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.2);
+  border: 2px solid rgba(29, 185, 84, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-initials-sm {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1db954;
+  text-transform: uppercase;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #e8f5e9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-certified {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #1db954;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.certified-dot {
+  width: 7px;
+  height: 7px;
+  background: #1db954;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px rgba(29, 185, 84, 0.7);
+}
+
+/* ---- NAVIGATION ---- */
+.sidebar-nav {
+  flex: 1;
+  padding: 10px 0 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+
+.nav-section-label {
+  padding: 10px 18px 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4px;
+}
+
+.nav-item {
+  margin: 1px 8px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  color: rgba(200, 230, 201, 0.7);
+  text-decoration: none;
+  transition: all 0.18s ease;
+  border-radius: 8px;
+  position: relative;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background: rgba(29, 185, 84, 0.1);
+  color: #e8f5e9;
+}
+
+.nav-link.active {
+  background: rgba(29, 185, 84, 0.18);
+  color: #1db954;
+  font-weight: 600;
+}
+
+.nav-link.active .nav-icon-wrap i {
+  color: #1db954;
+}
+
+.nav-icon-wrap {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-icon-wrap i {
+  font-size: 16px;
+  color: inherit;
+}
+
+.nav-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background: #f97316;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.nav-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .nav-section-label,
+.sidebar.collapsed .nav-arrow {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  margin: 1px 10px;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 10px;
+}
+
+.nav-arrow {
+  margin-left: auto;
+  opacity: 0.35;
+  font-size: 11px;
+}
+
+/* ---- FOOTER ---- */
+.sidebar-footer {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.18s;
+}
+
+.vitrine-link {
+  color: rgba(200, 230, 201, 0.6);
+  flex: 1;
+}
+
+.vitrine-link:hover {
+  color: #e8f5e9;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.apercu-link {
+  color: #fff;
+  background: #1db954;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.apercu-link:hover {
+  background: #17a347;
+  color: #fff;
+}
+
+.apercu-link i,
+.vitrine-link i {
+  font-size: 13px;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  justify-content: center;
+}
+
+/* ---- SCROLLBAR (global quand visible) ---- */
+.sidebar-nav::-webkit-scrollbar {
+  width: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px !important;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+}

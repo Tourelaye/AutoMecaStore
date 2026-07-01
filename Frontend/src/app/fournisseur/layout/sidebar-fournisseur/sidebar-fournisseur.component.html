@@ -1,0 +1,88 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+
+  <!-- Header logo -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <span>AM</span>
+      </div>
+      <span class="logo-text" *ngIf="!isCollapsed">
+        <span class="logo-auto">Auto</span><span class="logo-meca">Meca</span><span class="logo-store">Store</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Profil fournisseur -->
+  <div class="fournisseur-profile" *ngIf="!isCollapsed">
+    <div class="profile-avatar">
+      <img *ngIf="fournisseur.photo" [src]="fournisseur.photo" [alt]="fournisseur.nom" (error)="onImgError($event)">
+      <span *ngIf="!fournisseur.photo" class="avatar-initials">{{ getInitials(fournisseur.nom) }}</span>
+    </div>
+    <div class="profile-info">
+      <p class="profile-name">{{ fournisseur.nom }}</p>
+      <p class="profile-certified">
+        <span class="certified-dot"></span> Certifié
+      </p>
+    </div>
+  </div>
+  <div class="fournisseur-profile-collapsed" *ngIf="isCollapsed">
+    <div class="profile-avatar-sm">
+      <span class="avatar-initials-sm">{{ getInitials(fournisseur.nom) }}</span>
+    </div>
+  </div>
+
+  <!-- Navigation principale -->
+  <nav class="sidebar-nav">
+    <p class="nav-section-label" *ngIf="!isCollapsed">PRINCIPAL</p>
+    <ul class="nav-list">
+      <li *ngFor="let item of mainMenuItems" class="nav-item">
+        <a
+          class="nav-link"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [title]="item.label"
+          (click)="onNavClick(item)"
+        >
+          <span class="nav-icon-wrap">
+            <i class="bi {{ item.icon }}"></i>
+            <span class="nav-badge" *ngIf="item.badge">{{ item.badge }}</span>
+          </span>
+          <span class="nav-text" *ngIf="!isCollapsed">{{ item.label }}</span>
+          <span class="nav-arrow" *ngIf="!isCollapsed && item.hasArrow">
+            <i class="bi bi-chevron-right"></i>
+          </span>
+        </a>
+      </li>
+    </ul>
+
+    <p class="nav-section-label" *ngIf="!isCollapsed">COMPTE</p>
+    <ul class="nav-list">
+      <li *ngFor="let item of accountMenuItems" class="nav-item">
+        <a
+          class="nav-link"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [title]="item.label"
+        >
+          <span class="nav-icon-wrap">
+            <i class="bi {{ item.icon }}"></i>
+          </span>
+          <span class="nav-text" *ngIf="!isCollapsed">{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Footer sidebar -->
+  <div class="sidebar-footer">
+    <a class="footer-link vitrine-link" *ngIf="!isCollapsed" href="#" target="_blank">
+      <i class="bi bi-eye"></i>
+      <span>Vitrine publique</span>
+    </a>
+    <a class="footer-link apercu-link" href="#" *ngIf="!isCollapsed">
+      <i class="bi bi-box-arrow-up-right"></i>
+      <span>Aperçu</span>
+    </a>
+  </div>
+
+</aside>

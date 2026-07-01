@@ -1,0 +1,11 @@
+<div class="fournisseur-layout">
+  <app-sidebar-fournisseur [isCollapsed]="isSidebarCollapsed"></app-sidebar-fournisseur>
+
+  <div class="main-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <app-navbar-fournisseur (toggleSidebar)="toggleSidebar()"></app-navbar-fournisseur>
+
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

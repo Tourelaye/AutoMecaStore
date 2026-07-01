@@ -1,0 +1,54 @@
+<div class="livraisons-container">
+  <div class="page-header">
+    <h1>Mes Livraisons</h1>
+    <p class="page-subtitle">Suivez les livraisons de vos commandes</p>
+  </div>
+
+  <!-- Actions Bar -->
+  <div class="actions-bar">
+    <div class="search-filters">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Rechercher une livraison..." [(ngModel)]="searchTerm">
+      </div>
+      <select class="filter-select" [(ngModel)]="selectedStatut" (change)="onStatutChange(selectedStatut)">
+        <option value="">Tous les statuts</option>
+        <option *ngFor="let statut of statuts" [value]="statut">{{statut}}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Deliveries Table -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID Livraison</th>
+            <th>Commande</th>
+            <th>Client</th>
+            <th>Date</th>
+            <th>Adresse</th>
+            <th>Transporteur</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let livraison of filteredLivraisons">
+            <td>{{livraison.id}}</td>
+            <td>{{livraison.commande}}</td>
+            <td>{{livraison.client}}</td>
+            <td>{{livraison.date | date:'dd/MM/yyyy'}}</td>
+            <td>{{livraison.adresse}}</td>
+            <td>{{livraison.transporteur}}</td>
+            <td><span class="badge {{getStatutClass(livraison.statut)}}">{{livraison.statut}}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="table-footer">
+      <p>Affichage de {{filteredLivraisons.length}} livraison(s)</p>
+    </div>
+  </div>
+</div>

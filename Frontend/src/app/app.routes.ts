@@ -10,7 +10,8 @@ import { VeloListComponent } from './client/pages/catalog/velo/velo-list/velo-li
 import { AideComponent } from './client/pages/aide/aide.component';
 import { FaqComponent } from './client/pages/faq/faq.component';
 import { PanierComponent } from './client/pages/panier/panier.component';
-import { MonCompteComponent } from './client/pages/mon-compte/mon-compte.component'; 
+import { MonCompteComponent } from './client/pages/mon-compte/mon-compte.component';
+import { fournisseurRoutes } from './fournisseur/fournisseur.routes'; 
 
 export const routes: Routes = [
   { path: '',             component: HomeComponent },
@@ -36,5 +37,12 @@ export const routes: Routes = [
     path: 'admin',
     loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   },
+
+  // ===== ESPACE FOURNISSEUR =====
+  {
+    path: 'fournisseur',
+    children: fournisseurRoutes
+  },
+
   { path: '**', redirectTo: '' }
 ];

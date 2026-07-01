@@ -1,10 +1,10 @@
 <ng-container *ngIf="!hideLayout; else authLayout">
 
-  <app-navbar *ngIf="!isAidePage() && !isFaqPage() && !isPanierPage() && !isProduitsPage() && !isAdminPage() && !isClientProfilePage()"></app-navbar>
+  <app-navbar *ngIf="!isAidePage() && !isFaqPage() && !isPanierPage() && !isProduitsPage() && !isAdminPage() && !isClientProfilePage() && !isFournisseurPage()"></app-navbar>
 
   <router-outlet></router-outlet>
 
-  <app-footer *ngIf="!hideFooter && !isAidePage() && !isFaqPage() && !isProduitsPage() && !isPanierPage() && !isAdminPage() && !isClientProfilePage()"></app-footer>
+  <app-footer *ngIf="!hideFooter && !isAidePage() && !isFaqPage() && !isProduitsPage() && !isPanierPage() && !isAdminPage() && !isClientProfilePage() && !isFournisseurPage()"></app-footer>
 
 </ng-container>
 

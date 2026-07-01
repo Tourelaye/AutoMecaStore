@@ -1,0 +1,37 @@
+# =====================
+# Node / Angular
+# =====================
+node_modules/
+dist/
+out-tsc/
+.angular/
+npm-debug.log*
+yarn-error.log*
+
+# =====================
+# Python / Django
+# =====================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+
+# =====================
+# Django static/media
+# =====================
+staticfiles/
+media/
+
+# =====================
+# IDEs
+# =====================
+.vscode/
+.idea/
+
+# =====================
+# OS
+# =====================
+.DS_Store
+Thumbs.db

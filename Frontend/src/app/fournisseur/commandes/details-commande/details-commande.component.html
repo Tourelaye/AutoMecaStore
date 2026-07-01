@@ -1,0 +1,127 @@
+<div class="details-commande-container">
+  <div class="page-header">
+    <div class="header-left">
+      <button routerLink="/fournisseur/commandes" class="btn-back">
+        <i class="bi bi-arrow-left"></i>
+        Retour
+      </button>
+      <h1>Détails de la commande {{commandeId}}</h1>
+    </div>
+    <div class="header-actions">
+      <span class="badge {{getStatutClass(commande.statut)}}">{{commande.statut}}</span>
+    </div>
+  </div>
+
+  <div class="details-grid">
+    <div class="details-main">
+      <div class="card">
+        <div class="card-header">
+          <h3>Informations client</h3>
+        </div>
+        <div class="card-body">
+          <div class="client-info">
+            <div class="client-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="client-details">
+              <h4>{{commande.client.nom}}</h4>
+              <p><i class="bi bi-envelope"></i> {{commande.client.email}}</p>
+              <p><i class="bi bi-telephone"></i> {{commande.client.telephone}}</p>
+              <p><i class="bi bi-geo-alt"></i> {{commande.client.adresse}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Produits commandés</h3>
+        </div>
+        <div class="card-body">
+          <table class="products-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let produit of commande.produits">
+                <td>{{produit.nom}}</td>
+                <td>{{produit.quantite}}</td>
+                <td>{{produit.prix | number:'1.2-2'}} €</td>
+                <td>{{(produit.prix * produit.quantite) | number:'1.2-2'}} €</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="order-total">
+            <span>Total</span>
+            <span class="total-amount">{{commande.montant | number:'1.2-2'}} €</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-sidebar">
+      <div class="card">
+        <div class="card-header">
+          <h3>Informations commande</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Date de commande</span>
+            <span class="value">{{commande.date | date:'dd/MM/yyyy'}}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Statut actuel</span>
+            <span class="badge {{getStatutClass(commande.statut)}}">{{commande.statut}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Livraison</h3>
+        </div>
+        <div class="card-body">
+          <div class="info-row">
+            <span class="label">Méthode</span>
+            <span class="value">{{commande.livraison.methode}}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Adresse</span>
+            <span class="value">{{commande.livraison.adresse}}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Date estimée</span>
+            <span class="value">{{commande.livraison.dateEstimee | date:'dd/MM/yyyy'}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Actions</h3>
+        </div>
+        <div class="card-body">
+          <div class="action-buttons">
+            <button class="btn btn-sm btn-info" (click)="updateStatut('En attente')">
+              En attente
+            </button>
+            <button class="btn btn-sm btn-warning" (click)="updateStatut('En cours')">
+              En cours
+            </button>
+            <button class="btn btn-sm btn-success" (click)="updateStatut('Livré')">
+              Livré
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="updateStatut('Annulé')">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

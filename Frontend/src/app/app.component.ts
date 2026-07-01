@@ -72,11 +72,15 @@ export class AppComponent {
   isClientProfilePage(): boolean {
     const url = this.router.url;
     // Pages de profil et informations personnelles du client
-    return url.startsWith('/profile') || 
-           url.startsWith('/commandes') || 
+    return url.startsWith('/profile') ||
+           url.startsWith('/commandes') ||
            url.startsWith('/mes-commandes') ||
            url.startsWith('/mon-compte') ||
            url.startsWith('/informations-personnelles');
+  }
+
+  isFournisseurPage(): boolean {
+    return this.router.url.startsWith('/fournisseur');
   }
 
   @HostListener('document:click', ['$event'])

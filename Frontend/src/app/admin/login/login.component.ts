@@ -61,7 +61,7 @@ export class LoginComponent {
       next: (response) => {
         // Vérifie si l'utilisateur a le rôle admin
         const user = this.authService.getUtilisateur();
-        const isAdmin = user?.role === 'administrateur' || user?.role === 'gestionnaire';
+        const isAdmin = user?.role === 'admin' || user?.role === 'administrateur' || user?.role === 'gestionnaire';
 
         if (!isAdmin) {
           this.authService.logout();

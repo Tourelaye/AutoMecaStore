@@ -1,0 +1,81 @@
+<div class="statistiques-container">
+  <div class="page-header">
+    <h1>Statistiques</h1>
+    <p class="page-subtitle">Analysez vos performances commerciales</p>
+  </div>
+
+  <!-- Period Selector -->
+  <div class="period-selector">
+    <button 
+      *ngFor="let period of periods"
+      class="period-btn"
+      [class.active]="selectedPeriod === period"
+      (click)="onPeriodChange(period)"
+    >
+      {{period === 'week' ? 'Semaine' : period === 'month' ? 'Mois' : period === 'quarter' ? 'Trimestre' : 'Année'}}
+    </button>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="card-header">
+        <h3>Chiffre d'affaires</h3>
+        <div class="chart-placeholder">
+          <i class="bi bi-graph-up"></i>
+          <p>Graphique CA</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header">
+        <h3>Ventes par catégorie</h3>
+        <div class="chart-placeholder">
+          <i class="bi bi-pie-chart"></i>
+          <p>Graphique catégories</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header">
+        <h3>Évolution des commandes</h3>
+        <div class="chart-placeholder">
+          <i class="bi bi-bar-chart"></i>
+          <p>Graphique commandes</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-header">
+        <h3>Taux de satisfaction</h3>
+        <div class="chart-placeholder">
+          <i class="bi bi-star"></i>
+          <p>Graphique satisfaction</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card full-width">
+      <div class="card-header">
+        <h3>Produits les plus vendus</h3>
+        <div class="chart-placeholder">
+          <i class="bi bi-trophy"></i>
+          <p>Graphique top produits</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card full-width">
+      <div class="card-header">
+        <h3>Performance mensuelle</h3>
+        <div class="chart-placeholder">
+          <i class="bi bi-calendar-check"></i>
+          <p>Graphique performance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

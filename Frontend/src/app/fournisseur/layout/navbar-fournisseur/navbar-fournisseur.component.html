@@ -1,0 +1,110 @@
+<nav class="navbar-fournisseur">
+  <div class="navbar-inner">
+
+    <!-- Gauche : titre de page -->
+    <div class="navbar-left">
+      <h1 class="page-title">Tableau de bord Fournisseur</h1>
+    </div>
+
+    <!-- Centre : barre de recherche -->
+    <div class="navbar-center">
+      <div class="search-bar">
+        <i class="bi bi-search search-ico"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Rechercher..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+        />
+        <span class="search-shortcut" *ngIf="!searchQuery">⌘K</span>
+      </div>
+    </div>
+
+    <!-- Droite : actions + profil -->
+    <div class="navbar-right">
+
+      <!-- Bouton Ajouter -->
+      <button class="btn-ajouter" routerLink="/fournisseur/produits/ajouter">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>Ajouter</span>
+      </button>
+
+      <!-- Notifications -->
+      <div class="icon-wrapper" (click)="toggleNotifications()" [class.active]="showNotifications">
+        <button class="icon-btn" [class.has-notif]="notificationCount > 0" title="Notifications">
+          <i class="bi bi-bell"></i>
+          <span class="notif-dot" *ngIf="notificationCount > 0"></span>
+        </button>
+
+        <!-- Dropdown notifications -->
+        <div class="dropdown-panel notif-panel" *ngIf="showNotifications">
+          <div class="dropdown-panel-header">
+            <span>Notifications</span>
+            <span class="notif-count-badge">{{ notificationCount }}</span>
+          </div>
+          <div class="notif-item" *ngFor="let n of notifications">
+            <div class="notif-icon" [ngClass]="n.type">
+              <i class="bi {{ n.icon }}"></i>
+            </div>
+            <div class="notif-content">
+              <p class="notif-text">{{ n.message }}</p>
+              <span class="notif-time">{{ n.time }}</span>
+            </div>
+          </div>
+          <div class="dropdown-panel-footer">
+            <a href="#">Voir toutes les notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rafraîchir -->
+      <button class="icon-btn" (click)="refresh()" title="Actualiser" [class.spinning]="isRefreshing">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+
+      <!-- Profil fournisseur -->
+      <div class="user-menu-wrapper">
+        <button class="user-profile-btn" (click)="toggleDropdown()" [class.open]="isDropdownOpen">
+          <div class="user-ava">
+            <img *ngIf="fournisseur.photo" [src]="fournisseur.photo" [alt]="fournisseur.nom">
+            <span *ngIf="!fournisseur.photo" class="ava-initials">{{ getInitials(fournisseur.nom) }}</span>
+          </div>
+          <div class="user-meta">
+            <span class="user-name">{{ fournisseur.shortNom }}</span>
+            <span class="user-id">ID: #{{ fournisseur.id }}</span>
+          </div>
+          <i class="bi bi-chevron-down chevron" [class.rotated]="isDropdownOpen"></i>
+        </button>
+
+        <!-- Dropdown menu profil -->
+        <div class="dropdown-panel profile-panel" *ngIf="isDropdownOpen">
+          <div class="profile-panel-header">
+            <div class="pp-avatar">
+              <span>{{ getInitials(fournisseur.nom) }}</span>
+            </div>
+            <div>
+              <p class="pp-name">{{ fournisseur.nom }}</p>
+              <p class="pp-email">{{ fournisseur.email }}</p>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a class="dp-item" routerLink="/fournisseur/profil" (click)="closeDropdown()">
+            <i class="bi bi-person-circle"></i> Mon profil
+          </a>
+          <a class="dp-item" routerLink="/fournisseur/parametres" (click)="closeDropdown()">
+            <i class="bi bi-gear"></i> Paramètres
+          </a>
+          <a class="dp-item" href="#" (click)="closeDropdown()">
+            <i class="bi bi-shield-check"></i> Sécurité
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dp-item dp-logout" href="#" (click)="logout(); $event.preventDefault()">
+            <i class="bi bi-box-arrow-right"></i> Déconnexion
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</nav>

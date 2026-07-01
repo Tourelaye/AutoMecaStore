@@ -1,0 +1,52 @@
+<div class="avis-container">
+  <div class="page-header">
+    <h1>Avis clients</h1>
+    <p class="page-subtitle">Consultez les avis de vos clients</p>
+  </div>
+
+  <!-- Actions Bar -->
+  <div class="actions-bar">
+    <div class="search-filters">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Rechercher un avis..." [(ngModel)]="searchTerm">
+      </div>
+      <select class="filter-select" [(ngModel)]="selectedNote" (change)="onNoteChange(selectedNote)">
+        <option value="">Toutes les notes</option>
+        <option *ngFor="let note of notes" [value]="note">{{note}}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Reviews Grid -->
+  <div class="avis-grid">
+    <div class="avis-card" *ngFor="let avi of filteredAvis">
+      <div class="avis-header">
+        <div class="client-info">
+          <div class="client-avatar">
+            <i class="bi bi-person-circle"></i>
+          </div>
+          <div>
+            <h4>{{avi.client}}</h4>
+            <p class="avis-date">{{avi.date | date:'dd/MM/yyyy'}}</p>
+          </div>
+        </div>
+        <div class="avis-note {{getNoteClass(avi.note)}}">
+          <span *ngFor="let star of getStars(avi.note)">{{star}}</span>
+        </div>
+      </div>
+      
+      <div class="avis-produit">
+        <i class="bi bi-box-seam"></i>
+        <span>{{avi.produit}}</span>
+      </div>
+      
+      <p class="avis-commentaire">{{avi.commentaire}}</p>
+    </div>
+  </div>
+
+  <div class="no-results" *ngIf="filteredAvis.length === 0">
+    <i class="bi bi-inbox"></i>
+    <p>Aucun avis trouvé</p>
+  </div>
+</div>

@@ -1,0 +1,212 @@
+<div class="parametres-container">
+  <div class="page-header">
+    <h1>Paramètres</h1>
+    <p class="page-subtitle">Gérez vos préférences et la sécurité de votre compte</p>
+  </div>
+
+  <div class="parametres-layout">
+    <!-- Sidebar Tabs -->
+    <div class="tabs-sidebar">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'password'"
+        (click)="setActiveTab('password')"
+      >
+        <i class="bi bi-lock"></i>
+        Mot de passe
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'notifications'"
+        (click)="setActiveTab('notifications')"
+      >
+        <i class="bi bi-bell"></i>
+        Notifications
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'preferences'"
+        (click)="setActiveTab('preferences')"
+      >
+        <i class="bi bi-gear"></i>
+        Préférences
+      </button>
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'security'"
+        (click)="setActiveTab('security')"
+      >
+        <i class="bi bi-shield-check"></i>
+        Sécurité
+      </button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Password Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'password'">
+        <div class="settings-card">
+          <h3>Modifier le mot de passe</h3>
+          <form (ngSubmit)="onChangePassword()">
+            <div class="form-group">
+              <label>Mot de passe actuel</label>
+              <input type="password" [(ngModel)]="passwordForm.currentPassword" name="currentPassword" required>
+            </div>
+            <div class="form-group">
+              <label>Nouveau mot de passe</label>
+              <input type="password" [(ngModel)]="passwordForm.newPassword" name="newPassword" required>
+            </div>
+            <div class="form-group">
+              <label>Confirmer le mot de passe</label>
+              <input type="password" [(ngModel)]="passwordForm.confirmPassword" name="confirmPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i>
+              Modifier le mot de passe
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notifications Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'notifications'">
+        <div class="settings-card">
+          <h3>Notifications par email</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Nouvelles commandes</h4>
+              <p>Recevoir un email pour chaque nouvelle commande</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="notificationSettings.emailOrders">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Messages clients</h4>
+              <p>Recevoir un email pour chaque nouveau message</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="notificationSettings.emailMessages">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Nouveaux avis</h4>
+              <p>Recevoir un email pour chaque nouvel avis client</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="notificationSettings.emailReviews">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <h3>Notifications push</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Commandes</h4>
+              <p>Recevoir des notifications pour les commandes</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="notificationSettings.pushOrders">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Messages</h4>
+              <p>Recevoir des notifications pour les messages</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="notificationSettings.pushMessages">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary" (click)="onSaveNotifications()">
+            <i class="bi bi-check-lg"></i>
+            Enregistrer
+          </button>
+        </div>
+      </div>
+
+      <!-- Preferences Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'preferences'">
+        <div class="settings-card">
+          <h3>Préférences générales</h3>
+          <form (ngSubmit)="onSavePreferences()">
+            <div class="form-group">
+              <label>Langue</label>
+              <select [(ngModel)]="preferences.language" name="language">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Devise</label>
+              <select [(ngModel)]="preferences.currency" name="currency">
+                <option value="EUR">Euro (€)</option>
+                <option value="USD">Dollar ($)</option>
+                <option value="GBP">Livre (£)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fuseau horaire</label>
+              <select [(ngModel)]="preferences.timezone" name="timezone">
+                <option value="Europe/Paris">Europe/Paris</option>
+                <option value="Europe/London">Europe/London</option>
+                <option value="America/New_York">America/New_York</option>
+                <option value="Asia/Tokyo">Asia/Tokyo</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg"></i>
+              Enregistrer les préférences
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Security Tab -->
+      <div class="tab-content" *ngIf="activeTab === 'security'">
+        <div class="settings-card">
+          <h3>Sécurité du compte</h3>
+          <div class="security-item">
+            <div class="security-icon">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="security-info">
+              <h4>Authentification à deux facteurs</h4>
+              <p>Protégez votre compte avec une double authentification</p>
+            </div>
+            <button class="btn btn-secondary">Activer</button>
+          </div>
+          <div class="security-item">
+            <div class="security-icon">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="security-info">
+              <h4>Historique des connexions</h4>
+              <p>Voir les dernières connexions à votre compte</p>
+            </div>
+            <button class="btn btn-secondary">Voir</button>
+          </div>
+          <div class="security-item">
+            <div class="security-icon">
+              <i class="bi bi-device-hdd"></i>
+            </div>
+            <div class="security-info">
+              <h4>Appareils connectés</h4>
+              <p>Gérer les appareils autorisés à accéder à votre compte</p>
+            </div>
+            <button class="btn btn-secondary">Gérer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
