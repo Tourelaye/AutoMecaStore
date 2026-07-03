@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HeaderService, Notification } from './header.service';
+import { MockAuthService } from '../../../core/services/mock-auth.service';
 import { interval, Subscription } from 'rxjs';
 
 interface AdminInfo {
@@ -43,7 +44,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private headerService: HeaderService
+    private headerService: HeaderService,
+    private authService: MockAuthService
   ) {}
 
   ngOnInit(): void {
@@ -143,9 +145,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_email');
+    this.authService.logout();
     this.router.navigate(['/admin/login']);
   }
 
