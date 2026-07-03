@@ -18,16 +18,34 @@
         </div>
         <div>
           <h1>AutoMecaStore</h1>
-          <p>Espace Administration</p>
+          <p>Espace Administrateur &amp; Fournisseur</p>
         </div>
       </div>
 
       <div class="left-content">
-        <h2>Tableau de bord<br><span>sécurisé</span></h2>
+        <h2>Espace<br><span>Administrateur &amp; Fournisseur</span></h2>
         <p class="left-desc">
-          Accédez à l'interface d'administration pour gérer vos produits,
-          commandes, clients et statistiques en temps réel.
+          Une seule connexion pour deux espaces. Vos identifiants déterminent
+          automatiquement votre rôle et vous dirigent vers le tableau de bord
+          correspondant.
         </p>
+
+        <div class="role-badges">
+          <div class="role-badge admin">
+            <i class="bi bi-shield-lock-fill"></i>
+            <div>
+              <strong>Administrateur</strong>
+              <span>Gestion complète de la plateforme</span>
+            </div>
+          </div>
+          <div class="role-badge fournisseur">
+            <i class="bi bi-truck"></i>
+            <div>
+              <strong>Fournisseur</strong>
+              <span>Produits, stock et commandes</span>
+            </div>
+          </div>
+        </div>
 
         <ul class="feature-list">
           <li>
@@ -76,14 +94,25 @@
         <!-- LOGO MOBILE -->
         <div class="mobile-brand">
           <div class="brand-icon sm"><i class="bi bi-shield-fill-check"></i></div>
-          <span>AutoMecaStore Admin</span>
+          <span>AutoMecaStore — Admin &amp; Fournisseur</span>
         </div>
 
         <!-- TITRE -->
         <div class="form-title">
           <h3>Connexion</h3>
-          <p>Espace Administrateur &amp; Fournisseur</p>
+          <p>Connectez-vous à votre espace Administrateur ou Fournisseur</p>
         </div>
+
+        <!-- BADGES RÔLE (mobile / rappel) -->
+        <div class="role-pills">
+          <span class="role-pill"><i class="bi bi-shield-lock-fill"></i> Administrateur</span>
+          <span class="role-pill"><i class="bi bi-truck"></i> Fournisseur</span>
+        </div>
+
+        <p class="role-hint">
+          <i class="bi bi-info-circle"></i>
+          Votre rôle est détecté automatiquement à partir de vos identifiants.
+        </p>
 
         <!-- ALERTE ERREUR -->
         <div class="alert-error" *ngIf="errorMessage">
