@@ -11,13 +11,17 @@ import { PromotionComponent } from './component/promotion/promotion.component';
 import { ParametreComponent } from './component/parametre/parametre.component';
 import { CommandeComponent } from './component/commande/commande.component';
 import { CategorieComponent } from './component/categorie/categorie.component';
+import { roleGuard } from '../core/guards/role.guard';
 
 const routes: Routes = [
-  { 
-    path: '', 
+  { path: 'login', component: LoginComponent },
+  {
+    path: '',
     component: AdminLayoutComponent,
+    canActivate: [roleGuard],
+    canActivateChild: [roleGuard],
+    data: { role: 'admin' },
     children: [
-      { path: 'login', component: LoginComponent },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'produits', component: ProduitComponent },
       { path: 'categories', component: CategorieComponent },
@@ -27,7 +31,7 @@ const routes: Routes = [
       { path: 'avis', component: AvisReclamationComponent },
       { path: 'promotions', component: PromotionComponent },
       { path: 'parametres', component: ParametreComponent },
-      { path: '', redirectTo: 'login', pathMatch: 'full' }
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }
 ];

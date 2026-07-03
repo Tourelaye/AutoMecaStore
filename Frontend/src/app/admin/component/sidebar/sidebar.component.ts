@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Router } from '@angular/router';
 import { NotificationsService } from '../../../core/services/notifications.service';
+import { MockAuthService } from '../../../core/services/mock-auth.service';
 import { Subscription } from 'rxjs';
 
 interface NavItem {
@@ -48,7 +49,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private authService: MockAuthService
   ) {}
 
   ngOnInit(): void {
@@ -107,9 +109,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_email');
+    this.authService.logout();
     this.router.navigate(['/admin/login']);
   }
 }

@@ -13,11 +13,15 @@ import { MessagerieComponent } from './messages/messagerie/messagerie.component'
 import { StatistiquesFournisseurComponent } from './statistiques/statistiques-fournisseur/statistiques-fournisseur.component';
 import { MonProfilComponent } from './profil/mon-profil/mon-profil.component';
 import { ParametresFournisseurComponent } from './parametres/parametres-fournisseur/parametres-fournisseur.component';
+import { roleGuard } from '../core/guards/role.guard';
 
 export const fournisseurRoutes: Routes = [
   {
     path: '',
     component: FournisseurLayoutComponent,
+    canActivate: [roleGuard],
+    canActivateChild: [roleGuard],
+    data: { role: 'fournisseur' },
     children: [
       {
         path: 'dashboard',

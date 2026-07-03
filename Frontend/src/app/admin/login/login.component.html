@@ -81,20 +81,14 @@
 
         <!-- TITRE -->
         <div class="form-title">
-          <h3>Connexion administrateur</h3>
-          <p>Identifiez-vous pour accéder au panneau de gestion</p>
+          <h3>Connexion</h3>
+          <p>Espace Administrateur &amp; Fournisseur</p>
         </div>
 
         <!-- ALERTE ERREUR -->
         <div class="alert-error" *ngIf="errorMessage">
           <i class="bi bi-exclamation-octagon-fill"></i>
           {{ errorMessage }}
-        </div>
-
-        <!-- ALERTE BLOCAGE -->
-        <div class="alert-block" *ngIf="loginAttempts >= 5">
-          <i class="bi bi-lock-fill"></i>
-          Accès temporairement suspendu après trop de tentatives.
         </div>
 
         <!-- FORMULAIRE -->
@@ -112,7 +106,6 @@
                 placeholder="admin@automeca.com"
                 required
                 autocomplete="email"
-                [disabled]="loginAttempts >= 5"
               >
               <i class="bi bi-check-circle-fill valid-icon" *ngIf="email && email.includes('@')"></i>
             </div>
@@ -133,7 +126,6 @@
                 placeholder="••••••••"
                 required
                 autocomplete="current-password"
-                [disabled]="loginAttempts >= 5"
               >
               <button type="button" class="toggle-eye" (click)="showPassword = !showPassword">
                 <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
@@ -145,7 +137,7 @@
           <button
             type="submit"
             class="btn-login"
-            [disabled]="isLoading || loginAttempts >= 5"
+            [disabled]="isLoading"
           >
             <span *ngIf="!isLoading">
               <i class="bi bi-box-arrow-in-right"></i>

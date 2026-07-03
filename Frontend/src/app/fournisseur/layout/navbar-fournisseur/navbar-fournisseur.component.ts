@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter, HostListener, OnInit } from '@angular/
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MockAuthService } from '../../../core/services/mock-auth.service';
 
 interface Notification {
   id: number;
@@ -66,7 +67,10 @@ export class NavbarFournisseurComponent implements OnInit {
     return this.notifications.filter(n => !n.read).length;
   }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: MockAuthService
+  ) {}
 
   ngOnInit(): void {}
 
@@ -106,11 +110,8 @@ export class NavbarFournisseurComponent implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('automeca_user');
-    this.router.navigate(['/login']);
+    this.authService.logout();
+    this.router.navigate(['/admin/login']);
   }
 
   getInitials(nom: string): string {
