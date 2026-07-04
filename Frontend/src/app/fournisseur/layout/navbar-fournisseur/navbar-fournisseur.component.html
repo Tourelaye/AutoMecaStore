@@ -24,12 +24,6 @@
     <!-- Droite : actions + profil -->
     <div class="navbar-right">
 
-      <!-- Bouton Ajouter -->
-      <button class="btn-ajouter" routerLink="/fournisseur/produits/ajouter">
-        <i class="bi bi-plus-circle-fill"></i>
-        <span>Ajouter</span>
-      </button>
-
       <!-- Notifications -->
       <div class="icon-wrapper" (click)="toggleNotifications()" [class.active]="showNotifications">
         <button class="icon-btn" [class.has-notif]="notificationCount > 0" title="Notifications">

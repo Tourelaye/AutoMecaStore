@@ -1,52 +1,72 @@
-<!-- admin login.component.html -->
 <div class="login-page">
 
-  <!-- FOND ANIMÉ -->
+  <!-- FOND ANIMÉ GRILLE -->
   <div class="bg-grid"></div>
+
+  <!-- ORBS FLOTTANTS -->
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
   <div class="bg-orb orb-3"></div>
 
+  <!-- PARTICULES -->
+  <div class="particle"
+    *ngFor="let p of particles"
+    [style.left.%]="p.x"
+    [style.top.%]="p.y"
+    [style.width.px]="p.size"
+    [style.height.px]="p.size"
+    [style.opacity]="p.opacity"
+    [style.animationDuration.s]="p.speed">
+  </div>
+
   <div class="login-wrapper">
 
-    <!-- ====== LEFT PANEL ====== -->
+    <!-- ===================== LEFT PANEL ===================== -->
     <div class="left-panel">
 
+      <!-- Brand -->
       <div class="brand">
         <div class="brand-icon">
           <i class="bi bi-shield-fill-check"></i>
         </div>
         <div>
           <h1>AutoMecaStore</h1>
-          <p>Espace Administrateur &amp; Fournisseur</p>
+          <p>Portail Administration</p>
         </div>
       </div>
 
       <div class="left-content">
-        <h2>Espace<br><span>Administrateur &amp; Fournisseur</span></h2>
+        <h2>Gérez votre<br><span>plateforme en toute<br>confiance</span></h2>
         <p class="left-desc">
-          Une seule connexion pour deux espaces. Vos identifiants déterminent
-          automatiquement votre rôle et vous dirigent vers le tableau de bord
-          correspondant.
+          Connectez-vous à votre espace sécurisé. Vos identifiants déterminent
+          automatiquement votre rôle : administrateur ou fournisseur.
         </p>
 
-        <div class="role-badges">
-          <div class="role-badge admin">
+        <!-- Rôles -->
+        <!-- <div class="role-badges">
+          <div class="role-badge admin" [class.role-active]="activeRole === 'admin'">
             <i class="bi bi-shield-lock-fill"></i>
             <div>
               <strong>Administrateur</strong>
               <span>Gestion complète de la plateforme</span>
             </div>
+            <span class="role-check" *ngIf="activeRole === 'admin'">
+              <i class="bi bi-check-circle-fill"></i>
+            </span>
           </div>
-          <div class="role-badge fournisseur">
+          <div class="role-badge fournisseur" [class.role-active]="activeRole === 'fournisseur'">
             <i class="bi bi-truck"></i>
             <div>
               <strong>Fournisseur</strong>
               <span>Produits, stock et commandes</span>
             </div>
+            <span class="role-check" *ngIf="activeRole === 'fournisseur'">
+              <i class="bi bi-check-circle-fill"></i>
+            </span>
           </div>
-        </div>
+        </div> -->
 
+        <!-- Features -->
         <ul class="feature-list">
           <li>
             <div class="feat-icon"><i class="bi bi-graph-up-arrow"></i></div>
@@ -79,137 +99,245 @@
         </ul>
       </div>
 
-      <div class="left-footer">
-        <span><i class="bi bi-circle-fill status-dot"></i> Système opérationnel</span>
-        <span>v2.0.1</span>
+      <!-- Statistiques live -->
+      <div class="live-stats">
+        <div class="live-stat">
+          <span class="ls-val">2 847</span>
+          <span class="ls-lbl">Produits actifs</span>
+        </div>
+        <div class="ls-divider"></div>
+        <div class="live-stat">
+          <span class="ls-val">142</span>
+          <span class="ls-lbl">Commandes/mois</span>
+        </div>
+        <div class="ls-divider"></div>
+        <div class="live-stat">
+          <span class="ls-val">98.7%</span>
+          <span class="ls-lbl">Disponibilité</span>
+        </div>
       </div>
 
+      <div class="left-footer">
+        <span><i class="bi bi-circle-fill status-dot"></i> Système opérationnel</span>
+        <span>v2.1.0</span>
+      </div>
     </div>
 
-    <!-- ====== RIGHT — FORMULAIRE ====== -->
+    <!-- ===================== RIGHT PANEL ===================== -->
     <div class="right-panel">
-
       <div class="form-card">
 
-        <!-- LOGO MOBILE -->
+        <!-- Logo mobile -->
         <div class="mobile-brand">
           <div class="brand-icon sm"><i class="bi bi-shield-fill-check"></i></div>
-          <span>AutoMecaStore — Admin &amp; Fournisseur</span>
+          <span>AutoMecaStore</span>
         </div>
 
-        <!-- TITRE -->
+        <!-- Indicateur de progression -->
+        <div class="step-indicator">
+          <div class="step-item" [class.step-done]="loginStep > 1" [class.step-current]="loginStep === 1">
+            <div class="step-circle">
+              <i class="bi bi-check" *ngIf="loginStep > 1"></i>
+              <span *ngIf="loginStep <= 1">1</span>
+            </div>
+            <span class="step-label">Identifiant</span>
+          </div>
+          <div class="step-line" [class.step-line-done]="loginStep > 1"></div>
+          <div class="step-item" [class.step-current]="loginStep === 2">
+            <div class="step-circle">2</div>
+            <span class="step-label">Mot de passe</span>
+          </div>
+        </div>
+
+        <!-- Titre dynamique -->
         <div class="form-title">
-          <h3>Connexion</h3>
-          <p>Connectez-vous à votre espace Administrateur ou Fournisseur</p>
+          <h3 *ngIf="loginStep === 1">Connexion</h3>
+          <h3 *ngIf="loginStep === 2 && !activeRole">Mot de passe</h3>
+          <h3 *ngIf="loginStep === 2 && activeRole">
+            Bonjour,
+            <span class="title-role" [class.role-admin]="activeRole==='admin'" [class.role-fourn]="activeRole==='fournisseur'">
+              {{ roleLabel }}
+            </span>
+          </h3>
+          <p *ngIf="loginStep === 1">Entrez votre email pour continuer</p>
+          <p *ngIf="loginStep === 2">
+            <span class="email-pill"><i class="bi bi-person-circle"></i> {{ email }}</span>
+          </p>
         </div>
 
-        <!-- BADGES RÔLE (mobile / rappel) -->
-        <div class="role-pills">
-          <span class="role-pill"><i class="bi bi-shield-lock-fill"></i> Administrateur</span>
-          <span class="role-pill"><i class="bi bi-truck"></i> Fournisseur</span>
+        <!-- ALERTE BLOCAGE -->
+        <div class="alert-block" *ngIf="isBlocked">
+          <i class="bi bi-shield-x-fill"></i>
+          <div>
+            <strong>Compte temporairement bloqué</strong>
+            <span>Trop de tentatives. Réessayez dans <b>{{ blockCountdown }}s</b></span>
+          </div>
         </div>
-
-        <p class="role-hint">
-          <i class="bi bi-info-circle"></i>
-          Votre rôle est détecté automatiquement à partir de vos identifiants.
-        </p>
 
         <!-- ALERTE ERREUR -->
-        <div class="alert-error" *ngIf="errorMessage">
+        <div class="alert-error" *ngIf="errorMessage && !isBlocked">
           <i class="bi bi-exclamation-octagon-fill"></i>
           {{ errorMessage }}
         </div>
 
-        <!-- FORMULAIRE -->
-        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+        <!-- ALERTE SUCCÈS -->
+        <div class="alert-success" *ngIf="successMsg">
+          <i class="bi bi-check-circle-fill"></i>
+          {{ successMsg }}
+        </div>
 
-          <!-- EMAIL -->
-          <div class="field-group">
-            <label>Adresse email</label>
-            <div class="field-wrap" [class.field-filled]="email">
-              <i class="bi bi-envelope-fill field-icon"></i>
-              <input
-                type="email"
-                [(ngModel)]="email"
-                name="email"
-                placeholder="admin@automeca.com"
-                required
-                autocomplete="email"
-              >
-              <i class="bi bi-check-circle-fill valid-icon" *ngIf="email && email.includes('@')"></i>
-            </div>
-          </div>
+        <!-- Rôle détecté badge -->
+        <div class="detected-role" *ngIf="activeRole && loginStep === 2">
+          <i class="bi" [class.bi-shield-lock-fill]="activeRole==='admin'" [class.bi-truck]="activeRole==='fournisseur'"></i>
+          <span>Rôle détecté : <strong>{{ roleLabel }}</strong></span>
+          <span class="detected-ok"><i class="bi bi-check-circle-fill"></i></span>
+        </div>
 
-          <!-- MOT DE PASSE -->
-          <div class="field-group">
-            <div class="label-row">
-              <label>Mot de passe</label>
-              <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+        <!-- ===== FORMULAIRE ===== -->
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm" autocomplete="off">
+
+          <!-- STEP 1 : EMAIL -->
+          <div class="form-step" [class.step-visible]="loginStep === 1" [class.step-hidden]="loginStep !== 1">
+            <div class="field-group">
+              <label>Adresse email</label>
+              <div class="field-wrap" [class.field-filled]="email" [class.field-valid]="emailValid">
+                <i class="bi bi-envelope-fill field-icon"></i>
+                <input
+                  type="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  placeholder="votre@email.com"
+                  autocomplete="email"
+                  (keyup.enter)="nextStep()"
+                >
+                <i class="bi bi-check-circle-fill valid-icon" *ngIf="emailValid"></i>
+              </div>
             </div>
-            <div class="field-wrap" [class.field-filled]="password">
-              <i class="bi bi-lock-fill field-icon"></i>
-              <input
-                [type]="showPassword ? 'text' : 'password'"
-                [(ngModel)]="password"
-                name="password"
-                placeholder="••••••••"
-                required
-                autocomplete="current-password"
-              >
-              <button type="button" class="toggle-eye" (click)="showPassword = !showPassword">
-                <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+
+            <!-- Sélection rapide rôle -->
+            <p class="quick-role-label">Ou accédez directement à :</p>
+            <div class="quick-roles">
+              <button type="button" class="quick-role-btn" (click)="fillDemo(demoAccounts[0])">
+                <span class="qr-icon admin-ico"><i class="bi bi-shield-lock-fill"></i></span>
+                <span>Admin</span>
+              </button>
+              <button type="button" class="quick-role-btn" (click)="fillDemo(demoAccounts[1])">
+                <span class="qr-icon fourn-ico"><i class="bi bi-truck"></i></span>
+                <span>Fournisseur</span>
               </button>
             </div>
           </div>
 
-          <!-- BOUTON CONNEXION -->
+          <!-- STEP 2 : MOT DE PASSE -->
+          <div class="form-step" [class.step-visible]="loginStep === 2" [class.step-hidden]="loginStep !== 2">
+            <div class="field-group">
+              <div class="label-row">
+                <label>Mot de passe</label>
+                <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+              </div>
+              <div class="field-wrap" [class.field-filled]="password">
+                <i class="bi bi-lock-fill field-icon"></i>
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  [(ngModel)]="password"
+                  name="password"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                  (keydown)="onKeyDown($event)"
+                  (input)="calcStrength()"
+                >
+                <button type="button" class="toggle-eye" (click)="showPassword = !showPassword">
+                  <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                </button>
+              </div>
+
+              <!-- Caps Lock warning -->
+              <div class="caps-warning" *ngIf="capsLock">
+                <i class="bi bi-lock-fill"></i> Le verrouillage majuscules est activé
+              </div>
+
+              <!-- Force mot de passe -->
+              <div class="strength-bar-wrap" *ngIf="password">
+                <div class="strength-bars">
+                  <div class="strength-seg" *ngFor="let i of [1,2,3,4]"
+                    [class.active]="passwordStrength >= i"
+                    [style.background]="passwordStrength >= i ? strengthColor : ''">
+                  </div>
+                </div>
+                <span class="strength-label" [style.color]="strengthColor">{{ strengthLabel }}</span>
+              </div>
+            </div>
+
+            <!-- Se souvenir de moi -->
+            <div class="remember-row">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="remember" name="remember">
+                <span class="custom-check"><i class="bi bi-check" *ngIf="remember"></i></span>
+                Se souvenir de moi
+              </label>
+            </div>
+          </div>
+
+          <!-- BOUTON PRINCIPAL -->
           <button
             type="submit"
             class="btn-login"
-            [disabled]="isLoading"
+            [disabled]="isLoading || isBlocked"
+            [class.btn-success-state]="successMsg"
           >
-            <span *ngIf="!isLoading">
-              <i class="bi bi-box-arrow-in-right"></i>
-              Se connecter
+            <span *ngIf="!isLoading && !successMsg && loginStep === 1">
+              <i class="bi bi-arrow-right-circle"></i> Continuer
+            </span>
+            <span *ngIf="!isLoading && !successMsg && loginStep === 2">
+              <i class="bi bi-box-arrow-in-right"></i> Se connecter
             </span>
             <span *ngIf="isLoading" class="loading-row">
               <span class="spinner"></span>
-              Authentification en cours...
+              Authentification...
+            </span>
+            <span *ngIf="successMsg">
+              <i class="bi bi-check-circle-fill"></i> Connecté !
             </span>
           </button>
 
-          <!-- SÉCURITÉ -->
-          <div class="security-row">
-            <span><i class="bi bi-shield-lock-fill"></i> SSL chiffré</span>
-            <span><i class="bi bi-eye-slash-fill"></i> Accès privé</span>
-            <span><i class="bi bi-clock-fill"></i> Session 8h</span>
-          </div>
+          <!-- Retour étape 1 -->
+          <button type="button" class="btn-back" *ngIf="loginStep === 2 && !isLoading" (click)="backStep()">
+            <i class="bi bi-arrow-left"></i> Changer d'email
+          </button>
 
         </form>
 
-        <!-- COMPTES DÉMO -->
+        <!-- Sécurité -->
+        <div class="security-row">
+          <span><i class="bi bi-shield-lock-fill"></i> SSL 256-bit</span>
+          <span><i class="bi bi-eye-slash-fill"></i> Données privées</span>
+          <span><i class="bi bi-clock-fill"></i> Session 8h</span>
+        </div>
+
+        <!-- Comptes démo -->
         <!-- <div class="demo-section">
           <div class="demo-label">
             <div class="demo-line"></div>
             <span>Comptes de démonstration</span>
             <div class="demo-line"></div>
           </div>
-
           <div class="demo-accounts">
-
-            <button
-              class="demo-card"
-              type="button"
-              (click)="fillDemo({ email: 'admin@automeca.com', password: 'Admin@2025!', nom: 'Diallo', prenom: 'Ibrahima', role: 'Super Admin', avatar: 'ID' })"
-            >
-              <div class="demo-avatar super">SA</div>
+            <button class="demo-card" type="button" (click)="fillDemo(demoAccounts[0])">
+              <div class="demo-avatar super">IA</div>
               <div class="demo-info">
                 <strong>Super Admin</strong>
-                <span>Accès complet</span>
+                <span>admin&#64;automeca.com</span>
               </div>
               <i class="bi bi-arrow-right-circle"></i>
             </button>
-
+            <button class="demo-card" type="button" (click)="fillDemo(demoAccounts[1])">
+              <div class="demo-avatar manager">FN</div>
+              <div class="demo-info">
+                <strong>Fournisseur</strong>
+                <span>fournisseur&#64;automeca.com</span>
+              </div>
+              <i class="bi bi-arrow-right-circle"></i>
+            </button>
           </div>
         </div> -->
 

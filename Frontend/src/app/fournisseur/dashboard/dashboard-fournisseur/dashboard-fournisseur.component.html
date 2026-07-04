@@ -1,146 +1,304 @@
-<div class="dashboard-container">
-  <div class="page-header">
-    <h1>Tableau de bord</h1>
-    <p class="page-subtitle">Vue d ensemble de votre activite fournisseur</p>
-  </div>
+<div class="dashboard-wrapper">
 
-  <!-- Statistiques Cards -->
-  <div class="stats-grid">
-    <div class="stat-card stat-primary">
-      <div class="stat-icon">
-        <i class="bi bi-box-seam"></i>
-      </div>
-      <div class="stat-content">
-        <h3>{{stats.totalProduits}}</h3>
-        <p>Produits</p>
-      </div>
+  <!-- ========== HERO BANNER ========== -->
+  <div class="hero-banner">
+    <div class="hero-left">
+      <span class="hero-eyebrow">ESPACE FOURNISSEUR</span>
+      <h1 class="hero-title">Tableau de bord</h1>
+      <p class="hero-sub">Aperçu simplifié de votre activité : suivez vos commandes, vos ventes et l'état de votre stock en un coup d'œil.</p>
     </div>
-
-    <div class="stat-card stat-success">
-      <div class="stat-icon">
-        <i class="bi bi-receipt"></i>
-      </div>
-      <div class="stat-content">
-        <h3>{{stats.totalCommandes}}</h3>
-        <p>Commandes</p>
-      </div>
-    </div>
-
-    <div class="stat-card stat-warning">
-      <div class="stat-icon">
-        <i class="bi bi-exclamation-triangle"></i>
-      </div>
-      <div class="stat-content">
-        <h3>{{stats.produitsRupture}}</h3>
-        <p>En rupture</p>
-      </div>
-    </div>
-
-    <div class="stat-card stat-info">
-      <div class="stat-icon">
-        <i class="bi bi-currency-euro"></i>
-      </div>
-      <div class="stat-content">
-        <h3>{{stats.chiffreAffaires | number:'1.0-0'}}</h3>
-        <p>Chiffre d affaires (€)</p>
-      </div>
+    <div class="hero-actions">
+      <button class="btn-hero-primary" routerLink="/fournisseur/produits/ajouter">
+        <i class="bi bi-plus-circle"></i> Ajouter un produit
+      </button>
+      <button class="btn-hero-secondary" routerLink="/fournisseur/stock">
+        <i class="bi bi-boxes"></i> Gérer le stock
+      </button>
     </div>
   </div>
 
-  <!-- Tables Section -->
-  <div class="tables-section">
-    <!-- Recent Orders -->
-    <div class="table-card">
-      <div class="card-header">
-        <h3>Dernieres commandes</h3>
-        <a routerLink="/fournisseur/commandes" class="btn-link">Voir tout</a>
+  <!-- ========== KPI SECTION ========== -->
+  <section class="section-block">
+    <p class="section-eyebrow">INDICATEURS CLÉS</p>
+    <div class="kpi-grid">
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <span class="kpi-label">Nombre total de produits</span>
+          <div class="kpi-icon kpi-icon-green"><i class="bi bi-boxes"></i></div>
+        </div>
+        <div class="kpi-value">{{ stats.totalProduits }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">Catalogue global pièces</span>
+          <span class="kpi-tag kpi-tag-green">Stock global</span>
+        </div>
       </div>
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID Commande</th>
-              <th>Client</th>
-              <th>Date</th>
-              <th>Montant</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let order of recentOrders">
-              <td><a routerLink="/fournisseur/commandes/{{order.id}}" class="order-link">{{order.id}}</a></td>
-              <td>{{order.client}}</td>
-              <td>{{order.date | date:'dd/MM/yyyy'}}</td>
-              <td>{{order.montant | number:'1.0-0'}} €</td>
-              <td><span class="badge {{getStatutClass(order.statut)}}">{{order.statut}}</span></td>
-            </tr>
-          </tbody>
-        </table>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <span class="kpi-label">Produits actifs</span>
+          <div class="kpi-icon kpi-icon-green"><i class="bi bi-check-circle"></i></div>
+        </div>
+        <div class="kpi-value">{{ stats.produitsActifs }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">{{ stats.tauxActifs }}% en ligne</span>
+          <span class="kpi-tag kpi-tag-green">+12%</span>
+        </div>
       </div>
+
+      <div class="kpi-card kpi-orange">
+        <div class="kpi-top">
+          <span class="kpi-label">Produits en rupture de stock</span>
+          <div class="kpi-icon kpi-icon-orange"><i class="bi bi-exclamation-triangle"></i></div>
+        </div>
+        <div class="kpi-value">{{ stats.ruptures }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">Réassort urgent requis</span>
+          <span class="kpi-tag kpi-tag-orange">Urgent</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <span class="kpi-label">Commandes (Ce mois)</span>
+          <div class="kpi-icon kpi-icon-blue"><i class="bi bi-cart3"></i></div>
+        </div>
+        <div class="kpi-value">{{ stats.commandesMois }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">+12% ce mois</span>
+          <span class="kpi-tag kpi-tag-orange">{{ stats.commandesEnAttente }} en attente</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <span class="kpi-label">Produits vendus</span>
+          <div class="kpi-icon kpi-icon-green"><i class="bi bi-graph-up-arrow"></i></div>
+        </div>
+        <div class="kpi-value">{{ stats.produitsVendus }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">Toutes catégories</span>
+          <span class="kpi-tag kpi-tag-green">+18%</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <span class="kpi-label">Chiffre d'Affaires</span>
+          <div class="kpi-icon kpi-icon-green"><i class="bi bi-currency-dollar"></i></div>
+        </div>
+        <div class="kpi-value kpi-value-lg">{{ formatCFA(stats.chiffreAffaires) }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-sub">Dernière mise à jour: Aujourd'hui</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== MAIN GRID : Commandes + Sidebar ========== -->
+  <div class="dashboard-main-grid">
+
+    <!-- COLONNE GAUCHE : Dernières commandes -->
+    <div class="col-main">
+
+      <!-- Tableau Dernières Commandes -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Dernières Commandes</h2>
+            <p class="card-sub">Aperçu rapide de vos transactions récentes</p>
+          </div>
+          <button class="btn-voir-tout" routerLink="/fournisseur/commandes">
+            Voir tout ({{ totalCommandes }})
+          </button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th># COMMANDE</th>
+                <th>CLIENT</th>
+                <th>PRODUIT</th>
+                <th>STATUT</th>
+                <th>PRIX</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cmd of dernieresCommandes" class="table-row">
+                <td class="cmd-id">{{ cmd.numero }}</td>
+                <td class="cmd-client">{{ cmd.client }}</td>
+                <td class="cmd-produit">{{ cmd.produit | slice:0:22 }}{{ cmd.produit.length > 22 ? '...' : '' }}</td>
+                <td>
+                  <span class="statut-badge" [ngClass]="getStatutClass(cmd.statut)">
+                    {{ cmd.statut }}
+                  </span>
+                </td>
+                <td class="cmd-prix">{{ formatCFA(cmd.prix) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Mini-graphique des ventes mensuelles -->
+      <div class="card mt-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Évolution des ventes</h2>
+            <p class="card-sub">Chiffre d'affaires sur les 6 derniers mois</p>
+          </div>
+          <div class="period-tabs">
+            <button
+              *ngFor="let p of periods"
+              class="period-tab"
+              [class.active]="activePeriod === p"
+              (click)="activePeriod = p"
+            >{{ p }}</button>
+          </div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-bars">
+            <div class="bar-group" *ngFor="let v of ventesParMois">
+              <div class="bar-track">
+                <div
+                  class="bar-fill"
+                  [style.height.%]="getBarHeight(v.montant)"
+                  [class.bar-peak]="isPeak(v.montant)"
+                >
+                  <span class="bar-tooltip">{{ formatCFA(v.montant) }}</span>
+                </div>
+              </div>
+              <span class="bar-label">{{ v.mois }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top produits -->
+      <div class="card mt-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Top Produits</h2>
+            <p class="card-sub">Produits les plus vendus ce mois</p>
+          </div>
+          <a routerLink="/fournisseur/produits" class="link-voir">Voir tout →</a>
+        </div>
+        <div class="top-produits">
+          <div class="top-produit-row" *ngFor="let p of topProduits; let i = index">
+            <span class="rank" [class.rank-gold]="i===0" [class.rank-silver]="i===1" [class.rank-bronze]="i===2">
+              #{{ i + 1 }}
+            </span>
+            <div class="top-prod-info">
+              <div class="top-prod-name">{{ p.nom }}</div>
+              <div class="top-prod-cat">{{ p.categorie }}</div>
+            </div>
+            <div class="top-prod-bar-wrap">
+              <div class="top-prod-bar" [style.width.%]="(p.ventes / topProduits[0].ventes) * 100"></div>
+            </div>
+            <div class="top-prod-stats">
+              <span class="top-prod-ventes">{{ p.ventes }} ventes</span>
+              <span class="top-prod-ca">{{ formatCFA(p.ca) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Low Stock Products -->
-    <div class="table-card">
-      <div class="card-header">
-        <h3>Produits en rupture de stock</h3>
-        <a routerLink="/fournisseur/produits" class="btn-link">Voir tout</a>
+    <!-- COLONNE DROITE : Alertes + Graphique hebdo + Activité -->
+    <div class="col-side">
+
+      <!-- Alertes Stock -->
+      <div class="card card-alertes">
+        <div class="card-header">
+          <div class="alerte-title-row">
+            <i class="bi bi-exclamation-triangle-fill text-orange"></i>
+            <h2 class="card-title">Alertes Stock</h2>
+          </div>
+          <span class="tag-surveiller">À surveiller</span>
+        </div>
+
+        <div class="alerte-list">
+          <div class="alerte-item alerte-rupture">
+            <span class="alerte-nom">Huile Castrol 5W40 Synthétique</span>
+            <span class="alerte-tag rupture">Rupture</span>
+          </div>
+          <div class="alerte-item alerte-low" *ngFor="let a of alertesStock">
+            <span class="alerte-nom">{{ a.nom }}</span>
+            <span class="alerte-tag low-stock">{{ a.restants }} restants</span>
+          </div>
+        </div>
+
+        <button class="btn-reappro" routerLink="/fournisseur/stock">
+          <i class="bi bi-arrow-repeat"></i> Réapprovisionner
+        </button>
       </div>
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Categorie</th>
-              <th>Stock</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let product of lowStockProducts">
-              <td>{{product.nom}}</td>
-              <td>{{product.categorie}}</td>
-              <td><span class="stock-warning">{{product.stock}}</span></td>
-              <td>
-                <button class="btn-sm btn-primary">Reapprovisionner</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+      <!-- Graphique ventes hebdomadaires -->
+      <div class="card mt-card">
+        <div class="card-header">
+          <h2 class="card-title">Ventes (Hebdomadaire)</h2>
+        </div>
+        <div class="chart-mini">
+          <div class="mini-bars">
+            <div class="mini-bar-group" *ngFor="let j of ventesHebdo">
+              <div class="mini-bar-track">
+                <div class="mini-bar-fill" [style.height.%]="j.pct" [class.mini-bar-active]="j.actif">
+                  <span class="mini-bar-tip" *ngIf="j.actif">{{ formatCFA(j.montant) }}</span>
+                </div>
+              </div>
+              <span class="mini-bar-label" [class.mini-label-active]="j.actif">{{ j.jour }}</span>
+            </div>
+          </div>
+          <p class="chart-note">Pic de commandes constaté chaque {{ jourPic }}</p>
+        </div>
       </div>
+
+      <!-- Activité récente -->
+      <div class="card mt-card">
+        <div class="card-header">
+          <h2 class="card-title">Activité récente</h2>
+          <span class="dot-live"></span>
+        </div>
+        <div class="activite-list">
+          <div class="activite-item" *ngFor="let a of activiteRecente">
+            <div class="act-icon" [ngClass]="a.iconClass">
+              <i class="bi {{ a.icon }}"></i>
+            </div>
+            <div class="act-content">
+              <p class="act-text">{{ a.texte }}</p>
+              <span class="act-time">{{ a.temps }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Taux de satisfaction -->
+      <div class="card mt-card satisfaction-card">
+        <div class="card-header">
+          <h2 class="card-title">Satisfaction client</h2>
+          <span class="satisfaction-score">4.7 <i class="bi bi-star-fill text-yellow"></i></span>
+        </div>
+        <div class="satisfaction-bars">
+          <div class="sat-row" *ngFor="let s of satisfaction">
+            <div class="sat-stars">
+              <span *ngFor="let i of [1,2,3,4,5]">
+                <i class="bi" [class.bi-star-fill]="i <= s.etoiles" [class.bi-star]="i > s.etoiles"
+                   [class.text-yellow]="i <= s.etoiles" [class.text-muted]="i > s.etoiles"></i>
+              </span>
+            </div>
+            <div class="sat-bar-track">
+              <div class="sat-bar-fill" [style.width.%]="s.pct"></div>
+            </div>
+            <span class="sat-pct">{{ s.pct }}%</span>
+          </div>
+        </div>
+        <p class="sat-note">Basé sur {{ totalAvis }} avis clients</p>
+      </div>
+
     </div>
   </div>
 
-  <!-- Top Selling Products -->
-  <div class="top-products-section">
-    <div class="table-card">
-      <div class="card-header">
-        <h3>Produits les plus vendus</h3>
-      </div>
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Produit</th>
-              <th>Ventes</th>
-              <th>Revenus</th>
-              <th>Tendance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let product of topSellingProducts">
-              <td>{{product.nom}}</td>
-              <td>{{product.ventes}}</td>
-              <td>{{product.revenus | number:'1.0-0'}} €</td>
-              <td>
-                <span class="trend-up">
-                  <i class="bi bi-arrow-up"></i>
-                  +{{getRandomTrend()}}%
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 </div>

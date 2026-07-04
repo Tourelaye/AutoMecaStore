@@ -38,13 +38,13 @@ export class SidebarFournisseurComponent {
     {
       icon: 'bi-box-seam',
       label: 'Mes Produits',
-      path: '/fournisseur/produits',
+      path: '/fournisseur/produits/list-produit',
     },
-    {
-      icon: 'bi-plus-circle',
-      label: 'Ajouter un produit',
-      path: '/fournisseur/produits/ajouter',
-    },
+    // {
+    //   icon: 'bi-plus-circle',
+    //   label: 'Ajouter un produit',
+    //   path: '/fournisseur/produits/ajouter',
+    // },
     {
       icon: 'bi-cart3',
       label: 'Mes Commandes',
