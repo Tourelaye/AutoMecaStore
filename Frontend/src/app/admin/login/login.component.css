@@ -552,7 +552,10 @@
 
 /* ---- ACCÈS RAPIDE ---- */
 .quick-role-label {
-  font-size: 12px; color: #9ca3af; margin: 0 0 10px; font-weight: 600;
+  font-size: 12px; color: #2c5364; margin: 0 0 10px; font-weight: 600;
+    /* --bg-1: #2c5364;
+  --bg-2: #203a43;
+  --bg-3: #0f2027; */
 }
 
 .quick-roles {

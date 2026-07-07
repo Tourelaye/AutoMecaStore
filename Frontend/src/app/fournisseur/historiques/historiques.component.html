@@ -1,0 +1,119 @@
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon">🕐</div>
+      <div>
+        <h1 class="page-title">Historique d'activité</h1>
+        <p class="page-sub">Suivi chronologique en temps réel des actions et opérations du magasin.</p>
+      </div>
+    </div>
+    <button class="btn-clear" (click)="confirmerEffacement()">
+      <i class="bi bi-trash3"></i> Effacer l'historique
+    </button>
+  </div>
+
+  <!-- ========== SIMULATEUR (démo temps réel) ========== -->
+  <div class="simulator-card">
+    <h2 class="simulator-title"><i class="bi bi-plus-circle-fill"></i> Simulateur d'événements temps réel</h2>
+    <p class="simulator-sub">Ajoutez des actions de test pour voir comment l'historique de l'espace fournisseur réagit instantanément :</p>
+    <div class="simulator-actions">
+      <button class="sim-btn sim-produit" (click)="simulerProduitAjoute()">
+        <i class="bi bi-plus-lg"></i> Produit ajouté
+      </button>
+      <button class="sim-btn sim-commande" (click)="simulerCommandeRecue()">
+        <i class="bi bi-cart3"></i> Commande reçue
+      </button>
+      <button class="sim-btn sim-stock" (click)="simulerStockAjuste()">
+        <i class="bi bi-box-seam"></i> Stock ajusté
+      </button>
+      <button class="sim-btn sim-promotion" (click)="simulerPromotionCreee()">
+        <i class="bi bi-tag-fill"></i> Promotion créée
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== FILTRES ========== -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Rechercher une action, un produit, une commande..."
+        [(ngModel)]="searchTerm"
+      >
+      <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm=''">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="filter-select-wrap">
+      <i class="bi bi-funnel-fill filter-ico"></i>
+      <select class="filter-select" [(ngModel)]="selectedType">
+        <option value="">Tous les types</option>
+        <option value="produit">Produits</option>
+        <option value="commande">Commandes</option>
+        <option value="stock">Stock</option>
+        <option value="promotion">Promotions</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ========== LISTE ACTIVITÉS ========== -->
+  <div class="activites-list">
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="activitesFiltrees.length === 0">
+      <i class="bi bi-inbox"></i>
+      <h3>Aucune activité trouvée</h3>
+      <p>Modifiez vos filtres ou testez le simulateur ci-dessus.</p>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+      <div class="timeline-item" *ngFor="let a of activitesFiltrees; let last = last" [class.no-line]="last">
+
+        <div class="timeline-icon" [ngClass]="'icon-' + a.type">
+          <i class="bi" [ngClass]="getIcon(a.type)"></i>
+        </div>
+
+        <div class="timeline-content">
+          <div class="activite-header">
+            <div class="activite-titre-row">
+              <h4 class="activite-titre">{{ a.titre }}</h4>
+              <span class="type-badge" [ngClass]="'badge-' + a.type">{{ getTypeLabel(a.type) }}</span>
+            </div>
+            <span class="activite-time"><i class="bi bi-clock"></i> {{ formatTemps(a.date) }}</span>
+          </div>
+
+          <div class="activite-detail">
+            {{ a.detail }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg">
+  <i class="bi bi-check-circle-fill"></i> {{ toastMsg }}
+</div>
+
+<!-- Modal confirmation suppression -->
+<div class="modal-overlay" *ngIf="showConfirmClear" (click)="showConfirmClear = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <h3 class="modal-title">Effacer tout l'historique ?</h3>
+    <p class="modal-text">Cette action est irréversible. Tous les événements enregistrés seront définitivement supprimés.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="showConfirmClear = false">Annuler</button>
+      <button class="btn-confirm-delete" (click)="effacerHistorique()">
+        <i class="bi bi-trash3"></i> Effacer définitivement
+      </button>
+    </div>
+  </div>
+</div>

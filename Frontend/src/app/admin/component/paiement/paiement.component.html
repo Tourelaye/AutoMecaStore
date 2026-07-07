@@ -1,0 +1,155 @@
+<div class="pay-page">
+
+          <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Catalogue
+        </div>
+        <h2>Gestion des Paiements</h2>
+        <p>Gérez vos paiements et leurs informations</p>
+      </div>
+    </div>
+
+  <!-- Cards KPI -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-card__icon kpi-card__icon--green"><i class="bi bi-currency-euro"></i></span>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Volume de CA global</span>
+        <span class="kpi-card__value">{{ volumeCA | number:'1.2-2':'fr' }} €</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-card__icon kpi-card__icon--blue"><i class="bi bi-graph-up-arrow"></i></span>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Commissions net (10%)</span>
+        <span class="kpi-card__value">{{ commissionsNet | number:'1.2-2':'fr' }} €</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--danger">
+      <span class="kpi-card__icon kpi-card__icon--red"><i class="bi bi-exclamation-circle-fill"></i></span>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Paiements échoués</span>
+        <span class="kpi-card__value kpi-card__value--red">{{ paiementsEchoues }} échecs</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-card__icon kpi-card__icon--amber"><i class="bi bi-arrow-repeat"></i></span>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Remboursements émis</span>
+        <span class="kpi-card__value">{{ remboursementsEmis }} transactions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barre de filtres -->
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Rechercher par référence, client, vendeur..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
+
+    <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+      <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+  </div>
+
+  <!-- Chargement -->
+  <div class="pay-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Chargement des transactions...</span>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-wrap" *ngIf="!loading">
+    <table class="pay-table">
+      <thead>
+        <tr>
+          <th>ID Transaction</th>
+          <th>Commande</th>
+          <th>Client</th>
+          <th>Fournisseur</th>
+          <th>Passerelle</th>
+          <th>Date</th>
+          <th class="ta-right">Net Client</th>
+          <th class="ta-right">Commission</th>
+          <th>Statut</th>
+          <th class="ta-right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filtered; let i = index; trackBy: trackById" [style.--delay]="(i * 40) + 'ms'">
+          <td class="mono muted">{{ p.id }}</td>
+          <td class="mono strong">{{ p.orderRef }}</td>
+          <td>{{ p.client }}</td>
+          <td>{{ p.vendor }}</td>
+          <td class="muted">{{ p.gateway }}</td>
+          <td class="muted">{{ p.date }}</td>
+          <td class="ta-right strong">{{ p.netClient | number:'1.2-2':'fr' }} €</td>
+          <td class="ta-right commission">{{ p.commission | number:'1.2-2':'fr' }} €</td>
+          <td>
+            <span class="badge" [class]="'badge--' + p.status">{{ statusLabel(p.status) }}</span>
+          </td>
+          <td class="ta-right">
+            <button class="btn-link btn-link--danger" *ngIf="p.status === 'reussi'" (click)="askRefund(p)">
+              Rembourser
+            </button>
+            <button class="btn-link" *ngIf="p.status === 'echec'" (click)="askRetry(p)">
+              Réessayer
+            </button>
+            <span class="muted" *ngIf="p.status === 'rembourse'">Remboursé</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pay-empty" *ngIf="filtered.length === 0">
+      <i class="bi bi-inboxes"></i>
+      <p>Aucune transaction ne correspond à ces filtres.</p>
+    </div>
+  </div>
+
+  <!-- ===================== MODALE : CONFIRMATION ===================== -->
+  <div class="modal-backdrop" *ngIf="activeModal" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3 class="modal__title" *ngIf="activeModal === 'refund'">Rembourser cette transaction ?</h3>
+      <h3 class="modal__title" *ngIf="activeModal === 'retry'">Relancer ce paiement ?</h3>
+
+      <p class="modal__text" *ngIf="activeModal === 'refund'">
+        <strong>{{ targetPaiement?.netClient | number:'1.2-2':'fr' }} €</strong> seront remboursés à
+        <strong>{{ targetPaiement?.client }}</strong> pour la commande <strong>{{ targetPaiement?.orderRef }}</strong>.
+        Cette action est irréversible.
+      </p>
+
+      <p class="modal__text" *ngIf="activeModal === 'retry'">
+        Une nouvelle tentative de prélèvement sera effectuée pour la commande
+        <strong>{{ targetPaiement?.orderRef }}</strong> ({{ targetPaiement?.client }}).
+      </p>
+
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">Annuler</button>
+        <button
+          type="button"
+          class="btn-text"
+          [class.btn-text--danger]="activeModal === 'refund'"
+          [disabled]="submitting"
+          (click)="confirmModal()"
+        >
+          <span *ngIf="!submitting">{{ activeModal === 'refund' ? 'Rembourser' : 'Relancer' }}</span>
+          <span *ngIf="submitting">Traitement...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

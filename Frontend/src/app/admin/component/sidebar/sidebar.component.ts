@@ -34,10 +34,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   navItems: NavItem[] = [
     { label: 'Dashboard',           icon: 'bi-speedometer2',   route: '/admin/dashboard' },
+    { label: 'Fournisseurs',        icon: 'bi-building',       route: '/admin/fournisseurs' },
     { label: 'Produits',            icon: 'bi-box-seam',       route: '/admin/produits'  },
     { label: 'Catégories',          icon: 'bi-grid-3x3-gap',   route: '/admin/categories' },
     { label: 'Commandes',           icon: 'bi-cart-check',     route: '/admin/commandes'  },
     { label: 'Clients',             icon: 'bi-people',         route: '/admin/clients'    },
+    { label: 'Paiements & Factures',           icon: 'bi-credit-card',    route: '/admin/paiements'  },
     { label: 'Livraisons',          icon: 'bi-truck',          route: '/admin/livraisons' },
     { label: 'Avis & Réclamations', icon: 'bi-chat-left-text', route: '/admin/avis'       },
     { label: 'Promotions',          icon: 'bi-tag',            route: '/admin/promotions' },

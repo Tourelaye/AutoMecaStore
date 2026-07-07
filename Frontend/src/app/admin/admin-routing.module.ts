@@ -12,7 +12,8 @@ import { ParametreComponent } from './component/parametre/parametre.component';
 import { CommandeComponent } from './component/commande/commande.component';
 import { CategorieComponent } from './component/categorie/categorie.component';
 import { roleGuard } from '../core/guards/role.guard';
-
+import { FournisseurComponent } from './component/fournisseur/fournisseur.component';
+import { PaiementComponent } from './component/paiement/paiement.component';
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   {
@@ -23,10 +24,12 @@ const routes: Routes = [
     data: { role: 'admin' },
     children: [
       { path: 'dashboard', component: DashboardComponent },
+      { path: 'fournisseurs', component: FournisseurComponent },
+      { path: 'clients', component: ClientComponent },
       { path: 'produits', component: ProduitComponent },
       { path: 'categories', component: CategorieComponent },
       { path: 'commandes', component: CommandeComponent },
-      { path: 'clients', component: ClientComponent },
+      { path: 'paiements', component: PaiementComponent },
       { path: 'livraisons', component: LivraisonComponent },
       { path: 'avis', component: AvisReclamationComponent },
       { path: 'promotions', component: PromotionComponent },

@@ -1,494 +1,185 @@
-<app-sidebar></app-sidebar>
+<div class="pr-page">
 
-<div class="layout">
-  <div class="main">
-    <app-header></app-header>
+        <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Catalogue
+        </div>
+        <h2>Gestion des Produits</h2>
+        <p>Gérez vos produits et leurs informations</p>
+      </div>
+    </div>
 
-    <div class="content">
+  <!-- Barre de filtres -->
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Rechercher par pièce, OEM, marque..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
 
-      <!-- NOTIFICATION -->
-      <div class="notification" *ngIf="message"
-        [class.success]="messageType === 'success'"
-        [class.error]="messageType === 'error'"
-        (click)="closeNotification()"
-      >
-        <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
-        <span>{{ message }}</span>
-        <i class="bi bi-x notif-close"></i>
+    <select class="toolbar__select" [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
+      <option *ngFor="let c of categories" [value]="c">{{ c === 'toutes' ? 'Toutes catégories' : c }}</option>
+    </select>
+
+    <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+      <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+
+    <select class="toolbar__select" [(ngModel)]="stockFilter" (ngModelChange)="applyFilters()">
+      <option *ngFor="let opt of stockOptions" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+  </div>
+
+  <!-- Chargement -->
+  <div class="pr-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Chargement des produits...</span>
+  </div>
+
+  <!-- Grille de produits -->
+  <div class="pr-grid" *ngIf="!loading">
+    <div
+      class="pr-card"
+      *ngFor="let p of filtered; let i = index; trackBy: trackByRef"
+      [style.--delay]="(i * 50) + 'ms'"
+    >
+      <div class="pr-card__top">
+        <span class="pr-card__ref">{{ p.ref }}</span>
+        <div class="pr-card__badges">
+          <span class="badge badge--signale" *ngIf="p.signale">SIGNALÉ</span>
+          <span class="badge" [class]="'badge--' + p.state">
+            {{ p.state === 'en_ligne' ? 'EN LIGNE' : p.state === 'desactive' ? 'DÉSACTIVÉ' : 'ATTENTE VALIDATION' }}
+          </span>
+        </div>
       </div>
 
-      <!-- EN-TÊTE PAGE -->
-      <div class="page-header fade-up">
-        <div class="page-title">
-          <div class="page-tag">
-            <i class="bi bi-box-seam-fill"></i>
-            Catalogue
-          </div>
-          <h2>Gestion des Produits</h2>
-          <p>Gérez votre catalogue de pièces automobiles</p>
+      <div class="pr-card__identity">
+        <div class="thumb">
+          <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
+          <i class="bi bi-box-seam" *ngIf="!p.image"></i>
         </div>
-        <div class="page-stats">
-          <div class="ps-item">
-            <span class="ps-val">{{ produits.length }}</span>
-            <span class="ps-lbl">Total</span>
-          </div>
-          <div class="ps-item">
-            <span class="ps-val text-green">{{ getInStockCount() }}</span>
-            <span class="ps-lbl">En stock</span>
-          </div>
-          <div class="ps-item">
-            <span class="ps-val text-red">{{ getLowStockCount() }}</span>
-            <span class="ps-lbl">Critique</span>
-          </div>
+        <div class="pr-card__names">
+          <span class="pr-card__name">{{ p.name }}</span>
+          <span class="pr-card__sub">Cat: {{ p.category }}</span>
+          <span class="pr-card__sub">Vendeur: <span class="pr-card__vendor">{{ p.vendor }}</span></span>
         </div>
       </div>
 
-      <!-- PANEL -->
-      <div class="panel fade-up delay-1">
+      <div class="signal-banner" *ngIf="p.signale && p.signalReason">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>Signalé: {{ p.signalReason }}</span>
+      </div>
 
-        <!-- TOOLBAR -->
-        <div class="toolbar">
-          <div class="search-box" [class.focused]="searchFocused">
-            <i class="bi bi-search search-icon"></i>
-            <input
-              type="text"
-              placeholder="Rechercher un produit..."
-              [(ngModel)]="searchQuery"
-              (keyup.enter)="onSearch()"
-              (focus)="searchFocused = true"
-              (blur)="searchFocused = false"
-            >
-            <button class="search-clear" *ngIf="searchQuery" (click)="searchQuery=''; loadProduits()">
-              <i class="bi bi-x"></i>
-            </button>
-          </div>
-
-          <div class="toolbar-actions">
-            <button class="btn-filter" (click)="onSearch()">
-              <i class="bi bi-funnel-fill"></i> Filtrer
-            </button>
-            <button class="btn-add" (click)="openAddModal()">
-              <i class="bi bi-plus-lg"></i> Nouveau produit
-            </button>
-          </div>
+      <div class="pr-card__stats">
+        <div class="stat">
+          <span class="stat__label">Prix unitaire</span>
+          <span class="stat__value">{{ p.price | number:'1.2-2':'fr' }} €</span>
         </div>
-
-        <!-- TABLE HEADER -->
-        <div class="table-header">
-          <span>Image</span>
-          <span>Nom & Référence</span>
-          <span>Catégorie</span>
-          <span>Prix</span>
-          <span>Stock</span>
-          <span>Statut</span>
-          <span>Actions</span>
+        <div class="stat">
+          <span class="stat__label">Stock vendeur</span>
+          <span class="stat__value" *ngIf="stockLevel(p) === 'ok'">{{ p.stock }} p.</span>
+          <span class="stat__value stat__value--amber" *ngIf="stockLevel(p) === 'faible'">{{ p.stock }} p.</span>
+          <span class="stat__value stat__value--red" *ngIf="stockLevel(p) === 'rupture'">Rupture</span>
         </div>
-
-        <!-- LOADING SKELETON -->
-        <div *ngIf="isLoading" class="skeleton-list">
-          <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
-            <div class="sk-img"></div>
-            <div class="sk-lines">
-              <div class="sk-line"></div>
-              <div class="sk-line short"></div>
-            </div>
-            <div class="sk-line w120"></div>
-            <div class="sk-line w80"></div>
-            <div class="sk-line w60"></div>
-            <div class="sk-line w80"></div>
-            <div class="sk-line w40"></div>
-          </div>
+        <div class="stat">
+          <span class="stat__label">Ventes plataf.</span>
+          <span class="stat__value stat__value--blue">{{ p.sales }} vendus</span>
         </div>
+      </div>
 
-        <!-- TABLE BODY -->
-        <div class="table-body" *ngIf="!isLoading">
-          <div
-            class="table-row"
-            *ngFor="let produit of produits; let i = index"
-            [class.deleting]="produit['deleting']"
-            [style.--i]="i"
-          >
+      <!-- Cas 1 : produit en attente de validation -->
+      <div class="pr-card__actions" *ngIf="p.state === 'attente_validation'">
+        <button class="btn-validate" (click)="validate(p)">
+          <i class="bi bi-check-lg"></i> Valider l'Article
+        </button>
+        <button class="btn-refuse" (click)="askRefuse(p)">
+          <i class="bi bi-x-lg"></i> Refuser
+        </button>
+      </div>
 
-            <!-- IMAGE -->
-            <div class="img-box">
-              <img *ngIf="getImageUrl(produit)" [src]="getImageUrl(produit)" [alt]="produit.nom">
-              <i *ngIf="!getImageUrl(produit)" class="bi bi-gear-wide-connected"></i>
-            </div>
+      <!-- Cas 2 : produit normal (en ligne ou désactivé) -->
+      <div class="pr-card__actions" *ngIf="p.state !== 'attente_validation'">
+        <button class="btn-outline">
+          <i class="bi bi-eye"></i> Fiche
+        </button>
+        <button class="btn-outline" *ngIf="p.state === 'en_ligne'" (click)="toggleActivation(p)">
+          <i class="bi bi-lock"></i> Désactiver
+        </button>
+        <button class="btn-outline btn-outline--green" *ngIf="p.state === 'desactive'" (click)="toggleActivation(p)">
+          <i class="bi bi-unlock"></i> Réactiver
+        </button>
+        <button class="btn-link btn-link--danger" *ngIf="!p.signale" (click)="askSignal(p)">Signaler</button>
+        <button class="btn-link" *ngIf="p.signale" (click)="removeSignal(p)">Dé-signaler</button>
+        <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(p)">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
 
-            <!-- NOM & REF -->
-            <div class="prod-name-col">
-              <span class="prod-name">{{ produit.nom }}</span>
-              <span class="prod-ref" *ngIf="produit['reference']">
-                <i class="bi bi-hash"></i>{{ produit['reference'] }}
-              </span>
-              <span class="prod-marque" *ngIf="produit['marque']">{{ produit['marque'] }}</span>
-            </div>
+    <div class="pr-empty" *ngIf="filtered.length === 0">
+      <i class="bi bi-inboxes"></i>
+      <p>Aucun produit ne correspond à ces filtres.</p>
+    </div>
+  </div>
 
-            <!-- CATÉGORIE -->
-            <div class="cat-col">
-              <span class="cat-pill">
-                <i class="bi bi-tag-fill"></i>
-                {{ produit['categorie_nom'] || produit['categorie_detail']?.nom || 'Sans catégorie' }}
-              </span>
-            </div>
+  <!-- ===================== MODALE GÉNÉRIQUE ===================== -->
+  <div class="modal-backdrop" *ngIf="activeModal" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
 
-            <!-- PRIX -->
-            <div class="price-col">
-              <span class="price-main">{{ produit.prix | number:'1.0-0' }}</span>
-              <span class="price-unit">FCFA</span>
-              <span class="promo-badge" *ngIf="produit['est_en_promo']">
-                <i class="bi bi-tag-fill"></i> Promo
-              </span>
-            </div>
+      <ng-container [ngSwitch]="activeModal">
 
-            <!-- STOCK -->
-            <div class="stock-col">
-              <span class="stock-num"
-                [class.low]="produit.stock > 0 && produit.stock <= 5"
-                [class.critical]="produit.stock === 0"
-              >{{ produit.stock }}</span>
-            </div>
+        <ng-container *ngSwitchCase="'delete'">
+          <h3 class="modal__title">Supprimer ce produit ?</h3>
+          <p class="modal__text">
+            <strong>{{ targetProduit?.name }}</strong> sera définitivement retiré du catalogue. Cette action est irréversible.
+          </p>
+        </ng-container>
 
-            <!-- STATUT -->
-            <div class="status-col">
-              <span class="badge"
-                [class.in]="getStockStatus(produit.stock) === 'in'"
-                [class.low]="getStockStatus(produit.stock) === 'low'"
-                [class.out]="getStockStatus(produit.stock) === 'out'"
-              >
-                {{ getStockLabel(produit.stock) }}
-              </span>
-            </div>
+        <ng-container *ngSwitchCase="'refuse'">
+          <h3 class="modal__title">Refuser cet article ?</h3>
+          <p class="modal__text">
+            <strong>{{ targetProduit?.name }}</strong> restera désactivé et ne sera pas visible côté client.
+          </p>
+        </ng-container>
 
-            <!-- ACTIONS -->
-            <div class="actions-col" (click)="$event.stopPropagation()">
-              <button class="btn-actions" (click)="toggleMenu(produit.id); $event.stopPropagation()">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-              <div class="dropdown-menu" [class.show]="activeMenu === produit.id" *ngIf="activeMenu === produit.id" (click)="$event.stopPropagation()">
-                <button class="dropdown-item" (click)="editProduit(produit)">
-                  <i class="bi bi-pencil-fill"></i> Modifier
-                </button>
-                <div class="dropdown-divider"></div>
-                <button class="dropdown-item delete" (click)="deleteProduit(produit)">
-                  <i class="bi bi-trash-fill"></i> Supprimer
-                </button>
-              </div>
-            </div>
-
+        <ng-container *ngSwitchCase="'signal'">
+          <h3 class="modal__title">Signaler ce produit</h3>
+          <div class="field">
+            <label>Motif du signalement</label>
+            <textarea
+              rows="3"
+              placeholder="ex: Incompatibilité avec le code OEM, description trompeuse..."
+              [(ngModel)]="reasonInput"
+              [ngModelOptions]="{ standalone: true }"
+            ></textarea>
           </div>
+        </ng-container>
 
-          <!-- EMPTY STATE -->
-          <div class="empty-state" *ngIf="produits.length === 0">
-            <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-            <h4>Aucun produit trouvé</h4>
-            <p>Commencez par ajouter votre premier produit au catalogue.</p>
-            <button class="btn-add" (click)="openAddModal()">
-              <i class="bi bi-plus-lg"></i> Ajouter un produit
-            </button>
-          </div>
-        </div>
+      </ng-container>
 
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">Annuler</button>
+        <button
+          type="button"
+          class="btn-text"
+          [class.btn-text--danger]="activeModal === 'delete' || activeModal === 'refuse' || activeModal === 'signal'"
+          [disabled]="submitting"
+          (click)="confirmModal()"
+        >
+          <span *ngIf="!submitting">
+            {{ activeModal === 'delete' ? 'Supprimer' : activeModal === 'refuse' ? 'Refuser' : 'Signaler' }}
+          </span>
+          <span *ngIf="submitting">Traitement...</span>
+        </button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ══ MODAL AJOUTER / MODIFIER ══ -->
-<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-
-    <div class="modal-header">
-      <div class="modal-title">
-        <div class="modal-icon-wrap" [class.edit-mode]="isEditing">
-          <i class="bi" [class.bi-plus-lg]="!isEditing" [class.bi-pencil-fill]="isEditing"></i>
-        </div>
-        <div>
-          <h3>{{ isEditing ? 'Modifier le produit' : 'Nouveau produit' }}</h3>
-          <small>{{ isEditing ? 'Modifiez les informations ci-dessous' : 'Remplissez les informations du produit' }}</small>
-        </div>
-      </div>
-      <button class="btn-close" (click)="closeModal()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-
-    <div class="modal-body">
-      <form (ngSubmit)="saveProduit()">
-
-        <!-- NOM -->
-        <div class="form-group">
-          <label><i class="bi bi-tag"></i> Nom du produit *</label>
-          <input type="text" [(ngModel)]="produitForm.nom" name="nom" placeholder="Ex: Kit Freinage Brembo" required>
-        </div>
-
-        <!-- REF + MARQUE -->
-        <div class="form-row">
-          <div class="form-group">
-            <label><i class="bi bi-hash"></i> Référence</label>
-            <input type="text" [(ngModel)]="produitForm.reference" name="reference" placeholder="BR-2024-001">
-          </div>
-          <div class="form-group">
-            <label><i class="bi bi-building"></i> Marque</label>
-            <input type="text" [(ngModel)]="produitForm.marque" name="marque" placeholder="Brembo">
-          </div>
-        </div>
-
-        <!-- PRIX + STOCK -->
-        <div class="form-row">
-          <div class="form-group">
-            <label><i class="bi bi-currency-exchange"></i> Prix (FCFA) *</label>
-            <input type="number" [(ngModel)]="produitForm.prix" name="prix" placeholder="45000" min="0" step="0.01" required>
-          </div>
-          <div class="form-group">
-            <label><i class="bi bi-archive"></i> Stock *</label>
-            <input type="number" [(ngModel)]="produitForm.stock" name="stock" placeholder="10" min="0" required>
-          </div>
-        </div>
-
-        <!-- CATÉGORIE -->
-        <div class="form-group">
-          <label><i class="bi bi-grid-3x3-gap"></i> Catégorie véhicule *</label>
-          <select [(ngModel)]="produitForm.categorie" name="categorie" (change)="onCategoryChange()">
-            <option [ngValue]="null">-- Sélectionner une catégorie --</option>
-            <option *ngFor="let cat of categories" [ngValue]="cat">{{ cat.nom }}</option>
-          </select>
-        </div>
-
-        <!-- SOUS-CATÉGORIE -->
-        <div class="form-group">
-          <label><i class="bi bi-grid"></i> Type de pièce</label>
-          <select 
-            [(ngModel)]="produitForm.sous_categorie" 
-            name="sous_categorie"
-            [disabled]="!produitForm.categorie"
-          >
-            <option [ngValue]="null">
-              {{ !produitForm.categorie ? 'Sélectionnez d\'abord une catégorie' : '-- Sélectionner un type de pièce --' }}
-            </option>
-            <option *ngFor="let sc of sousCategories" [ngValue]="sc">{{ sc.nom }}</option>
-          </select>
-        </div>
-
-        <!-- PROMO -->
-        <div class="form-group promo-toggle">
-          <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="produitForm.est_en_promo" name="est_en_promo">
-            <div class="toggle-track" [class.on]="produitForm.est_en_promo">
-              <div class="toggle-thumb"></div>
-            </div>
-            <span>Produit en promotion</span>
-            <span class="promo-pill" *ngIf="produitForm.est_en_promo">Actif</span>
-          </label>
-        </div>
-
-        <div class="form-row promo-fields" *ngIf="produitForm.est_en_promo">
-          <div class="form-group">
-            <label><i class="bi bi-percent"></i> Prix promo (FCFA)</label>
-            <input type="number" [(ngModel)]="produitForm.prix_promo" name="prix_promo" placeholder="39000" min="0" step="0.01">
-          </div>
-          <div class="form-group">
-            <label><i class="bi bi-percent"></i> Réduction (%)</label>
-            <input type="number" [(ngModel)]="produitForm.pourcentage_reduction" name="pourcentage_reduction" placeholder="20" min="0" max="100">
-          </div>
-        </div>
-
-        <div class="form-row promo-fields" *ngIf="produitForm.est_en_promo">
-          <div class="form-group">
-            <label><i class="bi bi-calendar"></i> Début de promo</label>
-            <input type="datetime-local" [(ngModel)]="produitForm.date_debut_promo" name="date_debut_promo">
-          </div>
-          <div class="form-group">
-            <label><i class="bi bi-calendar-x"></i> Fin de promo</label>
-            <input type="datetime-local" [(ngModel)]="produitForm.date_fin_promo" name="date_fin_promo">
-          </div>
-        </div>
-
-        <!-- VENTE ÉCLAIR -->
-        <div class="form-group promo-toggle">
-          <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="produitForm.vente_eclair" name="vente_eclair">
-            <div class="toggle-track" [class.on]="produitForm.vente_eclair">
-              <div class="toggle-thumb"></div>
-            </div>
-            <span>Vente éclair (limitée dans le temps)</span>
-            <span class="promo-pill" *ngIf="produitForm.vente_eclair">Actif</span>
-          </label>
-        </div>
-
-        <div class="form-row promo-fields" *ngIf="produitForm.vente_eclair">
-          <div class="form-group">
-            <label><i class="bi bi-clock"></i> Heure de début</label>
-            <input type="time" [(ngModel)]="produitForm.heure_debut_eclair" name="heure_debut_eclair">
-          </div>
-          <div class="form-group">
-            <label><i class="bi bi-clock-history"></i> Heure de fin</label>
-            <input type="time" [(ngModel)]="produitForm.heure_fin_eclair" name="heure_fin_eclair">
-          </div>
-        </div>
-
-        <!-- TAGS ADMIN -->
-        <div class="form-group">
-          <label><i class="bi bi-stars"></i> Tags administrateur (mise en avant)</label>
-          <div class="tags-grid">
-            <label class="tag-checkbox">
-              <input type="checkbox" [(ngModel)]="produitForm.est_vedette" name="est_vedette">
-              <span class="tag-label">🌟 Produit vedette</span>
-            </label>
-            <label class="tag-checkbox">
-              <input type="checkbox" [(ngModel)]="produitForm.est_tendance" name="est_tendance">
-              <span class="tag-label">🔥 Produit tendance</span>
-            </label>
-            <label class="tag-checkbox">
-              <input type="checkbox" [(ngModel)]="produitForm.est_recommande" name="est_recommande">
-              <span class="tag-label">💎 Recommandé</span>
-            </label>
-            <label class="tag-checkbox">
-              <input type="checkbox" [(ngModel)]="produitForm.est_bestseller" name="est_bestseller">
-              <span class="tag-label">🏆 Bestseller</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- DESCRIPTION -->
-        <div class="form-group">
-          <label><i class="bi bi-card-text"></i> Description</label>
-          <textarea [(ngModel)]="produitForm.description" name="description" rows="3" placeholder="Description détaillée du produit..."></textarea>
-        </div>
-
-        <!-- IMAGE -->
-        <div class="form-group">
-          <label><i class="bi bi-image"></i> Image principale du produit</label>
-          <div class="image-upload-area">
-            <div class="image-preview-box" [class.has-image]="imagePreview || produitForm.image">
-              <img *ngIf="imagePreview" [src]="imagePreview" alt="Preview">
-              <img *ngIf="!imagePreview && produitForm.image" [src]="getFormImageUrl()" alt="Produit">
-              <div class="img-placeholder" *ngIf="!imagePreview && !produitForm.image">
-                <i class="bi bi-cloud-upload"></i>
-                <span>Glissez une image</span>
-              </div>
-              <button *ngIf="imagePreview || produitForm.image" type="button" class="btn-remove-image" (click)="removeImage()">
-                <i class="bi bi-x"></i>
-              </button>
-            </div>
-            <div class="file-input-wrapper">
-              <button type="button" class="btn-upload">
-                <i class="bi bi-cloud-upload-fill"></i>
-                {{ imageFile ? 'Changer l\'image' : 'Choisir une image' }}
-              </button>
-              <input type="file" accept="image/*" (change)="onImageSelected($event)">
-            </div>
-          </div>
-        </div>
-
-        <!-- IMAGE 2 -->
-        <div class="form-group">
-          <label><i class="bi bi-image"></i> Image secondaire 1</label>
-          <div class="image-upload-area">
-            <div class="image-preview-box" [class.has-image]="imagePreview2">
-              <img *ngIf="imagePreview2" [src]="imagePreview2" alt="Preview 2">
-              <div class="img-placeholder" *ngIf="!imagePreview2">
-                <i class="bi bi-cloud-upload"></i>
-                <span>Optionnel</span>
-              </div>
-              <button *ngIf="imagePreview2" type="button" class="btn-remove-image" (click)="removeImage2()">
-                <i class="bi bi-x"></i>
-              </button>
-            </div>
-            <div class="file-input-wrapper">
-              <button type="button" class="btn-upload">
-                <i class="bi bi-cloud-upload-fill"></i>
-                {{ imageFile2 ? 'Changer l\'image' : 'Choisir une image' }}
-              </button>
-              <input type="file" accept="image/*" (change)="onImageSelected2($event)">
-            </div>
-          </div>
-        </div>
-
-        <!-- IMAGE 3 -->
-        <div class="form-group">
-          <label><i class="bi bi-image"></i> Image secondaire 2</label>
-          <div class="image-upload-area">
-            <div class="image-preview-box" [class.has-image]="imagePreview3">
-              <img *ngIf="imagePreview3" [src]="imagePreview3" alt="Preview 3">
-              <div class="img-placeholder" *ngIf="!imagePreview3">
-                <i class="bi bi-cloud-upload"></i>
-                <span>Optionnel</span>
-              </div>
-              <button *ngIf="imagePreview3" type="button" class="btn-remove-image" (click)="removeImage3()">
-                <i class="bi bi-x"></i>
-              </button>
-            </div>
-            <div class="file-input-wrapper">
-              <button type="button" class="btn-upload">
-                <i class="bi bi-cloud-upload-fill"></i>
-                {{ imageFile3 ? 'Changer l\'image' : 'Choisir une image' }}
-              </button>
-              <input type="file" accept="image/*" (change)="onImageSelected3($event)">
-            </div>
-          </div>
-        </div>
-
-        <!-- IMAGE 4 -->
-        <div class="form-group">
-          <label><i class="bi bi-image"></i> Image secondaire 3</label>
-          <div class="image-upload-area">
-            <div class="image-preview-box" [class.has-image]="imagePreview4">
-              <img *ngIf="imagePreview4" [src]="imagePreview4" alt="Preview 4">
-              <div class="img-placeholder" *ngIf="!imagePreview4">
-                <i class="bi bi-cloud-upload"></i>
-                <span>Optionnel</span>
-              </div>
-              <button *ngIf="imagePreview4" type="button" class="btn-remove-image" (click)="removeImage4()">
-                <i class="bi bi-x"></i>
-              </button>
-            </div>
-            <div class="file-input-wrapper">
-              <button type="button" class="btn-upload">
-                <i class="bi bi-cloud-upload-fill"></i>
-                {{ imageFile4 ? 'Changer l\'image' : 'Choisir une image' }}
-              </button>
-              <input type="file" accept="image/*" (change)="onImageSelected4($event)">
-            </div>
-          </div>
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="form-actions">
-          <button type="button" class="btn-cancel" (click)="closeModal()">
-            <i class="bi bi-x"></i> Annuler
-          </button>
-          <button type="submit" class="btn-save">
-            <i class="bi" [class.bi-plus-lg]="!isEditing" [class.bi-check-lg]="isEditing"></i>
-            {{ isEditing ? 'Mettre à jour' : 'Ajouter le produit' }}
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL SUPPRESSION ══ -->
-<div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
-  <div class="modal-content delete-modal" (click)="$event.stopPropagation()">
-    <div class="delete-icon-wrap">
-      <i class="bi bi-trash-fill"></i>
-    </div>
-    <div class="modal-header border-0">
-      <h3>Supprimer le produit</h3>
-    </div>
-    <div class="modal-body text-center">
-      <p>Voulez-vous supprimer <strong>"{{ produitToDelete?.nom }}"</strong> ?</p>
-      <p class="warning-text"><i class="bi bi-exclamation-triangle-fill"></i> Cette action est irréversible.</p>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" (click)="cancelDelete()">
-        <i class="bi bi-x-lg"></i> Annuler
-      </button>
-      <button class="btn-delete" (click)="confirmDelete()">
-        <i class="bi bi-trash-fill"></i> Supprimer
-      </button>
-    </div>
-  </div>
 </div>

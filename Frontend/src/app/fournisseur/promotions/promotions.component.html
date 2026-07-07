@@ -1,0 +1,133 @@
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="page-header">
+    <div class="page-icon">🏷️</div>
+    <div>
+      <h1 class="page-title">Campagnes Promotions</h1>
+      <p class="page-sub">Configurez des réductions flash sur vos pièces pour booster vos ventes auprès des garagistes.</p>
+    </div>
+  </div>
+
+  <!-- ========== GRID 2 COLONNES ========== -->
+  <div class="promo-grid">
+
+    <!-- ========== COLONNE GAUCHE : FORMULAIRE ========== -->
+    <div class="card form-card">
+      <div class="card-header-simple">
+        <i class="bi bi-tag-fill card-icon"></i>
+        <div>
+          <h2 class="card-title">Nouvelle Promotion</h2>
+          <p class="card-sub">Exemple : Plaquettes Brembo · -15% · 01/08 au 10/08</p>
+        </div>
+      </div>
+
+      <form (ngSubmit)="appliquerReduction()" #promoForm="ngForm" class="promo-form">
+
+        <!-- Produit -->
+        <div class="form-field">
+          <label class="form-label">Produit à promouvoir *</label>
+          <select class="form-input form-select" [(ngModel)]="form.produitId" name="produitId" required>
+            <option [ngValue]="null">-- Choisir une référence --</option>
+            <option *ngFor="let p of produitsDisponibles" [ngValue]="p.id">{{ p.nom }}</option>
+          </select>
+        </div>
+
+        <!-- Pourcentage -->
+        <div class="form-field">
+          <label class="form-label">Pourcentage de réduction (%) *</label>
+          <div class="input-with-suffix">
+            <input
+              type="number" class="form-input" [(ngModel)]="form.pourcentage" name="pourcentage"
+              required min="1" max="90" placeholder="15" #pctInput="ngModel"
+              [class.input-error]="pctInput.invalid && pctInput.touched"
+            >
+            <span class="input-suffix">%</span>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="form-label">Date de début *</label>
+            <input type="date" class="form-input" [(ngModel)]="form.dateDebut" name="dateDebut" required>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Date de fin *</label>
+            <input type="date" class="form-input" [(ngModel)]="form.dateFin" name="dateFin" required>
+          </div>
+        </div>
+
+        <!-- Aperçu prix -->
+        <div class="prix-preview" *ngIf="produitSelectionne && form.pourcentage">
+          <span class="preview-label">Aperçu :</span>
+          <span class="preview-old">{{ formatPrix(produitSelectionne.prix) }}</span>
+          <i class="bi bi-arrow-right"></i>
+          <span class="preview-new">{{ formatPrix(calculPrixReduit(produitSelectionne.prix, form.pourcentage)) }}</span>
+        </div>
+
+        <!-- Erreur -->
+        <div class="form-error-msg" *ngIf="formError">
+          <i class="bi bi-exclamation-triangle-fill"></i> {{ formError }}
+        </div>
+
+        <button type="submit" class="btn-apply" [disabled]="promoForm.invalid || isSaving">
+          <span *ngIf="!isSaving"><i class="bi bi-plus-circle-fill"></i> Appliquer la réduction</span>
+          <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Application...</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- ========== COLONNE DROITE : PROMOTIONS ACTIVES ========== -->
+    <div class="card list-card">
+      <div class="card-header-simple">
+        <i class="bi bi-lightning-charge-fill card-icon card-icon-gold"></i>
+        <h2 class="card-title">Promotions Actives &amp; Planifiées ({{ promotions.length }})</h2>
+      </div>
+
+      <!-- Vide -->
+      <div class="empty-state" *ngIf="promotions.length === 0">
+        <div class="empty-ico">🏷️</div>
+        <h3>Aucune promotion active</h3>
+        <p>Créez votre première campagne à gauche.</p>
+      </div>
+
+      <!-- Liste -->
+      <div class="promo-list" *ngIf="promotions.length > 0">
+        <div class="promo-item" *ngFor="let promo of promotions">
+          <div class="promo-img-wrap">
+            <img *ngIf="promo.produitImage" [src]="promo.produitImage" [alt]="promo.produitNom" (error)="onImgError($event)">
+            <div *ngIf="!promo.produitImage" class="promo-img-ph">{{ promo.produitNom.charAt(0) }}</div>
+          </div>
+
+          <div class="promo-badge">-{{ promo.pourcentage }}% OFF</div>
+
+          <div class="promo-info">
+            <span class="promo-nom">{{ promo.produitNom }}</span>
+            <div class="promo-prix-row">
+              <span class="prix-barre">{{ formatPrix(promo.prixOriginal) }}</span>
+              <i class="bi bi-arrow-right"></i>
+              <span class="prix-final">{{ formatPrix(calculPrixReduit(promo.prixOriginal, promo.pourcentage)) }}</span>
+            </div>
+          </div>
+
+          <div class="promo-dates">
+            <i class="bi bi-calendar3"></i>
+            <span>{{ formatDateAffichage(promo.dateDebut) }} au {{ formatDateAffichage(promo.dateFin) }}</span>
+          </div>
+
+          <button class="btn-delete-promo" (click)="supprimerPromo(promo)" title="Supprimer la promotion">
+            <i class="bi bi-trash3"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
+</div>

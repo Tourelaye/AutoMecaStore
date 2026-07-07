@@ -1,0 +1,270 @@
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon">💰</div>
+      <div>
+        <h1 class="page-title">Mes Ventes & Revenus</h1>
+        <p class="page-sub">Détail des transactions clients et reversements nets sur votre compte bancaire.</p>
+      </div>
+    </div>
+    <!-- Période -->
+    <div class="period-selector">
+      <button *ngFor="let p of periods" class="period-btn" [class.active]="selectedPeriod === p.value" (click)="selectPeriod(p.value)">
+        {{ p.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 3 CARTES FINANCIÈRES ========== -->
+  <div class="finance-cards">
+
+    <!-- Ventes brutes -->
+    <div class="finance-card card-brut">
+      <div class="fc-label">VENTES BRUTES TOTALES</div>
+      <div class="fc-amount">{{ formatPrix(totalBrut) }}</div>
+      <div class="fc-trend">
+        <i class="bi bi-arrow-up-short"></i> +{{ tendanceBrut }}% vs période précédente
+      </div>
+    </div>
+
+    <!-- Commission -->
+    <div class="finance-card card-commission">
+      <div class="fc-label">COMMISSIONS AUTOMECASTORE ({{ tauxCommission }}%)</div>
+      <div class="fc-amount commission-amount">- {{ formatPrix(totalCommission) }}</div>
+      <div class="fc-sub">{{ transactions.length }} transactions concernées</div>
+    </div>
+
+    <!-- Revenu net — carte orange -->
+    <div class="finance-card card-net">
+      <div class="fc-label-net">REVENU NET À REVERSER</div>
+      <div class="fc-amount-net">{{ formatPrix(totalNet) }}</div>
+      <div class="fc-net-info">
+        <span class="net-paid"><i class="bi bi-check-circle-fill"></i> {{ formatPrix(totalPaye) }} versé</span>
+        <span class="net-pending" *ngIf="totalEnCours > 0"><i class="bi bi-clock-fill"></i> {{ formatPrix(totalEnCours) }} en cours</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== MINI KPI STRIP ========== -->
+  <div class="kpi-strip">
+    <div class="kpi-item" *ngFor="let k of kpiStrip">
+      <div class="kpi-icon" [style.background]="k.bg" [style.color]="k.color">
+        <i class="bi {{ k.icon }}"></i>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-val">{{ k.value }}</span>
+        <span class="kpi-lbl">{{ k.label }}</span>
+      </div>
+      <div class="kpi-trend" [class.up]="k.trend > 0" [class.down]="k.trend < 0">
+        <i class="bi" [class.bi-arrow-up-short]="k.trend > 0" [class.bi-arrow-down-short]="k.trend < 0"></i>
+        {{ Math.abs(k.trend) }}%
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GRAPHIQUE BARRE ========== -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <h3 class="chart-title">Évolution des revenus</h3>
+        <p class="chart-sub">Revenus nets par mois</p>
+      </div>
+      <div class="chart-legend">
+        <span class="leg-item"><span class="leg-dot dot-brut"></span>Brut</span>
+        <span class="leg-item"><span class="leg-dot dot-net"></span>Net</span>
+      </div>
+    </div>
+    <div class="bar-chart">
+      <div class="bar-group" *ngFor="let m of chartData">
+        <div class="bars-wrap">
+          <div class="bar-brut" [style.height.%]="getBarPct(m.brut, 'brut')" [title]="formatPrix(m.brut)"></div>
+          <div class="bar-net"  [style.height.%]="getBarPct(m.net,  'net')"  [title]="formatPrix(m.net)"></div>
+        </div>
+        <span class="bar-lbl">{{ m.mois }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== FILTRES TABLEAU ========== -->
+  <div class="filters-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search s-ico"></i>
+      <input
+        type="text"
+        class="search-inp"
+        placeholder="Rechercher transaction #TRX..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      >
+      <button class="s-clear" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        *ngFor="let tab of reversementTabs"
+        class="rtab"
+        [class.rtab-active]="selectedReversement === tab.value"
+        [ngClass]="tab.cls"
+        (click)="selectedReversement = tab.value; applyFilters()"
+      >
+        {{ tab.label }}
+        <span class="rtab-count" *ngIf="tab.value !== ''">{{ getReversementCount(tab.value) }}</span>
+      </button>
+    </div>
+
+    <!-- Export -->
+    <button class="btn-export" (click)="exportCSV()">
+      <i class="bi bi-download"></i> Exporter CSV
+    </button>
+  </div>
+
+  <!-- ========== TABLEAU TRANSACTIONS ========== -->
+  <div class="table-card">
+
+    <div class="tbl-loader" *ngIf="isLoading">
+      <div class="spin-ring"></div><p>Chargement...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && filteredTransactions.length === 0">
+      <div class="empty-ico">💸</div>
+      <h3>Aucune transaction trouvée</h3>
+      <p>Modifiez vos filtres de recherche.</p>
+    </div>
+
+    <div class="tbl-wrap" *ngIf="!isLoading && filteredTransactions.length > 0">
+      <table class="trx-table">
+        <thead>
+          <tr>
+            <th (click)="sortBy('id')">TRANSACTION ID <i class="bi" [ngClass]="getSortIcon('id')"></i></th>
+            <th>COMMANDE</th>
+            <th>PRODUIT VENDU</th>
+            <th (click)="sortBy('montantBrut')">MONTANT BRUT <i class="bi" [ngClass]="getSortIcon('montantBrut')"></i></th>
+            <th>COMMISSION</th>
+            <th (click)="sortBy('revenuNet')">REVENU NET <i class="bi" [ngClass]="getSortIcon('revenuNet')"></i></th>
+            <th (click)="sortBy('date')">DATE <i class="bi" [ngClass]="getSortIcon('date')"></i></th>
+            <th>STATUT REVERSEMENT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let t of paginatedTransactions; let i = index"
+            class="trx-row"
+            [class.row-pending]="t.statutReversement === 'en_cours'"
+            [style.animationDelay.ms]="i * 55"
+            (click)="openDetail(t)"
+          >
+            <td class="td-trx"><span class="trx-id">{{ t.id }}</span></td>
+            <td class="td-cmd"><span class="cmd-link">{{ t.commande }}</span></td>
+            <td class="td-produit">
+              <span class="prod-nom" [title]="t.produit">
+                {{ t.produit | slice:0:35 }}{{ t.produit.length > 35 ? '...' : '' }}
+              </span>
+            </td>
+            <td class="td-brut">
+              <span class="brut-val">{{ formatPrix(t.montantBrut) }}</span>
+            </td>
+            <td class="td-comm">
+              <span class="comm-val">- {{ formatPrix(t.commission) }}</span>
+            </td>
+            <td class="td-net">
+              <span class="net-val">{{ formatPrix(t.revenuNet) }}</span>
+            </td>
+            <td class="td-date">{{ t.date }}</td>
+            <td class="td-statut" (click)="$event.stopPropagation()">
+              <span class="rev-badge" [ngClass]="getReversementClass(t.statutReversement)">
+                <i class="bi" [ngClass]="getReversementIcon(t.statutReversement)"></i>
+                {{ getReversementLabel(t.statutReversement) }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Totaux ligne -->
+    <div class="table-totals" *ngIf="filteredTransactions.length > 0">
+      <span class="totals-label">Total affiché :</span>
+      <span class="total-brut">{{ formatPrix(sumBrut) }}</span>
+      <span class="total-comm">- {{ formatPrix(sumCommission) }}</span>
+      <span class="total-net-sum">= {{ formatPrix(sumNet) }}</span>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-bar" *ngIf="totalPages > 1">
+      <span class="page-info">
+        {{ (currentPage-1)*pageSize+1 }}–{{ Math.min(currentPage*pageSize, filteredTransactions.length) }}
+        sur {{ filteredTransactions.length }}
+      </span>
+      <div class="page-btns">
+        <button class="pbtn" [disabled]="currentPage===1" (click)="goToPage(currentPage-1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button *ngFor="let p of pageNumbers" class="pbtn" [class.pbtn-active]="p===currentPage" (click)="goToPage(p)">{{ p }}</button>
+        <button class="pbtn" [disabled]="currentPage===totalPages" (click)="goToPage(currentPage+1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========== DRAWER DÉTAIL ========== -->
+<div class="drawer-overlay" *ngIf="selectedTransaction" (click)="closeDetail()" [@fadeIn]></div>
+<div class="drawer-panel" *ngIf="selectedTransaction" [@slideRight]>
+  <div class="drawer-header">
+    <div>
+      <h3 class="drawer-title">{{ selectedTransaction.id }}</h3>
+      <p class="drawer-sub">Détail de la transaction</p>
+    </div>
+    <button class="drawer-close" (click)="closeDetail()"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="drawer-body">
+
+    <!-- Statut -->
+    <div class="d-statut-row">
+      <span class="rev-badge lg" [ngClass]="getReversementClass(selectedTransaction.statutReversement)">
+        <i class="bi" [ngClass]="getReversementIcon(selectedTransaction.statutReversement)"></i>
+        {{ getReversementLabel(selectedTransaction.statutReversement) }}
+      </span>
+      <span class="d-date">{{ selectedTransaction.date }}</span>
+    </div>
+
+    <!-- Produit -->
+    <div class="d-section">
+      <h4 class="d-section-title"><i class="bi bi-box-seam"></i> Produit</h4>
+      <div class="d-row"><span class="d-lbl">Produit</span><span class="d-val">{{ selectedTransaction.produit }}</span></div>
+      <div class="d-row"><span class="d-lbl">Commande</span><span class="d-val cmd-link">{{ selectedTransaction.commande }}</span></div>
+      <div class="d-row"><span class="d-lbl">Client</span><span class="d-val">{{ selectedTransaction.client }}</span></div>
+      <div class="d-row"><span class="d-lbl">Quantité</span><span class="d-val">{{ selectedTransaction.quantite }}</span></div>
+    </div>
+
+    <!-- Financier -->
+    <div class="d-section">
+      <h4 class="d-section-title"><i class="bi bi-calculator"></i> Détail financier</h4>
+      <div class="d-row"><span class="d-lbl">Prix unitaire</span><span class="d-val">{{ formatPrix(selectedTransaction.prixUnitaire) }}</span></div>
+      <div class="d-row"><span class="d-lbl">Montant brut</span><span class="d-val brut-val">{{ formatPrix(selectedTransaction.montantBrut) }}</span></div>
+      <div class="d-row"><span class="d-lbl">Commission ({{ tauxCommission }}%)</span><span class="d-val comm-val">- {{ formatPrix(selectedTransaction.commission) }}</span></div>
+      <div class="d-row d-total"><span class="d-lbl">Revenu net</span><span class="d-val net-val big">{{ formatPrix(selectedTransaction.revenuNet) }}</span></div>
+    </div>
+
+    <!-- Reversement -->
+    <div class="d-section" *ngIf="selectedTransaction.dateVersement">
+      <h4 class="d-section-title"><i class="bi bi-bank"></i> Reversement</h4>
+      <div class="d-row"><span class="d-lbl">Date versement</span><span class="d-val">{{ selectedTransaction.dateVersement }}</span></div>
+      <div class="d-row" *ngIf="selectedTransaction.reference"><span class="d-lbl">Référence virement</span><span class="d-val"><code>{{ selectedTransaction.reference }}</code></span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'" [@toastIn]>
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-exclamation-triangle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
+</div>

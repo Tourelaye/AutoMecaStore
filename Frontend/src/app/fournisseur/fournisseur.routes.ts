@@ -6,12 +6,17 @@ import { ProduitComponent } from './produits/list-produit/list-produit.component
 import { ListeCommandesComponent } from './commandes/liste-commandes/liste-commandes.component';
 import { ListeLivraisonsComponent } from './livraisons/liste-livraisons/liste-livraisons.component';
 import { ListeAvisComponent } from './avis/liste-avis/liste-avis.component';
+import { VentesComponent } from './ventes/ventes.component';
+import { StockComponent } from './stocks/stocks.component';
+import { AjouterProduitComponent } from './ajouter-produit/ajouter-produit.component';
+import { PromotionsComponent } from './promotions/promotions.component';
 import { MessagerieComponent } from './messages/messagerie/messagerie.component';
 import { StatistiquesFournisseurComponent } from './statistiques/statistiques-fournisseur/statistiques-fournisseur.component';
 import { MonProfilComponent } from './profil/mon-profil/mon-profil.component';
-import { ParametresFournisseurComponent } from './parametres/parametres-fournisseur/parametres-fournisseur.component';
+import { ParametresComponent } from './parametres/parametres-fournisseur/parametres-fournisseur.component';
 import { roleGuard } from '../core/guards/role.guard';
-
+import { ModifierProfilComponent } from './profil/modifier-profil/modifier-profil.component';
+import { HistoriquesComponent } from './historiques/historiques.component';
 export const fournisseurRoutes: Routes = [
   {
     path: '',
@@ -29,10 +34,26 @@ export const fournisseurRoutes: Routes = [
         path: 'produits/list-produit',
         component: ProduitComponent
       },
+      {
+        path: 'ajouter-produit',
+        component: AjouterProduitComponent
+      },
 
       {
         path: 'commandes',
         component: ListeCommandesComponent
+      },
+      {
+        path: 'ventes',
+        component: VentesComponent
+      },
+      {
+        path: 'stocks',
+        component: StockComponent
+      },
+      {
+        path: 'promotions',
+        component: PromotionsComponent
       },
       {
         path: 'livraisons',
@@ -55,8 +76,16 @@ export const fournisseurRoutes: Routes = [
         component: MonProfilComponent
       },
       {
+        path: 'profil/modifier',
+        component: ModifierProfilComponent
+      },
+      {
         path: 'parametres',
-        component: ParametresFournisseurComponent
+        component: ParametresComponent
+      },
+      {
+        path: 'historiques',
+        component: HistoriquesComponent
       },
       {
         path: '',

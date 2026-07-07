@@ -1,0 +1,414 @@
+/* =============================================
+   AutoMecaStore — Campagnes Promotions
+   Version sombre : verre depoli sur degrade teal.
+   or = badge promo (mise en avant), mint = action
+   principale, rouge = suppression uniquement.
+   ============================================= */
+
+:host {
+  --bg-1: #2c5364;
+  --bg-2: #203a43;
+  --bg-3: #0f2027;
+
+  --accent: #49e0c8;
+  --accent-deep: #1fb8a8;
+  --accent-soft: rgba(73, 224, 200, 0.14);
+  --accent-glow: rgba(73, 224, 200, 0.35);
+
+  --gold: #e3bf7d;
+  --gold-deep: #c99a4f;
+  --gold-soft: rgba(227, 191, 125, 0.16);
+  --gold-border: rgba(227, 191, 125, 0.32);
+  --gold-glow: rgba(227, 191, 125, 0.4);
+
+  --alert: #ef4444;
+  --alert-soft: rgba(239, 68, 68, 0.15);
+  --alert-border: rgba(239, 68, 68, 0.32);
+
+  --text-primary: #eef4f5;
+  --text-muted: #9fb4bc;
+  --text-faint: #5f7982;
+
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-hover: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-input: rgba(255, 255, 255, 0.05);
+
+  display: block;
+  background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+  min-height: 100vh;
+}
+
+.page-wrapper {
+  padding: 24px 28px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =============================================
+   EN-TÊTE
+   ============================================= */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.page-icon { font-size: 32px; line-height: 1; }
+.page-title { font-size: 26px; font-weight: 800; color: var(--text-primary); margin: 0 0 3px; }
+.page-sub { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+/* =============================================
+   GRID
+   ============================================= */
+.promo-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  padding: 24px;
+}
+
+.card-header-simple {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.card-icon {
+  font-size: 18px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.card-icon-gold { color: var(--gold); }
+
+.card-title { font-size: 15.5px; font-weight: 800; color: var(--text-primary); margin: 0 0 2px; }
+.card-sub { font-size: 12px; color: var(--text-faint); margin: 0; }
+
+/* =============================================
+   FORMULAIRE
+   ============================================= */
+.promo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.form-input {
+  background: var(--glass-input);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.form-input::placeholder { color: var(--text-faint); }
+
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-input.input-error { border-color: var(--alert); }
+.form-select { cursor: pointer; }
+.form-select option { background: var(--bg-3); color: var(--text-primary); }
+
+/* input date : forcer l'icône native en clair sur fond sombre */
+input[type="date"].form-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
+.input-with-suffix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-suffix .form-input { padding-right: 40px; }
+
+.input-suffix {
+  position: absolute;
+  right: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Aperçu prix en direct */
+.prix-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.preview-label { font-weight: 700; color: var(--text-muted); font-size: 11.5px; }
+.preview-old { color: var(--text-faint); text-decoration: line-through; }
+.preview-new { color: var(--gold); font-weight: 800; font-size: 14px; }
+.prix-preview i { color: var(--text-faint); font-size: 11px; }
+
+.form-error-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--alert-soft);
+  border: 1px solid var(--alert-border);
+  color: #ffb4b4;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-apply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: var(--bg-3);
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 3px 14px var(--accent-glow);
+  margin-top: 4px;
+}
+
+.btn-apply:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px var(--accent-glow);
+}
+
+.btn-apply:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.saving-spinner { display: flex; align-items: center; gap: 8px; }
+
+.mini-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(15, 32, 39, 0.3);
+  border-top-color: var(--bg-3);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =============================================
+   LISTE PROMOTIONS ACTIVES
+   ============================================= */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 20px;
+  gap: 8px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty-ico { font-size: 42px; margin-bottom: 4px; }
+.empty-state h3 { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.empty-state p { font-size: 13px; margin: 0; }
+
+.promo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.promo-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: background 0.2s, transform 0.2s;
+  animation: rowIn 0.35s ease both;
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.promo-item:hover {
+  background: rgba(227, 191, 125, 0.22);
+  transform: translateY(-1px);
+}
+
+.promo-img-wrap {
+  width: 52px; height: 52px;
+  border-radius: 9px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.promo-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+.promo-img-ph {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-3));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: var(--accent);
+}
+
+.promo-badge {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+  color: var(--bg-3);
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 5px 11px;
+  border-radius: 20px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px var(--gold-glow);
+}
+
+.promo-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.promo-nom {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.promo-prix-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.prix-barre { color: var(--text-faint); text-decoration: line-through; }
+.prix-final { color: var(--gold); font-weight: 800; }
+.promo-prix-row i { color: var(--text-faint); font-size: 10px; }
+
+.promo-dates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.promo-dates i { color: var(--text-faint); }
+
+.btn-delete-promo {
+  width: 34px; height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--alert-soft);
+  border: 1px solid var(--alert-border);
+  border-radius: 8px;
+  color: var(--alert);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.18s;
+}
+
+.btn-delete-promo:hover {
+  background: var(--alert);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+/* =============================================
+   TOAST
+   ============================================= */
+.toast-notif {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  z-index: 2000;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  max-width: 340px;
+  border: 1px solid var(--glass-border);
+}
+
+.toast-success { background: var(--bg-3); color: var(--accent); }
+.toast-success i { color: var(--accent); font-size: 16px; }
+.toast-error { background: #3a1414; color: #ffb4b4; border-color: var(--alert-border); }
+.toast-error i { color: var(--alert); font-size: 16px; }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1000px) {
+  .promo-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .page-wrapper { padding: 16px; }
+  .promo-item { flex-wrap: wrap; }
+  .promo-dates { width: 100%; order: 5; }
+}

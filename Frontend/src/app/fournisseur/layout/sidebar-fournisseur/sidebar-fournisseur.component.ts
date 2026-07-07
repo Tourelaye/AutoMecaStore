@@ -40,11 +40,11 @@ export class SidebarFournisseurComponent {
       label: 'Mes Produits',
       path: '/fournisseur/produits/list-produit',
     },
-    // {
-    //   icon: 'bi-plus-circle',
-    //   label: 'Ajouter un produit',
-    //   path: '/fournisseur/produits/ajouter',
-    // },
+    {
+      icon: 'bi-plus-circle',
+      label: 'Ajouter un produit',
+      path: '/fournisseur/ajouter-produit',
+    },
     {
       icon: 'bi-cart3',
       label: 'Mes Commandes',
@@ -58,7 +58,7 @@ export class SidebarFournisseurComponent {
     {
       icon: 'bi-archive',
       label: 'Stock',
-      path: '/fournisseur/stock',
+      path: '/fournisseur/stocks',
       badge: 3,
     },
     {
@@ -86,15 +86,20 @@ export class SidebarFournisseurComponent {
       path: '/fournisseur/profil',
     },
     {
+      icon: 'bi-clock-history',
+      label: 'Historiques d\'activités',
+      path: '/fournisseur/historiques',
+    },
+    {
       icon: 'bi-gear',
       label: 'Paramètres',
       path: '/fournisseur/parametres',
     },
-    {
-      icon: 'bi-headset',
-      label: 'Support',
-      path: '/fournisseur/support',
-    },
+    // {
+    //   icon: 'bi-headset',
+    //   label: 'Support',
+    //   path: '/fournisseur/support',
+    // },
   ];
 
   constructor(private router: Router) {}

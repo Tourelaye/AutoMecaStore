@@ -8,10 +8,10 @@
       <p class="hero-sub">Aperçu simplifié de votre activité : suivez vos commandes, vos ventes et l'état de votre stock en un coup d'œil.</p>
     </div>
     <div class="hero-actions">
-      <button class="btn-hero-primary" routerLink="/fournisseur/produits/ajouter">
+      <button class="btn-hero-primary" routerLink="/fournisseur/ajouter-produit">
         <i class="bi bi-plus-circle"></i> Ajouter un produit
       </button>
-      <button class="btn-hero-secondary" routerLink="/fournisseur/stock">
+      <button class="btn-hero-secondary" routerLink="/fournisseur/stocks">
         <i class="bi bi-boxes"></i> Gérer le stock
       </button>
     </div>
@@ -183,7 +183,7 @@
             <h2 class="card-title">Top Produits</h2>
             <p class="card-sub">Produits les plus vendus ce mois</p>
           </div>
-          <a routerLink="/fournisseur/produits" class="link-voir">Voir tout →</a>
+          <a routerLink="/fournisseur/produits/list-produit" class="link-voir">Voir tout →</a>
         </div>
         <div class="top-produits">
           <div class="top-produit-row" *ngFor="let p of topProduits; let i = index">

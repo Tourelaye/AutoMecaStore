@@ -1,0 +1,183 @@
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="page-header">
+    <button class="btn-back" (click)="retour()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div class="page-icon-wrap"><i class="bi bi-plus-lg"></i></div>
+    <div>
+      <h1 class="page-title">Ajouter un nouveau produit</h1>
+      <p class="page-sub">Renseignez les caractéristiques techniques et visuelles de votre pièce.</p>
+    </div>
+  </div>
+
+  <!-- ========== GRID PRINCIPALE ========== -->
+  <form class="form-grid" (ngSubmit)="enregistrer()" #produitForm="ngForm">
+
+    <!-- ===== COLONNE GAUCHE : FORMULAIRE ===== -->
+    <div class="col-form">
+
+      <!-- ÉTAPE 1 : CATÉGORIE -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge required">1</span>
+            <h2>Catégorie véhicule &amp; Type de pièce <span class="req-star">*</span></h2>
+          </div>
+          <span class="tag-obligatoire">Étape obligatoire</span>
+        </div>
+
+        <label class="field-label">Choisissez la catégorie du véhicule *</label>
+        <div class="category-grid">
+          <button
+            type="button"
+            class="cat-btn"
+            *ngFor="let cat of categoriesVehicule"
+            [class.active]="form.categorieVehicule === cat.value"
+            (click)="selectCategorie(cat.value)"
+          >
+            <i class="bi {{ cat.icon }}"></i>
+            {{ cat.label }}
+          </button>
+        </div>
+
+        <div class="callout-box" *ngIf="!form.categorieVehicule">
+          <i class="bi bi-stars"></i>
+          <span>Veuillez d'abord cliquer sur l'une des 4 catégories ci-dessus pour afficher la liste spécifique des types de pièces compatibles.</span>
+        </div>
+
+        <div class="field-group" *ngIf="form.categorieVehicule">
+          <label class="field-label">Type de pièce compatible *</label>
+          <div class="type-grid">
+            <button
+              type="button"
+              class="type-btn"
+              *ngFor="let t of typesPieceDisponibles"
+              [class.active]="form.typePiece === t"
+              (click)="form.typePiece = t"
+            >
+              {{ t }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 : INFORMATIONS GÉNÉRALES -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">2</span>
+            <h2>Informations générales</h2>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Nom du produit *</label>
+            <input type="text" class="field-input" name="nom" [(ngModel)]="form.nom" required
+                   placeholder="ex: Plaquettes Brembo hautes perf">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Référence fabricant *</label>
+            <input type="text" class="field-input mono" name="reference" [(ngModel)]="form.reference" required
+                   [placeholder]="referencePlaceholder">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Marque *</label>
+            <input type="text" class="field-input" name="marque" [(ngModel)]="form.marque" required
+                   placeholder="ex: Brembo, Bosch, NGK...">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Prix de vente (en FCFA) *</label>
+            <input type="number" class="field-input" name="prix" [(ngModel)]="form.prix" required min="1"
+                   placeholder="ex: 45000">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Quantité en stock *</label>
+          <input type="number" class="field-input" name="stock" [(ngModel)]="form.stock" required min="0"
+                 placeholder="10">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Description détaillée *</label>
+          <textarea class="field-input field-textarea" name="description" [(ngModel)]="form.description" required
+                    rows="4" placeholder="Décrivez les compatibilités modèles (ex: Peugeot 308, Golf 7...), caractéristiques techniques et avantages."></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== COLONNE DROITE : IMAGES & PRÉVISUALISATION ===== -->
+    <div class="col-images">
+      <div class="section-card sticky-card">
+        <div class="section-head">
+          <div class="step-row">
+            <i class="bi bi-image icon-images"></i>
+            <h2>Images &amp; Prévisualisation <span class="req-star">*</span></h2>
+          </div>
+        </div>
+
+        <!-- IMAGE PRINCIPALE -->
+        <label class="field-label">Image principale *</label>
+        <div class="upload-zone main-zone" [class.has-image]="imagePreviewPrincipale" (click)="fileInputPrincipale.click()">
+          <img *ngIf="imagePreviewPrincipale" [src]="imagePreviewPrincipale" alt="Image principale">
+          <div class="upload-placeholder" *ngIf="!imagePreviewPrincipale">
+            <i class="bi bi-cloud-arrow-up-fill"></i>
+            <span>Cliquez ou glissez une image ici</span>
+            <small>PNG, JPG jusqu'à 5 Mo</small>
+          </div>
+          <span class="preview-badge" *ngIf="imagePreviewPrincipale">Principale</span>
+          <button type="button" class="btn-remove-img" *ngIf="imagePreviewPrincipale"
+                  (click)="$event.stopPropagation(); retirerImagePrincipale()">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        <input #fileInputPrincipale type="file" accept="image/*" hidden
+               (change)="onFichierPrincipalSelectionne($event)">
+
+
+<!-- IMAGES SECONDAIRES -->
+<label class="field-label preview-label">Images secondaires (optionnelles)</label>
+<div class="preview-secondaires">
+  <div class="upload-zone sec-zone"
+       *ngFor="let preview of imagesPreviewSecondaires; let i = index"
+       [class.has-image]="preview"
+       (click)="ouvrirFileInputSecondaire(i)">
+    <img *ngIf="preview" [src]="preview" [alt]="'Image secondaire ' + (i + 1)">
+    <div class="upload-placeholder sm" *ngIf="!preview">
+      <i class="bi bi-plus-lg"></i>
+      <small>Sec {{ i + 1 }}</small>
+    </div>
+    <button type="button" class="btn-remove-img sm" *ngIf="preview"
+            (click)="$event.stopPropagation(); retirerImageSecondaire(i)">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+</div>
+<input #fileInputSecondaire *ngFor="let x of [0,1,2]; let i = index"
+       type="file" accept="image/*" hidden
+       (change)="onFichierSecondaireSelectionne($event, i)">
+
+        <!-- Actions -->
+        <button type="submit" class="btn-save" [disabled]="produitForm.invalid || isSaving">
+          <span *ngIf="!isSaving"><i class="bi bi-save2-fill"></i> Enregistrer le produit</span>
+          <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Enregistrement...</span>
+        </button>
+        <button type="button" class="btn-cancel" (click)="retour()">Annuler</button>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
+</div>

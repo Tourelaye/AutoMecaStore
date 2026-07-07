@@ -1,0 +1,346 @@
+/* =============================================
+   AutoMecaStore — Modification Profil Fournisseur
+   Verre depoli sur degrade teal, meme charte que mon-profil.
+   ============================================= */
+
+:host {
+  --bg-1: #2c5364;
+  --bg-2: #203a43;
+  --bg-3: #0f2027;
+
+  --accent: #49e0c8;
+  --accent-deep: #1fb8a8;
+  --accent-soft: rgba(73, 224, 200, 0.14);
+  --accent-glow: rgba(73, 224, 200, 0.35);
+
+  --gold: #e3bf7d;
+  --gold-soft: rgba(227, 191, 125, 0.16);
+  --gold-border: rgba(227, 191, 125, 0.32);
+
+  --alert: #ef4444;
+  --alert-soft: rgba(239, 68, 68, 0.15);
+
+  --text-primary: #eef4f5;
+  --text-muted: #9fb4bc;
+  --text-faint: #5f7982;
+
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-input: rgba(255, 255, 255, 0.05);
+
+  display: block;
+  background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+  min-height: 100vh;
+}
+
+.page-wrapper {
+  padding: 24px 28px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* =============================================
+   CARTE PRINCIPALE
+   ============================================= */
+.edit-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.edit-banner {
+  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-3) 100%);
+  padding: 26px 30px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.edit-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.edit-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+/* =============================================
+   TABS
+   ============================================= */
+.edit-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--glass-border);
+  overflow-x: auto;
+}
+
+.edit-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+.edit-tab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.03); }
+.edit-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* =============================================
+   BODY / CHAMPS
+   ============================================= */
+.edit-body { padding: 28px 30px; }
+
+.tab-panel { animation: fadeTab 0.2s ease; }
+@keyframes fadeTab { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.field-group { margin-bottom: 18px; }
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-top: 6px;
+  margin-bottom: 12px;
+}
+.section-label i { color: var(--gold); }
+
+.field-input {
+  width: 100%;
+  background: var(--glass-input);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 9px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.field-input.mono { font-family: 'Courier New', monospace; }
+.field-input::placeholder { color: var(--text-faint); }
+.field-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: rgba(255, 255, 255, 0.08);
+}
+.field-textarea { resize: vertical; min-height: 100px; font-family: inherit; }
+.field-input-sm { width: auto; padding: 7px 10px; font-size: 12.5px; }
+
+/* =============================================
+   UPLOAD LOGO
+   ============================================= */
+.upload-zone {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px dashed var(--glass-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.upload-zone:hover { border-color: rgba(73, 224, 200, 0.4); background: var(--accent-soft); }
+.upload-zone.has-image { border-style: solid; border-color: rgba(73, 224, 200, 0.3); }
+.upload-zone img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.logo-zone { height: 110px; }
+
+.upload-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: var(--text-faint);
+  padding: 12px; text-align: center;
+}
+.upload-placeholder i { font-size: 24px; color: var(--accent); }
+.upload-placeholder span { font-size: 12.5px; font-weight: 600; color: var(--text-muted); }
+.upload-placeholder small { font-size: 10.5px; }
+
+.btn-remove-img {
+  position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(239, 68, 68, 0.9); border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px; transition: all 0.18s; z-index: 2;
+}
+.btn-remove-img:hover { background: var(--alert); transform: scale(1.1); }
+
+/* =============================================
+   HORAIRES
+   ============================================= */
+.horaires-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.horaire-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 9px;
+}
+
+.horaire-jour {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 130px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.horaire-jour span.closed { color: var(--text-faint); font-weight: 500; }
+
+.toggle-switch.sm {
+  width: 34px; height: 19px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px; position: relative; cursor: pointer;
+  transition: background 0.25s; flex-shrink: 0;
+}
+.toggle-switch.sm.toggle-on { background: linear-gradient(135deg, var(--accent), var(--accent-deep)); }
+.toggle-switch.sm .toggle-thumb {
+  position: absolute; top: 2.5px; left: 2.5px;
+  width: 14px; height: 14px; background: #fff; border-radius: 50%;
+  transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.toggle-switch.sm.toggle-on .toggle-thumb { left: 17px; }
+
+.horaire-heures { display: flex; align-items: center; gap: 8px; }
+.horaire-sep { font-size: 12px; color: var(--text-faint); }
+.horaire-fermee { font-size: 12px; color: var(--text-faint); font-style: italic; }
+
+/* =============================================
+   CALLOUT
+   ============================================= */
+.callout-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(73, 224, 200, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.callout-box i { color: var(--accent); font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+/* =============================================
+   FOOTER / ACTIONS
+   ============================================= */
+.edit-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 30px;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 11px 22px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.btn-cancel:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+
+.btn-save {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: var(--bg-3);
+  border: none;
+  border-radius: 10px;
+  padding: 11px 24px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 3px 14px var(--accent-glow);
+}
+.btn-save:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.saving-spinner { display: flex; align-items: center; gap: 8px; }
+.mini-spinner {
+  width: 15px; height: 15px;
+  border: 2px solid rgba(15, 32, 39, 0.3);
+  border-top-color: var(--bg-3);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =============================================
+   TOAST
+   ============================================= */
+.toast-notif {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  z-index: 2000;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  max-width: 340px;
+  border: 1px solid var(--glass-border);
+}
+.toast-success { background: var(--bg-3); color: var(--accent); }
+.toast-success i { color: var(--accent); font-size: 16px; }
+.toast-error { background: #3a1414; color: #ffb4b4; border-color: rgba(239, 68, 68, 0.32); }
+.toast-error i { color: var(--alert); font-size: 16px; }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 768px) {
+  .page-wrapper { padding: 16px; }
+  .field-row { grid-template-columns: 1fr; }
+  .edit-tab { padding: 12px 16px; font-size: 12.5px; }
+  .horaire-row { flex-wrap: wrap; }
+}

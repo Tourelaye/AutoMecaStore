@@ -15,39 +15,10 @@ body {
   overflow-y: auto;
   position: relative;
   min-height: 100vh;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Reset complet pour le dashboard SEULEMENT */
-app-dashboard, app-dashboard > *, 
-app-dashboard .layout, app-dashboard .layout > *, 
-app-dashboard .main, app-dashboard .main > *, 
-app-dashboard .content, app-dashboard .content > * {
-  margin: 0 !important;
-  padding: 0 !important;
-  box-sizing: border-box;
-}
-
-/* Forcer le layout full width SEULEMENT pour le dashboard */
-app-dashboard .layout {
-  position: absolute !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: 0 !important;
-  width: 100vw !important;
-}
 img, svg, video, canvas { max-width: 100%; height: auto; }
-
-/* Forcer le plein écran pour les composants */
-/* app-dashboard, app-dashboard > * {
-  width: 100vw !important;
-  height: 100vh !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  overflow: hidden !important;
-} */
 
 /* Confort mobile */
 @media (max-width: 576px) {

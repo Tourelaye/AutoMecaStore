@@ -9,7 +9,7 @@
         <p class="page-sub">Gérez l'ensemble de vos références automobiles, deux-roues et poids lourds.</p>
       </div>
     </div>
-    <button class="btn-add-product" (click)="openModal('create')">
+    <button class="btn-add-product" routerLink="/fournisseur/ajouter-produit">
       <i class="bi bi-plus-circle"></i> Ajouter un produit
     </button>
   </div>
@@ -92,7 +92,7 @@
       <div class="empty-icon">📦</div>
       <h3>Aucun produit trouvé</h3>
       <p>Modifiez vos filtres ou ajoutez un nouveau produit.</p>
-      <button class="btn-add-product" (click)="openModal('create')">
+      <button class="btn-add-product"  routerLink="/fournisseur/ajouter-produit">
         <i class="bi bi-plus-circle"></i> Ajouter un produit
       </button>
     </div>

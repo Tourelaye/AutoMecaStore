@@ -1,0 +1,155 @@
+<div class="page-wrapper">
+
+  <!-- ========== CARTE PRINCIPALE ========== -->
+  <div class="edit-card">
+
+    <!-- Bandeau -->
+    <div class="edit-banner">
+      <h1 class="edit-title"><i class="bi bi-pencil-square"></i> Modification du Profil Entreprise</h1>
+      <p class="edit-sub">Veuillez remplir les informations de l'entreprise. Celles-ci seront vérifiées par l'administrateur AutoMecaStore.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="edit-tabs">
+      <button class="edit-tab" [class.active]="activeTab === 'identite'" (click)="activeTab = 'identite'">
+        <i class="bi bi-building"></i> Identité &amp; Logo
+      </button>
+      <button class="edit-tab" [class.active]="activeTab === 'contacts'" (click)="activeTab = 'contacts'">
+        <i class="bi bi-telephone-fill"></i> Contacts &amp; Horaires
+      </button>
+      <button class="edit-tab" [class.active]="activeTab === 'bancaire'" (click)="activeTab = 'bancaire'">
+        <i class="bi bi-credit-card-2-front-fill"></i> Coordonnées Bancaires
+      </button>
+    </div>
+
+    <form (ngSubmit)="enregistrer()" #profilForm="ngForm">
+      <div class="edit-body">
+
+        <!-- ========== TAB 1 : IDENTITÉ & LOGO ========== -->
+        <div class="tab-panel" *ngIf="activeTab === 'identite'">
+
+          <div class="field-group">
+            <label class="field-label">Nom commercial de l'entreprise *</label>
+            <input type="text" class="field-input" name="nom" [(ngModel)]="form.nom" required
+                   placeholder="ex: AutoMeca Dakar Distribution (AMDD)">
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Logo de l'entreprise *</label>
+              <div class="upload-zone logo-zone" [class.has-image]="logoPreview" (click)="fileInputLogo.click()">
+                <img *ngIf="logoPreview" [src]="logoPreview" alt="Logo">
+                <div class="upload-placeholder" *ngIf="!logoPreview">
+                  <i class="bi bi-cloud-arrow-up-fill"></i>
+                  <span>Cliquez pour choisir un logo</span>
+                  <small>PNG, JPG jusqu'à 5 Mo</small>
+                </div>
+                <button type="button" class="btn-remove-img" *ngIf="logoPreview"
+                        (click)="$event.stopPropagation(); retirerLogo()">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+              <input #fileInputLogo type="file" accept="image/*" hidden (change)="onLogoSelectionne($event)">
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Numéro NINEA (Identifiant Fiscal) *</label>
+              <input type="text" class="field-input mono" name="ninea" [(ngModel)]="form.ninea" required
+                     placeholder="ex: 005489212G3">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Description d'activité &amp; spécialités *</label>
+            <textarea class="field-input field-textarea" name="description" [(ngModel)]="form.description" required
+                      rows="4" placeholder="Décrivez votre activité, vos spécialités et votre zone de couverture..."></textarea>
+          </div>
+        </div>
+
+        <!-- ========== TAB 2 : CONTACTS & HORAIRES ========== -->
+        <div class="tab-panel" *ngIf="activeTab === 'contacts'">
+
+          <div class="field-group">
+            <label class="field-label">Adresse physique *</label>
+            <input type="text" class="field-input" name="adresse" [(ngModel)]="form.adresse" required
+                   placeholder="ex: Zone Industrielle SODIDA, Rue 14 x 22, Dakar, Sénégal">
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label">Email de contact *</label>
+              <input type="email" class="field-input" name="email" [(ngModel)]="form.email" required
+                     placeholder="ex: contact@automeca-dakar.sn">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Téléphone commercial *</label>
+              <input type="tel" class="field-input" name="telephone" [(ngModel)]="form.telephone" required
+                     placeholder="ex: +221 77 845 20 30">
+            </div>
+          </div>
+
+          <label class="field-label section-label"><i class="bi bi-clock-fill"></i> Horaires d'ouverture</label>
+          <div class="horaires-list">
+            <div class="horaire-row" *ngFor="let jour of form.horaires">
+              <div class="horaire-jour">
+                <div class="toggle-switch sm" [class.toggle-on]="jour.ouvert" (click)="jour.ouvert = !jour.ouvert">
+                  <div class="toggle-thumb"></div>
+                </div>
+                <span [class.closed]="!jour.ouvert">{{ jour.label }}</span>
+              </div>
+              <div class="horaire-heures" *ngIf="jour.ouvert">
+                <input type="time" class="field-input field-input-sm" [(ngModel)]="jour.debut" [name]="jour.label + '_debut'">
+                <span class="horaire-sep">à</span>
+                <input type="time" class="field-input field-input-sm" [(ngModel)]="jour.fin" [name]="jour.label + '_fin'">
+              </div>
+              <span class="horaire-fermee" *ngIf="!jour.ouvert">Fermé</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== TAB 3 : COORDONNÉES BANCAIRES ========== -->
+        <div class="tab-panel" *ngIf="activeTab === 'bancaire'">
+
+          <div class="callout-box">
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>Ces informations sont utilisées uniquement pour vos reversements et ne sont jamais partagées publiquement.</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Nom de la banque *</label>
+            <input type="text" class="field-input" name="banqueNom" [(ngModel)]="form.banque.nom" required
+                   placeholder="ex: CBAO Groupe Attijariwafa Bank">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">IBAN / RIB *</label>
+            <input type="text" class="field-input mono" name="iban" [(ngModel)]="form.banque.iban" required
+                   placeholder="ex: SN012 01001 034567890123 45">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Numéro Mobile Money (Wave / Orange Money)</label>
+            <input type="tel" class="field-input" name="mobileMoney" [(ngModel)]="form.banque.mobileMoney"
+                   placeholder="ex: +221 77 845 20 30">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========== ACTIONS ========== -->
+      <div class="edit-footer">
+        <button type="button" class="btn-cancel" (click)="annuler()">Annuler</button>
+        <button type="submit" class="btn-save" [disabled]="profilForm.invalid || isSaving">
+          <span *ngIf="!isSaving"><i class="bi bi-check-lg"></i> Enregistrer les modifications</span>
+          <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Enregistrement...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
+</div>

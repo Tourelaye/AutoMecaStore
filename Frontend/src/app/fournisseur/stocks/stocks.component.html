@@ -1,0 +1,151 @@
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon">📦</div>
+      <div>
+        <h1 class="page-title">Gestion du Stock</h1>
+        <p class="page-sub">Surveillez les inventaires critiques et anticipez vos réapprovisionnements en dépôt.</p>
+      </div>
+    </div>
+    <div class="alert-badges">
+      <span class="alert-pill pill-faible" *ngIf="faibleCount > 0">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ faibleCount }} Faible(s)
+      </span>
+      <span class="alert-pill pill-rupture" *ngIf="ruptureCount > 0">
+        <i class="bi bi-x-circle-fill"></i> {{ ruptureCount }} Rupture(s)
+      </span>
+    </div>
+  </div>
+
+  <!-- ========== FILTRES ========== -->
+  <div class="filters-bar">
+    <div class="search-wrap">
+      <i class="bi bi-search s-ico"></i>
+      <input
+        type="text"
+        class="search-inp"
+        placeholder="Rechercher référence ou pièce..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      >
+      <button class="s-clear" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="status-tabs">
+      <button class="stab" [class.stab-active]="selectedFilter === 'tous'" (click)="selectFilter('tous')">
+        Tous ({{ totalCount }})
+      </button>
+      <button class="stab stab-faible" [class.stab-active]="selectedFilter === 'faible'" (click)="selectFilter('faible')">
+        <i class="bi bi-exclamation-triangle-fill"></i> Stock faible ({{ faibleCount }})
+      </button>
+      <button class="stab stab-rupture" [class.stab-active]="selectedFilter === 'rupture'" (click)="selectFilter('rupture')">
+        <i class="bi bi-x-circle-fill"></i> Rupture ({{ ruptureCount }})
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== TABLEAU ========== -->
+  <div class="table-card">
+
+    <!-- Loader -->
+    <div class="tbl-loader" *ngIf="isLoading">
+      <div class="spin-ring"></div>
+      <p>Chargement du stock...</p>
+    </div>
+
+    <!-- Vide -->
+    <div class="empty-state" *ngIf="!isLoading && filteredStock.length === 0">
+      <div class="empty-ico">📦</div>
+      <h3>Aucun produit trouvé</h3>
+      <p>Modifiez vos filtres de recherche.</p>
+    </div>
+
+    <!-- Table -->
+    <div class="tbl-wrap" *ngIf="!isLoading && filteredStock.length > 0">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th class="th-produit">PRODUIT</th>
+            <th class="th-ref">RÉFÉRENCE</th>
+            <th class="th-stock">STOCK ACTUEL</th>
+            <th class="th-seuil">SEUIL CRITIQUE</th>
+            <th class="th-statut">STATUT</th>
+            <th class="th-reassort">RÉASSORT RAPIDE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let item of filteredStock; let i = index"
+            class="stock-row"
+            [class.row-faible]="item.statut === 'faible'"
+            [class.row-rupture]="item.statut === 'rupture'"
+            [style.animationDelay.ms]="i * 50"
+          >
+            <!-- Produit -->
+            <td class="td-produit">
+              <div class="produit-cell">
+                <div class="prod-img-wrap">
+                  <img *ngIf="item.image" [src]="item.image" [alt]="item.nom" class="prod-img" (error)="onImgError($event)">
+                  <div *ngIf="!item.image" class="prod-img-ph">{{ item.nom.charAt(0) }}</div>
+                </div>
+                <div class="prod-info">
+                  <span class="prod-nom">{{ item.nom }}</span>
+                  <span class="prod-cat">{{ item.categorie }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Référence -->
+            <td class="td-ref"><code class="ref-code">{{ item.reference }}</code></td>
+
+            <!-- Stock actuel -->
+            <td class="td-stock">
+              <span
+                class="stock-num"
+                [class.stock-ok]="item.statut === 'normal'"
+                [class.stock-low]="item.statut === 'faible'"
+                [class.stock-zero]="item.statut === 'rupture'"
+              >{{ item.stockActuel }}</span>
+            </td>
+
+            <!-- Seuil critique -->
+            <td class="td-seuil"><span class="seuil-val">{{ item.seuilCritique }}</span></td>
+
+            <!-- Statut -->
+            <td class="td-statut">
+              <span class="statut-badge" [ngClass]="'sb-' + item.statut">
+                <i class="bi" [class.bi-check-circle-fill]="item.statut==='normal'"
+                              [class.bi-exclamation-triangle-fill]="item.statut==='faible'"
+                              [class.bi-x-circle-fill]="item.statut==='rupture'"></i>
+                {{ item.statut === 'normal' ? 'Normal' : item.statut === 'faible' ? 'Stock faible' : 'Rupture de stock' }}
+              </span>
+            </td>
+
+            <!-- Réassort rapide -->
+            <td class="td-reassort">
+              <div class="reassort-actions">
+                <button class="btn-plus10" (click)="reapprovisionner(item, 10)" title="Ajouter 10 unités">
+                  <i class="bi bi-plus"></i> 10
+                </button>
+                <button class="btn-refresh" (click)="ouvrirReappro(item)" title="Réapprovisionner manuellement">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
+</div>

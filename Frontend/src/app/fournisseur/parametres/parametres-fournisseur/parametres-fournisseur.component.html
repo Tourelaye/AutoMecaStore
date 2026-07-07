@@ -1,212 +1,224 @@
-<div class="parametres-container">
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
   <div class="page-header">
-    <h1>Paramètres</h1>
-    <p class="page-subtitle">Gérez vos préférences et la sécurité de votre compte</p>
+    <div class="page-icon">⚙️</div>
+    <div>
+      <h1 class="page-title">Paramètres Vendeur</h1>
+      <p class="page-sub">Gérez la sécurité de votre compte, vos alertes instantanées et vos méthodes de versement.</p>
+    </div>
   </div>
 
-  <div class="parametres-layout">
-    <!-- Sidebar Tabs -->
-    <div class="tabs-sidebar">
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'password'"
-        (click)="setActiveTab('password')"
-      >
-        <i class="bi bi-lock"></i>
-        Mot de passe
-      </button>
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'notifications'"
-        (click)="setActiveTab('notifications')"
-      >
-        <i class="bi bi-bell"></i>
-        Notifications
-      </button>
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'preferences'"
-        (click)="setActiveTab('preferences')"
-      >
-        <i class="bi bi-gear"></i>
-        Préférences
-      </button>
-      <button 
-        class="tab-btn" 
-        [class.active]="activeTab === 'security'"
-        (click)="setActiveTab('security')"
-      >
-        <i class="bi bi-shield-check"></i>
-        Sécurité
-      </button>
+  <!-- ========== TABS ========== -->
+  <div class="tabs-bar">
+    <button class="tab-btn" [class.tab-active]="activeTab === 'securite'" (click)="activeTab = 'securite'">
+      <i class="bi bi-shield-lock-fill"></i> Sécurité &amp; Mot de passe
+    </button>
+    <button class="tab-btn" [class.tab-active]="activeTab === 'notifications'" (click)="activeTab = 'notifications'">
+      <i class="bi bi-bell-fill"></i> Notifications &amp; Alertes
+    </button>
+    <button class="tab-btn" [class.tab-active]="activeTab === 'paiements'" (click)="activeTab = 'paiements'">
+      <i class="bi bi-credit-card-2-front-fill"></i> Paiements &amp; RIB
+    </button>
+  </div>
+
+  <!-- ==================================================
+       TAB 1 : SÉCURITÉ & MOT DE PASSE
+       ================================================== -->
+  <div class="tab-content" *ngIf="activeTab === 'securite'">
+
+    <!-- Changer mot de passe -->
+    <div class="card">
+      <h2 class="card-title"><i class="bi bi-lock-fill card-icon"></i> Modifier mon mot de passe</h2>
+
+      <form (ngSubmit)="changerMotDePasse()" #pwdForm="ngForm" class="settings-form">
+        <div class="form-field">
+          <label class="form-label">Mot de passe actuel</label>
+          <input type="password" class="form-input" [(ngModel)]="pwdForm_data.actuel" name="actuel" required>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Nouveau mot de passe</label>
+          <input type="password" class="form-input" [(ngModel)]="pwdForm_data.nouveau" name="nouveau" required minlength="8">
+          <span class="field-hint">8 caractères minimum, avec au moins un chiffre.</span>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Confirmer nouveau mot de passe</label>
+          <input type="password" class="form-input" [(ngModel)]="pwdForm_data.confirmation" name="confirmation" required>
+        </div>
+
+        <div class="form-error-msg" *ngIf="pwdError">
+          <i class="bi bi-exclamation-triangle-fill"></i> {{ pwdError }}
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="pwdForm.invalid || isSavingPwd">
+          <span *ngIf="!isSavingPwd"><i class="bi bi-check-circle"></i> Mettre à jour le mot de passe</span>
+          <span *ngIf="isSavingPwd" class="saving-spinner"><span class="mini-spinner"></span> Mise à jour...</span>
+        </button>
+      </form>
     </div>
 
-    <!-- Content Area -->
-    <div class="content-area">
-      <!-- Password Tab -->
-      <div class="tab-content" *ngIf="activeTab === 'password'">
-        <div class="settings-card">
-          <h3>Modifier le mot de passe</h3>
-          <form (ngSubmit)="onChangePassword()">
-            <div class="form-group">
-              <label>Mot de passe actuel</label>
-              <input type="password" [(ngModel)]="passwordForm.currentPassword" name="currentPassword" required>
-            </div>
-            <div class="form-group">
-              <label>Nouveau mot de passe</label>
-              <input type="password" [(ngModel)]="passwordForm.newPassword" name="newPassword" required>
-            </div>
-            <div class="form-group">
-              <label>Confirmer le mot de passe</label>
-              <input type="password" [(ngModel)]="passwordForm.confirmPassword" name="confirmPassword" required>
-            </div>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-lg"></i>
-              Modifier le mot de passe
-            </button>
-          </form>
+    <!-- Double authentification -->
+    <div class="card">
+      <h2 class="card-title"><i class="bi bi-patch-check-fill card-icon"></i> Double authentification (2FA)</h2>
+      <div class="toggle-row">
+        <div class="toggle-row-info">
+          <span class="toggle-row-title">Vérification par SMS à la connexion</span>
+          <span class="toggle-row-sub">Un code sera envoyé à {{ securite.telephoneMasque }} à chaque connexion depuis un nouvel appareil.</span>
+        </div>
+        <div class="toggle-switch" [class.toggle-on]="securite.deuxFA" (click)="toggle2FA()">
+          <div class="toggle-thumb"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Notifications Tab -->
-      <div class="tab-content" *ngIf="activeTab === 'notifications'">
-        <div class="settings-card">
-          <h3>Notifications par email</h3>
-          <div class="setting-item">
-            <div class="setting-info">
-              <h4>Nouvelles commandes</h4>
-              <p>Recevoir un email pour chaque nouvelle commande</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="notificationSettings.emailOrders">
-              <span class="slider"></span>
-            </label>
+    <!-- Sessions actives -->
+    <div class="card">
+      <h2 class="card-title"><i class="bi bi-display card-icon"></i> Sessions actives</h2>
+      <div class="sessions-list">
+        <div class="session-item" *ngFor="let s of sessions">
+          <div class="session-ico"><i class="bi" [ngClass]="s.icon"></i></div>
+          <div class="session-info">
+            <span class="session-appareil">{{ s.appareil }} <span class="session-current" *ngIf="s.current">(cet appareil)</span></span>
+            <span class="session-meta">{{ s.localisation }} · Dernière activité : {{ s.derniereActivite }}</span>
           </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <h4>Messages clients</h4>
-              <p>Recevoir un email pour chaque nouveau message</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="notificationSettings.emailMessages">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <h4>Nouveaux avis</h4>
-              <p>Recevoir un email pour chaque nouvel avis client</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="notificationSettings.emailReviews">
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <h3>Notifications push</h3>
-          <div class="setting-item">
-            <div class="setting-info">
-              <h4>Commandes</h4>
-              <p>Recevoir des notifications pour les commandes</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="notificationSettings.pushOrders">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <h4>Messages</h4>
-              <p>Recevoir des notifications pour les messages</p>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" [(ngModel)]="notificationSettings.pushMessages">
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <button class="btn btn-primary" (click)="onSaveNotifications()">
-            <i class="bi bi-check-lg"></i>
-            Enregistrer
+          <button class="btn-disconnect" *ngIf="!s.current" (click)="deconnecterSession(s)">
+            <i class="bi bi-box-arrow-right"></i> Déconnecter
           </button>
         </div>
       </div>
+    </div>
 
-      <!-- Preferences Tab -->
-      <div class="tab-content" *ngIf="activeTab === 'preferences'">
-        <div class="settings-card">
-          <h3>Préférences générales</h3>
-          <form (ngSubmit)="onSavePreferences()">
-            <div class="form-group">
-              <label>Langue</label>
-              <select [(ngModel)]="preferences.language" name="language">
-                <option value="fr">Français</option>
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="de">Deutsch</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Devise</label>
-              <select [(ngModel)]="preferences.currency" name="currency">
-                <option value="EUR">Euro (€)</option>
-                <option value="USD">Dollar ($)</option>
-                <option value="GBP">Livre (£)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Fuseau horaire</label>
-              <select [(ngModel)]="preferences.timezone" name="timezone">
-                <option value="Europe/Paris">Europe/Paris</option>
-                <option value="Europe/London">Europe/London</option>
-                <option value="America/New_York">America/New_York</option>
-                <option value="Asia/Tokyo">Asia/Tokyo</option>
-              </select>
-            </div>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-lg"></i>
-              Enregistrer les préférences
-            </button>
-          </form>
+    <!-- Zone danger -->
+    <div class="card card-danger">
+      <h2 class="card-title"><i class="bi bi-exclamation-octagon-fill card-icon card-icon-danger"></i> Zone sensible</h2>
+      <div class="danger-row">
+        <div class="danger-info">
+          <span class="danger-title">Désactiver temporairement ma boutique</span>
+          <span class="danger-sub">Vos produits ne seront plus visibles par les clients jusqu'à réactivation.</span>
         </div>
-      </div>
-
-      <!-- Security Tab -->
-      <div class="tab-content" *ngIf="activeTab === 'security'">
-        <div class="settings-card">
-          <h3>Sécurité du compte</h3>
-          <div class="security-item">
-            <div class="security-icon">
-              <i class="bi bi-shield-check"></i>
-            </div>
-            <div class="security-info">
-              <h4>Authentification à deux facteurs</h4>
-              <p>Protégez votre compte avec une double authentification</p>
-            </div>
-            <button class="btn btn-secondary">Activer</button>
-          </div>
-          <div class="security-item">
-            <div class="security-icon">
-              <i class="bi bi-clock-history"></i>
-            </div>
-            <div class="security-info">
-              <h4>Historique des connexions</h4>
-              <p>Voir les dernières connexions à votre compte</p>
-            </div>
-            <button class="btn btn-secondary">Voir</button>
-          </div>
-          <div class="security-item">
-            <div class="security-icon">
-              <i class="bi bi-device-hdd"></i>
-            </div>
-            <div class="security-info">
-              <h4>Appareils connectés</h4>
-              <p>Gérer les appareils autorisés à accéder à votre compte</p>
-            </div>
-            <button class="btn btn-secondary">Gérer</button>
-          </div>
-        </div>
+        <button class="btn-danger-outline" (click)="desactiverBoutique()">Désactiver</button>
       </div>
     </div>
+
   </div>
+
+  <!-- ==================================================
+       TAB 2 : NOTIFICATIONS & ALERTES
+       ================================================== -->
+  <div class="tab-content" *ngIf="activeTab === 'notifications'">
+
+    <div class="card">
+      <h2 class="card-title"><i class="bi bi-bell-fill card-icon"></i> Préférences de notification</h2>
+      <p class="card-sub-desc">Choisissez comment vous souhaitez être alerté pour chaque type d'événement.</p>
+
+      <div class="notif-table">
+        <div class="notif-table-header">
+          <span class="nh-event">ÉVÉNEMENT</span>
+          <span class="nh-channel">EMAIL</span>
+          <span class="nh-channel">PUSH</span>
+          <span class="nh-channel">SMS</span>
+        </div>
+
+        <div class="notif-table-row" *ngFor="let pref of notifPrefs">
+          <div class="nr-event">
+            <i class="bi" [ngClass]="pref.icon"></i>
+            <div>
+              <span class="nr-title">{{ pref.label }}</span>
+              <span class="nr-sub">{{ pref.description }}</span>
+            </div>
+          </div>
+          <div class="nr-channel">
+            <div class="toggle-switch toggle-sm" [class.toggle-on]="pref.email" (click)="pref.email = !pref.email"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="nr-channel">
+            <div class="toggle-switch toggle-sm" [class.toggle-on]="pref.push" (click)="pref.push = !pref.push"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="nr-channel">
+            <div class="toggle-switch toggle-sm" [class.toggle-on]="pref.sms" (click)="pref.sms = !pref.sms"><div class="toggle-thumb"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary btn-save-notif" (click)="enregistrerNotifications()">
+        <i class="bi bi-check-circle"></i> Enregistrer les préférences
+      </button>
+    </div>
+
+    <!-- Seuil d'alerte stock -->
+    <div class="card">
+      <h2 class="card-title"><i class="bi bi-boxes card-icon"></i> Seuil d'alerte stock global</h2>
+      <p class="card-sub-desc">Recevez une alerte "Stock faible" dès qu'un produit descend sous ce seuil (modifiable par produit dans "Mes Produits").</p>
+      <div class="form-field form-field-inline">
+        <input type="number" class="form-input form-input-sm" [(ngModel)]="seuilGlobal" name="seuilGlobal" min="0">
+        <span class="field-suffix">unités</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================================================
+       TAB 3 : PAIEMENTS & RIB
+       ================================================== -->
+  <div class="tab-content" *ngIf="activeTab === 'paiements'">
+
+    <div class="card">
+      <div class="card-header-flex">
+        <h2 class="card-title"><i class="bi bi-credit-card-2-front-fill card-icon"></i> Méthodes de versement</h2>
+        <button class="btn-add-method" (click)="showAddMethod = !showAddMethod">
+          <i class="bi" [class.bi-plus-circle]="!showAddMethod" [class.bi-x-circle]="showAddMethod"></i>
+          {{ showAddMethod ? 'Annuler' : 'Ajouter une méthode' }}
+        </button>
+      </div>
+
+      <!-- Liste des méthodes -->
+      <div class="methods-list">
+        <div class="method-item" *ngFor="let m of methodesVersement">
+          <div class="method-ico"><i class="bi" [ngClass]="m.type === 'banque' ? 'bi-bank' : 'bi-phone-fill'"></i></div>
+          <div class="method-info">
+            <span class="method-nom">{{ m.nom }}</span>
+            <span class="method-detail">{{ m.detail }}</span>
+          </div>
+          <span class="badge-defaut" *ngIf="m.parDefaut">Par défaut</span>
+          <div class="method-actions">
+            <button class="btn-set-default" *ngIf="!m.parDefaut" (click)="definirParDefaut(m)">Définir par défaut</button>
+            <button class="btn-delete-method" (click)="supprimerMethode(m)" title="Supprimer">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire ajout -->
+      <form class="add-method-form" *ngIf="showAddMethod" (ngSubmit)="ajouterMethode()" #methodForm="ngForm">
+        <div class="form-field">
+          <label class="form-label">Type de méthode</label>
+          <select class="form-input form-select" [(ngModel)]="nouvelleMethode.type" name="type" required>
+            <option value="banque">Compte bancaire</option>
+            <option value="mobile">Mobile Money</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">{{ nouvelleMethode.type === 'banque' ? 'Nom de la banque' : 'Opérateur' }}</label>
+          <input type="text" class="form-input" [(ngModel)]="nouvelleMethode.nom" name="nom" required
+                 [placeholder]="nouvelleMethode.type === 'banque' ? 'Ex: CBAO Groupe Attijariwafa Bank' : 'Ex: Wave, Orange Money'">
+        </div>
+        <div class="form-field">
+          <label class="form-label">{{ nouvelleMethode.type === 'banque' ? 'IBAN / RIB' : 'Numéro de téléphone' }}</label>
+          <input type="text" class="form-input" [(ngModel)]="nouvelleMethode.detail" name="detail" required
+                 placeholder="Ex: SN012 01001 034567890123 45">
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="methodForm.invalid">
+          <i class="bi bi-check-circle"></i> Ajouter cette méthode
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
 </div>

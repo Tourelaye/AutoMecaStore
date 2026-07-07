@@ -1,52 +1,132 @@
 <div class="avis-container">
+
+  <!-- ========== EN-TÊTE ========== -->
   <div class="page-header">
-    <h1>Avis clients</h1>
-    <p class="page-subtitle">Consultez les avis de vos clients</p>
+    <div class="page-icon">⭐</div>
+    <div>
+      <h1>Avis clients</h1>
+      <p class="page-subtitle">Consultez et répondez aux avis de vos clients.</p>
+    </div>
   </div>
 
-  <!-- Actions Bar -->
-  <div class="actions-bar">
-    <div class="search-filters">
-      <div class="search-box">
-        <i class="bi bi-search"></i>
-        <input type="text" placeholder="Rechercher un avis..." [(ngModel)]="searchTerm">
+  <!-- ========== RÉSUMÉ SATISFACTION ========== -->
+  <div class="summary-card">
+    <div class="summary-score">
+      <span class="score-big">{{ noteMoyenne.toFixed(1) }}</span>
+      <div class="score-stars">
+        <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4,5]" [class.star-empty]="s > noteMoyenne"></i>
       </div>
+      <span class="score-total">{{ avis.length }} avis au total</span>
+    </div>
+
+    <div class="summary-bars">
+      <div class="summary-row" *ngFor="let r of repartitionNotes">
+        <span class="sr-label">{{ r.note }} <i class="bi bi-star-fill"></i></span>
+        <div class="sr-track"><div class="sr-fill" [style.width.%]="r.pct"></div></div>
+        <span class="sr-count">{{ r.count }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ACTIONS BAR ========== -->
+  <div class="actions-bar">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Rechercher un avis, un client, un produit..." [(ngModel)]="searchTerm">
+      <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm=''">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="filters-right">
       <select class="filter-select" [(ngModel)]="selectedNote" (change)="onNoteChange(selectedNote)">
         <option value="">Toutes les notes</option>
-        <option *ngFor="let note of notes" [value]="note">{{note}}</option>
+        <option *ngFor="let note of notes" [value]="note">{{ note }}</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="sortBy">
+        <option value="recent">Plus récents</option>
+        <option value="ancien">Plus anciens</option>
+        <option value="meilleure">Meilleure note</option>
+        <option value="pire">Note la plus basse</option>
+        <option value="sans_reponse">Sans réponse</option>
       </select>
     </div>
   </div>
 
-  <!-- Reviews Grid -->
+  <!-- ========== GRID AVIS ========== -->
   <div class="avis-grid">
     <div class="avis-card" *ngFor="let avi of filteredAvis">
+
       <div class="avis-header">
         <div class="client-info">
           <div class="client-avatar">
             <i class="bi bi-person-circle"></i>
           </div>
           <div>
-            <h4>{{avi.client}}</h4>
-            <p class="avis-date">{{avi.date | date:'dd/MM/yyyy'}}</p>
+            <h4>{{ avi.client }}</h4>
+            <p class="avis-date">{{ avi.date | date:'dd/MM/yyyy' }}</p>
           </div>
         </div>
-        <div class="avis-note {{getNoteClass(avi.note)}}">
-          <span *ngFor="let star of getStars(avi.note)">{{star}}</span>
+        <div class="avis-note" [ngClass]="getNoteClass(avi.note)">
+          <i class="bi" *ngFor="let filled of getStars(avi.note)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
         </div>
       </div>
-      
+
       <div class="avis-produit">
         <i class="bi bi-box-seam"></i>
-        <span>{{avi.produit}}</span>
+        <span>{{ avi.produit }}</span>
       </div>
-      
-      <p class="avis-commentaire">{{avi.commentaire}}</p>
+
+      <p class="avis-commentaire">{{ avi.commentaire }}</p>
+
+      <!-- Réponse existante -->
+      <div class="reponse-block" *ngIf="avi.reponse">
+        <div class="reponse-header">
+          <i class="bi bi-shop"></i>
+          <span>Votre réponse</span>
+          <span class="reponse-date">{{ avi.dateReponse | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <p class="reponse-texte">{{ avi.reponse }}</p>
+        <button class="btn-edit-reponse" (click)="ouvrirReponse(avi)">
+          <i class="bi bi-pencil"></i> Modifier
+        </button>
+      </div>
+
+      <!-- Bouton répondre -->
+      <button class="btn-repondre" *ngIf="!avi.reponse && editingId !== avi.id" (click)="ouvrirReponse(avi)">
+        <i class="bi bi-reply-fill"></i> Répondre à cet avis
+      </button>
+
+      <!-- Formulaire réponse -->
+      <div class="reponse-form" *ngIf="editingId === avi.id">
+        <textarea
+          class="reponse-textarea"
+          rows="3"
+          placeholder="Remerciez le client ou répondez à sa remarque..."
+          [(ngModel)]="reponseTexte"
+        ></textarea>
+        <div class="reponse-form-actions">
+          <button class="btn-cancel-reponse" (click)="annulerReponse()">Annuler</button>
+          <button class="btn-save-reponse" [disabled]="!reponseTexte.trim()" (click)="enregistrerReponse(avi)">
+            <i class="bi bi-check-circle"></i> Publier la réponse
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
+  <!-- ========== EMPTY STATE ========== -->
   <div class="no-results" *ngIf="filteredAvis.length === 0">
     <i class="bi bi-inbox"></i>
     <p>Aucun avis trouvé</p>
+    <span class="no-results-sub">Modifiez vos filtres de recherche.</span>
   </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg">
+  <i class="bi bi-check-circle-fill"></i> {{ toastMsg }}
 </div>

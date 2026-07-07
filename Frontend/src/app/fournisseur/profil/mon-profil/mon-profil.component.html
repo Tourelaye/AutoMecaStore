@@ -1,130 +1,105 @@
-<div class="profil-container">
+<div class="page-wrapper">
+
+  <!-- ========== EN-TÊTE ========== -->
   <div class="page-header">
-    <h1>Mon Profil</h1>
-    <p class="page-subtitle">Gérez les informations de votre entreprise</p>
-  </div>
-
-  <div class="profil-layout">
-    <!-- Profile Card -->
-    <div class="profile-card">
-      <div class="profile-header">
-        <div class="profile-logo">
-          <i class="bi bi-building"></i>
-        </div>
-        <div class="profile-info">
-          <h2 *ngIf="!isEditing">{{fournisseur.nomEntreprise}}</h2>
-          <input 
-            *ngIf="isEditing" 
-            type="text" 
-            [(ngModel)]="editedProfile.nomEntreprise"
-            class="edit-input"
-          >
-          <p class="profile-siret">SIRET: {{fournisseur.siret}}</p>
-        </div>
-        <button class="btn-edit" *ngIf="!isEditing" (click)="onEdit()">
-          <i class="bi bi-pencil"></i>
-          Modifier
-        </button>
-      </div>
-
-      <div class="profile-body">
-        <div class="info-section">
-          <h3>Informations de contact</h3>
-          <div class="info-row">
-            <i class="bi bi-envelope"></i>
-            <div class="info-content">
-              <span class="label">Email</span>
-              <span *ngIf="!isEditing">{{fournisseur.email}}</span>
-              <input *ngIf="isEditing" type="email" [(ngModel)]="editedProfile.email" class="edit-input">
-            </div>
-          </div>
-          <div class="info-row">
-            <i class="bi bi-telephone"></i>
-            <div class="info-content">
-              <span class="label">Téléphone</span>
-              <span *ngIf="!isEditing">{{fournisseur.telephone}}</span>
-              <input *ngIf="isEditing" type="text" [(ngModel)]="editedProfile.telephone" class="edit-input">
-            </div>
-          </div>
-          <div class="info-row">
-            <i class="bi bi-geo-alt"></i>
-            <div class="info-content">
-              <span class="label">Adresse</span>
-              <span *ngIf="!isEditing">{{fournisseur.adresse}}</span>
-              <input *ngIf="isEditing" type="text" [(ngModel)]="editedProfile.adresse" class="edit-input">
-            </div>
-          </div>
-        </div>
-
-        <div class="info-section">
-          <h3>Description</h3>
-          <p *ngIf="!isEditing">{{fournisseur.description}}</p>
-          <textarea *ngIf="isEditing" [(ngModel)]="editedProfile.description" class="edit-textarea" rows="4"></textarea>
-        </div>
-
-        <div class="info-section">
-          <h3>Informations entreprise</h3>
-          <div class="info-row">
-            <i class="bi bi-calendar"></i>
-            <div class="info-content">
-              <span class="label">Date de création</span>
-              <span>{{fournisseur.dateCreation | date:'dd/MM/yyyy'}}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="profile-actions" *ngIf="isEditing">
-        <button class="btn btn-secondary" (click)="onCancel()">
-          <i class="bi bi-x-lg"></i>
-          Annuler
-        </button>
-        <button class="btn btn-primary" (click)="onSave()">
-          <i class="bi bi-check-lg"></i>
-          Enregistrer
-        </button>
+    <div class="page-header-left">
+      <div class="page-icon">🏢</div>
+      <div>
+        <h1 class="page-title">Profil Fournisseur</h1>
+        <p class="page-sub">Identité commerciale et coordonnées officielles affichées sur AutoMecaStore.</p>
       </div>
     </div>
+    <button class="btn-edit-profile" routerLink="/fournisseur/profil/modifier">
+      <i class="bi bi-pencil-square"></i> Modifier le profil
+    </button>
+  </div>
 
-    <!-- Stats Card -->
-    <div class="stats-card">
-      <h3>Statistiques</h3>
-      <div class="stat-item">
-        <div class="stat-icon">
-          <i class="bi bi-box-seam"></i>
+  <!-- ========== CARTE PROFIL ========== -->
+  <div class="profile-card">
+
+    <!-- Bandeau cover -->
+    <div class="cover-banner">
+      <div class="cover-logo-wrap">
+        <img *ngIf="fournisseur.logo" [src]="fournisseur.logo" [alt]="fournisseur.nom" (error)="onImgError($event)">
+        <div *ngIf="!fournisseur.logo" class="cover-logo-ph">{{ getInitials(fournisseur.nom) }}</div>
+      </div>
+      <span class="badge-agree" *ngIf="fournisseur.agreeNinea">
+        <i class="bi bi-shield-check"></i> Entreprise Agréée NINEA
+      </span>
+    </div>
+
+    <!-- Corps -->
+    <div class="profile-body">
+
+      <h2 class="entreprise-nom">{{ fournisseur.nom }}</h2>
+      <p class="membre-depuis">Membre AutoMecaStore depuis le {{ fournisseur.dateInscription }}</p>
+
+      <!-- Description -->
+      <div class="description-box">
+        {{ fournisseur.description }}
+      </div>
+
+      <!-- Grille infos contact -->
+      <div class="infos-grid">
+        <div class="info-item">
+          <i class="bi bi-geo-alt-fill info-ico"></i>
+          <div>
+            <span class="info-label">Adresse physique</span>
+            <span class="info-val info-val-link">{{ fournisseur.adresse }}</span>
+          </div>
         </div>
-        <div class="stat-info">
-          <span class="stat-value">156</span>
-          <span class="stat-label">Produits</span>
+
+        <div class="info-item">
+          <i class="bi bi-envelope-fill info-ico"></i>
+          <div>
+            <span class="info-label">Email de contact</span>
+            <span class="info-val">{{ fournisseur.email }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <i class="bi bi-telephone-fill info-ico"></i>
+          <div>
+            <span class="info-label">Téléphone commercial</span>
+            <span class="info-val">{{ fournisseur.telephone }}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <i class="bi bi-file-earmark-text-fill info-ico"></i>
+          <div>
+            <span class="info-label">NINEA / RCCM</span>
+            <code class="ninea-code">{{ fournisseur.ninea }}</code>
+          </div>
         </div>
       </div>
-      <div class="stat-item">
-        <div class="stat-icon">
-          <i class="bi bi-receipt"></i>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">89</span>
-          <span class="stat-label">Commandes</span>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon">
-          <i class="bi bi-star"></i>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">4.8</span>
-          <span class="stat-label">Note moyenne</span>
-        </div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-icon">
-          <i class="bi bi-currency-euro"></i>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">45.6K</span>
-          <span class="stat-label">CA (€)</span>
+
+      <!-- Coordonnées bancaires -->
+      <div class="bank-section">
+        <h3 class="bank-title"><i class="bi bi-credit-card-2-front-fill"></i> Coordonnées de virement bancaire</h3>
+        <div class="bank-panel">
+          <div class="bank-field">
+            <span class="bank-label">Banque</span>
+            <span class="bank-val">{{ fournisseur.banque.nom }}</span>
+          </div>
+          <div class="bank-field">
+            <span class="bank-label">IBAN / RIB</span>
+            <span class="bank-val">{{ fournisseur.banque.iban }}</span>
+          </div>
+          <div class="bank-field">
+            <span class="bank-label">Mobile Money</span>
+            <span class="bank-val bank-val-gold">{{ fournisseur.banque.mobileMoney }}</span>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
 </div>

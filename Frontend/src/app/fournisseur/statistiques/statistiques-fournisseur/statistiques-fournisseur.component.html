@@ -1,81 +1,212 @@
 <div class="statistiques-container">
-  <div class="page-header">
-    <h1>Statistiques</h1>
-    <p class="page-subtitle">Analysez vos performances commerciales</p>
-  </div>
 
-  <!-- Period Selector -->
-  <div class="period-selector">
-    <button 
-      *ngFor="let period of periods"
-      class="period-btn"
-      [class.active]="selectedPeriod === period"
-      (click)="onPeriodChange(period)"
-    >
-      {{period === 'week' ? 'Semaine' : period === 'month' ? 'Mois' : period === 'quarter' ? 'Trimestre' : 'Année'}}
+  <!-- ========== EN-TÊTE ========== -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-icon">📊</div>
+      <div>
+        <h1>Statistiques</h1>
+        <p class="page-subtitle">Analysez vos performances commerciales et identifiez vos tendances.</p>
+      </div>
+    </div>
+    <button class="btn-export" (click)="exporterCSV()">
+      <i class="bi bi-download"></i> Exporter CSV
     </button>
   </div>
 
-  <!-- Charts Grid -->
+  <!-- ========== CONTROLES ========== -->
+  <div class="controls-bar">
+    <div class="period-selector">
+      <button
+        *ngFor="let period of periods"
+        class="period-btn"
+        [class.active]="selectedPeriod === period"
+        (click)="onPeriodChange(period)"
+      >
+        {{ getPeriodLabel(period) }}
+      </button>
+    </div>
+
+    <label class="compare-toggle">
+      <div class="toggle-switch" [class.toggle-on]="comparerPeriodePrecedente" (click)="toggleComparaison()">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span>Comparer à la période précédente</span>
+    </label>
+  </div>
+
+  <!-- ========== KPI CARDS ========== -->
+  <div class="kpi-row">
+    <div class="kpi-card" *ngFor="let k of kpis" [class]="'kpi-' + k.color">
+      <div class="kpi-icon"><i class="bi" [ngClass]="k.icon"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-label">{{ k.label }}</span>
+        <span class="kpi-value">{{ k.valeur }}</span>
+      </div>
+      <div class="kpi-trend" [class.up]="k.trend > 0" [class.down]="k.trend < 0">
+        <i class="bi" [class.bi-arrow-up-short]="k.trend > 0" [class.bi-arrow-down-short]="k.trend < 0" [class.bi-dash]="k.trend === 0"></i>
+        {{ k.trend === 0 ? '—' : (k.trend > 0 ? '+' : '') + k.trend + '%' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CHARTS GRID ========== -->
   <div class="charts-grid">
-    <div class="chart-card">
+
+    <!-- CA — graphique en aires -->
+    <div class="chart-card wide">
       <div class="card-header">
-        <h3>Chiffre d'affaires</h3>
-        <div class="chart-placeholder">
-          <i class="bi bi-graph-up"></i>
-          <p>Graphique CA</p>
+        <div>
+          <h3>Chiffre d'affaires</h3>
+          <p class="chart-sub">Évolution sur la période sélectionnée</p>
         </div>
+        <div class="chart-legend">
+          <span class="leg-item"><span class="leg-dot dot-actuel"></span>Période actuelle</span>
+          <span class="leg-item" *ngIf="comparerPeriodePrecedente"><span class="leg-dot dot-precedent"></span>Période précédente</span>
+        </div>
+      </div>
+
+      <svg class="line-chart" [attr.viewBox]="'0 0 ' + chartW + ' ' + chartH" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35"></stop>
+            <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+
+        <!-- Grille horizontale -->
+        <line *ngFor="let g of [0.25, 0.5, 0.75]" [attr.x1]="chartPad" [attr.x2]="chartW - chartPad"
+              [attr.y1]="chartH - chartPad - g * (chartH - chartPad*2)" [attr.y2]="chartH - chartPad - g * (chartH - chartPad*2)"
+              class="grid-line"></line>
+
+        <!-- Aire sous la courbe actuelle -->
+        <path [attr.d]="getAreaPath()" fill="url(#areaFill)"></path>
+
+        <!-- Ligne précédente (pointillée) -->
+        <polyline *ngIf="comparerPeriodePrecedente" [attr.points]="getLinePoints('precedent')" class="line-precedent"></polyline>
+
+        <!-- Ligne actuelle -->
+        <polyline [attr.points]="getLinePoints('valeur')" class="line-actuel"></polyline>
+
+        <!-- Points avec tooltip natif -->
+        <circle *ngFor="let pt of getPointsCoords('valeur')" [attr.cx]="pt.x" [attr.cy]="pt.y" r="3.5" class="chart-point">
+          <title>{{ pt.label }} : {{ formatPrix(pt.valeur) }}</title>
+        </circle>
+      </svg>
+      <div class="chart-x-labels">
+        <span *ngFor="let p of caSeries">{{ p.label }}</span>
       </div>
     </div>
 
+    <!-- Catégories — donut -->
     <div class="chart-card">
       <div class="card-header">
         <h3>Ventes par catégorie</h3>
-        <div class="chart-placeholder">
-          <i class="bi bi-pie-chart"></i>
-          <p>Graphique catégories</p>
+        <p class="chart-sub">Répartition du CA</p>
+      </div>
+      <div class="donut-wrap">
+        <div class="donut" [style.background]="donutGradient">
+          <div class="donut-hole">
+            <span class="donut-total">100%</span>
+            <span class="donut-label">du CA</span>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="dl-item" *ngFor="let c of categories">
+            <span class="dl-dot" [style.background]="c.color"></span>
+            <span class="dl-label">{{ c.label }}</span>
+            <span class="dl-pct">{{ c.pct }}%</span>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Commandes — bar chart -->
     <div class="chart-card">
       <div class="card-header">
         <h3>Évolution des commandes</h3>
-        <div class="chart-placeholder">
-          <i class="bi bi-bar-chart"></i>
-          <p>Graphique commandes</p>
+        <p class="chart-sub">Nombre de commandes par période</p>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-group" *ngFor="let c of commandesSeries">
+          <div class="bar-track">
+            <div class="bar-fill" [style.height.%]="getBarPct(c.valeur)" [class.bar-peak]="isPeakCommande(c.valeur)">
+              <span class="bar-tooltip">{{ c.valeur }} cmd.</span>
+            </div>
+          </div>
+          <span class="bar-label">{{ c.label }}</span>
         </div>
       </div>
     </div>
 
+    <!-- Satisfaction -->
     <div class="chart-card">
       <div class="card-header">
         <h3>Taux de satisfaction</h3>
-        <div class="chart-placeholder">
-          <i class="bi bi-star"></i>
-          <p>Graphique satisfaction</p>
+        <p class="chart-sub">Basé sur {{ totalAvis }} avis clients</p>
+      </div>
+      <div class="satisfaction-score">
+        <span class="score-big">{{ noteMoyenne }}</span>
+        <div class="score-stars">
+          <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4,5]" [class.star-empty]="s > noteMoyenne"></i>
+        </div>
+      </div>
+      <div class="satisfaction-bars">
+        <div class="sat-row" *ngFor="let s of satisfactionRepartition">
+          <span class="sat-label">{{ s.etoiles }} <i class="bi bi-star-fill"></i></span>
+          <div class="sat-track"><div class="sat-fill" [style.width.%]="s.pct"></div></div>
+          <span class="sat-pct">{{ s.pct }}%</span>
         </div>
       </div>
     </div>
 
-    <div class="chart-card full-width">
+    <!-- Top produits -->
+    <div class="chart-card wide">
       <div class="card-header">
         <h3>Produits les plus vendus</h3>
-        <div class="chart-placeholder">
-          <i class="bi bi-trophy"></i>
-          <p>Graphique top produits</p>
+        <p class="chart-sub">Classement par chiffre d'affaires généré</p>
+      </div>
+      <div class="top-produits-list">
+        <div class="tp-row" *ngFor="let p of topProduits; let i = index">
+          <span class="tp-rank" [class.rank-1]="i===0" [class.rank-2]="i===1" [class.rank-3]="i===2">#{{ i + 1 }}</span>
+          <div class="tp-info">
+            <span class="tp-nom">{{ p.nom }}</span>
+            <span class="tp-cat">{{ p.categorie }}</span>
+          </div>
+          <div class="tp-bar-wrap"><div class="tp-bar" [style.width.%]="(p.ventes / maxVentesTop) * 100"></div></div>
+          <div class="tp-stats">
+            <span class="tp-ventes">{{ p.ventes }} ventes</span>
+            <span class="tp-ca">{{ formatPrix(p.ca) }}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="chart-card full-width">
+    <!-- Performance mensuelle -->
+    <div class="chart-card wide">
       <div class="card-header">
         <h3>Performance mensuelle</h3>
-        <div class="chart-placeholder">
-          <i class="bi bi-calendar-check"></i>
-          <p>Graphique performance</p>
+        <p class="chart-sub">Intensité des ventes jour par jour</p>
+      </div>
+      <div class="heatmap">
+        <div
+          class="heat-cell"
+          *ngFor="let j of performanceMensuelle"
+          [style.background]="getHeatColor(j.valeur)"
+          [title]="'Jour ' + j.jour + ' — ' + formatPrix(j.montant)"
+        >
+          {{ j.jour }}
         </div>
       </div>
+      <div class="heatmap-legend">
+        <span>Moins</span>
+        <span class="heat-swatch" [style.background]="getHeatColor(10)"></span>
+        <span class="heat-swatch" [style.background]="getHeatColor(40)"></span>
+        <span class="heat-swatch" [style.background]="getHeatColor(70)"></span>
+        <span class="heat-swatch" [style.background]="getHeatColor(100)"></span>
+        <span>Plus</span>
+      </div>
     </div>
+
   </div>
 </div>

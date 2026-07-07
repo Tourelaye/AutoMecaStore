@@ -1,0 +1,209 @@
+<div class="fr-page">
+
+      <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Catalogue
+        </div>
+        <h2>Gestion des Fournisseurs</h2>
+        <p>Gérez vos fournisseurs et leurs informations</p>
+      </div>
+    </div>
+  <!-- Barre d'action -->
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Rechercher (Nom, E-mail, Siret)..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
+
+    <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+      <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+
+    <button class="btn-primary toolbar__add" (click)="openCreate()">
+      <i class="bi bi-plus-lg"></i> Ajouter un Fournisseur
+    </button>
+  </div>
+
+  <!-- État de chargement -->
+  <div class="fr-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Chargement des fournisseurs...</span>
+  </div>
+
+  <!-- Grille de fournisseurs -->
+  <div class="fr-grid" *ngIf="!loading">
+    <div
+      class="fr-card"
+      *ngFor="let f of filtered; let i = index; trackBy: trackById"
+      [style.--delay]="(i * 60) + 'ms'"
+    >
+      <div class="fr-card__top">
+        <span class="fr-card__id">ID: {{ f.id }}</span>
+        <span class="badge" [class]="'badge--' + f.status">{{ statusLabel(f.status) }}</span>
+      </div>
+
+      <div class="fr-card__identity">
+        <span class="avatar">{{ initials(f.name) }}</span>
+        <div class="fr-card__names">
+          <span class="fr-card__name">{{ f.name }}</span>
+          <span class="fr-card__sub">{{ f.rep }} | Siret: {{ f.siret }}</span>
+        </div>
+      </div>
+
+      <p class="fr-card__bio">&ldquo;{{ f.bio }}&rdquo;</p>
+
+      <div class="fr-card__stats">
+        <div class="stat">
+          <span class="stat__label">Produits</span>
+          <span class="stat__value">{{ f.productsRef }} ref</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">Chiffre d'aff.</span>
+          <span class="stat__value stat__value--green">{{ f.revenue | number:'1.0-0':'fr' }}€</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">Évaluation</span>
+          <span class="stat__value stat__value--amber" *ngIf="f.rating !== null">{{ f.rating }}★</span>
+          <span class="stat__value stat__value--muted" *ngIf="f.rating === null">N/A</span>
+        </div>
+      </div>
+
+      <div class="fr-card__actions">
+        <button class="btn-outline" (click)="openProfile(f)">
+          <i class="bi bi-info-circle"></i> Fiche Profil
+        </button>
+        <button class="btn-icon" title="Modifier" (click)="openEdit(f)">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(f.id)">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="fr-empty" *ngIf="filtered.length === 0">
+      <i class="bi bi-inboxes"></i>
+      <p>Aucun fournisseur ne correspond à ta recherche.</p>
+    </div>
+  </div>
+
+  <!-- ===================== MODALE : CRÉATION / ÉDITION / PROFIL ===================== -->
+  <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3 class="modal__title">
+        <ng-container [ngSwitch]="modalMode">
+          <span *ngSwitchCase="'create'">Créer une nouvelle fiche Fournisseur</span>
+          <span *ngSwitchCase="'edit'">Modifier la fiche Fournisseur</span>
+          <span *ngSwitchCase="'view'">Fiche Fournisseur</span>
+        </ng-container>
+      </h3>
+
+      <div class="profile-summary" *ngIf="modalMode === 'view' && viewingFournisseur as vf">
+        <span class="badge" [class]="'badge--' + vf.status">{{ statusLabel(vf.status) }}</span>
+        <span class="profile-summary__stat">{{ vf.productsRef }} produits référencés</span>
+        <span class="profile-summary__stat stat__value--green">{{ vf.revenue | number:'1.0-0':'fr' }}€ de CA</span>
+        <span class="profile-summary__stat" *ngIf="vf.rating !== null">{{ vf.rating }}★ ({{ vf.reviews }} avis)</span>
+      </div>
+
+      <form #fournisseurForm="ngForm" (ngSubmit)="submitForm(fournisseurForm)" novalidate>
+        <div class="field">
+          <label>Nom Commercial (Compagnie / Boutique)</label>
+          <input
+            type="text" name="name" placeholder="ex: MecaPart SAS"
+            [(ngModel)]="form.name" required #nameCtrl="ngModel" [readonly]="modalMode === 'view'"
+          />
+          <span class="field__error" *ngIf="nameCtrl.invalid && nameCtrl.touched">Champ requis</span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Représentant Principal</label>
+            <input
+              type="text" name="rep" placeholder="ex: Jean Meca"
+              [(ngModel)]="form.rep" required #repCtrl="ngModel" [readonly]="modalMode === 'view'"
+            />
+            <span class="field__error" *ngIf="repCtrl.invalid && repCtrl.touched">Champ requis</span>
+          </div>
+          <div class="field">
+            <label>SIRET</label>
+            <input
+              type="text" name="siret" placeholder="14 chiffres"
+              [(ngModel)]="form.siret" required pattern="\d{14}" #siretCtrl="ngModel" [readonly]="modalMode === 'view'"
+            />
+            <span class="field__error" *ngIf="siretCtrl.invalid && siretCtrl.touched">14 chiffres requis</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Adresse E-mail</label>
+            <input
+              type="email" name="email" placeholder="contact@boutique.fr"
+              [(ngModel)]="form.email" required email #emailCtrl="ngModel" [readonly]="modalMode === 'view'"
+            />
+            <span class="field__error" *ngIf="emailCtrl.invalid && emailCtrl.touched">Email invalide</span>
+          </div>
+          <div class="field">
+            <label>Téléphone</label>
+            <input
+              type="tel" name="phone" placeholder="ex: 01 02 03 04 05"
+              [(ngModel)]="form.phone" required #phoneCtrl="ngModel" [readonly]="modalMode === 'view'"
+            />
+            <span class="field__error" *ngIf="phoneCtrl.invalid && phoneCtrl.touched">Champ requis</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Adresse Complète</label>
+          <input
+            type="text" name="address" placeholder="14 Rue du Moteur, Paris"
+            [(ngModel)]="form.address" required #addressCtrl="ngModel" [readonly]="modalMode === 'view'"
+          />
+          <span class="field__error" *ngIf="addressCtrl.invalid && addressCtrl.touched">Champ requis</span>
+        </div>
+
+        <div class="field">
+          <label>Bio / Présentation de l'expert</label>
+          <textarea
+            name="bio" rows="3" placeholder="Présentez brièvement les spécialités du vendeur..."
+            [(ngModel)]="form.bio" [readonly]="modalMode === 'view'"
+          ></textarea>
+        </div>
+
+        <div class="modal__footer">
+          <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">
+            {{ modalMode === 'view' ? 'Fermer' : 'Annuler' }}
+          </button>
+          <button type="submit" class="btn-text btn-text--primary" [disabled]="submitting" *ngIf="modalMode !== 'view'">
+            <span *ngIf="!submitting">{{ modalMode === 'edit' ? 'Enregistrer' : 'Créer la fiche' }}</span>
+            <span *ngIf="submitting">{{ modalMode === 'edit' ? 'Enregistrement...' : 'Création...' }}</span>
+          </button>
+          <button type="button" class="btn-text btn-text--primary" *ngIf="modalMode === 'view'" (click)="openEdit(viewingFournisseur!)">
+            Modifier
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== MODALE : CONFIRMATION SUPPRESSION ===================== -->
+  <div class="modal-backdrop" *ngIf="pendingDeleteId" (click)="cancelDelete()">
+    <div class="modal modal--sm" (click)="$event.stopPropagation()">
+      <h3 class="modal__title">Supprimer ce fournisseur ?</h3>
+      <p class="modal__text">Cette action est irréversible. Le fournisseur et ses données associées seront supprimés.</p>
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="cancelDelete()">Annuler</button>
+        <button type="button" class="btn-text btn-text--danger" (click)="confirmDelete()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+</div>
