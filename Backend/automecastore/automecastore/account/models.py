@@ -37,6 +37,7 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
         ('client', 'Client'),
         ('admin', 'Administrateur'),
+        ('fournisseur', 'Fournisseur'),
     ]
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='client')
 
@@ -64,11 +65,34 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
 class Administrateur(models.Model):
     user = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, primary_key=True)
     date_embauche = models.DateField()
-    
+
 
     # class Meta:
     #     managed = False
     #     db_table = 'administrateur'
+
+# -----------------------------
+# Fournisseur
+# -----------------------------
+class Fournisseur(models.Model):
+    user = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, primary_key=True)
+    nom_entreprise = models.CharField(max_length=200)
+    logo_url = models.URLField(blank=True, null=True)
+    ninea = models.CharField(max_length=50, blank=True, null=True)
+    agree_ninea = models.BooleanField(default=False)
+    description = models.TextField(blank=True, null=True)
+    adresse = models.TextField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    telephone = models.CharField(max_length=20, blank=True, null=True)
+    horaires = models.JSONField(default=dict, blank=True, null=True)  # {jour: {ouvert: bool, debut: "HH:MM", fin: "HH:MM"}}
+    banque_nom = models.CharField(max_length=100, blank=True, null=True)
+    banque_iban = models.CharField(max_length=50, blank=True, null=True)
+    banque_mobile_money = models.CharField(max_length=100, blank=True, null=True)
+    date_inscription = models.DateTimeField(auto_now_add=True)
+    statut = models.CharField(max_length=20, choices=[('actif', 'Actif'), ('desactive', 'Désactivé')], default='actif')
+
+    def __str__(self):
+        return self.nom_entreprise
 
 # -----------------------------
 # Client

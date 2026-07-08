@@ -76,7 +76,8 @@ export class AppComponent {
            url.startsWith('/commandes') ||
            url.startsWith('/mes-commandes') ||
            url.startsWith('/mon-compte') ||
-           url.startsWith('/informations-personnelles');
+           url.startsWith('/informations-personnelles') ||
+           url.startsWith('/mes-favoris');
   }
 
   isFournisseurPage(): boolean {

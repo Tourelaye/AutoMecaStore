@@ -1,248 +1,199 @@
-<app-sidebar></app-sidebar>
+<div class="param-page">
 
-<div class="layout">
-  <div class="main">
-    <app-header></app-header>
+            <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Catalogue
+        </div>
+        <h2>Gestion des Fournisseurs</h2>
+        <p>Gérez vos fournisseurs et leurs informations</p>
+      </div>
+    </div>
+    
+  <div class="param-layout">
 
-    <div class="content">
 
-      <!-- NOTIFICATION -->
-      <div class="notif-toast"
-        *ngIf="message"
-        [class.success]="messageType === 'success'"
-        [class.error]="messageType === 'error'"
-        (click)="message = ''"
+
+    <!-- Navigation des onglets -->
+    <div class="param-nav">
+      <span class="param-nav__title">Configuration</span>
+      <button
+        *ngFor="let tab of tabs"
+        class="param-nav__item"
+        [class.active]="activeTab === tab.id"
+        (click)="selectTab(tab.id)"
       >
-        <i class="bi" [class.bi-check-circle-fill]="messageType === 'success'" [class.bi-exclamation-circle-fill]="messageType === 'error'"></i>
-        <span>{{ message }}</span>
-        <i class="bi bi-x notif-x"></i>
-      </div>
+        <i class="bi" [ngClass]="tab.icon"></i>
+        {{ tab.label }}
+      </button>
+    </div>
 
-      <!-- PAGE HEADER -->
-      <div class="page-header fade-up">
-        <div class="page-title">
-          <div class="page-tag">
-            <i class="bi bi-sliders2"></i>
-            Configuration
-          </div>
-          <h2>Paramètres</h2>
-          <p>Configurez votre boutique AutoMecaStore</p>
-        </div>
-        <div class="header-actions">
-          <div class="unsaved-badge" *ngIf="hasUnsaved()">
-            <i class="bi bi-circle-fill"></i>
-            {{ getModifiedCount() }} modification(s)
-          </div>
-          <button class="btn-save-all" (click)="saveAll()" [disabled]="saving || !hasUnsaved()">
-            <i class="bi bi-floppy-fill" [class.spin]="saving"></i>
-            {{ saving ? 'Sauvegarde...' : 'Tout sauvegarder' }}
-          </button>
-        </div>
-      </div>
+    <!-- Panneau de contenu -->
+    <div class="param-panel">
 
-      <!-- TABS -->
-      <div class="tabs-bar fade-up delay-1">
-        <button
-          class="tab-btn"
-          *ngFor="let tab of tabs"
-          [class.active]="activeTab === tab.key"
-          (click)="setTab(tab.key)"
-          [style.--tab-color]="tab.color"
-        >
-          <i class="bi {{ tab.icon }}"></i>
-          {{ tab.label }}
-          <span class="tab-dot" *ngIf="hasModifiedInTab(tab.key)"></span>
-        </button>
-      </div>
+      <!-- ===================== ONGLET : PROFIL ADMINISTRATEUR ===================== -->
+      <div class="panel-content" *ngIf="activeTab === 'profil'">
+        <h3 class="panel-content__title">Profil Administrateur</h3>
+        <p class="panel-content__subtitle">Mettez à jour vos informations de contact et votre mot de passe principal.</p>
 
-      <!-- SEARCH + ADD -->
-      <div class="toolbar fade-up delay-2">
-        <div class="search-box" [class.focused]="searchFocused">
-          <i class="bi bi-search search-ic"></i>
-          <input
-            type="text"
-            placeholder="Rechercher un paramètre..."
-            [(ngModel)]="searchQuery"
-            (focus)="searchFocused = true"
-            (blur)="searchFocused = false"
-          >
-          <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery = ''">
-            <i class="bi bi-x"></i>
-          </button>
-        </div>
-        <button class="btn-add" (click)="openAddModal()">
-          <i class="bi bi-plus-lg"></i> Ajouter un paramètre
-        </button>
-      </div>
-
-      <!-- PANEL -->
-      <div class="panel fade-up delay-3">
-
-        <!-- SECTION TITRE -->
-        <div class="section-head">
-          <div class="sh-left">
-            <div class="sh-icon">
-              <i class="bi {{ getActiveTab().icon }}"></i>
-            </div>
-            <div>
-              <h3>{{ getActiveTab().label }}</h3>
-              <small>{{ getParametresByCategorie().length }} paramètre(s)</small>
-            </div>
-          </div>
-        </div>
-
-        <!-- LISTE -->
-        <div class="parametres-list">
-
-          <div
-            class="parametre-item"
-            *ngFor="let param of getParametresByCategorie(); let i = index"
-            [style.--i]="i"
-            [class.modified]="param.modifie"
-          >
-            <!-- BADGE MODIFIÉ -->
-            <div class="modified-dot" *ngIf="param.modifie"></div>
-
-            <!-- INFOS -->
-            <div class="param-info">
-              <div class="param-cle">{{ param.cle }}</div>
-              <h4>{{ param.nom }}</h4>
-              <p>{{ param.description }}</p>
-            </div>
-
-            <!-- CONTRÔLE -->
-            <div class="param-control">
-
-              <!-- BOOLEAN TOGGLE -->
-              <div class="toggle-wrap" *ngIf="param.type === 'boolean'">
-                <button class="toggle-btn" [class.on]="getBoolValue(param.valeur)" (click)="toggleBool(param)">
-                  <span class="toggle-thumb"></span>
-                </button>
-                <span class="toggle-label" [class.on]="getBoolValue(param.valeur)">
-                  {{ getBoolValue(param.valeur) ? 'Activé' : 'Désactivé' }}
-                </span>
-              </div>
-
-              <!-- SELECT -->
-              <select
-                *ngIf="param.type === 'select'"
-                [(ngModel)]="param.valeur"
-                (ngModelChange)="onParamChange(param)"
-                class="param-select"
-              >
-                <option *ngFor="let opt of param.options" [value]="opt">{{ opt }}</option>
-              </select>
-
-              <!-- NUMBER -->
+        <form #profileFormRef="ngForm" (ngSubmit)="saveProfile(profileFormRef)" novalidate>
+          <div class="field-row">
+            <div class="field">
+              <label>Nom Complet</label>
               <input
-                *ngIf="param.type === 'number'"
-                type="number"
-                [(ngModel)]="param.valeur"
-                (ngModelChange)="onParamChange(param)"
-                class="param-input"
-              >
-
-              <!-- TEXT (défaut) -->
+                type="text" name="fullName" [(ngModel)]="profileForm.fullName"
+                required #fullNameCtrl="ngModel"
+              />
+              <span class="field__error" *ngIf="fullNameCtrl.invalid && fullNameCtrl.touched">Champ requis</span>
+            </div>
+            <div class="field">
+              <label>E-mail d'administration</label>
               <input
-                *ngIf="param.type === 'text'"
-                type="text"
-                [(ngModel)]="param.valeur"
-                (ngModelChange)="onParamChange(param)"
-                class="param-input"
-              >
-
+                type="email" name="email" [(ngModel)]="profileForm.email"
+                required email #emailCtrl="ngModel"
+              />
+              <span class="field__error" *ngIf="emailCtrl.invalid && emailCtrl.touched">Email invalide</span>
             </div>
-
-            <!-- ACTIONS -->
-            <div class="param-actions">
-              <button
-                class="pa-btn save"
-                [class.saving]="savingId === param.id"
-                [class.saved]="!param.modifie && savingId !== param.id"
-                (click)="saveParametre(param)"
-                title="Sauvegarder"
-              >
-                <i class="bi"
-                  [class.bi-check-lg]="savingId !== param.id"
-                  [class.bi-arrow-clockwise]="savingId === param.id"
-                  [class.spin]="savingId === param.id"
-                ></i>
-              </button>
-              <button class="pa-btn reset" (click)="resetParametre(param)" title="Réinitialiser">
-                <i class="bi bi-arrow-counterclockwise"></i>
-              </button>
-            </div>
-
           </div>
 
-          <!-- EMPTY -->
-          <div class="empty-state" *ngIf="getParametresByCategorie().length === 0">
-            <div class="empty-icon"><i class="bi bi-sliders"></i></div>
-            <h4>Aucun paramètre trouvé</h4>
-            <p>{{ searchQuery ? 'Essayez un autre terme.' : 'Aucun paramètre dans cette catégorie.' }}</p>
-            <button class="btn-add" (click)="openAddModal()">
-              <i class="bi bi-plus-lg"></i> Ajouter
+          <div class="field">
+            <label><i class="bi bi-lock"></i> Nouveau mot de passe (Facultatif)</label>
+            <input
+              type="password" name="password" [(ngModel)]="profileForm.password"
+              placeholder="Laisser vide pour ne pas modifier" minlength="8" #passwordCtrl="ngModel"
+            />
+            <span class="field__error" *ngIf="passwordCtrl.invalid && passwordCtrl.touched">8 caractères minimum</span>
+          </div>
+
+          <div class="panel-content__footer">
+            <span class="save-confirm" *ngIf="profileSaved"><i class="bi bi-check-circle-fill"></i> Profil enregistré</span>
+            <button type="submit" class="btn-primary" [disabled]="savingProfile">
+              <span *ngIf="!savingProfile">Sauvegarder le profil</span>
+              <span *ngIf="savingProfile">Sauvegarde...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ===================== ONGLET : COMMISSIONS & TAXES ===================== -->
+      <div class="panel-content" *ngIf="activeTab === 'finance'">
+        <h3 class="panel-content__title">Commissions de Plateforme &amp; Frais de Livraison</h3>
+        <p class="panel-content__subtitle">Ces paramètres s'appliquent en temps réel lors du calcul des gains fournisseurs.</p>
+
+        <form #financeFormRef="ngForm" (ngSubmit)="saveFinance(financeFormRef)" novalidate>
+          <div class="field-row field-row--3">
+            <div class="field">
+              <label><i class="bi bi-percent"></i> Commission Vendeurs (%)</label>
+              <input
+                type="number" name="commissionRate" [(ngModel)]="financeForm.commissionRate"
+                required min="0" max="100" step="0.1" #commissionCtrl="ngModel"
+              />
+              <span class="field__error" *ngIf="commissionCtrl.invalid && commissionCtrl.touched">Entre 0 et 100</span>
+            </div>
+            <div class="field">
+              <label>Taux de TVA (%)</label>
+              <input
+                type="number" name="vatRate" [(ngModel)]="financeForm.vatRate"
+                required min="0" max="100" step="0.1" #vatCtrl="ngModel"
+              />
+              <span class="field__error" *ngIf="vatCtrl.invalid && vatCtrl.touched">Entre 0 et 100</span>
+            </div>
+            <div class="field">
+              <label><i class="bi bi-truck"></i> Frais de port de base (€)</label>
+              <input
+                type="number" name="baseShippingFee" [(ngModel)]="financeForm.baseShippingFee"
+                required min="0" step="0.1" #shippingCtrl="ngModel"
+              />
+              <span class="field__error" *ngIf="shippingCtrl.invalid && shippingCtrl.touched">Doit être positif</span>
+            </div>
+          </div>
+
+          <div class="info-banner">
+            <i class="bi bi-gear-fill"></i>
+            <span>Chaque modification de commission ou de frais de port s'appliquera immédiatement aux futures commandes.</span>
+          </div>
+
+          <div class="panel-content__footer">
+            <span class="save-confirm" *ngIf="financeSaved"><i class="bi bi-check-circle-fill"></i> Configuration enregistrée</span>
+            <button type="submit" class="btn-primary" [disabled]="savingFinance">
+              <span *ngIf="!savingFinance">Enregistrer la configuration financière</span>
+              <span *ngIf="savingFinance">Enregistrement...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ===================== ONGLET : PASSERELLES DE PAIEMENT ===================== -->
+      <div class="panel-content" *ngIf="activeTab === 'passerelles'">
+        <h3 class="panel-content__title">Passerelles Bancaires &amp; Moyens de Paiement</h3>
+        <p class="panel-content__subtitle">Activez ou désactivez les moyens de paiement acceptés sur le checkout client.</p>
+
+        <div class="gateway-grid">
+          <div class="gateway-card" *ngFor="let g of gateways">
+            <div class="gateway-card__info">
+              <span class="gateway-card__name"><i class="bi" [ngClass]="g.icon"></i> {{ g.name }}</span>
+              <span class="gateway-card__desc">{{ g.description }}</span>
+            </div>
+            <button
+              class="gateway-toggle"
+              [class.gateway-toggle--on]="g.enabled"
+              (click)="onGatewayToggle(g)"
+            >
+              {{ g.enabled ? 'Activé' : 'Désactivé' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== ONGLET : RÔLES & PERMISSIONS API ===================== -->
+      <div class="panel-content" *ngIf="activeTab === 'roles'">
+        <h3 class="panel-content__title">Fiche des Permissions d'Accès &amp; Sécurité API</h3>
+        <p class="panel-content__subtitle">Consultez la grille des droits d'accès configurée par défaut pour la liaison Django REST Framework.</p>
+
+        <div class="role-row" *ngFor="let r of roles">
+          <span class="role-row__title">{{ r.title }}</span>
+          <p class="role-row__desc">{{ r.description }}</p>
+        </div>
+
+        <div class="api-config" *ngIf="apiConfig">
+          <span class="api-config__title">Configuration Backend Sync</span>
+
+          <div class="api-config__row">
+            <span class="api-config__key">DRF_AUTH_METHOD:</span>
+            <span class="api-config__value">{{ apiConfig.authMethod }}</span>
+            <button class="copy-btn" (click)="copyToClipboard(apiConfig.authMethod, 'auth')" title="Copier">
+              <i class="bi" [ngClass]="copiedField === 'auth' ? 'bi-check-lg' : 'bi-clipboard'"></i>
             </button>
           </div>
 
+          <div class="api-config__row">
+            <span class="api-config__key">DATABASE_ROUTING:</span>
+            <span class="api-config__value">{{ apiConfig.databaseRouting }}</span>
+            <button class="copy-btn" (click)="copyToClipboard(apiConfig.databaseRouting, 'db')" title="Copier">
+              <i class="bi" [ngClass]="copiedField === 'db' ? 'bi-check-lg' : 'bi-clipboard'"></i>
+            </button>
+          </div>
         </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MODALE : CONFIRMATION DÉSACTIVATION PASSERELLE ===================== -->
+  <div class="modal-backdrop" *ngIf="pendingDisableGateway" (click)="cancelDisableGateway()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3 class="modal__title">Désactiver {{ pendingDisableGateway.name }} ?</h3>
+      <p class="modal__text">
+        Les clients ne pourront plus payer via <strong>{{ pendingDisableGateway.name }}</strong> sur le checkout.
+        Cette action est réversible à tout moment.
+      </p>
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="cancelDisableGateway()">Annuler</button>
+        <button type="button" class="btn-text btn-text--danger" (click)="confirmDisableGateway()">Désactiver</button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ══ MODAL AJOUTER ══ -->
-<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-box" (click)="$event.stopPropagation()">
-
-    <div class="modal-head">
-      <div class="modal-head-left">
-        <div class="modal-icon-wrap">
-          <i class="bi bi-plus-lg"></i>
-        </div>
-        <div>
-          <h3>Nouveau paramètre</h3>
-          <small>Ajoutez un paramètre personnalisé</small>
-        </div>
-      </div>
-      <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
-    </div>
-
-    <div class="modal-body">
-      <form (ngSubmit)="addParametre()">
-
-        <div class="form-group">
-          <label><i class="bi bi-tag"></i> Nom du paramètre *</label>
-          <input type="text" [(ngModel)]="parametreForm.nom" name="nom" placeholder="Ex: Nom du site" required>
-        </div>
-
-        <div class="form-group">
-          <label><i class="bi bi-input-cursor-text"></i> Valeur *</label>
-          <input type="text" [(ngModel)]="parametreForm.valeur" name="valeur" placeholder="Valeur..." required>
-        </div>
-
-        <div class="form-group">
-          <label><i class="bi bi-card-text"></i> Description</label>
-          <textarea [(ngModel)]="parametreForm.description" name="description" rows="2" placeholder="Description..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label><i class="bi bi-grid-3x3-gap"></i> Catégorie</label>
-          <select [(ngModel)]="parametreForm.categorie" name="categorie">
-            <option *ngFor="let tab of tabs" [value]="tab.key">{{ tab.label }}</option>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="mf-btn cancel" (click)="closeModal()">
-            <i class="bi bi-x"></i> Annuler
-          </button>
-          <button type="submit" class="mf-btn save">
-            <i class="bi bi-plus-lg"></i> Ajouter
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
 </div>

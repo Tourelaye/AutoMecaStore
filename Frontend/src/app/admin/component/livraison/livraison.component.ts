@@ -1,274 +1,115 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SidebarComponent } from '../sidebar/sidebar.component';
-import { HeaderComponent } from '../header/header.component';
-import { LivraisonService } from '../../../core/services/livraison.service';
+import { Livraison, LivraisonService, LivraisonStatus } from './livraison.service';
 
-export type StatutLivraison = 'en_preparation' | 'en_cours' | 'livree' | 'annulee';
-
-export interface Livraison {
-  id: number;
-  commandeId: string;
-  client: string;
-  adresse: string;
-  statut: StatutLivraison;
-  transporteur: string;
-  dateCreation: string;
-  dateLivraison?: string;
-  tracking?: string;
-}
-
-interface CreateLivraisonRequest {
-  commandeId: string;
-  client: string;
-  adresse: string;
-  statut: StatutLivraison;
-  transporteur?: string;
-  tracking?: string;
-  dateLivraison?: string;
-}
+type StatusFilter = 'tous' | LivraisonStatus;
 
 @Component({
   selector: 'app-livraison',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, HeaderComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './livraison.component.html',
   styleUrls: ['./livraison.component.css']
 })
 export class LivraisonComponent implements OnInit {
-
+  loading = true;
   livraisons: Livraison[] = [];
-  livraisonsFiltrees: Livraison[] = [];
-  isLoading = false;
+  filtered: Livraison[] = [];
 
-  // Modal
-  showModal       = false;
-  showDeleteModal = false;
-  isEditing       = false;
-  editingId: number | null = null;
-  livraisonToDelete: Livraison | null = null;
-  activeMenu: number | null = null;
+  searchTerm = '';
+  statusFilter: StatusFilter = 'tous';
 
-  // Recherche & filtre
-  searchQuery   = '';
-  searchFocused = false;
-  activeFilter: string = 'all';
-
-  // Formulaire
-  livraisonForm: Partial<Livraison> = this.emptyForm();
-
-  // Notification
-  message     = '';
-  messageType: 'success' | 'error' = 'success';
-  private notifTimer: any;
-
-  readonly statutsPossibles: { value: string; label: string }[] = [
-    { value: 'en_preparation', label: 'En préparation' },
-    { value: 'en_cours',       label: 'En cours'       },
-    { value: 'livree',         label: 'Livrée'         },
-    { value: 'annulee',        label: 'Annulée'        },
+  statusOptions: { value: StatusFilter; label: string }[] = [
+    { value: 'tous', label: 'Tous les états logistiques' },
+    { value: 'livre', label: 'Livré' },
+    { value: 'en_transit', label: 'En transit' },
+    { value: 'incident', label: 'Incident' }
   ];
+
+  // --- Modale de résolution d'incident ---
+  showIncidentModal = false;
+  targetLivraison: Livraison | null = null;
+  noteInput = '';
+  submitting = false;
 
   constructor(private livraisonService: LivraisonService) {}
 
   ngOnInit(): void {
-    this.loadLivraisons();
+    this.load();
   }
 
-  // ── API Calls ───────────────────────────────────────────────────
-  private loadLivraisons(): void {
-    this.isLoading = true;
-    this.livraisonService.getLivraisons().subscribe({
-      next: (data: any[]) => {
-        this.livraisons = this.mapApiToComponent(data);
-        this.applyFilter();
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Erreur chargement livraisons:', err);
-        this.showMessage('Erreur lors du chargement des livraisons', 'error');
-        this.isLoading = false;
-      }
+  load(): void {
+    this.loading = true;
+    this.livraisonService.getAll().subscribe((list: Livraison[]) => {
+      this.livraisons = list;
+      this.applyFilters();
+      this.loading = false;
     });
   }
 
-  private mapApiToComponent(apiLivraisons: any[]): Livraison[] {
-    return apiLivraisons.map(l => ({
-      id: l.id,
-      commandeId: l.commande_id,
-      client: l.client,
-      adresse: l.adresse,
-      statut: l.statut,
-      transporteur: l.transporteur || '',
-      dateCreation: l.date_creation,
-      dateLivraison: l.date_livraison,
-      tracking: l.tracking
-    }));
-  }
-
-  private mapComponentToApi(form: Partial<Livraison>): CreateLivraisonRequest {
-    return {
-      commandeId: form.commandeId || '',
-      client: form.client || '',
-      adresse: form.adresse || '',
-      statut: form.statut || 'en_preparation',
-      transporteur: form.transporteur,
-      tracking: form.tracking,
-      dateLivraison: form.dateLivraison
-    };
-  }
-
-  // ── Filtres ──────────────────────────────────────────────────
-  applyFilter(): void {
-    let list = [...this.livraisons];
-    if (this.activeFilter !== 'all') {
-      list = list.filter(l => l.statut === this.activeFilter);
-    }
-    if (this.searchQuery.trim()) {
-      const q = this.searchQuery.toLowerCase();
-      list = list.filter(l =>
-        l.client.toLowerCase().includes(q) ||
-        l.commandeId.toLowerCase().includes(q) ||
-        l.adresse.toLowerCase().includes(q) ||
-        l.transporteur?.toLowerCase().includes(q)
-      );
-    }
-    this.livraisonsFiltrees = list;
-  }
-
-  setFilter(f: string): void { this.activeFilter = f; this.applyFilter(); }
-  onSearch(): void { this.applyFilter(); }
-
-  getFilterCount(s: string): number { return this.livraisons.filter(l => l.statut === s).length; }
-
-  // ── Stats ────────────────────────────────────────────────────
-  getStats() {
-    return {
-      total:         this.livraisons.length,
-      enPreparation: this.livraisons.filter(l => l.statut === 'en_preparation').length,
-      enCours:       this.livraisons.filter(l => l.statut === 'en_cours').length,
-      livrees:       this.livraisons.filter(l => l.statut === 'livree').length,
-      annulees:      this.livraisons.filter(l => l.statut === 'annulee').length,
-    };
-  }
-
-  // ── Modal ─────────────────────────────────────────────────────
-  openAddModal(): void {
-    this.isEditing     = false;
-    this.editingId     = null;
-    this.livraisonForm = this.emptyForm();
-    this.showModal     = true;
-  }
-
-  openEditModal(l: Livraison): void {
-    this.activeMenu    = null;
-    this.isEditing     = true;
-    this.editingId     = l.id;
-    this.livraisonForm = { ...l };
-    this.showModal     = true;
-  }
-
-  openDeleteModal(l: Livraison): void {
-    this.activeMenu       = null;
-    this.livraisonToDelete = l;
-    this.showDeleteModal  = true;
-  }
-
-  closeModal(): void       { this.showModal = false; this.livraisonForm = this.emptyForm(); }
-  closeDeleteModal(): void { this.showDeleteModal = false; this.livraisonToDelete = null; }
-
-  saveLivraison(): void {
-    if (!this.livraisonForm.commandeId || !this.livraisonForm.client) {
-      this.showMessage('Veuillez remplir les champs obligatoires.', 'error'); return;
-    }
-
-    const apiData = this.mapComponentToApi(this.livraisonForm);
-
-    if (this.isEditing && this.editingId !== null) {
-      this.livraisonService.updateLivraison(this.editingId, apiData).subscribe({
-        next: (updated: any) => {
-          const idx = this.livraisons.findIndex(l => l.id === this.editingId);
-          if (idx !== -1) {
-            this.livraisons[idx] = this.mapApiToComponent([updated])[0];
-          }
-          this.applyFilter();
-          this.closeModal();
-          this.showMessage('Livraison mise à jour avec succès !', 'success');
-        },
-        error: (err: any) => {
-          console.error('Erreur mise à jour livraison:', err);
-          this.showMessage('Erreur lors de la mise à jour de la livraison', 'error');
-        }
-      });
-    } else {
-      this.livraisonService.createLivraison(apiData).subscribe({
-        next: (created: any) => {
-          this.livraisons.unshift(this.mapApiToComponent([created])[0]);
-          this.applyFilter();
-          this.closeModal();
-          this.showMessage('Livraison créée avec succès !', 'success');
-        },
-        error: (err: any) => {
-          console.error('Erreur création livraison:', err);
-          this.showMessage('Erreur lors de la création de la livraison', 'error');
-        }
-      });
-    }
-  }
-
-  confirmDelete(): void {
-    if (!this.livraisonToDelete) return;
-
-    this.livraisonService.deleteLivraison(this.livraisonToDelete.id).subscribe({
-      next: () => {
-        this.livraisons = this.livraisons.filter(l => l.id !== this.livraisonToDelete!.id);
-        this.applyFilter();
-        this.closeDeleteModal();
-        this.showMessage('Livraison supprimée avec succès.', 'success');
-      },
-      error: (err: any) => {
-        console.error('Erreur suppression livraison:', err);
-        this.showMessage('Erreur lors de la suppression de la livraison', 'error');
-      }
+  applyFilters(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+    this.filtered = this.livraisons.filter(l => {
+      const matchesSearch =
+        !term ||
+        l.orderRef.toLowerCase().includes(term) ||
+        l.carrier.toLowerCase().includes(term) ||
+        l.client.toLowerCase().includes(term) ||
+        l.vendor.toLowerCase().includes(term);
+      const matchesStatus = this.statusFilter === 'tous' || l.status === this.statusFilter;
+      return matchesSearch && matchesStatus;
     });
   }
 
-  // ── Dropdown menu ────────────────────────────────────────────
-  toggleMenu(id: number): void { this.activeMenu = this.activeMenu === id ? null : id; }
-
-  @HostListener('document:click')
-  onDocumentClick(): void { this.activeMenu = null; }
-
-  // ── Helpers ──────────────────────────────────────────────────
-  getStatutLabel(s: string): string {
-    const map: Record<string, string> = {
-      en_preparation: 'Préparation', en_cours: 'En cours', livree: 'Livrée', annulee: 'Annulée'
-    };
-    return map[s] ?? s;
+  // --- KPIs ---
+  get livreesTerminees(): number {
+    return this.livraisons.filter(l => l.status === 'livre').length;
   }
 
-  getStatutIcon(s: string): string {
-    const map: Record<string, string> = {
-      en_preparation: 'bi-box-seam',    en_cours: 'bi-truck',
-      livree: 'bi-check2-circle',       annulee: 'bi-x-circle'
-    };
-    return map[s] ?? 'bi-question-circle';
+  get enTransitActifs(): number {
+    return this.livraisons.filter(l => l.status === 'en_transit').length;
   }
 
-  formatDate(d: string): string {
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  get retardsConstates(): number {
+    return this.livraisons.filter(l => l.status === 'incident').length;
   }
 
-  private emptyForm(): Partial<Livraison> {
-    return { commandeId: '', client: '', adresse: '', statut: 'en_preparation', transporteur: '', tracking: '' };
+  statusLabel(status: LivraisonStatus): string {
+    return status === 'livre' ? 'COLIS LIVRÉ' : status === 'en_transit' ? 'EN TRANSIT' : 'BLOCAGE INCIDENT';
   }
 
-  showMessage(msg: string, type: 'success' | 'error'): void {
-    if (this.notifTimer) clearTimeout(this.notifTimer);
-    this.message     = msg;
-    this.messageType = type;
-    this.notifTimer  = setTimeout(() => this.message = '', 3500);
+  openTracking(l: Livraison): void {
+    window.open(this.livraisonService.trackingUrl(l), '_blank', 'noopener');
+  }
+
+  askResolve(l: Livraison): void {
+    this.targetLivraison = l;
+    this.noteInput = '';
+    this.showIncidentModal = true;
+  }
+
+  closeModal(): void {
+    if (this.submitting) return;
+    this.showIncidentModal = false;
+    this.targetLivraison = null;
+  }
+
+  confirmResolve(): void {
+    if (!this.targetLivraison) return;
+    const note = this.noteInput.trim();
+    if (!note) return;
+    this.submitting = true;
+    this.livraisonService.resolveIncident(this.targetLivraison.id, note).subscribe((updated: Livraison) => {
+      this.livraisons = this.livraisons.map(l => (l.id === updated.id ? updated : l));
+      this.applyFilters();
+      this.submitting = false;
+      this.showIncidentModal = false;
+      this.targetLivraison = null;
+    });
+  }
+
+  trackById(_index: number, item: Livraison): string {
+    return item.id;
   }
 }

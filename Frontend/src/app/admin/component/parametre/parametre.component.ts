@@ -1,194 +1,156 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { SidebarComponent } from '../sidebar/sidebar.component';
-import { HeaderComponent } from '../header/header.component';
+import { FormsModule, NgForm } from '@angular/forms';
+import {
+  ParametresService,
+  AdminProfile,
+  FinanceConfig,
+  PaymentGateway,
+  RolePermission,
+  ApiConfig
+} from './parametre.service';
 
-export type CategorieParam = 'general' | 'livraison' | 'paiement' | 'notifications' | 'securite';
-
-export interface Parametre {
-  id: number;
-  nom: string;
-  cle: string;
-  valeur: string;
-  description: string;
-  categorie: CategorieParam;
-  type: 'text' | 'number' | 'boolean' | 'select';
-  options?: string[];
-  modifie?: boolean;
-}
+type TabId = 'profil' | 'finance' | 'passerelles' | 'roles';
 
 @Component({
-  selector: 'app-parametre',
+  selector: 'app-parametres',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent, HeaderComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './parametre.component.html',
   styleUrls: ['./parametre.component.css']
 })
-export class ParametreComponent implements OnInit {
+export class ParametresComponent implements OnInit {
+  activeTab: TabId = 'profil';
 
-  activeTab: CategorieParam = 'general';
-  searchQuery   = '';
-  searchFocused = false;
-  showModal     = false;
-  saving        = false;
-  savingId: number | null = null;
-
-  message     = '';
-  messageType: 'success' | 'error' = 'success';
-  private notifTimer: any;
-
-  parametreForm: Partial<Parametre> = this.emptyForm();
-
-  readonly tabs: { key: CategorieParam; label: string; icon: string; color: string }[] = [
-    { key: 'general',       label: 'Général',       icon: 'bi-gear-fill',        color: '#60a5fa' },
-    { key: 'livraison',     label: 'Livraison',     icon: 'bi-truck-front-fill', color: '#4ade80' },
-    { key: 'paiement',      label: 'Paiement',      icon: 'bi-credit-card-fill', color: '#a78bfa' },
-    { key: 'notifications', label: 'Notifications', icon: 'bi-bell-fill',        color: '#fbbf24' },
-    { key: 'securite',      label: 'Sécurité',      icon: 'bi-shield-lock-fill', color: '#f87171' },
+  tabs: { id: TabId; label: string; icon: string }[] = [
+    { id: 'profil', label: 'Profil Administrateur', icon: 'bi-person' },
+    { id: 'finance', label: 'Commissions & Taxes', icon: 'bi-percent' },
+    { id: 'passerelles', label: 'Passerelles de paiement', icon: 'bi-credit-card' },
+    { id: 'roles', label: 'Rôles & Permissions API', icon: 'bi-shield-check' }
   ];
 
-  parametres: Parametre[] = [
-    // ── GÉNÉRAL ──
-    { id: 1,  nom: 'Nom de la boutique',       cle: 'shop_name',            valeur: 'AutoMecaStore',        description: 'Nom affiché sur le site et les factures',          categorie: 'general',       type: 'text'   },
-    { id: 2,  nom: 'Email de contact',          cle: 'contact_email',        valeur: 'contact@automeca.sn',  description: 'Adresse email principale de contact',              categorie: 'general',       type: 'text'   },
-    { id: 3,  nom: 'Téléphone',                 cle: 'phone',                valeur: '+221 77 000 00 00',    description: 'Numéro affiché en pied de page',                   categorie: 'general',       type: 'text'   },
-    { id: 4,  nom: 'Adresse physique',          cle: 'address',              valeur: 'Plateau, Dakar',       description: 'Adresse du siège social',                          categorie: 'general',       type: 'text'   },
-    { id: 5,  nom: 'Devise',                    cle: 'currency',             valeur: 'FCFA',                 description: 'Devise utilisée dans la boutique',                 categorie: 'general',       type: 'select', options: ['FCFA','EUR','USD'] },
-    { id: 6,  nom: 'Langue par défaut',         cle: 'default_lang',         valeur: 'fr',                   description: 'Langue de l\'interface',                           categorie: 'general',       type: 'select', options: ['fr','en','ar'] },
+  loading = true;
 
-    // ── LIVRAISON ──
-    { id: 7,  nom: 'Frais de livraison',        cle: 'delivery_fee',         valeur: '2500',                 description: 'Frais de base en FCFA',                            categorie: 'livraison',     type: 'number' },
-    { id: 8,  nom: 'Livraison gratuite dès',    cle: 'free_delivery_min',    valeur: '50000',                description: 'Montant minimum pour livraison gratuite',          categorie: 'livraison',     type: 'number' },
-    { id: 9,  nom: 'Délai de livraison (j)',    cle: 'delivery_delay',       valeur: '3',                    description: 'Délai estimé en jours ouvrés',                     categorie: 'livraison',     type: 'number' },
-    { id: 10, nom: 'Transporteur par défaut',   cle: 'default_carrier',      valeur: 'DHL',                  description: 'Transporteur utilisé si non précisé',              categorie: 'livraison',     type: 'select', options: ['DHL','Chronopost','Colissimo','GLS'] },
-    { id: 11, nom: 'Zones de livraison',        cle: 'delivery_zones',       valeur: 'Dakar, Thiès, S-L',    description: 'Villes desservies (séparées par virgule)',          categorie: 'livraison',     type: 'text'   },
+  // --- Profil ---
+  profileForm: { fullName: string; email: string; password: string } = { fullName: '', email: '', password: '' };
+  savingProfile = false;
+  profileSaved = false;
 
-    // ── PAIEMENT ──
-    { id: 12, nom: 'Paiement à la livraison',  cle: 'cash_on_delivery',     valeur: 'true',                 description: 'Autoriser le paiement à la livraison',            categorie: 'paiement',      type: 'boolean'},
-    { id: 13, nom: 'Wave activé',              cle: 'wave_enabled',         valeur: 'true',                 description: 'Activer le paiement via Wave',                     categorie: 'paiement',      type: 'boolean'},
-    { id: 14, nom: 'Orange Money activé',      cle: 'orange_money_enabled', valeur: 'true',                 description: 'Activer le paiement via Orange Money',            categorie: 'paiement',      type: 'boolean'},
-    { id: 15, nom: 'TVA (%)',                   cle: 'tva_rate',             valeur: '18',                   description: 'Taux de TVA appliqué sur les commandes',           categorie: 'paiement',      type: 'number' },
-    { id: 16, nom: 'Clé publique Stripe',      cle: 'stripe_public_key',    valeur: 'pk_test_...',          description: 'Clé publique pour l\'intégration Stripe',          categorie: 'paiement',      type: 'text'   },
+  // --- Finance ---
+  financeForm: FinanceConfig = { commissionRate: 0, vatRate: 0, baseShippingFee: 0 };
+  savingFinance = false;
+  financeSaved = false;
 
-    // ── NOTIFICATIONS ──
-    { id: 17, nom: 'Email nouvelles commandes', cle: 'notif_new_order',     valeur: 'true',                 description: 'Recevoir un email pour chaque nouvelle commande',  categorie: 'notifications', type: 'boolean'},
-    { id: 18, nom: 'Email stock critique',      cle: 'notif_low_stock',     valeur: 'true',                 description: 'Alerte email si stock ≤ seuil critique',           categorie: 'notifications', type: 'boolean'},
-    { id: 19, nom: 'Email d\'envoi admin',      cle: 'admin_email_notif',   valeur: 'admin@automeca.sn',    description: 'Email destinataire des notifications admin',       categorie: 'notifications', type: 'text'   },
-    { id: 20, nom: 'Seuil stock critique',      cle: 'low_stock_threshold', valeur: '5',                    description: 'Quantité en dessous de laquelle une alerte est émise', categorie: 'notifications', type: 'number'},
+  // --- Passerelles ---
+  gateways: PaymentGateway[] = [];
+  pendingDisableGateway: PaymentGateway | null = null;
 
-    // ── SÉCURITÉ ──
-    { id: 21, nom: 'Tentatives connexion max', cle: 'max_login_attempts',   valeur: '5',                    description: 'Nombre max de tentatives avant blocage',           categorie: 'securite',      type: 'number' },
-    { id: 22, nom: 'Durée session (min)',       cle: 'session_duration',     valeur: '60',                   description: 'Durée d\'inactivité avant déconnexion auto',       categorie: 'securite',      type: 'number' },
-    { id: 23, nom: 'Double authentification',  cle: '2fa_enabled',          valeur: 'false',                description: 'Activer la 2FA pour les admins',                   categorie: 'securite',      type: 'boolean'},
-    { id: 24, nom: 'HTTPS forcé',              cle: 'force_https',          valeur: 'true',                 description: 'Rediriger toutes les requêtes vers HTTPS',         categorie: 'securite',      type: 'boolean'},
-  ];
+  // --- Rôles (lecture seule) ---
+  roles: RolePermission[] = [];
+  apiConfig: ApiConfig | null = null;
+  copiedField: string | null = null;
 
-  ngOnInit(): void {}
+  constructor(private parametresService: ParametresService) {}
 
-  // ── Tabs ─────────────────────────────────────────────────────
-  setTab(tab: CategorieParam): void { this.activeTab = tab; }
+  ngOnInit(): void {
+    this.loading = true;
 
-  getActiveTab() {
-    return this.tabs.find(t => t.key === this.activeTab)!;
+    this.parametresService.getProfile().subscribe((profile: AdminProfile) => {
+      this.profileForm = { fullName: profile.fullName, email: profile.email, password: '' };
+    });
+
+    this.parametresService.getFinanceConfig().subscribe((finance: FinanceConfig) => {
+      this.financeForm = { ...finance };
+    });
+
+    this.parametresService.getGateways().subscribe((gateways: PaymentGateway[]) => {
+      this.gateways = gateways;
+    });
+
+    this.parametresService.getRoles().subscribe((roles: RolePermission[]) => {
+      this.roles = roles;
+    });
+
+    this.parametresService.getApiConfig().subscribe((config: ApiConfig) => {
+      this.apiConfig = config;
+      this.loading = false;
+    });
   }
 
-  getTabColor(): string { return this.getActiveTab().color; }
-
-  hasModifiedInTab(key: CategorieParam): boolean {
-    return this.parametres.some(p => p.categorie === key && p.modifie);
+  selectTab(id: TabId): void {
+    this.activeTab = id;
   }
 
-  // ── Filtrage ─────────────────────────────────────────────────
-  getParametresByCategorie(): Parametre[] {
-    let list = this.parametres.filter(p => p.categorie === this.activeTab);
-    if (this.searchQuery.trim()) {
-      const q = this.searchQuery.toLowerCase();
-      list = list.filter(p =>
-        p.nom.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.cle.toLowerCase().includes(q)
-      );
+  // --- Profil ---
+  saveProfile(form: NgForm): void {
+    if (form.invalid) {
+      Object.values(form.controls).forEach(c => c.markAsTouched());
+      return;
     }
-    return list;
+    this.savingProfile = true;
+    this.profileSaved = false;
+    const payload = {
+      fullName: this.profileForm.fullName,
+      email: this.profileForm.email,
+      password: this.profileForm.password || undefined
+    };
+    this.parametresService.saveProfile(payload).subscribe(() => {
+      this.savingProfile = false;
+      this.profileSaved = true;
+      this.profileForm.password = '';
+      form.form.markAsPristine();
+      setTimeout(() => (this.profileSaved = false), 2500);
+    });
   }
 
-  // ── Sauvegarde individuelle ───────────────────────────────────
-  saveParametre(param: Parametre): void {
-    this.savingId = param.id;
-    setTimeout(() => {
-      param.modifie = false;
-      this.savingId = null;
-      this.showMessage(`"${param.nom}" sauvegardé !`, 'success');
-    }, 600);
-  }
-
-  onParamChange(param: Parametre): void { param.modifie = true; }
-
-  // ── Sauvegarde globale ────────────────────────────────────────
-  saveAll(): void {
-    const modifies = this.parametres.filter(p => p.modifie);
-    if (!modifies.length) { this.showMessage('Aucune modification à sauvegarder.', 'error'); return; }
-    this.saving = true;
-    setTimeout(() => {
-      modifies.forEach(p => p.modifie = false);
-      this.saving = false;
-      this.showMessage(`${modifies.length} paramètre(s) sauvegardé(s) !`, 'success');
-    }, 800);
-  }
-
-  hasUnsaved(): boolean { return this.parametres.some(p => p.modifie); }
-
-  getModifiedCount(): number {
-    return this.parametres.filter(p => p.modifie && p.categorie === this.activeTab).length;
-  }
-
-  // ── Modal ajouter ─────────────────────────────────────────────
-  openAddModal(): void {
-    this.parametreForm = { ...this.emptyForm(), categorie: this.activeTab };
-    this.showModal = true;
-  }
-
-  closeModal(): void { this.showModal = false; this.parametreForm = this.emptyForm(); }
-
-  addParametre(): void {
-    if (!this.parametreForm.nom || !this.parametreForm.valeur) {
-      this.showMessage('Veuillez remplir les champs obligatoires.', 'error'); return;
+  // --- Finance ---
+  saveFinance(form: NgForm): void {
+    if (form.invalid) {
+      Object.values(form.controls).forEach(c => c.markAsTouched());
+      return;
     }
-    const newId = Math.max(0, ...this.parametres.map(p => p.id)) + 1;
-    this.parametres.push({
-      ...this.parametreForm,
-      id:   newId,
-      cle:  (this.parametreForm.nom ?? '').toLowerCase().replace(/\s+/g, '_'),
-      type: 'text',
-    } as Parametre);
-    this.showMessage('Paramètre ajouté avec succès !', 'success');
-    this.closeModal();
+    this.savingFinance = true;
+    this.financeSaved = false;
+    this.parametresService.saveFinanceConfig(this.financeForm).subscribe(() => {
+      this.savingFinance = false;
+      this.financeSaved = true;
+      form.form.markAsPristine();
+      setTimeout(() => (this.financeSaved = false), 2500);
+    });
   }
 
-  // ── Reset ──────────────────────────────────────────────────────
-  resetParametre(param: Parametre): void {
-    param.modifie = false;
-    this.showMessage(`"${param.nom}" réinitialisé.`, 'success');
+  // --- Passerelles ---
+  onGatewayToggle(g: PaymentGateway): void {
+    if (g.enabled) {
+      // Désactiver un moyen de paiement est sensible (impacte le checkout) → confirmation requise
+      this.pendingDisableGateway = g;
+      return;
+    }
+    this.parametresService.toggleGateway(g.id).subscribe((updated: PaymentGateway) => this.replaceGateway(updated));
   }
 
-  // ── Helpers Boolean ───────────────────────────────────────────
-  getBoolValue(valeur: string): boolean { return valeur === 'true'; }
-
-  toggleBool(param: Parametre): void {
-    param.valeur  = param.valeur === 'true' ? 'false' : 'true';
-    param.modifie = true;
+  cancelDisableGateway(): void {
+    this.pendingDisableGateway = null;
   }
 
-  // ── Notification ─────────────────────────────────────────────
-  showMessage(msg: string, type: 'success' | 'error'): void {
-    if (this.notifTimer) clearTimeout(this.notifTimer);
-    this.message     = msg;
-    this.messageType = type;
-    this.notifTimer  = setTimeout(() => this.message = '', 3500);
+  confirmDisableGateway(): void {
+    if (!this.pendingDisableGateway) return;
+    const id = this.pendingDisableGateway.id;
+    this.parametresService.toggleGateway(id).subscribe((updated: PaymentGateway) => {
+      this.replaceGateway(updated);
+      this.pendingDisableGateway = null;
+    });
   }
 
-  private emptyForm(): Partial<Parametre> {
-    return { nom: '', valeur: '', description: '', categorie: 'general', type: 'text' };
+  private replaceGateway(updated: PaymentGateway): void {
+    this.gateways = this.gateways.map(g => (g.id === updated.id ? updated : g));
+  }
+
+  // --- Rôles / API config ---
+  copyToClipboard(value: string, field: string): void {
+    navigator.clipboard?.writeText(value).then(() => {
+      this.copiedField = field;
+      setTimeout(() => (this.copiedField = null), 1500);
+    });
   }
 }

@@ -42,7 +42,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Paiements & Factures',           icon: 'bi-credit-card',    route: '/admin/paiements'  },
     { label: 'Livraisons',          icon: 'bi-truck',          route: '/admin/livraisons' },
     { label: 'Avis & Réclamations', icon: 'bi-chat-left-text', route: '/admin/avis'       },
-    { label: 'Promotions',          icon: 'bi-tag',            route: '/admin/promotions' },
+    { label: 'Journal d\'activités',             icon: 'bi-journal-text',   route: '/admin/journal'    },
     { label: 'Paramètres',          icon: 'bi-gear',           route: '/admin/parametres' },
   ];
 

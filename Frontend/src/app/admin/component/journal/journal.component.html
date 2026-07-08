@@ -1,0 +1,109 @@
+<div class="journal-page">
+
+  <!-- Bannière -->
+  <div class="banner">
+    <div class="banner__content">
+      <span class="banner__title"><i class="bi bi-patch-check-fill"></i> Registre d'audit de sécurité</span>
+      <p class="banner__subtitle">Journal inaltérable retraçant toutes les interventions administratives réalisées sur l'API DRF.</p>
+    </div>
+    <div class="banner__actions">
+      <button class="btn-outline" (click)="exportCsv()">
+        <i class="bi bi-download"></i> Exporter le registre
+      </button>
+      <button class="btn-danger" (click)="openClearModal()">
+        <i class="bi bi-trash"></i> Vider
+      </button>
+    </div>
+  </div>
+
+  <!-- Barre de filtres -->
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <i class="bi bi-search"></i>
+      <input
+        type="text"
+        placeholder="Filtrer l'action, adresse IP, détails..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
+
+    <select class="toolbar__select" [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
+      <option *ngFor="let opt of categoryOptions" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+  </div>
+
+  <!-- Chargement -->
+  <div class="journal-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Chargement du journal...</span>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-wrap" *ngIf="!loading">
+    <table class="journal-table">
+      <thead>
+        <tr>
+          <th>Date / Heure (UTC)</th>
+          <th>Rubrique</th>
+          <th>Action réalisée</th>
+          <th>Utilisateur admin</th>
+          <th>Adresse IP</th>
+          <th>Description technique</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let l of filtered; let i = index" [style.--delay]="(i * 40) + 'ms'">
+          <td class="date-cell">
+            <span class="date-cell__date">{{ l.date }}</span>
+            <span class="date-cell__time mono">{{ l.time }}</span>
+          </td>
+          <td><span class="badge" [class]="'badge--' + l.category">{{ categoryLabel(l.category) }}</span></td>
+          <td class="strong">{{ l.action }}</td>
+          <td>{{ l.adminUser }}</td>
+          <td class="mono muted">{{ l.ipAddress }}</td>
+          <td class="description">{{ l.description }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="journal-empty" *ngIf="filtered.length === 0">
+      <i class="bi bi-inboxes"></i>
+      <p>Aucune entrée ne correspond à ces filtres.</p>
+    </div>
+  </div>
+
+  <!-- ===================== MODALE : PURGE DU JOURNAL ===================== -->
+  <div class="modal-backdrop" *ngIf="showClearModal" (click)="closeClearModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h3 class="modal__title"><i class="bi bi-exclamation-triangle-fill"></i> Vider le registre d'audit ?</h3>
+
+      <div class="warning-banner">
+        <i class="bi bi-shield-exclamation"></i>
+        <span>
+          Un vrai journal d'audit de sécurité ne devrait normalement jamais être supprimable — c'est ce qui garantit sa valeur en cas de litige,
+          de contrôle ou d'incident. Cette action supprimera <strong>définitivement {{ filtered.length }} entrée(s)</strong> et ne peut pas être annulée.
+        </span>
+      </div>
+
+      <div class="field">
+        <label>Tape <strong>VIDER</strong> pour confirmer</label>
+        <input type="text" [(ngModel)]="clearConfirmText" placeholder="VIDER" />
+      </div>
+
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="closeClearModal()" [disabled]="clearing">Annuler</button>
+        <button
+          type="button"
+          class="btn-text btn-text--danger"
+          [disabled]="clearing || clearConfirmText.trim().toUpperCase() !== 'VIDER'"
+          (click)="confirmClear()"
+        >
+          <span *ngIf="!clearing">Vider définitivement</span>
+          <span *ngIf="clearing">Suppression...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
