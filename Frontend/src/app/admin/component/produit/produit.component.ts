@@ -97,15 +97,15 @@ export class ProduitComponent implements OnInit {
   // --- Actions directes (pas de confirmation nécessaire) ---
   toggleActivation(p: Produit): void {
     const nextState: ProduitState = p.state === 'desactive' ? 'en_ligne' : 'desactive';
-    this.produitService.setState(p.ref, nextState).subscribe(updated => this.replace(updated));
+    this.produitService.setState(p.id, nextState).subscribe(updated => this.replace(updated));
   }
 
   validate(p: Produit): void {
-    this.produitService.setState(p.ref, 'en_ligne').subscribe(updated => this.replace(updated));
+    this.produitService.setState(p.id, 'en_ligne').subscribe(updated => this.replace(updated));
   }
 
   removeSignal(p: Produit): void {
-    this.produitService.setSignal(p.ref, false).subscribe(updated => this.replace(updated));
+    this.produitService.setSignal(p.id, false).subscribe(updated => this.replace(updated));
   }
 
   // --- Actions avec confirmation / saisie ---
@@ -134,22 +134,22 @@ export class ProduitComponent implements OnInit {
 
   confirmModal(): void {
     if (!this.targetProduit) return;
-    const ref = this.targetProduit.ref;
+    const id = this.targetProduit.id;
     this.submitting = true;
 
     if (this.activeModal === 'delete') {
-      this.produitService.delete(ref).subscribe(() => {
-        this.produits = this.produits.filter(p => p.ref !== ref);
+      this.produitService.delete(id).subscribe(() => {
+        this.produits = this.produits.filter(p => p.id !== id);
         this.applyFilters();
         this.endModal();
       });
     } else if (this.activeModal === 'refuse') {
-      this.produitService.setState(ref, 'desactive').subscribe(updated => {
+      this.produitService.setState(id, 'desactive').subscribe(updated => {
         this.replace(updated);
         this.endModal();
       });
     } else if (this.activeModal === 'signal') {
-      this.produitService.setSignal(ref, true, this.reasonInput.trim() || 'Signalé par un administrateur.').subscribe(updated => {
+      this.produitService.setSignal(id, true, this.reasonInput.trim() || 'Signalé par un administrateur.').subscribe(updated => {
         this.replace(updated);
         this.endModal();
       });
@@ -163,11 +163,16 @@ export class ProduitComponent implements OnInit {
   }
 
   private replace(updated: Produit): void {
-    this.produits = this.produits.map(p => (p.ref === updated.ref ? updated : p));
+    this.produits = this.produits.map(p => (p.id === updated.id ? updated : p));
     this.applyFilters();
   }
 
-  trackByRef(_index: number, item: Produit): string {
-    return item.ref;
+  get onlineCount(): number { return this.produits.filter(p => p.state === 'en_ligne').length; }
+  get pendingCount(): number { return this.produits.filter(p => p.state === 'attente_validation').length; }
+  get signaledCount(): number { return this.produits.filter(p => p.signale).length; }
+  get totalCount(): number { return this.produits.length; }
+
+  trackById(_index: number, item: Produit): string {
+    return item.id.toString();
   }
 }

@@ -159,13 +159,13 @@
 
             <!-- Catégorie véhicule -->
             <td class="td-cat">
-              <span class="cat-badge" [ngClass]="getCatClass(p.categorieVehicule)">
-                {{ p.categorieVehicule }}
-              </span>
+                <span class="cat-badge" [ngClass]="getCatClass(p.categorie_nom || '')">
+                  {{ p.categorie_nom || 'Non catégorisé' }}
+                </span>
             </td>
 
             <!-- Type de pièce -->
-            <td class="td-type">{{ p.typePiece }}</td>
+            <td class="td-type">{{ p.type_piece_nom || 'Non défini' }}</td>
 
             <!-- Prix -->
             <td class="td-prix">
@@ -292,8 +292,8 @@
         <div class="view-info-col">
           <div class="view-field"><span class="vf-label">Nom</span><span class="vf-val">{{ selectedProduit.nom }}</span></div>
           <div class="view-field"><span class="vf-label">Référence</span><code class="ref-code">{{ selectedProduit.reference }}</code></div>
-          <div class="view-field"><span class="vf-label">Catégorie véhicule</span><span class="cat-badge" [ngClass]="getCatClass(selectedProduit.categorieVehicule)">{{ selectedProduit.categorieVehicule }}</span></div>
-          <div class="view-field"><span class="vf-label">Type de pièce</span><span class="vf-val">{{ selectedProduit.typePiece }}</span></div>
+          <div class="view-field"><span class="vf-label">Catégorie véhicule</span><span class="cat-badge" [ngClass]="getCatClass(selectedProduit.categorie_nom || '')">{{ selectedProduit.categorie_nom || 'Non catégorisé' }}</span></div>
+          <div class="view-field"><span class="vf-label">Type de pièce</span><span class="vf-val">{{ selectedProduit.type_piece_nom || 'Non défini' }}</span></div>
           <div class="view-field"><span class="vf-label">Prix</span><span class="vf-val prix-big">{{ formatPrix(selectedProduit.prix) }}</span></div>
           <div class="view-field"><span class="vf-label">Stock</span>
             <span class="vf-val" [class.stock-low]="selectedProduit.stock <= 10" [class.stock-zero]="selectedProduit.stock === 0">

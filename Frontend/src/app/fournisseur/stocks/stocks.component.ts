@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { StockService, StockItem as ApiStockItem } from '../services/stock.service';
 
 type StatutStock = 'normal' | 'faible' | 'rupture';
 type FiltreStock = 'tous' | 'faible' | 'rupture';
@@ -30,6 +31,8 @@ export class StockComponent implements OnInit {
   stockItems: StockItem[] = [];
   filteredStock: StockItem[] = [];
 
+  constructor(private stockService: StockService) {}
+
   searchTerm = '';
   selectedFilter: FiltreStock = 'tous';
 
@@ -47,74 +50,26 @@ export class StockComponent implements OnInit {
   chargerStock(): void {
     this.isLoading = true;
 
-    // TODO: remplacer par un appel à ton service (ex: this.stockService.getStock())
-    setTimeout(() => {
-      this.stockItems = [
-        {
-          id: 1,
-          nom: 'Jeu de 4 Plaquettes de Frein Brembo Sport',
-          categorie: 'Automobile',
-          reference: 'REF-BRM-P85020',
-          image: '',
-          stockActuel: 24,
+    this.stockService.getStocks().subscribe({
+      next: (stocks: ApiStockItem[]) => {
+        this.stockItems = stocks.map(s => ({
+          id: s.id,
+          nom: s.nom,
+          categorie: 'Non spécifié',
+          reference: s.reference,
+          image: s.image || undefined,
+          stockActuel: s.stock,
           seuilCritique: 5,
-          statut: 'normal'
-        },
-        {
-          id: 2,
-          nom: 'Filtre à Huile Moteur Bosch Premium',
-          categorie: 'Automobile',
-          reference: 'REF-BSH-0451103079',
-          image: '',
-          stockActuel: 3,
-          seuilCritique: 10,
-          statut: 'faible'
-        },
-        {
-          id: 3,
-          nom: 'Amortisseur Avant Gaz Sachs (Unité)',
-          categorie: 'Automobile',
-          reference: 'REF-SCH-314718',
-          image: '',
-          stockActuel: 0,
-          seuilCritique: 4,
-          statut: 'rupture'
-        },
-        {
-          id: 4,
-          nom: 'Kit Chaîne DID 520 Renforcé O-Ring',
-          categorie: 'Moto & Scooter',
-          reference: 'REF-DID-520VX3',
-          image: '',
-          stockActuel: 12,
-          seuilCritique: 3,
-          statut: 'normal'
-        },
-        {
-          id: 5,
-          nom: 'Vanne de Freinage Pneumatique Wabco',
-          categorie: 'Poids Lourds',
-          reference: 'REF-WBC-9710021500',
-          image: '',
-          stockActuel: 6,
-          seuilCritique: 2,
-          statut: 'normal'
-        },
-        {
-          id: 6,
-          nom: 'Dérailleur Arrière Shimano Deore XT',
-          categorie: 'Vélo',
-          reference: 'REF-SHM-RD-M8100',
-          image: '',
-          stockActuel: 15,
-          seuilCritique: 5,
-          statut: 'normal'
-        }
-      ];
-
-      this.applyFilters();
-      this.isLoading = false;
-    }, 400);
+          statut: s.statut === 'ok' ? 'normal' : s.statut
+        }));
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.showToast('Erreur lors du chargement du stock', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
   // =============================================
@@ -162,12 +117,18 @@ export class StockComponent implements OnInit {
   // RÉASSORT
   // =============================================
   reapprovisionner(item: StockItem, quantite: number): void {
-    item.stockActuel += quantite;
-    this.recalculerStatut(item);
-    this.applyFilters();
-    this.showToast(`+${quantite} unités ajoutées à "${item.nom}"`, 'success');
-
-    // TODO: appeler ton service pour persister le changement côté backend
+    const nouvelleQuantite = item.stockActuel + quantite;
+    this.stockService.updateStock(item.id, nouvelleQuantite).subscribe({
+      next: () => {
+        item.stockActuel = nouvelleQuantite;
+        this.recalculerStatut(item);
+        this.applyFilters();
+        this.showToast(`+${quantite} unités ajoutées à "${item.nom}"`, 'success');
+      },
+      error: () => {
+        this.showToast('Impossible de mettre à jour le stock', 'error');
+      }
+    });
   }
 
   ouvrirReappro(item: StockItem): void {

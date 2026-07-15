@@ -100,6 +100,8 @@ INSTALLED_APPS = [
 
     'support',
 
+    'fournisseur',
+    'admin_api',
 ]
 
 

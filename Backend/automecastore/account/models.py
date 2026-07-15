@@ -37,6 +37,7 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = [
         ('client', 'Client'),
         ('admin', 'Administrateur'),
+        ('fournisseur', 'Fournisseur'),
     ]
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='client')
 
@@ -113,6 +114,36 @@ class Livreur(models.Model):
     # class Meta:
     #     managed = False
     #     db_table = 'livreur'
+
+# -----------------------------
+# Fournisseur
+# -----------------------------
+class Fournisseur(models.Model):
+    user = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, primary_key=True)
+    nom_entreprise = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    siret = models.CharField(max_length=50, blank=True, null=True)
+    logo = models.ImageField(upload_to='fournisseurs/logos/', blank=True, null=True)
+    date_inscription = models.DateTimeField(auto_now_add=True)
+    statut = models.CharField(
+        max_length=20,
+        choices=[('actif', 'Actif'), ('desactive', 'Désactivé'), ('attente', 'En attente')],
+        default='attente'
+    )
+    date_validation = models.DateTimeField(blank=True, null=True)
+    note_moyenne = models.DecimalField(max_digits=2, decimal_places=1, blank=True, null=True)
+    nombre_avis = models.IntegerField(default=0)
+    nombre_produits = models.IntegerField(default=0)
+    nombre_ventes = models.IntegerField(default=0)
+    chiffre_affaires = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        db_table = 'fournisseur'
+        verbose_name = 'Fournisseur'
+        verbose_name_plural = 'Fournisseurs'
+
+    def __str__(self):
+        return f"{self.nom_entreprise} ({self.user.email})"
 
 # -----------------------------
 # Favori

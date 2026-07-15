@@ -182,11 +182,92 @@ class ProduitListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
 
-        """Retourne uniquement les produits actifs (y compris ceux avec is_active=NULL)"""
-
+        """Retourne uniquement les produits actifs et approuvés pour les clients"""
+        
         from django.db.models import Q
+        
+        # Base queryset: produits actifs
+        queryset = Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True))
+        
+        # Filtrer par statut d'approbation selon le rôle de l'utilisateur
+        user = self.request.user
+        if user and user.is_authenticated:
+            if user.role == 'admin':
+                # Admin voit tous les produits
+                return queryset
+            elif user.role == 'fournisseur':
+                # Fournisseur voit ses propres produits (tous les statuts)
+                return queryset.filter(fournisseur=user.fournisseur)
+            else:
+                # Client ne voit que les produits approuvés
+                return queryset.filter(statut_approbation='approuve')
+        
+        # Utilisateur non authentifié ne voit que les produits approuvés
+        return queryset.filter(statut_approbation='approuve')
 
-        return Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True))
+
+class AdminProduitListView(generics.ListAPIView):
+    """
+    Liste tous les produits pour l'administration (avec filtres)
+    """
+    serializer_class = ProduitSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['statut', 'statut_approbation', 'categorie']
+    search_fields = ['nom', 'reference', 'description']
+    ordering_fields = ['created_at', 'prix', 'stock', 'nom']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        return Produit.objects.all().select_related('categorie', 'fournisseur')
+
+
+class AdminProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Détail, mise à jour et suppression d'un produit par l'admin
+    """
+    serializer_class = ProduitSerializer
+    permission_classes = [IsAdmin]
+    queryset = Produit.objects.all()
+
+
+class AdminProduitToggleActiveView(APIView):
+    """
+    Activer/Désactiver un produit
+    """
+    permission_classes = [IsAdmin]
+    
+    def patch(self, request, pk):
+        try:
+            produit = Produit.objects.get(pk=pk)
+            produit.statut = 'inactif' if produit.statut == 'actif' else 'actif'
+            produit.save()
+            return Response(ProduitSerializer(produit).data)
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AdminProduitSignalView(APIView):
+    """
+    Signaler/Designer un produit
+    """
+    permission_classes = [IsAdmin]
+    
+    def patch(self, request, pk):
+        try:
+            produit = Produit.objects.get(pk=pk)
+            signale = request.data.get('signale', False)
+            motif = request.data.get('motif', '')
+            
+            if signale:
+                produit.is_active = False
+                produit.statut = 'inactif'
+            
+            produit.save()
+            
+            return Response(ProduitSerializer(produit).data)
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -751,3 +832,53 @@ class ProduitFavorisListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
 
         serializer.save(client=self.request.user.client)
+
+
+# -----------------------------
+# Admin - Approuver/Rejeter Produit
+# -----------------------------
+class ProduitApprobationView(APIView):
+    """
+    Approuver ou rejeter un produit (admin)
+    """
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        try:
+            produit = Produit.objects.get(pk=pk)
+            statut = request.data.get('statut')
+            motif = request.data.get('motif_rejet', '')
+
+            if statut not in ['approuve', 'rejete']:
+                return Response(
+                    {'error': 'Statut invalide. Doit être "approuve" ou "rejete"'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            produit.statut_approbation = statut
+            if statut == 'rejete':
+                produit.motif_rejet = motif
+                produit.statut = 'inactif'
+            else:
+                produit.motif_rejet = ''
+                produit.statut = 'actif'
+            
+            produit.save()
+            return Response(ProduitSerializer(produit).data)
+            
+        except Produit.DoesNotExist:
+            return Response(
+                {'error': 'Produit non trouvé'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class ProduitsEnAttenteListView(generics.ListAPIView):
+    """
+    Liste des produits en attente d'approbation (admin)
+    """
+    serializer_class = ProduitSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        return Produit.objects.filter(statut_approbation='en_attente').order_by('-created_at')

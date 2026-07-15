@@ -1,10 +1,10 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { MockAuthService } from '../services/mock-auth.service';
+import { AuthService } from '../services/auth.service';
 import { UserRole } from '../models/auth-user.model';
 
 export const roleGuard: CanActivateFn = (route) => {
-  const auth   = inject(MockAuthService);
+  const auth   = inject(AuthService);
   const router = inject(Router);
 
   const expectedRole = route.data['role'] as UserRole | undefined;

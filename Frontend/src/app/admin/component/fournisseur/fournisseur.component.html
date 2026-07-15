@@ -1,16 +1,17 @@
 <div class="fr-page">
 
-      <!-- PAGE HEADER -->
-    <div class="page-header fade-up">
-      <div class="page-title">
-        <div class="page-tag">
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Catalogue
-        </div>
-        <h2>Gestion des Fournisseurs</h2>
-        <p>Gérez vos fournisseurs et leurs informations</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        Catalogue
       </div>
+      <h2>Gestion des Fournisseurs</h2>
+      <p>Gérez vos fournisseurs et leurs informations</p>
     </div>
+  </div>
+
   <!-- Barre d'action -->
   <div class="toolbar">
     <div class="toolbar__search">
@@ -26,10 +27,6 @@
     <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
       <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
     </select>
-
-    <button class="btn-primary toolbar__add" (click)="openCreate()">
-      <i class="bi bi-plus-lg"></i> Ajouter un Fournisseur
-    </button>
   </div>
 
   <!-- État de chargement -->
@@ -42,48 +39,54 @@
   <div class="fr-grid" *ngIf="!loading">
     <div
       class="fr-card"
-      *ngFor="let f of filtered; let i = index; trackBy: trackById"
+      *ngFor="let f of filtered; let i = index; trackBy: trackByUserId"
       [style.--delay]="(i * 60) + 'ms'"
     >
       <div class="fr-card__top">
-        <span class="fr-card__id">ID: {{ f.id }}</span>
-        <span class="badge" [class]="'badge--' + f.status">{{ statusLabel(f.status) }}</span>
+        <span class="fr-card__id">ID: {{ f.user.id }}</span>
+        <span class="badge" [ngClass]="statusClass(f.statut)">{{ statusLabel(f.statut) }}</span>
       </div>
 
       <div class="fr-card__identity">
-        <span class="avatar">{{ initials(f.name) }}</span>
+        <span class="avatar">{{ initials(f.nom_entreprise || f.nom_complet) }}</span>
         <div class="fr-card__names">
-          <span class="fr-card__name">{{ f.name }}</span>
-          <span class="fr-card__sub">{{ f.rep }} | Siret: {{ f.siret }}</span>
+          <span class="fr-card__name">{{ f.nom_entreprise || f.nom_complet }}</span>
+          <span class="fr-card__sub">{{ f.nom_complet }} | Siret: {{ f.siret || 'N/A' }}</span>
         </div>
       </div>
 
-      <p class="fr-card__bio">&ldquo;{{ f.bio }}&rdquo;</p>
+      <p class="fr-card__bio">&ldquo;{{ f.description || 'Aucune description' }}&rdquo;</p>
 
       <div class="fr-card__stats">
         <div class="stat">
           <span class="stat__label">Produits</span>
-          <span class="stat__value">{{ f.productsRef }} ref</span>
+          <span class="stat__value">{{ f.nombre_produits }} ref</span>
         </div>
         <div class="stat">
           <span class="stat__label">Chiffre d'aff.</span>
-          <span class="stat__value stat__value--green">{{ f.revenue | number:'1.0-0':'fr' }}€</span>
+          <span class="stat__value stat__value--green">{{ f.chiffre_affaires | number:'1.0-0':'fr' }} FCFA</span>
         </div>
         <div class="stat">
           <span class="stat__label">Évaluation</span>
-          <span class="stat__value stat__value--amber" *ngIf="f.rating !== null">{{ f.rating }}★</span>
-          <span class="stat__value stat__value--muted" *ngIf="f.rating === null">N/A</span>
+          <span class="stat__value stat__value--amber" *ngIf="f.note_moyenne !== null">{{ f.note_moyenne }}★</span>
+          <span class="stat__value stat__value--muted" *ngIf="f.note_moyenne === null">N/A</span>
         </div>
       </div>
 
       <div class="fr-card__actions">
-        <button class="btn-outline" (click)="openProfile(f)">
-          <i class="bi bi-info-circle"></i> Fiche Profil
+        <button class="btn-outline btn-outline--info" (click)="openDetail(f)" title="Voir les détails">
+          <i class="bi bi-eye"></i> Détails
         </button>
-        <button class="btn-icon" title="Modifier" (click)="openEdit(f)">
-          <i class="bi bi-pencil"></i>
+        <button class="btn-outline" (click)="openValidation(f, 'valider')" *ngIf="f.statut === 'en_attente'">
+          <i class="bi bi-check-circle"></i> Valider
         </button>
-        <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(f.id)">
+        <button class="btn-outline btn-outline--danger" (click)="openValidation(f, 'suspendre')" *ngIf="f.statut === 'actif'">
+          <i class="bi bi-pause-circle"></i> Suspendre
+        </button>
+        <button class="btn-outline" (click)="openValidation(f, 'reactiver')" *ngIf="f.statut === 'suspendu'">
+          <i class="bi bi-arrow-clockwise"></i> Réactiver
+        </button>
+        <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(f)">
           <i class="bi bi-trash"></i>
         </button>
       </div>
@@ -95,102 +98,34 @@
     </div>
   </div>
 
-  <!-- ===================== MODALE : CRÉATION / ÉDITION / PROFIL ===================== -->
-  <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+  <!-- ===================== MODALE : VALIDATION ===================== -->
+  <div class="modal-backdrop" *ngIf="showValidationModal" (click)="closeValidation()">
+    <div class="modal modal--sm" (click)="$event.stopPropagation()">
       <h3 class="modal__title">
-        <ng-container [ngSwitch]="modalMode">
-          <span *ngSwitchCase="'create'">Créer une nouvelle fiche Fournisseur</span>
-          <span *ngSwitchCase="'edit'">Modifier la fiche Fournisseur</span>
-          <span *ngSwitchCase="'view'">Fiche Fournisseur</span>
+        <ng-container [ngSwitch]="validationAction">
+          <span *ngSwitchCase="'valider'">Valider ce fournisseur ?</span>
+          <span *ngSwitchCase="'suspendre'">Suspendre ce fournisseur ?</span>
+          <span *ngSwitchCase="'reactiver'">Réactiver ce fournisseur ?</span>
         </ng-container>
       </h3>
-
-      <div class="profile-summary" *ngIf="modalMode === 'view' && viewingFournisseur as vf">
-        <span class="badge" [class]="'badge--' + vf.status">{{ statusLabel(vf.status) }}</span>
-        <span class="profile-summary__stat">{{ vf.productsRef }} produits référencés</span>
-        <span class="profile-summary__stat stat__value--green">{{ vf.revenue | number:'1.0-0':'fr' }}€ de CA</span>
-        <span class="profile-summary__stat" *ngIf="vf.rating !== null">{{ vf.rating }}★ ({{ vf.reviews }} avis)</span>
+      <p class="modal__text">
+        <ng-container [ngSwitch]="validationAction">
+          <span *ngSwitchCase="'valider'">Le fournisseur pourra accéder à son espace et gérer ses produits.</span>
+          <span *ngSwitchCase="'suspendre'">Le fournisseur ne pourra plus accéder à son espace ni gérer ses produits.</span>
+          <span *ngSwitchCase="'reactiver'">Le fournisseur retrouvera l'accès à son espace.</span>
+        </ng-container>
+      </p>
+      <div class="field">
+        <label>Commentaire (optionnel)</label>
+        <textarea [(ngModel)]="validationCommentaire" rows="2" placeholder="Ajouter un commentaire..."></textarea>
       </div>
-
-      <form #fournisseurForm="ngForm" (ngSubmit)="submitForm(fournisseurForm)" novalidate>
-        <div class="field">
-          <label>Nom Commercial (Compagnie / Boutique)</label>
-          <input
-            type="text" name="name" placeholder="ex: MecaPart SAS"
-            [(ngModel)]="form.name" required #nameCtrl="ngModel" [readonly]="modalMode === 'view'"
-          />
-          <span class="field__error" *ngIf="nameCtrl.invalid && nameCtrl.touched">Champ requis</span>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Représentant Principal</label>
-            <input
-              type="text" name="rep" placeholder="ex: Jean Meca"
-              [(ngModel)]="form.rep" required #repCtrl="ngModel" [readonly]="modalMode === 'view'"
-            />
-            <span class="field__error" *ngIf="repCtrl.invalid && repCtrl.touched">Champ requis</span>
-          </div>
-          <div class="field">
-            <label>SIRET</label>
-            <input
-              type="text" name="siret" placeholder="14 chiffres"
-              [(ngModel)]="form.siret" required pattern="\d{14}" #siretCtrl="ngModel" [readonly]="modalMode === 'view'"
-            />
-            <span class="field__error" *ngIf="siretCtrl.invalid && siretCtrl.touched">14 chiffres requis</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Adresse E-mail</label>
-            <input
-              type="email" name="email" placeholder="contact@boutique.fr"
-              [(ngModel)]="form.email" required email #emailCtrl="ngModel" [readonly]="modalMode === 'view'"
-            />
-            <span class="field__error" *ngIf="emailCtrl.invalid && emailCtrl.touched">Email invalide</span>
-          </div>
-          <div class="field">
-            <label>Téléphone</label>
-            <input
-              type="tel" name="phone" placeholder="ex: 01 02 03 04 05"
-              [(ngModel)]="form.phone" required #phoneCtrl="ngModel" [readonly]="modalMode === 'view'"
-            />
-            <span class="field__error" *ngIf="phoneCtrl.invalid && phoneCtrl.touched">Champ requis</span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Adresse Complète</label>
-          <input
-            type="text" name="address" placeholder="14 Rue du Moteur, Paris"
-            [(ngModel)]="form.address" required #addressCtrl="ngModel" [readonly]="modalMode === 'view'"
-          />
-          <span class="field__error" *ngIf="addressCtrl.invalid && addressCtrl.touched">Champ requis</span>
-        </div>
-
-        <div class="field">
-          <label>Bio / Présentation de l'expert</label>
-          <textarea
-            name="bio" rows="3" placeholder="Présentez brièvement les spécialités du vendeur..."
-            [(ngModel)]="form.bio" [readonly]="modalMode === 'view'"
-          ></textarea>
-        </div>
-
-        <div class="modal__footer">
-          <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">
-            {{ modalMode === 'view' ? 'Fermer' : 'Annuler' }}
-          </button>
-          <button type="submit" class="btn-text btn-text--primary" [disabled]="submitting" *ngIf="modalMode !== 'view'">
-            <span *ngIf="!submitting">{{ modalMode === 'edit' ? 'Enregistrer' : 'Créer la fiche' }}</span>
-            <span *ngIf="submitting">{{ modalMode === 'edit' ? 'Enregistrement...' : 'Création...' }}</span>
-          </button>
-          <button type="button" class="btn-text btn-text--primary" *ngIf="modalMode === 'view'" (click)="openEdit(viewingFournisseur!)">
-            Modifier
-          </button>
-        </div>
-      </form>
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="closeValidation()" [disabled]="submitting">Annuler</button>
+        <button type="button" class="btn-text btn-text--primary" (click)="confirmValidation()" [disabled]="submitting">
+          <span *ngIf="!submitting">Confirmer</span>
+          <span *ngIf="submitting">Traitement...</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -202,6 +137,237 @@
       <div class="modal__footer">
         <button type="button" class="btn-text" (click)="cancelDelete()">Annuler</button>
         <button type="button" class="btn-text btn-text--danger" (click)="confirmDelete()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODALE : DÉTAILS FOURNISSEUR ===================== -->
+  <div class="modal-backdrop modal-backdrop--large" *ngIf="showDetailModal" (click)="closeDetail()">
+    <div class="modal modal--large detail-modal" (click)="$event.stopPropagation()">
+      <!-- En-tête du modal -->
+      <div class="detail-modal__header">
+        <div class="detail-modal__title">
+          <h2>{{ selectedFournisseur?.nom_entreprise || selectedFournisseur?.nom_complet }}</h2>
+          <p>{{ selectedFournisseur?.user?.email }}</p>
+        </div>
+        <button class="btn-icon" (click)="closeDetail()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Onglets -->
+      <div class="detail-modal__tabs">
+        <button 
+          class="tab-btn"
+          [class.active]="detailTab === 'info'"
+          (click)="selectTab('info')">
+          <i class="bi bi-info-circle"></i> Informations
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="detailTab === 'produits'"
+          (click)="selectTab('produits')">
+          <i class="bi bi-box"></i> Produits
+          <span class="badge-count" *ngIf="fournisseurProduits.length > 0">{{ fournisseurProduits.length }}</span>
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="detailTab === 'commandes'"
+          (click)="selectTab('commandes')">
+          <i class="bi bi-receipt"></i> Commandes
+          <span class="badge-count" *ngIf="fournisseurCommandes.length > 0">{{ fournisseurCommandes.length }}</span>
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="detailTab === 'stats'"
+          (click)="selectTab('stats')">
+          <i class="bi bi-bar-chart"></i> Statistiques
+        </button>
+      </div>
+
+      <!-- Contenu des onglets -->
+      <div class="detail-modal__content">
+
+        <!-- TAB: INFOS -->
+        <div *ngIf="detailTab === 'info'" class="tab-content">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Nom d'entreprise</span>
+              <span class="detail-value">{{ selectedFournisseur?.nom_entreprise }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Contact</span>
+              <span class="detail-value">{{ selectedFournisseur?.nom_complet }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">E-mail</span>
+              <span class="detail-value">{{ selectedFournisseur?.user?.email }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Téléphone</span>
+              <span class="detail-value">{{ selectedFournisseur?.user?.telephone || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">SIRET</span>
+              <span class="detail-value">{{ selectedFournisseur?.siret || 'N/A' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Statut</span>
+              <span class="detail-value">
+                <span class="badge" [ngClass]="statusClass(selectedFournisseur?.statut!)">
+                  {{ statusLabel(selectedFournisseur?.statut!) }}
+                </span>
+              </span>
+            </div>
+            <div class="detail-item full">
+              <span class="detail-label">Description</span>
+              <p class="detail-value">{{ selectedFournisseur?.description || 'Aucune description' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: PRODUITS -->
+        <div *ngIf="detailTab === 'produits'" class="tab-content">
+          <div *ngIf="fournisseurProduits.length > 0" class="products-list">
+            <table class="products-table">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Prix</th>
+                  <th>Stock</th>
+                  <th>Ventes</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of fournisseurProduits">
+                  <td>{{ p.nom }}</td>
+                  <td>{{ p.prix | number:'1.2-2':'fr' }} FCFA</td>
+                  <td>{{ p.stock }}</td>
+                  <td>{{ p.nombre_ventes }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="p.is_active ? 'badge-success' : 'badge-warning'">
+                      {{ p.is_active ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="fournisseurProduits.length === 0" class="empty-state">
+            <i class="bi bi-box"></i>
+            <p>Aucun produit trouvé</p>
+          </div>
+        </div>
+
+        <!-- TAB: COMMANDES -->
+        <div *ngIf="detailTab === 'commandes'" class="tab-content">
+          <div *ngIf="fournisseurCommandes.length > 0" class="orders-list">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Référence</th>
+                  <th>Client</th>
+                  <th>Date</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of fournisseurCommandes">
+                  <td>{{ c.reference }}</td>
+                  <td>{{ c.client }}</td>
+                  <td>{{ c.date | date:'short' }}</td>
+                  <td>{{ c.montant_total | number:'1.2-2':'fr' }} FCFA</td>
+                  <td>
+                    <span class="badge" [ngClass]="'badge-' + c.statut">
+                      {{ c.statut }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div *ngIf="fournisseurCommandes.length === 0" class="empty-state">
+            <i class="bi bi-receipt"></i>
+            <p>Aucune commande trouvée</p>
+          </div>
+        </div>
+
+        <!-- TAB: STATISTIQUES -->
+        <div *ngIf="detailTab === 'stats'" class="tab-content">
+          <div *ngIf="fournisseurStats" class="stats-grid">
+            <!-- PRODUITS -->
+            <div class="stats-section">
+              <h4>📦 Produits</h4>
+              <div class="stat-cards">
+                <div class="stat-card">
+                  <span class="stat-label">Total</span>
+                  <span class="stat-val">{{ fournisseurStats.produits.total }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Actifs</span>
+                  <span class="stat-val stat-val--success">{{ fournisseurStats.produits.actifs }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Ruptures</span>
+                  <span class="stat-val stat-val--danger">{{ fournisseurStats.produits.ruptures }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Stock Total</span>
+                  <span class="stat-val">{{ fournisseurStats.produits.total_stock }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- COMMANDES -->
+            <div class="stats-section">
+              <h4>📋 Commandes</h4>
+              <div class="stat-cards">
+                <div class="stat-card">
+                  <span class="stat-label">Total</span>
+                  <span class="stat-val">{{ fournisseurStats.commandes.total }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Lignes</span>
+                  <span class="stat-val">{{ fournisseurStats.commandes.total_lignes }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Montant cumul</span>
+                  <span class="stat-val stat-val--success">{{ fournisseurStats.commandes.montant_cumule | number:'1.2-0':'fr' }} FCFA</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Quantité</span>
+                  <span class="stat-val">{{ fournisseurStats.commandes.quantite_totale }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- VENTES -->
+            <div class="stats-section">
+              <h4>📊 Activité</h4>
+              <div class="stat-cards">
+                <div class="stat-card">
+                  <span class="stat-label">Total ventes</span>
+                  <span class="stat-val">{{ fournisseurStats.ventes.total_ventes }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Favoris</span>
+                  <span class="stat-val">{{ fournisseurStats.ventes.total_favoris }}</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-label">Vues</span>
+                  <span class="stat-val">{{ fournisseurStats.ventes.total_vues }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!fournisseurStats" class="loading-state">
+            <div class="spinner-small"></div>
+            <p>Chargement des statistiques...</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

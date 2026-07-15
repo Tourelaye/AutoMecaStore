@@ -17,10 +17,9 @@ class MeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get(self, request):
+        user = request.user
         try:
-            user = request.user
             client = Client.objects.get(user=user)
-            
             return Response({
                 'id': user.id,
                 'email': user.email,
@@ -35,10 +34,16 @@ class MeView(APIView):
                 'is_active': user.is_active
             })
         except Client.DoesNotExist:
-            return Response(
-                {'error': 'Profil client non trouvé'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({
+                'id': user.id,
+                'email': user.email,
+                'nom': user.nom,
+                'prenom': user.prenom,
+                'telephone': user.telephone,
+                'adresse': user.adresse,
+                'role': user.role,
+                'is_active': user.is_active
+            })
     
     def put(self, request):
         """Met à jour complètement le profil utilisateur"""
@@ -51,45 +56,45 @@ class MeView(APIView):
     def _update_profile(self, request, partial=False):
         try:
             user = request.user
-            client = Client.objects.get(user=user)
-            
-            # Champs modifiables de l'utilisateur
             user_fields = ['nom', 'prenom', 'email', 'telephone', 'adresse']
-            
-            # Mettre à jour les champs utilisateur
+
             for field in user_fields:
                 if field in request.data:
                     setattr(user, field, request.data[field])
-            
             user.save()
-            
-            # Mettre à jour les champs client si fournis
-            client_fields = ['mode_paiement_favoris']
-            for field in client_fields:
-                if field in request.data:
-                    setattr(client, field, request.data[field])
-            
-            client.save()
-            
-            return Response({
-                'id': user.id,
-                'email': user.email,
-                'nom': user.nom,
-                'prenom': user.prenom,
-                'telephone': user.telephone,
-                'adresse': user.adresse,
-                'role': user.role,
-                'date_inscription': client.date_inscription,
-                'point_fidelite': client.point_fidelite,
-                'mode_paiement_favoris': client.mode_paiement_favoris,
-                'is_active': user.is_active
-            })
-            
-        except Client.DoesNotExist:
-            return Response(
-                {'error': 'Profil client non trouvé'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+
+            try:
+                client = Client.objects.get(user=user)
+                client_fields = ['mode_paiement_favoris']
+                for field in client_fields:
+                    if field in request.data:
+                        setattr(client, field, request.data[field])
+                client.save()
+                return Response({
+                    'id': user.id,
+                    'email': user.email,
+                    'nom': user.nom,
+                    'prenom': user.prenom,
+                    'telephone': user.telephone,
+                    'adresse': user.adresse,
+                    'role': user.role,
+                    'date_inscription': client.date_inscription,
+                    'point_fidelite': client.point_fidelite,
+                    'mode_paiement_favoris': client.mode_paiement_favoris,
+                    'is_active': user.is_active
+                })
+            except Client.DoesNotExist:
+                return Response({
+                    'id': user.id,
+                    'email': user.email,
+                    'nom': user.nom,
+                    'prenom': user.prenom,
+                    'telephone': user.telephone,
+                    'adresse': user.adresse,
+                    'role': user.role,
+                    'is_active': user.is_active
+                })
+
         except Exception as e:
             return Response(
                 {'error': f'Erreur lors de la mise à jour: {str(e)}'},

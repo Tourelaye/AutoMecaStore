@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FournisseurService, FournisseurStats } from '../../services/fournisseur.service';
 
 type Periode = 'week' | 'month' | 'quarter' | 'year';
 
@@ -46,6 +47,8 @@ interface KpiCard {
 })
 export class StatistiquesFournisseurComponent implements OnInit {
 
+  constructor(private fournisseurService: FournisseurService) {}
+
   periods: Periode[] = ['week', 'month', 'quarter', 'year'];
   selectedPeriod: Periode = 'month';
   comparerPeriodePrecedente = true;
@@ -56,6 +59,8 @@ export class StatistiquesFournisseurComponent implements OnInit {
   categories: CategorieVente[] = [];
   topProduits: TopProduit[] = [];
   performanceMensuelle: JourPerformance[] = [];
+
+  error: string | null = null;
 
   noteMoyenne = 4.7;
   totalAvis = 312;
@@ -90,84 +95,49 @@ export class StatistiquesFournisseurComponent implements OnInit {
   // TODO: remplacer par de vrais appels API selon selectedPeriod
   // =============================================
   private chargerDonnees(): void {
-    const labels = this.getLabelsForPeriod(this.selectedPeriod);
+    // Appel API centralisé pour récupérer les statistiques
+    this.fournisseurService.getStatistics().subscribe({
+      next: (s: FournisseurStats) => {
+        // Mapper valeurs basiques
+        this.noteMoyenne = (s as any)['note_moyenne'] ?? this.noteMoyenne;
+        this.totalAvis = (s as any)['nombre_avis'] ?? this.totalAvis;
 
-    this.caSeries = labels.map((label, i) => {
-      const base = 800000 + Math.sin(i / 2) * 250000 + i * 15000;
-      return {
-        label,
-        valeur: Math.round(base + Math.random() * 100000),
-        precedent: Math.round(base * 0.82 + Math.random() * 90000)
-      };
-    });
+        // KPIs principaux
+        const ca = s.chiffreAffaires ?? 0;
+        const commandes = s.commandesMois ?? 0;
+        const panierMoyen = commandes > 0 ? Math.round(ca / commandes) : 0;
 
-    this.commandesSeries = labels.map((label, i) => ({
-      label,
-      valeur: Math.round(20 + Math.sin(i / 1.5) * 8 + Math.random() * 6),
-      precedent: Math.round(16 + Math.sin(i / 1.5) * 6)
-    }));
+        this.kpis = [
+          { label: "Chiffre d'affaires", valeur: this.formatPrix(ca), trend: 0, icon: 'bi-currency-dollar', color: 'accent' },
+          { label: 'Commandes', valeur: `${commandes}`, trend: 0, icon: 'bi-cart3', color: 'info' },
+          { label: 'Panier moyen', valeur: this.formatPrix(panierMoyen), trend: 0, icon: 'bi-basket3', color: 'gold' },
+          { label: 'Note moyenne', valeur: this.noteMoyenne.toFixed(1) + ' / 5', trend: 0, icon: 'bi-star-fill', color: 'violet' }
+        ];
 
-    const totalCa = this.caSeries.reduce((s, p) => s + p.valeur, 0);
-    const totalCaPrec = this.caSeries.reduce((s, p) => s + p.precedent, 0);
-    const totalCommandes = this.commandesSeries.reduce((s, p) => s + p.valeur, 0);
-    const totalCommandesPrec = this.commandesSeries.reduce((s, p) => s + p.precedent, 0);
-    const panierMoyen = totalCommandes > 0 ? totalCa / totalCommandes : 0;
-    const panierMoyenPrec = totalCommandesPrec > 0 ? totalCaPrec / totalCommandesPrec : 0;
+        // Séries CA / commandes: fallback distribution si l'API ne fournit pas de série
+        const labels = this.getLabelsForPeriod(this.selectedPeriod);
+        this.caSeries = labels.map((label) => ({ label, valeur: Math.round(ca / Math.max(1, labels.length)), precedent: Math.round((ca * 0.85) / Math.max(1, labels.length)) }));
+        this.commandesSeries = labels.map((label) => ({ label, valeur: Math.round(commandes / Math.max(1, labels.length)), precedent: Math.max(0, Math.round((commandes * 0.9) / Math.max(1, labels.length))) }));
 
-    this.kpis = [
-      {
-        label: "Chiffre d'affaires",
-        valeur: this.formatPrix(totalCa),
-        trend: this.calcTrend(totalCa, totalCaPrec),
-        icon: 'bi-currency-dollar',
-        color: 'accent'
+        // Catégories / top produits : si fournis par l'API utilisez-les
+        if ((s as any).categories) {
+          this.categories = (s as any).categories.map((c: any) => ({ label: c.label, valeur: c.valeur, pct: c.pct ?? c.valeur, color: c.color ?? 'var(--info)' }));
+        }
+        if ((s as any).topProduits) {
+          this.topProduits = (s as any).topProduits;
+        }
+
+        // Performance mensuelle : si exposée, mappez sinon initialisez vide
+        if ((s as any).performanceMensuelle) {
+          this.performanceMensuelle = (s as any).performanceMensuelle;
+        } else {
+          this.performanceMensuelle = [];
+        }
       },
-      {
-        label: 'Commandes',
-        valeur: totalCommandes.toString(),
-        trend: this.calcTrend(totalCommandes, totalCommandesPrec),
-        icon: 'bi-cart3',
-        color: 'info'
-      },
-      {
-        label: 'Panier moyen',
-        valeur: this.formatPrix(panierMoyen),
-        trend: this.calcTrend(panierMoyen, panierMoyenPrec),
-        icon: 'bi-basket3',
-        color: 'gold'
-      },
-      {
-        label: 'Note moyenne',
-        valeur: this.noteMoyenne.toFixed(1) + ' / 5',
-        trend: 3.2,
-        icon: 'bi-star-fill',
-        color: 'violet'
+      error: (err: any) => {
+        console.error('Erreur chargement statistiques fournisseur:', err);
+        this.error = 'Impossible de charger les statistiques';
       }
-    ];
-
-    // Catégories (répartition CA)
-    const rawCats = [
-      { label: 'Automobile', valeur: 52, color: 'var(--info)' },
-      { label: 'Moto & Scooter', valeur: 21, color: 'var(--violet)' },
-      { label: 'Poids Lourds', valeur: 18, color: 'var(--gold)' },
-      { label: 'Vélo', valeur: 9, color: 'var(--accent)' }
-    ];
-    this.categories = rawCats.map(c => ({ ...c, pct: c.valeur }));
-
-    // Top produits
-    this.topProduits = [
-      { nom: 'Filtre à Huile Bosch Premium', categorie: 'Automobile', ventes: 142, ca: 1704000 },
-      { nom: 'Jeu Plaquettes Frein Brembo', categorie: 'Automobile', ventes: 98, ca: 4410000 },
-      { nom: 'Kit Chaîne DID 520', categorie: 'Moto & Scooter', ventes: 61, ca: 2318000 },
-      { nom: 'Vanne Freinage Wabco', categorie: 'Poids Lourds', ventes: 24, ca: 3720000 },
-      { nom: 'Dérailleur Shimano Deore XT', categorie: 'Vélo', ventes: 19, ca: 1102000 }
-    ].sort((a, b) => b.ca - a.ca);
-
-    // Calendrier de performance (jours du mois en cours, mock)
-    const joursDansMois = 30;
-    this.performanceMensuelle = Array.from({ length: joursDansMois }, (_, i) => {
-      const valeur = Math.round(Math.random() * 100);
-      return { jour: i + 1, valeur, montant: Math.round(valeur * 8500) };
     });
   }
 

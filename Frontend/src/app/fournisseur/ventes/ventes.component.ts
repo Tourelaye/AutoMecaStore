@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { FournisseurService, Vente } from '../services/fournisseur.service';
 
 export interface Transaction {
   id:                 string;
@@ -23,7 +23,7 @@ export interface Transaction {
 @Component({
   selector: 'app-ventes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ventes.component.html',
   styleUrls: ['./ventes.component.css'],
   animations: [
@@ -50,6 +50,8 @@ export interface Transaction {
 export class VentesComponent implements OnInit, OnDestroy {
 
   Math = Math;
+
+  constructor(private fournisseurService: FournisseurService) {}
 
   // ── État ─────────────────────────────────────────────────────────────
   isLoading = false;
@@ -84,100 +86,106 @@ export class VentesComponent implements OnInit, OnDestroy {
     { value: 'en_attente',label: '⏳ En attente',       cls: 'rt-attente'},
   ];
 
-  // ── KPI strip ─────────────────────────────────────────────────────────
-  kpiStrip = [
-    { label: 'Panier moyen',     value: '108 500 FCFA', icon: 'bi-wallet2',     bg: 'rgba(59,130,246,.1)',  color: '#3b82f6', trend: 8.2  },
-    { label: 'Produits vendus',  value: '142',          icon: 'bi-box-seam',    bg: 'rgba(29,185,84,.1)',   color: '#1db954', trend: 12.5 },
-    { label: 'Clients uniques',  value: '38',           icon: 'bi-people-fill', bg: 'rgba(139,92,246,.1)',  color: '#8b5cf6', trend: 5.1  },
-    { label: 'Taux commission',  value: '5%',           icon: 'bi-percent',     bg: 'rgba(245,158,11,.1)',  color: '#f59e0b', trend: 0    },
-    { label: 'Versements faits', value: '8',            icon: 'bi-bank',        bg: 'rgba(236,72,153,.1)',  color: '#ec4899', trend: 3    },
-  ];
-
   // ── Graphique ─────────────────────────────────────────────────────────
-  chartData = [
-    { mois: 'Jan', brut: 850000,  net: 807500  },
-    { mois: 'Fév', brut: 920000,  net: 874000  },
-    { mois: 'Mar', brut: 780000,  net: 741000  },
-    { mois: 'Avr', brut: 1100000, net: 1045000 },
-    { mois: 'Mai', brut: 950000,  net: 902500  },
-    { mois: 'Jun', brut: 1085000, net: 1030750 },
-  ];
+  chartData: { mois: string; brut: number; net: number; }[] = [];
 
   // ── Transactions ──────────────────────────────────────────────────────
-  transactions: Transaction[] = [
-    {
-      id: 'TRX-AM-99421', commande: 'CMD-2026-0885',
-      produit: 'Dérailleur Arrière Shimano Deore XT 1x12', client: 'Ousmane Sow',
-      quantite: 1, prixUnitaire: 58000, montantBrut: 58000,
-      commission: 2900, revenuNet: 55100, date: '2026-06-21',
-      statutReversement: 'paye', dateVersement: '2026-06-22', reference: 'VIR-2026-06-22-001'
-    },
-    {
-      id: 'TRX-AM-99410', commande: 'CMD-2026-0875',
-      produit: 'Bougie d\'allumage Iridium NGK Laser Iridium BKR6EIX', client: 'Mamadou Diouf',
-      quantite: 4, prixUnitaire: 12000, montantBrut: 48000,
-      commission: 2400, revenuNet: 45600, date: '2026-06-19',
-      statutReversement: 'paye', dateVersement: '2026-06-20', reference: 'VIR-2026-06-20-003'
-    },
-    {
-      id: 'TRX-AM-99388', commande: 'CMD-2026-0860',
-      produit: 'Pneu Michelin Primacy 4 205/55 R16 91H', client: 'Saliou Fall',
-      quantite: 8, prixUnitaire: 68000, montantBrut: 544000,
-      commission: 27200, revenuNet: 516800, date: '2026-06-15',
-      statutReversement: 'paye', dateVersement: '2026-06-16', reference: 'VIR-2026-06-16-001'
-    },
-    {
-      id: 'TRX-AM-99350', commande: 'CMD-2026-0842',
-      produit: 'Vanne de Freinage Pneumatique Wabco Premium', client: 'Transport Logistique Ndiaye',
-      quantite: 2, prixUnitaire: 185000, montantBrut: 370000,
-      commission: 18500, revenuNet: 351500, date: '2026-06-10',
-      statutReversement: 'en_cours'
-    },
-    {
-      id: 'TRX-AM-99320', commande: 'CMD-2026-0810',
-      produit: 'Kit Chaîne DID 520 Renforcé (1x)', client: 'Fatou Mbaye',
-      quantite: 1, prixUnitaire: 65000, montantBrut: 65000,
-      commission: 3250, revenuNet: 61750, date: '2026-06-05',
-      statutReversement: 'paye', dateVersement: '2026-06-06', reference: 'VIR-2026-06-06-002'
-    },
-    {
-      id: 'TRX-AM-99290', commande: 'CMD-2026-0788',
-      produit: 'Amortisseur Avant Gaz Sachs Ultra Premium', client: 'Ibrahima Ba',
-      quantite: 2, prixUnitaire: 75000, montantBrut: 150000,
-      commission: 7500, revenuNet: 142500, date: '2026-05-28',
-      statutReversement: 'paye', dateVersement: '2026-05-29', reference: 'VIR-2026-05-29-001'
-    },
-    {
-      id: 'TRX-AM-99260', commande: 'CMD-2026-0765',
-      produit: 'Courroie de Distribution Gates PowerGrip K015500XS', client: 'Garage Central',
-      quantite: 3, prixUnitaire: 28000, montantBrut: 84000,
-      commission: 4200, revenuNet: 79800, date: '2026-05-20',
-      statutReversement: 'en_attente'
-    },
-    {
-      id: 'TRX-AM-99230', commande: 'CMD-2026-0740',
-      produit: 'Filtre à Huile Moteur Bosch F026407006 Premium', client: 'Cheikh Anta Sylla',
-      quantite: 6, prixUnitaire: 8500, montantBrut: 51000,
-      commission: 2550, revenuNet: 48450, date: '2026-05-15',
-      statutReversement: 'paye', dateVersement: '2026-05-16', reference: 'VIR-2026-05-16-003'
-    },
-    {
-      id: 'TRX-AM-99200', commande: 'CMD-2026-0720',
-      produit: 'Batterie Lithium Vélo Électrique 36V 10Ah', client: 'Club Vélo Dakar',
-      quantite: 2, prixUnitaire: 120000, montantBrut: 240000,
-      commission: 12000, revenuNet: 228000, date: '2026-05-08',
-      statutReversement: 'paye', dateVersement: '2026-05-09', reference: 'VIR-2026-05-09-001'
-    },
-    {
-      id: 'TRX-AM-99170', commande: 'CMD-2026-0700',
-      produit: 'Disque de Frein Brembo Sport 280mm UV Coated', client: 'Auto Pro Thiès',
-      quantite: 4, prixUnitaire: 55000, montantBrut: 220000,
-      commission: 11000, revenuNet: 209000, date: '2026-05-01',
-      statutReversement: 'en_cours'
-    },
-  ];
-
+  transactions: Transaction[] = [];
   filteredTransactions: Transaction[] = [];
+
+  // ── KPI ───────────────────────────────────────────────────────────────
+  kpiStrip: Array<{ label: string; value: string; icon: string; bg: string; color: string; trend: number }> = [];
+
+  ngOnInit(): void {
+    this.loadVentes();
+    this.applyFilters();
+  }
+
+  ngOnDestroy(): void { if (this.toastTimer) clearTimeout(this.toastTimer); }
+
+  loadVentes(): void {
+    this.isLoading = true;
+    this.fournisseurService.getVentes().subscribe({
+      next: (ventes: Vente[]) => {
+        this.transactions = ventes.map(v => ({
+          id: v.id.toString(),
+          commande: v.commande_ref,
+          produit: v.produit_nom,
+          client: 'Client',
+          quantite: v.quantite,
+          prixUnitaire: v.prix_unitaire,
+          montantBrut: v.total,
+          commission: Math.round(v.total * (this.tauxCommission / 100)),
+          revenuNet: Math.round(v.total * (1 - this.tauxCommission / 100)),
+          date: this.formatDate(v.date),
+          statutReversement: this.mapStatutReversement(v.statut),
+          dateVersement: undefined,
+          reference: undefined,
+        }));
+        this.chartData = this.buildChartData(this.transactions);
+        this.updateKPIs();
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement ventes :', err);
+        this.isLoading = false;
+        this.showToast('Impossible de charger les ventes.', 'error');
+      }
+    });
+  }
+
+  private formatDate(date: string | Date): string {
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+  }
+
+  private mapStatutReversement(statut: string): 'paye' | 'en_cours' | 'en_attente' {
+    if (statut === 'paye') return 'paye';
+    if (statut === 'expediee' || statut === 'livree') return 'en_cours';
+    return 'en_attente';
+  }
+
+  private buildChartData(transactions: Transaction[]): { mois: string; brut: number; net: number; }[] {
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const grouped: Record<string, { brut: number; net: number }> = {};
+
+    transactions.forEach(t => {
+      const date = new Date(t.date);
+      if (isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
+      grouped[key] = grouped[key] || { brut: 0, net: 0 };
+      grouped[key].brut += t.montantBrut;
+      grouped[key].net += t.revenuNet;
+    });
+
+    const entries = Object.entries(grouped)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([key, value]) => {
+        const [year, month] = key.split('-').map(Number);
+        return { mois: months[month], brut: value.brut, net: value.net };
+      });
+
+    return entries.length ? entries : [{ mois: '#1', brut: 0, net: 0 }, { mois: '#2', brut: 0, net: 0 }];
+  }
+
+  private updateKPIs(): void {
+    const totalVentes = this.transactions.length;
+    const totalProduitsVendues = this.transactions.reduce((sum, t) => sum + t.quantite, 0);
+    const totalBrut = this.transactions.reduce((sum, t) => sum + t.montantBrut, 0);
+    const totalCommission = this.transactions.reduce((sum, t) => sum + t.commission, 0);
+    const totalNet = this.transactions.reduce((sum, t) => sum + t.revenuNet, 0);
+    const versementsFaits = this.transactions.filter(t => t.statutReversement === 'paye').length;
+
+    this.kpiStrip = [
+      { label: 'Panier moyen',     value: totalVentes ? `${new Intl.NumberFormat('fr-FR').format(Math.round(totalBrut / totalVentes))} FCFA` : '0 FCFA', icon: 'bi-wallet2',     bg: 'rgba(59,130,246,.1)',  color: '#3b82f6', trend: 0  },
+      { label: 'Produits vendus',  value: `${totalProduitsVendues}`, icon: 'bi-box-seam',    bg: 'rgba(29,185,84,.1)',   color: '#1db954', trend: 0 },
+      { label: 'Clients uniques',  value: `${new Set(this.transactions.map(t => t.commande)).size}`, icon: 'bi-people-fill', bg: 'rgba(139,92,246,.1)',  color: '#8b5cf6', trend: 0  },
+      { label: 'Taux commission',  value: `${this.tauxCommission}%`, icon: 'bi-percent',     bg: 'rgba(245,158,11,.1)',  color: '#f59e0b', trend: 0    },
+      { label: 'Versements faits', value: `${versementsFaits}`, icon: 'bi-bank',        bg: 'rgba(236,72,153,.1)',  color: '#ec4899', trend: 0    },
+    ];
+  }
 
   // ── Financier calculé ─────────────────────────────────────────────────
   get totalBrut(): number       { return this.transactions.reduce((s, t) => s + t.montantBrut, 0); }
@@ -197,9 +205,6 @@ export class VentesComponent implements OnInit, OnDestroy {
     const s = (this.currentPage - 1) * this.pageSize;
     return this.filteredTransactions.slice(s, s + this.pageSize);
   }
-
-  ngOnInit(): void { this.applyFilters(); }
-  ngOnDestroy(): void { if (this.toastTimer) clearTimeout(this.toastTimer); }
 
   // ── Filtres ────────────────────────────────────────────────────────────
   applyFilters(): void {

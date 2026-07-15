@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export type AvisStatus = 'visible' | 'masque' | 'moderation_requise';
 
@@ -17,53 +18,55 @@ export interface Avis {
   signalReason?: string;
 }
 
-const MOCK_AVIS: Avis[] = [
-  {
-    id: 'rev_1', buyer: 'Jean Dupont', productName: "Kit d'Embrayage Complet LUK RepSet Pro", vendor: 'MecaPart SAS',
-    rating: 5, comment: "Produit parfaitement identique à l'origine. Montage effectué sans problème sur ma Clio III. Expédition très rapide !",
-    date: '01/07/2026', status: 'visible'
-  },
-  {
-    id: 'rev_2', buyer: 'Sophie Dubois', productName: "Cardan d'Arbre de Transmission Avant Droit SKF", vendor: 'Direct Pièces Discount',
-    rating: 2, comment: "La référence OEM indiquée ne correspond absolument pas au cardan reçu pour ma Golf VI. Service client à revoir.",
-    date: '03/07/2026', status: 'moderation_requise', signalReason: 'Signalé par un client pour non-conformité du produit reçu.'
-  },
-  {
-    id: 'rev_3', buyer: 'Marc Lefevre', productName: 'Disques de Frein Ventilés Brembo (La Paire)', vendor: 'DistriAuto France',
-    rating: 5, comment: 'Freinage nickel, livraison rapide. Rien à redire.',
-    date: '04/07/2026', status: 'visible'
-  },
-  {
-    id: 'rev_4', buyer: 'Nadia Benali', productName: 'Filtre à Huile Purflux Premium', vendor: 'MecaPart SAS',
-    rating: 4, comment: 'Bon rapport qualité prix, conforme à la description.',
-    date: '05/07/2026', status: 'visible'
-  }
-];
-
 @Injectable({ providedIn: 'root' })
 export class AvisService {
-  // Même approche que les autres modules : 100% en mémoire pour l'instant.
-  private data: Avis[] = [...MOCK_AVIS];
+  private readonly apiUrl = 'http://127.0.0.1:8000/api/admin/avis/';
+
+  constructor(private http: HttpClient) {}
 
   getAll(): Observable<Avis[]> {
-    return of([...this.data]).pipe(delay(150));
-  }
-
-  private patch(id: string, changes: Partial<Avis>): Observable<Avis> {
-    this.data = this.data.map(a => (a.id === id ? { ...a, ...changes } : a));
-    return of(this.data.find(a => a.id === id)!).pipe(delay(120));
+    return this.http.get<any[]>(this.apiUrl).pipe(
+      map(list => list.map(a => this.mapBackendToUi(a)))
+    );
   }
 
   setStatus(id: string, status: AvisStatus, signalReason?: string): Observable<Avis> {
-    return this.patch(id, { status, signalReason: status === 'moderation_requise' ? signalReason : undefined });
+    const backendStatus = status === 'visible' ? 'visible' : 'masque';
+    return this.http.patch<any>(`${this.apiUrl}${id}/toggle-approve/`, {
+      approuve: backendStatus === 'visible',
+      signalReason: status === 'moderation_requise' ? signalReason : undefined
+    }).pipe(
+      map(a => this.mapBackendToUi(a))
+    );
   }
 
   reply(id: string, adminReply: string): Observable<Avis> {
-    return this.patch(id, { adminReply });
+    return this.http.patch<any>(`${this.apiUrl}${id}/`, { reponse_admin: adminReply }).pipe(
+      map(a => this.mapBackendToUi(a))
+    );
   }
 
   delete(id: string): Observable<void> {
-    this.data = this.data.filter(a => a.id !== id);
-    return of(void 0).pipe(delay(120));
+    return this.http.delete<void>(`${this.apiUrl}${id}/`);
+  }
+
+  private mapBackendToUi(a: any): Avis {
+    return {
+      id: a.id?.toString() || '',
+      buyer: a.client_email || a.client?.user?.email || '',
+      productName: a.produit_nom || a.produit?.nom || '',
+      vendor: a.vendor || 'AutoMecaStore',
+      rating: a.note || 0,
+      comment: a.commentaire || '',
+      date: a.date_creation ? new Date(a.date_creation).toLocaleDateString('fr-FR') : '',
+      status: this.toUiStatus(a.approuve, a.signalReason),
+      adminReply: a.reponse_admin,
+      signalReason: a.signalReason
+    };
+  }
+
+  private toUiStatus(approuve: boolean, signalReason?: string): AvisStatus {
+    if (signalReason) return 'moderation_requise';
+    return approuve ? 'visible' : 'masque';
   }
 }

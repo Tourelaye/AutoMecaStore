@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FournisseurService, FournisseurStats, Vente } from '../../services/fournisseur.service';
+import { CommandeService, Commande } from '../../services/commande.service';
 
 interface Stats {
   totalProduits: number;
@@ -13,7 +15,7 @@ interface Stats {
   chiffreAffaires: number;
 }
 
-interface Commande {
+interface CommandeItem {
   numero: string;
   client: string;
   produit: string;
@@ -66,90 +68,157 @@ interface SatisfactionRow {
 })
 export class DashboardFournisseurComponent implements OnInit {
 
+  loading = true;
+  error: string | null = null;
+
   // ---- KPI Stats ----
   stats: Stats = {
-    totalProduits: 8,
-    produitsActifs: 7,
-    tauxActifs: 88,
-    ruptures: 1,
-    commandesMois: 78,
-    commandesEnAttente: 4,
-    produitsVendus: 142,
-    chiffreAffaires: 2280750,
+    totalProduits: 0,
+    produitsActifs: 0,
+    tauxActifs: 0,
+    ruptures: 0,
+    commandesMois: 0,
+    commandesEnAttente: 0,
+    produitsVendus: 0,
+    chiffreAffaires: 0,
   };
 
   // ---- Dernières commandes ----
-  totalCommandes = 6;
-  dernieresCommandes: Commande[] = [
-    { numero: 'CMD-2026-0891', client: 'Moussa Diop (Garage Teranga)', produit: 'Jeu de 4 Plaquettes de frein avant', statut: 'Confirmée', prix: 90000 },
-    { numero: 'CMD-2026-0890', client: 'Saliou Fall', produit: 'Pneu Michelin Primacy 4 205/55 R16', statut: 'Confirmée', prix: 272000 },
-    { numero: 'CMD-2026-0888', client: 'Transport Logistique Ndiaye & Fils', produit: 'Vanne de Freinage Premium ATE', statut: 'Expédiée', prix: 185000 },
-    { numero: 'CMD-2026-0885', client: 'Ousmane Sow (Club Cycliste Dakar)', produit: 'Dérailleur Arrière Shimano XT', statut: 'Livrée', prix: 58000 },
-    { numero: 'CMD-2026-0882', client: 'Garage Auto Plus Thiès', produit: 'Filtre à huile Bosch F026407006', statut: 'En attente', prix: 45000 },
-    { numero: 'CMD-2026-0879', client: 'Fatou Mbaye Auto-École', produit: 'Kit distribution complet Gates', statut: 'Livrée', prix: 135000 },
-  ];
+  totalCommandes = 0;
+  dernieresCommandes: CommandeItem[] = [];
 
   // ---- Graphique ventes mensuelles ----
   periods = ['6M', '3M', '1M'];
   activePeriod = '6M';
-  ventesParMois: VenteMois[] = [
-    { mois: 'Jan', montant: 1420000 },
-    { mois: 'Fév', montant: 1680000 },
-    { mois: 'Mar', montant: 1380000 },
-    { mois: 'Avr', montant: 1950000 },
-    { mois: 'Mai', montant: 1760000 },
-    { mois: 'Jun', montant: 2280750 },
-  ];
+  ventesParMois: VenteMois[] = [];
 
   // ---- Graphique ventes hebdo ----
   jourPic = 'Jeudi';
-  ventesHebdo: VenteJour[] = [
-    { jour: 'LUN', montant: 185000, pct: 35, actif: false },
-    { jour: 'MAR', montant: 230000, pct: 45, actif: false },
-    { jour: 'MER', montant: 195000, pct: 38, actif: false },
-    { jour: 'JEU', montant: 510000, pct: 100, actif: true  },
-    { jour: 'VEN', montant: 275000, pct: 54, actif: false },
-    { jour: 'SAM', montant: 140000, pct: 27, actif: false },
-    { jour: 'DIM', montant: 95000,  pct: 18, actif: false },
-  ];
+  ventesHebdo: VenteJour[] = [];
 
   // ---- Top produits ----
-  topProduits: TopProduit[] = [
-    { nom: 'Pneu Michelin Primacy 4',     categorie: 'Pneumatiques',  ventes: 38, ca: 1033600 },
-    { nom: 'Plaquettes frein Bosch',      categorie: 'Freinage',      ventes: 24, ca: 216000  },
-    { nom: 'Huile Castrol 5W40 5L',       categorie: 'Lubrifiants',   ventes: 19, ca: 285000  },
-    { nom: 'Filtre à air Mecafilter',     categorie: 'Filtration',    ventes: 15, ca: 67500   },
-    { nom: 'Kit distribution Gates',       categorie: 'Distribution',  ventes: 12, ca: 348000  },
-  ];
+  topProduits: TopProduit[] = [];
 
   // ---- Alertes stock ----
-  alertesStock: AlerteStock[] = [
-    { nom: 'Bougies NGK Iridium',   restants: 2 },
-    { nom: 'Filtre à air Mecafilter', restants: 4 },
-  ];
+  alertesStock: AlerteStock[] = [];
 
   // ---- Activité récente ----
-  activiteRecente: Activite[] = [
-    { icon: 'bi-cart-check-fill', iconClass: 'act-green',  texte: 'Nouvelle commande CMD-2026-0892 reçue', temps: 'Il y a 8 min' },
-    { icon: 'bi-truck',           iconClass: 'act-blue',   texte: 'CMD-2026-0888 marquée expédiée', temps: 'Il y a 45 min' },
-    { icon: 'bi-star-fill',       iconClass: 'act-yellow', texte: 'Nouvel avis 5★ sur Pneu Michelin', temps: 'Il y a 1h30' },
-    { icon: 'bi-exclamation-circle-fill', iconClass: 'act-orange', texte: 'Alerte : Bougies NGK en stock critique', temps: 'Il y a 3h' },
-    { icon: 'bi-plus-circle-fill',iconClass: 'act-green',  texte: 'Produit "Vanne EGR Bosch" publié', temps: 'Hier, 14h22' },
-  ];
+  activiteRecente: Activite[] = [];
 
   // ---- Satisfaction ----
-  totalAvis = 87;
-  satisfaction: SatisfactionRow[] = [
-    { etoiles: 5, pct: 72 },
-    { etoiles: 4, pct: 18 },
-    { etoiles: 3, pct: 6  },
-    { etoiles: 2, pct: 3  },
-    { etoiles: 1, pct: 1  },
-  ];
+  totalAvis = 0;
+  satisfaction: SatisfactionRow[] = [];
+
+  constructor(
+    private fournisseurService: FournisseurService,
+    private commandeService: CommandeService
+  ) {}
 
   ngOnInit(): void {
-    // Ici, brancher les vrais appels API Django
-    // this.fournisseurService.getStats().subscribe(...)
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading = true;
+    this.error = null;
+
+    // Charger les stats
+    this.fournisseurService.getStatistics().subscribe({
+      next: (s) => {
+        this.stats = {
+          totalProduits: s.totalProduits,
+          produitsActifs: s.produitsActifs,
+          tauxActifs: s.tauxActifs,
+          ruptures: s.rupture,
+          commandesMois: s.commandesMois,
+          commandesEnAttente: s.commandesEnAttente,
+          produitsVendus: s.produitsVendus,
+          chiffreAffaires: s.chiffreAffaires,
+        };
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement stats:', err);
+        this.error = 'Impossible de charger les statistiques';
+        this.loading = false;
+      }
+    });
+
+    // Charger les commandes récentes
+    this.commandeService.getCommandes().subscribe({
+      next: (commandes) => {
+        this.totalCommandes = commandes.length;
+        this.dernieresCommandes = commandes.slice(0, 6).map(c => ({
+          numero: c.reference,
+          client: c.client ? `${c.client.prenom} ${c.client.nom}` : 'Client',
+          produit: c.lignes?.[0]?.produit_nom || 'Produit',
+          statut: this.mapStatut(c.statut),
+          prix: c.montant_total
+        }));
+      },
+      error: (err) => console.error('Erreur chargement commandes:', err)
+    });
+
+    // Charger les ventes
+    this.fournisseurService.getVentes().subscribe({
+      next: (ventes) => {
+        // Grouper par mois pour le graphique
+        const ventesParMois = this.groupVentesByMonth(ventes);
+        this.ventesParMois = ventesParMois;
+        
+        // Top produits
+        this.calculerTopProduits(ventes);
+      },
+      error: (err) => console.error('Erreur chargement ventes:', err)
+    });
+  }
+
+  private mapStatut(statut: string): CommandeItem['statut'] {
+    const map: Record<string, CommandeItem['statut']> = {
+      'en_attente': 'En attente',
+      'validee': 'Confirmée',
+      'expediee': 'Expédiée',
+      'livree': 'Livrée',
+      'annulee': 'Annulée'
+    };
+    return map[statut] || 'En attente';
+  }
+
+  private groupVentesByMonth(ventes: Vente[]): VenteMois[] {
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const grouped: Record<string, number> = {};
+    
+    ventes.forEach(v => {
+      const date = new Date(v.date);
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
+      grouped[key] = (grouped[key] || 0) + v.total;
+    });
+
+    return Object.entries(grouped).slice(-6).map(([key, montant]) => {
+      const [year, month] = key.split('-');
+      return { mois: months[parseInt(month)], montant };
+    });
+  }
+
+  private calculerTopProduits(ventes: Vente[]): void {
+    const grouped: Record<string, { ventes: number; ca: number }> = {};
+    ventes.forEach(v => {
+      if (!grouped[v.produit_nom]) {
+        grouped[v.produit_nom] = { ventes: 0, ca: 0 };
+      }
+      grouped[v.produit_nom].ventes += v.quantite;
+      grouped[v.produit_nom].ca += v.total;
+    });
+
+    this.topProduits = Object.entries(grouped)
+      .map(([nom, data]) => ({
+        nom,
+        categorie: '',
+        ventes: data.ventes,
+        ca: data.ca
+      }))
+      .sort((a, b) => b.ventes - a.ventes)
+      .slice(0, 5);
   }
 
   // ---- Helpers ----

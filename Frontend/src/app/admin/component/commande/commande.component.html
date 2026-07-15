@@ -16,59 +16,35 @@
         <p>Suivez et gérez toutes les commandes clients en temps réel</p>
       </div>
       <div class="header-right">
-        <div class="sync-badge">
-          <span class="sync-dot"></span>
-          Auto-sync 10s
+        <div class="header-stats">
+          <div class="hs-item">
+            <span class="hs-val">{{ getStats().total }}</span>
+            <span class="hs-lbl">Total</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-amber">{{ getStats().enAttente }}</span>
+            <span class="hs-lbl">Attente</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-blue">{{ getStats().validees }}</span>
+            <span class="hs-lbl">Validées</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-green">{{ getStats().expediees }}</span>
+            <span class="hs-lbl">Expédiées</span>
+          </div>
         </div>
-        <button class="btn-refresh" (click)="refreshCommandes()" [disabled]="loading">
-          <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
-          Actualiser
-        </button>
-      </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats-grid fade-up delay-1">
-
-      <div class="stat-card stat-blue">
-        <div class="stat-glow"></div>
-        <div class="stat-icon"><i class="bi bi-cart-check-fill"></i></div>
-        <div class="stat-body">
-          <div class="stat-value">{{ getStats().total }}</div>
-          <div class="stat-label">Total commandes</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-orange">
-        <div class="stat-glow"></div>
-        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
-        <div class="stat-body">
-          <div class="stat-value">{{ getStats().enAttente }}</div>
-          <div class="stat-label">En attente</div>
-        </div>
-        <div class="stat-badge" *ngIf="getStats().enAttente > 0">
-          <i class="bi bi-exclamation-circle-fill"></i>
+        <div class="header-actions">
+          <div class="sync-badge">
+            <span class="sync-dot"></span>
+            Auto-sync 10s
+          </div>
+          <button class="btn-refresh" (click)="refreshCommandes()" [disabled]="loading">
+            <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+            Actualiser
+          </button>
         </div>
       </div>
-
-      <div class="stat-card stat-indigo">
-        <div class="stat-glow"></div>
-        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
-        <div class="stat-body">
-          <div class="stat-value">{{ getStats().validees }}</div>
-          <div class="stat-label">Validées</div>
-        </div>
-      </div>
-
-      <div class="stat-card stat-green">
-        <div class="stat-glow"></div>
-        <div class="stat-icon"><i class="bi bi-truck-front-fill"></i></div>
-        <div class="stat-body">
-          <div class="stat-value">{{ getStats().expediees }}</div>
-          <div class="stat-label">Expédiées</div>
-        </div>
-      </div>
-
     </div>
 
     <!-- TOOLBAR -->

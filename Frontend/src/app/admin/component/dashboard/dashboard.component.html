@@ -23,15 +23,18 @@
             <span class="greeting__wave">👋</span>
           </h1>
           <p class="greeting__subtitle">{{ todayLabel }} — Vue d'ensemble du tableau de bord</p>
+          <p class="greeting__subtitle" *ngIf="lastUpdatedLabel">{{ lastUpdatedLabel }}</p>
         </div>
 
         <div class="greeting__actions">
           <div class="period-tabs">
-            <button *ngFor="let p of periods" [class.active]="p === selectedPeriod" (click)="selectedPeriod = p">
+            <button *ngFor="let p of periods" [class.active]="p === selectedPeriod" (click)="selectPeriod(p)">
               {{ p }}
             </button>
           </div>
-          <button class="btn-ghost"><i class="bi bi-arrow-clockwise"></i> Actualiser</button>
+          <button class="btn-ghost" (click)="refreshDashboard()" [disabled]="loading || refreshing">
+            <i class="bi bi-arrow-clockwise"></i> {{ refreshing ? 'Actualisation...' : 'Actualiser' }}
+          </button>
           <button class="btn-primary"><i class="bi bi-download"></i> Exporter</button>
         </div>
       </div>
@@ -47,8 +50,8 @@
         </h2>
         <p class="banner__text">
           Toutes les données ci-dessous proviennent de la base globale. Vous supervisez
-          <strong>{{ stats?.fournisseursTotal }}</strong> fournisseurs et
-          <strong>{{ stats?.produitsTotal }}</strong> pièces détachées automobiles.
+          <strong>{{ stats.fournisseursTotal }}</strong> fournisseurs et
+          <strong>{{ stats.produitsTotal }}</strong> pièces détachées automobiles.
         </p>
       </div>
       <div class="banner__actions">
@@ -56,7 +59,7 @@
           <i class="bi bi-people-fill"></i> Superviser Fournisseurs
         </button>
         <button class="btn-primary">
-          <i class="bi bi-plus-lg"></i> Vérifier Produits ({{ stats?.attenteValidation }})
+          <i class="bi bi-plus-lg"></i> Vérifier Produits ({{ stats.attenteValidation }})
         </button>
       </div>
     </div>

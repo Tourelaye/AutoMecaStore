@@ -19,7 +19,7 @@ export interface NotificationsResponse {
   providedIn: 'root'
 })
 export class HeaderService {
-  private baseUrl = 'http://localhost:8000/api';
+  private baseUrl = 'http://127.0.0.1:8000/account';
 
   constructor(private http: HttpClient) {}
 

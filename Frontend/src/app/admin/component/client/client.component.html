@@ -15,60 +15,30 @@
           <h1>Gestion des Clients</h1>
           <p>Base de clients en temps réel — synchronisation toutes les 30s</p>
         </div>
-        <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
-          <i class="bi bi-arrow-clockwise" [class.spin]="isLoading"></i>
-          Actualiser
-        </button>
-      </div>
-
-      <!-- STATS -->
-      <div class="stats-grid fade-up delay-1" *ngIf="stats">
-
-        <div class="stat-card stat-blue">
-          <div class="stat-glow"></div>
-          <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ stats.total_clients }}</div>
-            <div class="stat-label">Total clients</div>
+        <div class="header-right">
+          <div class="header-stats" *ngIf="stats">
+            <div class="hs-item">
+              <span class="hs-val">{{ stats.total_clients }}</span>
+              <span class="hs-lbl">Total</span>
+            </div>
+            <div class="hs-item">
+              <span class="hs-val text-green">{{ stats.clients_actifs }}</span>
+              <span class="hs-lbl">Actifs</span>
+            </div>
+            <div class="hs-item">
+              <span class="hs-val text-red">{{ stats.clients_inactifs }}</span>
+              <span class="hs-lbl">Inactifs</span>
+            </div>
+            <div class="hs-item">
+              <span class="hs-val text-blue">{{ stats.nouveaux_clients_ce_mois }}</span>
+              <span class="hs-lbl">Nouveaux</span>
+            </div>
           </div>
-          <div class="stat-trend up">
-            <i class="bi bi-arrow-up-right"></i>
-          </div>
+          <button class="btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+            <i class="bi bi-arrow-clockwise" [class.spin]="isLoading"></i>
+            Actualiser
+          </button>
         </div>
-
-        <div class="stat-card stat-green">
-          <div class="stat-glow"></div>
-          <div class="stat-icon"><i class="bi bi-person-check-fill"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ stats.clients_actifs }}</div>
-            <div class="stat-label">Clients actifs</div>
-          </div>
-          <div class="stat-trend up">
-            <i class="bi bi-arrow-up-right"></i>
-          </div>
-        </div>
-
-        <div class="stat-card stat-red">
-          <div class="stat-glow"></div>
-          <div class="stat-icon"><i class="bi bi-person-x-fill"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ stats.clients_inactifs }}</div>
-            <div class="stat-label">Clients inactifs</div>
-          </div>
-        </div>
-
-        <div class="stat-card stat-purple">
-          <div class="stat-glow"></div>
-          <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
-          <div class="stat-body">
-            <div class="stat-value">{{ stats.nouveaux_clients_ce_mois }}</div>
-            <div class="stat-label">Nouveaux ce mois</div>
-          </div>
-          <div class="stat-trend up">
-            <i class="bi bi-arrow-up-right"></i>
-          </div>
-        </div>
-
       </div>
 
       <!-- ERREUR -->

@@ -1,66 +1,85 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-export type LogCategory = 'securite' | 'finances' | 'vendeurs' | 'categories' | 'systeme';
+export type LogCategory = 'securite' | 'finances' | 'vendeurs' | 'produits' | 'categories' | 'systeme';
 
 export interface LogEntry {
-  id: string;
-  date: string; // jj/mm/aaaa
-  time: string; // hh:mm:ss
-  category: LogCategory;
+  id: number;
+  utilisateur: number | null;
+  utilisateur_nom: string;
+  categorie: LogCategory;
+  categorie_label: string;
   action: string;
-  adminUser: string;
-  ipAddress: string;
+  action_label: string;
   description: string;
+  ip_address: string | null;
+  date_creation: string;
 }
-
-const MOCK_LOGS: LogEntry[] = [
-  {
-    id: 'log_1', date: '05/07/2026', time: '01:10:24', category: 'securite',
-    action: "Connexion de l'administrateur", adminUser: 'Thomas Admin (Principal)', ipAddress: '192.168.1.52',
-    description: "Authentification réussie sur le panneau d'administration de la marketplace."
-  },
-  {
-    id: 'log_2', date: '03/07/2026', time: '14:30:00', category: 'finances',
-    action: 'Remboursement de commande', adminUser: 'Thomas Admin (Principal)', ipAddress: '192.168.1.52',
-    description: "Validation du remboursement de 115.00 € au client Jean Dupont pour l'ordre ORD-20260705-1029."
-  },
-  {
-    id: 'log_3', date: '03/07/2026', time: '14:28:00', category: 'vendeurs',
-    action: "Suspension d'un fournisseur", adminUser: 'Thomas Admin (Principal)', ipAddress: '192.168.1.52',
-    description: 'Suspension administrative du fournisseur "CarHacker Paris" suite à des plaintes de non-expédition répétées.'
-  },
-  {
-    id: 'log_4', date: '02/07/2026', time: '10:15:00', category: 'categories',
-    action: "Création d'une catégorie", adminUser: 'Thomas Admin (Principal)', ipAddress: '192.168.1.52',
-    description: 'Ajout de la nouvelle catégorie "Transmission" au catalogue global.'
-  },
-  {
-    id: 'log_5', date: '04/07/2026', time: '18:22:11', category: 'systeme',
-    action: 'Mise à jour des frais de plateforme', adminUser: 'Thomas Admin (Principal)', ipAddress: '192.168.1.52',
-    description: 'Modification du taux de commission standard de la plateforme à 10.0%.'
-  }
-];
 
 @Injectable({ providedIn: 'root' })
 export class JournalService {
-  // Même approche que les autres modules : 100% en mémoire pour l'instant.
-  // NB: dans une vraie implémentation, ce journal devrait être écrit
-  // uniquement côté serveur (append-only), jamais modifiable depuis le front.
-  private data: LogEntry[] = [...MOCK_LOGS];
+  private apiUrl = 'http://127.0.0.1:8000/api/admin/journal/';
+
+  constructor(private http: HttpClient) {}
 
   getAll(): Observable<LogEntry[]> {
-    return of([...this.data].sort((a, b) => this.toTimestamp(b) - this.toTimestamp(a))).pipe(delay(150));
+    return this.http.get<{ activities: any[]; total: number }>(this.apiUrl).pipe(
+      map(res => res.activities.map((a, i) => this.mapActivityToLogEntry(a, i)))
+    );
   }
 
-  clear(): Observable<void> {
-    this.data = [];
-    return of(void 0).pipe(delay(200));
+  clear(): Observable<any> {
+    return this.http.delete(this.apiUrl);
   }
 
-  private toTimestamp(entry: LogEntry): number {
-    const [d, m, y] = entry.date.split('/').map(Number);
-    return new Date(y, m - 1, d, ...(entry.time.split(':').map(Number) as [number, number, number])).getTime();
+  private mapActivityToLogEntry(a: any, index: number): LogEntry {
+    const category = this.inferCategory(a.type);
+    return {
+      id: a.id ? this.hashString(a.id.toString()) : index,
+      utilisateur: null,
+      utilisateur_nom: a.user || 'Système',
+      categorie: category,
+      categorie_label: this.categoryLabel(category),
+      action: a.type || 'info',
+      action_label: a.titre || 'Activité',
+      description: a.detail || '',
+      ip_address: null,
+      date_creation: a.date ? new Date(a.date).toLocaleString('fr-FR') : ''
+    };
+  }
+
+  private hashString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+  }
+
+  private inferCategory(type: string): LogCategory {
+    switch (type) {
+      case 'nouveau_client': return 'securite';
+      case 'nouveau_produit': return 'produits';
+      case 'nouvelle_commande': return 'finances';
+      case 'nouveau_fournisseur': return 'vendeurs';
+      case 'categorie_creee': return 'categories';
+      default: return 'systeme';
+    }
+  }
+
+  private categoryLabel(category: LogCategory): string {
+    const labels: Record<LogCategory, string> = {
+      securite: 'Sécurité',
+      finances: 'Finances',
+      vendeurs: 'Vendeurs',
+      produits: 'Produits',
+      categories: 'Catégories',
+      systeme: 'Système'
+    };
+    return labels[category];
   }
 }

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { FournisseurService, FournisseurProfile } from '../../services/fournisseur.service';
 
 interface BanqueInfo {
   nom: string;
@@ -28,31 +29,61 @@ interface FournisseurProfil {
   templateUrl: './mon-profil.component.html',
   styleUrls: ['./mon-profil.component.css']
 })
-export class MonProfilComponent {
+export class MonProfilComponent implements OnInit {
 
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
   private toastTimeout: any;
 
-  // TODO: remplacer par un appel API (getProfilFournisseur())
   fournisseur: FournisseurProfil = {
-    nom: 'AutoMeca Dakar Distribution (AMDD)',
+    nom: '',
     logo: '',
-    dateInscription: '15 Janvier 2024',
-    description: `Distributeur agréé de pièces détachées d'origine et première monte pour automobiles, deux-roues et poids lourds. Présent sur le marché ouest-africain depuis 2018.`,
-    adresse: 'Zone Industrielle SODIDA, Rue 14 x 22, Dakar, Sénégal',
-    email: 'contact@automeca-dakar.sn',
-    telephone: '+221 77 845 20 30',
-    ninea: '005489212G3',
-    agreeNinea: true,
+    dateInscription: '',
+    description: '',
+    adresse: '',
+    email: '',
+    telephone: '',
+    ninea: '',
+    agreeNinea: false,
     banque: {
-      nom: 'CBAO Groupe Attijariwafa Bank',
-      iban: 'SN012 01001 034567890123 45',
-      mobileMoney: '+221 77 845 20 30 (Wave / Orange Money)'
+      nom: '',
+      iban: '',
+      mobileMoney: ''
     }
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private fournisseurService: FournisseurService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  private loadProfile(): void {
+    this.fournisseurService.getProfile().subscribe({
+      next: (p: FournisseurProfile) => {
+        this.fournisseur = {
+          nom: p.nom_entreprise || `${p.user?.prenom || ''} ${p.user?.nom || ''}`.trim(),
+          logo: p.logo || '',
+          dateInscription: p.date_inscription ? new Date(p.date_inscription).toLocaleDateString('fr-FR') : '',
+          description: p.description || '',
+          adresse: p.user?.adresse || '',
+          email: p.user?.email || '',
+          telephone: p.user?.telephone || '',
+          ninea: p.siret || '',
+          agreeNinea: true,
+          banque: {
+            nom: '',
+            iban: '',
+            mobileMoney: ''
+          }
+        };
+      },
+      error: () => this.showToast('Impossible de charger le profil', 'error')
+    });
+  }
 
   ouvrirEdition(): void {
     this.router.navigate(['/fournisseur/profil/modifier']);
@@ -70,7 +101,7 @@ export class MonProfilComponent {
     this.fournisseur.logo = '';
   }
 
-  private showToast(msg: string, type: 'success' | 'error'): void {
+  private showToast(msg: string, type: 'success' | 'error' = 'success'): void {
     this.toastMsg = msg;
     this.toastType = type;
     if (this.toastTimeout) clearTimeout(this.toastTimeout);

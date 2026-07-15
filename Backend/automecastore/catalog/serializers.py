@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.conf import settings
 
-from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison
+from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison, Promotion
 
 
 
@@ -183,3 +183,19 @@ class LivraisonSerializer(serializers.ModelSerializer):
             'date_livraison'
         ]
         read_only_fields = ['date_creation']
+
+
+# -----------------------------
+# Promotion Serializer
+# -----------------------------
+class PromotionSerializer(serializers.ModelSerializer):
+    fournisseur_nom = serializers.CharField(source='fournisseur.nom_entreprise', read_only=True)
+    produit_nom = serializers.CharField(source='produit.nom', read_only=True)
+
+    class Meta:
+        model = Promotion
+        fields = [
+            'id', 'fournisseur', 'fournisseur_nom', 'produit', 'produit_nom',
+            'pourcentage', 'date_debut', 'date_fin', 'statut', 'created_at'
+        ]
+        read_only_fields = ['created_at']

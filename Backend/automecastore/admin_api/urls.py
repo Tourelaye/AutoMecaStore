@@ -9,12 +9,25 @@ from .views import (
     PaymentGatewayDetailView,
     PaymentGatewayToggleView,
     RolePermissionListView,
-    ApiConfigView
+    ApiConfigView,
+    AdminProduitListView,
+    AdminProduitToggleActiveView,
+    AdminProduitSignalView,
+    AdminProduitDeleteView,
+    AdminProduitEnAttenteListView,
+    AdminProduitApprobationView,
+    AdminFournisseurListView,
+    AdminFournisseurDetailView,
+    AdminFournisseurValidationView,
+    AdminFournisseurDeleteView,
+    AdminFournisseurCommandesView,
+    AdminFournisseurProduitsView,
+    AdminFournisseurStatsView,
 )
 
 urlpatterns = [
     # Dashboard stats
-    path('dashboard/stats/', AdminDashboardStatsView.as_view(), name='admin-dashboard-stats'),
+    path('dashboard-stats/', AdminDashboardStatsView.as_view(), name='admin-dashboard-stats'),
     
     # Journal d'activités
     path('journal/', LogEntryListView.as_view(), name='admin-journal'),
@@ -36,4 +49,21 @@ urlpatterns = [
     
     # Configuration API
     path('parametres/api/', ApiConfigView.as_view(), name='admin-api-config'),
+
+    # Produits admin
+    path('produits/', AdminProduitListView.as_view(), name='admin-produits'),
+    path('produits/en-attente/', AdminProduitEnAttenteListView.as_view(), name='admin-produits-en-attente'),
+    path('produits/<int:pk>/toggle-active/', AdminProduitToggleActiveView.as_view(), name='admin-produit-toggle-active'),
+    path('produits/<int:pk>/signal/', AdminProduitSignalView.as_view(), name='admin-produit-signal'),
+    path('produits/<int:pk>/approbation/', AdminProduitApprobationView.as_view(), name='admin-produit-approbation'),
+    path('produits/<int:pk>/', AdminProduitDeleteView.as_view(), name='admin-produit-delete'),
+
+    # Fournisseurs admin
+    path('fournisseurs/', AdminFournisseurListView.as_view(), name='admin-fournisseurs'),
+    path('fournisseurs/<int:user_id>/', AdminFournisseurDetailView.as_view(), name='admin-fournisseur-detail'),
+    path('fournisseurs/<int:user_id>/validation/', AdminFournisseurValidationView.as_view(), name='admin-fournisseur-validation'),
+    path('fournisseurs/<int:user_id>/delete/', AdminFournisseurDeleteView.as_view(), name='admin-fournisseur-delete'),
+    path('fournisseurs/<int:user_id>/commandes/', AdminFournisseurCommandesView.as_view(), name='admin-fournisseur-commandes'),
+    path('fournisseurs/<int:user_id>/produits/', AdminFournisseurProduitsView.as_view(), name='admin-fournisseur-produits'),
+    path('fournisseurs/<int:user_id>/stats/', AdminFournisseurStatsView.as_view(), name='admin-fournisseur-stats'),
 ]

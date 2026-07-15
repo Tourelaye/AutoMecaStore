@@ -101,20 +101,24 @@ class ProduitListCreateView(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        """Retourne uniquement les produits actifs (y compris ceux avec is_active=NULL)"""
+        """Retourne uniquement les produits actifs et approuvés"""
         from django.db.models import Q
-        queryset = Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True))
-        
+        queryset = Produit.objects.filter(
+            Q(is_active=True) | Q(is_active__isnull=True),
+            statut='actif',
+            statut_approbation='approuve'
+        )
+
         # Filtrer par catégorie si le paramètre est fourni
         categorie_id = self.request.query_params.get('categorie')
         if categorie_id:
             queryset = queryset.filter(categorie_id=categorie_id)
-        
+
         # Filtrer par type de pièce si le paramètre est fourni
         type_piece_id = self.request.query_params.get('type_piece')
         if type_piece_id:
             queryset = queryset.filter(type_piece_id=type_piece_id)
-        
+
         # Filtrer par recherche si le paramètre est fourni
         search = self.request.query_params.get('search')
         if search:

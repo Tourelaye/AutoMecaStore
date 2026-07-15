@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 type ActiviteType = 'produit' | 'commande' | 'stock' | 'promotion';
 
@@ -12,6 +13,14 @@ interface Activite {
   date: Date;
 }
 
+interface HistoriqueActiviteApi {
+  id: number;
+  type: ActiviteType;
+  titre: string;
+  detail: string;
+  created_at: string;
+}
+
 @Component({
   selector: 'app-historiques',
   standalone: true,
@@ -19,7 +28,7 @@ interface Activite {
   templateUrl: './historiques.component.html',
   styleUrls: ['./historiques.component.css']
 })
-export class HistoriquesComponent {
+export class HistoriquesComponent implements OnInit {
 
   searchTerm = '';
   selectedType = '';
@@ -27,37 +36,30 @@ export class HistoriquesComponent {
   showConfirmClear = false;
   private toastTimeout: any;
 
-  // TODO: remplacer par un appel API (getHistoriqueActivite())
-  activites: Activite[] = [
-    {
-      id: 1,
-      type: 'produit',
-      titre: 'Produit "Alternateur Valéo 14V" ajouté au catalogue.',
-      detail: 'Référence : REF-VAL-439560 | Prix : 85 000 FCFA | Stock initial : 8 unités',
-      date: new Date(Date.now() - 2 * 60 * 1000)
-    },
-    {
-      id: 2,
-      type: 'commande',
-      titre: 'Nouvelle commande en attente #CMD-2026-0922 reçue.',
-      detail: 'Client : Garage du Centre | 1x Alternateur Valéo | Total : 85 000 FCFA',
-      date: new Date(Date.now() - 5 * 60 * 1000)
-    },
-    {
-      id: 3,
-      type: 'stock',
-      titre: 'Stock critique pour "Filtre à Huile Moteur Bosch Premium".',
-      detail: 'Stock actuel : 3 unités (Seuil critique : 10 unités).',
-      date: new Date(Date.now() - 12 * 60 * 1000)
-    },
-    {
-      id: 4,
-      type: 'promotion',
-      titre: 'Promotion de -15% sur Plaquettes Brembo expirée.',
-      detail: "La promotion planifiée s'est achevée avec succès aujourd'hui.",
-      date: new Date(Date.now() - 20 * 60 * 1000)
-    }
-  ];
+  private apiUrl = 'http://127.0.0.1:8000/api/fournisseur/historique';
+
+  activites: Activite[] = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadHistorique();
+  }
+
+  private loadHistorique(): void {
+    this.http.get<HistoriqueActiviteApi[]>(`${this.apiUrl}/`).subscribe({
+      next: (data) => {
+        this.activites = data.map(item => ({
+          id: item.id,
+          type: item.type,
+          titre: item.titre,
+          detail: item.detail,
+          date: new Date(item.created_at)
+        }));
+      },
+      error: () => this.showToast('Impossible de charger l\'historique', 'error')
+    });
+  }
 
   get activitesFiltrees(): Activite[] {
     return this.activites
@@ -185,7 +187,7 @@ export class HistoriquesComponent {
     return date.toLocaleDateString('fr-FR') + ' à ' + date.getHours().toString().padStart(2, '0') + 'h' + date.getMinutes().toString().padStart(2, '0');
   }
 
-  private showToast(msg: string): void {
+  private showToast(msg: string, type: 'success' | 'error' = 'success'): void {
     this.toastMsg = msg;
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     this.toastTimeout = setTimeout(() => (this.toastMsg = ''), 2500);

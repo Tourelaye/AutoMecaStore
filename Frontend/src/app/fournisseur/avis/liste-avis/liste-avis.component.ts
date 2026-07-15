@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AvisService } from '../../services/avis.service';
 
 interface Avis {
   id: number;
-  client: string;
+  client_nom: string;
   note: number;
   date: string;
   commentaire: string;
-  produit: string;
-  reponse?: string;
-  dateReponse?: string;
+  produit_nom: string;
+  reponse_fournisseur?: string;
+  date_reponse?: string;
 }
 
 type TriAvis = 'recent' | 'ancien' | 'meilleure' | 'pire' | 'sans_reponse';
@@ -22,17 +23,10 @@ type TriAvis = 'recent' | 'ancien' | 'meilleure' | 'pire' | 'sans_reponse';
   templateUrl: './liste-avis.component.html',
   styleUrls: ['./liste-avis.component.css']
 })
-export class ListeAvisComponent {
+export class ListeAvisComponent implements OnInit {
 
-  avis: Avis[] = [
-    { id: 1, client: 'Jean Dupont', note: 5, date: '2024-06-28', commentaire: 'Produits de très bonne qualité, livraison rapide.', produit: 'Frein à disque avant', reponse: 'Merci beaucoup Jean, ravis que la livraison vous ait satisfait !', dateReponse: '2024-06-29' },
-    { id: 2, client: 'Marie Martin', note: 4, date: '2024-06-27', commentaire: 'Satisfait de mon achat, mais emballage pourrait être amélioré.', produit: 'Filtre à huile' },
-    { id: 3, client: 'Pierre Bernard', note: 5, date: '2024-06-26', commentaire: 'Excellent rapport qualité/prix, je recommande.', produit: 'Batterie 12V' },
-    { id: 4, client: 'Sophie Petit', note: 3, date: '2024-06-25', commentaire: 'Produit correct mais délai de livraison un peu long.', produit: 'Amortisseur arrière' },
-    { id: 5, client: 'Luc Dubois', note: 5, date: '2024-06-24', commentaire: 'Parfait, correspond exactement à mes attentes.', produit: 'Kit plaquettes frein' },
-    { id: 6, client: 'Awa Ndiaye', note: 2, date: '2024-06-22', commentaire: "Le produit reçu ne correspondait pas tout à fait à la description.", produit: 'Vanne de freinage pneumatique' },
-    { id: 7, client: 'Moussa Diop', note: 1, date: '2024-06-20', commentaire: 'Très déçu, produit reçu endommagé.', produit: 'Dérailleur Shimano' }
-  ];
+  avis: Avis[] = [];
+  isLoading = false;
 
   searchTerm = '';
   selectedNote = '';
@@ -45,6 +39,26 @@ export class ListeAvisComponent {
   toastMsg = '';
   private toastTimeout: any;
 
+  constructor(private avisService: AvisService) {}
+
+  ngOnInit(): void {
+    this.loadAvis();
+  }
+
+  private loadAvis(): void {
+    this.isLoading = true;
+    this.avisService.getAvis().subscribe({
+      next: (avis) => {
+        this.avis = avis;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement avis:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
   // =============================================
   // FILTRAGE + TRI
   // =============================================
@@ -52,9 +66,9 @@ export class ListeAvisComponent {
     let result = this.avis.filter(avi => {
       const term = this.searchTerm.toLowerCase().trim();
       const matchesSearch = !term ||
-        avi.client.toLowerCase().includes(term) ||
+        avi.client_nom.toLowerCase().includes(term) ||
         avi.commentaire.toLowerCase().includes(term) ||
-        avi.produit.toLowerCase().includes(term);
+        avi.produit_nom.toLowerCase().includes(term);
 
       const matchesNote = this.selectedNote === '' || this.matchNoteLabel(avi.note, this.selectedNote);
 
@@ -72,7 +86,7 @@ export class ListeAvisComponent {
         case 'pire':
           return a.note - b.note;
         case 'sans_reponse':
-          return (a.reponse ? 1 : 0) - (b.reponse ? 1 : 0);
+          return (a.reponse_fournisseur ? 1 : 0) - (b.reponse_fournisseur ? 1 : 0);
         default:
           return 0;
       }
@@ -123,7 +137,7 @@ export class ListeAvisComponent {
   // =============================================
   ouvrirReponse(avi: Avis): void {
     this.editingId = avi.id;
-    this.reponseTexte = avi.reponse ?? '';
+    this.reponseTexte = avi.reponse_fournisseur ?? '';
   }
 
   annulerReponse(): void {
@@ -134,17 +148,21 @@ export class ListeAvisComponent {
   enregistrerReponse(avi: Avis): void {
     if (!this.reponseTexte.trim()) return;
 
-    avi.reponse = this.reponseTexte.trim();
-    avi.dateReponse = new Date().toISOString().slice(0, 10);
-
-    // TODO: appeler ton service (POST/PUT /avis/:id/reponse)
-
-    this.editingId = null;
-    this.reponseTexte = '';
-    this.showToast('Réponse publiée avec succès.');
+    this.avisService.repondre(avi.id, this.reponseTexte.trim()).subscribe({
+      next: (updated) => {
+        avi.reponse_fournisseur = updated.reponse_fournisseur;
+        avi.date_reponse = updated.date_reponse;
+        this.editingId = null;
+        this.reponseTexte = '';
+        this.showToast('Réponse publiée avec succès.');
+      },
+      error: () => {
+        this.showToast('Erreur lors de la publication de la réponse', 'error');
+      }
+    });
   }
 
-  private showToast(msg: string): void {
+  private showToast(msg: string, type: 'success' | 'error' = 'success'): void {
     this.toastMsg = msg;
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     this.toastTimeout = setTimeout(() => (this.toastMsg = ''), 3000);

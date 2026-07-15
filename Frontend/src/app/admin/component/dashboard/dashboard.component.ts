@@ -1,6 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '../header/header.component';
 import {
   DashboardService,
   DashboardStats,
@@ -8,6 +7,7 @@ import {
   TopFournisseur,
   TopProduit
 } from './dashboard.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 type Variant = 'default' | 'success' | 'warning' | 'danger';
 
@@ -27,20 +27,21 @@ interface StatCard {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, HeaderComponent],
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  // Remplace par le prénom réel de l'admin connecté (ex: depuis ton AuthService)
-  @Input() adminName = 'Abdoulaye';
+  adminName = '';
 
   todayLabel = '';
   periods = ['7 jours', '30 jours', '90 jours', 'Tout'];
   selectedPeriod = '7 jours';
 
   loading = true;
-  stats!: DashboardStats;
+  refreshing = false;
+  lastUpdatedLabel = '';
+  stats: DashboardStats = this.createEmptyStats();
   statCards: StatCard[] = [];
   categories: CategorySales[] = [];
   topFournisseurs: TopFournisseur[] = [];
@@ -58,9 +59,15 @@ export class DashboardComponent implements OnInit {
   chartReady = false;
   categoriesReady = false;
 
-  constructor(private dashboardService: DashboardService) {}
+  constructor(
+    private dashboardService: DashboardService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    this.adminName = user ? `${user.prenom} ${user.nom}`.trim() : 'Admin';
+
     this.todayLabel = new Date().toLocaleDateString('fr-FR', {
       weekday: 'long',
       day: 'numeric',
@@ -68,22 +75,56 @@ export class DashboardComponent implements OnInit {
       year: 'numeric'
     });
 
-    this.dashboardService.getStats().subscribe(stats => {
-      this.stats = stats;
-      this.categories = stats.categories;
-      this.topFournisseurs = stats.topFournisseurs;
-      this.topProduits = stats.topProduits;
-      this.buildStatCards(stats);
-      this.buildChart(stats.chart.map(p => p.value));
-      this.chartLabels = stats.chart.map(p => p.label);
-      this.loading = false;
+    this.loadDashboard(this.selectedPeriod);
+  }
 
-      // On laisse le temps au DOM de se peindre avant de déclencher les animations
-      setTimeout(() => {
-        this.chartReady = true;
-        this.categoriesReady = true;
-        this.statCards.forEach((card, i) => this.animateCard(card, i));
-      }, 60);
+  selectPeriod(period: string): void {
+    if (this.selectedPeriod === period) {
+      return;
+    }
+
+    this.selectedPeriod = period;
+    this.loadDashboard(period);
+  }
+
+  refreshDashboard(): void {
+    this.loadDashboard(this.selectedPeriod);
+  }
+
+  private loadDashboard(period: string): void {
+    this.loading = true;
+    this.refreshing = true;
+    this.chartReady = false;
+    this.categoriesReady = false;
+
+    this.dashboardService.getStats(period).subscribe({
+      next: stats => {
+        this.stats = stats;
+        this.categories = stats.categories;
+        this.topFournisseurs = stats.topFournisseurs;
+        this.topProduits = stats.topProduits;
+        this.buildStatCards(stats);
+        this.buildChart(stats.chart.map(p => p.value));
+        this.chartLabels = stats.chart.map(p => p.label);
+        this.lastUpdatedLabel = `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`;
+      },
+      complete: () => {
+        this.loading = false;
+        this.refreshing = false;
+
+        setTimeout(() => {
+          this.chartReady = true;
+          this.categoriesReady = true;
+          this.statCards.forEach((card, i) => this.animateCard(card, i));
+        }, 60);
+      },
+      error: () => {
+        this.loading = false;
+        this.refreshing = false;
+      }
     });
   }
 
@@ -174,6 +215,14 @@ export class DashboardComponent implements OnInit {
 
   /** Calcule les coordonnées SVG et les chemins (ligne + zone) du graphique de CA. */
   private buildChart(values: number[]): void {
+    if (!values.length) {
+      this.chartCoords = [];
+      this.chartPathD = '';
+      this.chartAreaD = '';
+      this.chartDashLength = 0;
+      return;
+    }
+
     const max = Math.max(...values) * 1.1;
     const stepX = this.chartWidth / (values.length - 1);
 
@@ -198,6 +247,32 @@ export class DashboardComponent implements OnInit {
       length += Math.sqrt(dx * dx + dy * dy);
     }
     this.chartDashLength = Math.ceil(length);
+  }
+
+  private createEmptyStats(): DashboardStats {
+    return {
+      caCumule: 0,
+      commissions: 0,
+      fournisseursTotal: 0,
+      fournisseursActifs: 0,
+      fournisseursAttente: 0,
+      clientsTotal: 0,
+      produitsTotal: 0,
+      produitsActifs: 0,
+      attenteValidation: 0,
+      commandesJour: 0,
+      commandesMois: 0,
+      reclamationsActives: 0,
+      rupturesStock: 0,
+      produitsSignales: 0,
+      fournisseursSuspendus: 0,
+      commissionRate: '0%',
+      evolutionPct: 0,
+      categories: [],
+      chart: [],
+      topFournisseurs: [],
+      topProduits: []
+    };
   }
 
   trackByKey(_index: number, item: StatCard): string {

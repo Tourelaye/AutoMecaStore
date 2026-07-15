@@ -1,14 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import {
   FournisseurService,
   Fournisseur,
-  FournisseurStatus,
-  FournisseurPayload
+  FournisseurStatus
 } from './fournisseur.service';
-
-type ModalMode = 'create' | 'edit' | 'view';
 
 @Component({
   selector: 'app-fournisseur',
@@ -29,19 +26,29 @@ export class FournisseurComponent implements OnInit {
     { value: 'tous', label: 'Tous les statuts' },
     { value: 'actif', label: 'Actif' },
     { value: 'suspendu', label: 'Suspendu' },
-    { value: 'requis_validation', label: 'Requis validation' }
+    { value: 'en_attente', label: 'En attente de validation' }
   ];
 
-  // --- Modale (création / édition / lecture seule) ---
-  showModal = false;
-  modalMode: ModalMode = 'create';
+  // --- Modale de validation ---
+  showValidationModal = false;
+  validationAction: 'valider' | 'suspendre' | 'reactiver' = 'valider';
+  validationCommentaire = '';
+  targetFournisseur: Fournisseur | null = null;
   submitting = false;
-  form: FournisseurPayload = this.emptyForm();
-  editingId: string | null = null;
-  viewingFournisseur: Fournisseur | null = null;
 
   // --- Suppression ---
-  pendingDeleteId: string | null = null;
+  pendingDeleteId: number | null = null;
+
+  // ===== NOUVELLES PROPRIÉTÉS POUR AFFICHAGE DYNAMIQUE =====
+  showDetailModal = false;
+  selectedFournisseur: Fournisseur | null = null;
+  detailTab: 'info' | 'produits' | 'commandes' | 'stats' = 'info';
+  
+  // Données détail
+  fournisseurProduits: any[] = [];
+  fournisseurCommandes: any[] = [];
+  fournisseurStats: any = null;
+  detailLoading = false;
 
   constructor(private fournisseurService: FournisseurService) {}
 
@@ -51,102 +58,89 @@ export class FournisseurComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.fournisseurService.getAll().subscribe(list => {
-      this.fournisseurs = list;
-      this.applyFilters();
-      this.loading = false;
+    this.fournisseurService.getAll().subscribe({
+      next: (list) => {
+        this.fournisseurs = list;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
   }
 
   applyFilters(): void {
     const term = this.searchTerm.trim().toLowerCase();
     this.filtered = this.fournisseurs.filter(f => {
-      const matchesStatus = this.statusFilter === 'tous' || f.status === this.statusFilter;
+      const matchesStatus = this.statusFilter === 'tous' || f.statut === this.statusFilter;
       const matchesSearch =
         !term ||
-        f.name.toLowerCase().includes(term) ||
-        f.email.toLowerCase().includes(term) ||
-        f.siret.includes(term);
+        f.nom_entreprise?.toLowerCase().includes(term) ||
+        f.nom_complet?.toLowerCase().includes(term) ||
+        f.user?.email?.toLowerCase().includes(term) ||
+        f.siret?.includes(term);
       return matchesStatus && matchesSearch;
     });
   }
 
-  statusLabel(status: FournisseurStatus): string {
-    return status === 'actif' ? 'ACTIF' : status === 'suspendu' ? 'SUSPENDU' : 'REQUIS_VALIDATION';
+  statusLabel(statut: FournisseurStatus): string {
+    const labels: Record<FournisseurStatus, string> = {
+      'actif': 'ACTIF',
+      'suspendu': 'SUSPENDU',
+      'en_attente': 'EN ATTENTE'
+    };
+    return labels[statut] || statut;
+  }
+
+  statusClass(statut: FournisseurStatus): string {
+    const classes: Record<FournisseurStatus, string> = {
+      'actif': 'badge-success',
+      'suspendu': 'badge-danger',
+      'en_attente': 'badge-warning'
+    };
+    return classes[statut] || 'badge-secondary';
   }
 
   initials(name: string): string {
-    return name.trim().charAt(0).toUpperCase();
+    return name?.trim()?.charAt(0)?.toUpperCase() || '?';
   }
 
-  // --- Ouverture de la modale selon le mode ---
-  openCreate(): void {
-    this.modalMode = 'create';
-    this.editingId = null;
-    this.viewingFournisseur = null;
-    this.form = this.emptyForm();
-    this.showModal = true;
+  // --- Validation ---
+  openValidation(f: Fournisseur, action: 'valider' | 'suspendre' | 'reactiver'): void {
+    this.targetFournisseur = f;
+    this.validationAction = action;
+    this.validationCommentaire = '';
+    this.showValidationModal = true;
   }
 
-  openEdit(f: Fournisseur): void {
-    this.modalMode = 'edit';
-    this.editingId = f.id;
-    this.viewingFournisseur = null;
-    this.form = {
-      name: f.name, rep: f.rep, siret: f.siret,
-      email: f.email, phone: f.phone, address: f.address, bio: f.bio
-    };
-    this.showModal = true;
-  }
-
-  openProfile(f: Fournisseur): void {
-    this.modalMode = 'view';
-    this.viewingFournisseur = f;
-    this.editingId = null;
-    this.showModal = true;
-  }
-
-  closeModal(): void {
+  closeValidation(): void {
     if (this.submitting) return;
-    this.showModal = false;
+    this.showValidationModal = false;
+    this.targetFournisseur = null;
   }
 
-  submitForm(ngForm: NgForm): void {
-    if (this.modalMode === 'view') {
-      this.closeModal();
-      return;
-    }
-    if (ngForm.invalid) {
-      Object.values(ngForm.controls).forEach(c => c.markAsTouched());
-      return;
-    }
+  confirmValidation(): void {
+    if (!this.targetFournisseur) return;
     this.submitting = true;
+    const userId = this.targetFournisseur.user.id;
 
-    if (this.modalMode === 'edit' && this.editingId) {
-      const id = this.editingId;
-      this.fournisseurService.update(id, this.form).subscribe(updated => {
-        this.fournisseurs = this.fournisseurs.map(f => (f.id === id ? { ...f, ...updated } : f));
-        this.applyFilters();
+    this.fournisseurService.valider(userId, this.validationAction, this.validationCommentaire).subscribe({
+      next: () => {
         this.submitting = false;
-        this.showModal = false;
-      });
-    } else {
-      this.fournisseurService.create(this.form).subscribe(created => {
-        this.fournisseurs = [created, ...this.fournisseurs];
-        this.applyFilters();
+        this.showValidationModal = false;
+        this.targetFournisseur = null;
+        this.load();
+      },
+      error: () => {
         this.submitting = false;
-        this.showModal = false;
-      });
-    }
-  }
-
-  private emptyForm(): FournisseurPayload {
-    return { name: '', rep: '', siret: '', email: '', phone: '', address: '', bio: '' };
+      }
+    });
   }
 
   // --- Suppression ---
-  askDelete(id: string): void {
-    this.pendingDeleteId = id;
+  askDelete(f: Fournisseur): void {
+    this.pendingDeleteId = f.user.id;
   }
 
   cancelDelete(): void {
@@ -155,15 +149,78 @@ export class FournisseurComponent implements OnInit {
 
   confirmDelete(): void {
     if (!this.pendingDeleteId) return;
-    const id = this.pendingDeleteId;
-    this.fournisseurService.delete(id).subscribe(() => {
-      this.fournisseurs = this.fournisseurs.filter(f => f.id !== id);
+    this.fournisseurService.delete(this.pendingDeleteId).subscribe(() => {
+      this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== this.pendingDeleteId);
       this.applyFilters();
       this.pendingDeleteId = null;
     });
   }
 
-  trackById(_index: number, item: Fournisseur): string {
-    return item.id;
+  // ===== NOUVELLES MÉTHODES POUR AFFICHAGE DYNAMIQUE =====
+  
+  /**
+   * Ouvre la modale de détail avec les informations complètes du fournisseur
+   */
+  openDetail(f: Fournisseur): void {
+    this.selectedFournisseur = f;
+    this.detailTab = 'info';
+    this.showDetailModal = true;
+    this.loadDetailData(f);
+  }
+
+  closeDetail(): void {
+    this.showDetailModal = false;
+    this.selectedFournisseur = null;
+    this.fournisseurProduits = [];
+    this.fournisseurCommandes = [];
+    this.fournisseurStats = null;
+  }
+
+  /**
+   * Charge les données détaillées du fournisseur
+   */
+  loadDetailData(fournisseur: Fournisseur): void {
+    const userId = fournisseur.user.id;
+    
+    // Charger les stats
+    this.fournisseurService.getStats(userId).subscribe({
+      next: (stats) => {
+        this.fournisseurStats = stats;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des stats:', err);
+      }
+    });
+
+    // Charger les produits
+    this.fournisseurService.getProduits(userId).subscribe({
+      next: (data) => {
+        this.fournisseurProduits = data.produits || [];
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des produits:', err);
+      }
+    });
+
+    // Charger les commandes
+    this.fournisseurService.getCommandes(userId).subscribe({
+      next: (data) => {
+        this.fournisseurCommandes = data.commandes || [];
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des commandes:', err);
+      }
+    });
+  }
+
+  /**
+   * Change l'onglet actif dans le détail
+   */
+  selectTab(tab: 'info' | 'produits' | 'commandes' | 'stats'): void {
+    this.detailTab = tab;
+  }
+
+  trackByUserId(_index: number, item: Fournisseur): number {
+    return item.user.id;
   }
 }

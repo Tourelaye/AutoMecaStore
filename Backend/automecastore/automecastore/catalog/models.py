@@ -124,6 +124,12 @@ class Produit(models.Model):
 
     # Statut
     statut          = models.CharField(max_length=20, choices=[('actif', 'Actif'), ('inactif', 'Inactif')], default='actif')
+    statut_approbation = models.CharField(
+        max_length=20,
+        choices=[('en_attente', 'En attente'), ('approuve', 'Approuvé'), ('rejete', 'Rejeté')],
+        default='en_attente'
+    )
+    motif_rejet     = models.TextField(blank=True, null=True)
 
     # Soft delete - champ pour désactiver le produit au lieu de le supprimer
     is_active       = models.BooleanField(default=True)

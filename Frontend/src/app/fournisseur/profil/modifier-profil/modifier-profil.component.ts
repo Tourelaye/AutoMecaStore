@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { FournisseurService, FournisseurProfile } from '../../services/fournisseur.service';
 
 type EditTab = 'identite' | 'contacts' | 'bancaire';
 
@@ -36,7 +37,7 @@ interface ProfilEditForm {
   templateUrl: './modifier-profil.component.html',
   styleUrls: ['./modifier-profil.component.css']
 })
-export class ModifierProfilComponent {
+export class ModifierProfilComponent implements OnInit {
 
   activeTab: EditTab = 'identite';
   isSaving = false;
@@ -48,15 +49,13 @@ export class ModifierProfilComponent {
   logoFile: File | null = null;
   logoPreview: string | null = null;
 
-  // TODO: pré-remplir depuis le vrai profil (récupéré via un service, idéalement
-  // partagé avec MonProfilComponent pour éviter de dupliquer les données)
   form: ProfilEditForm = {
-    nom: 'AutoMeca Dakar Distribution (AMDD)',
-    ninea: '005489212G3',
-    description: `Distributeur agréé de pièces détachées d'origine et première monte pour automobiles, deux-roues et poids lourds. Présent sur le marché ouest-africain depuis 2018.`,
-    adresse: 'Zone Industrielle SODIDA, Rue 14 x 22, Dakar, Sénégal',
-    email: 'contact@automeca-dakar.sn',
-    telephone: '+221 77 845 20 30',
+    nom: '',
+    ninea: '',
+    description: '',
+    adresse: '',
+    email: '',
+    telephone: '',
     horaires: [
       { label: 'Lundi', ouvert: true, debut: '08:00', fin: '18:00' },
       { label: 'Mardi', ouvert: true, debut: '08:00', fin: '18:00' },
@@ -67,13 +66,39 @@ export class ModifierProfilComponent {
       { label: 'Dimanche', ouvert: false, debut: '', fin: '' }
     ],
     banque: {
-      nom: 'CBAO Groupe Attijariwafa Bank',
-      iban: 'SN012 01001 034567890123 45',
-      mobileMoney: '+221 77 845 20 30'
+      nom: '',
+      iban: '',
+      mobileMoney: ''
     }
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private fournisseurService: FournisseurService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  private loadProfile(): void {
+    this.fournisseurService.getProfile().subscribe({
+      next: (p: FournisseurProfile) => {
+        this.form = {
+          nom: p.nom_entreprise || '',
+          ninea: p.siret || '',
+          description: p.description || '',
+          adresse: '',
+          email: p.user?.email || '',
+          telephone: p.user?.telephone || '',
+          horaires: this.form.horaires,
+          banque: this.form.banque
+        };
+        this.logoPreview = p.logo || null;
+      },
+      error: () => this.showToast('Impossible de charger le profil', 'error')
+    });
+  }
 
   onLogoSelectionne(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -104,23 +129,22 @@ export class ModifierProfilComponent {
     this.isSaving = true;
 
     const formData = new FormData();
-    formData.append('nom', this.form.nom);
-    formData.append('ninea', this.form.ninea);
+    formData.append('nom_entreprise', this.form.nom);
+    formData.append('siret', this.form.ninea);
     formData.append('description', this.form.description);
-    formData.append('adresse', this.form.adresse);
-    formData.append('email', this.form.email);
-    formData.append('telephone', this.form.telephone);
-    formData.append('horaires', JSON.stringify(this.form.horaires));
-    formData.append('banque', JSON.stringify(this.form.banque));
     if (this.logoFile) formData.append('logo', this.logoFile);
 
-    // TODO: this.fournisseurService.modifierProfil(formData).subscribe(...)
-
-    setTimeout(() => {
-      this.isSaving = false;
-      this.showToast('Profil mis à jour avec succès.', 'success');
-      setTimeout(() => this.router.navigate(['/fournisseur/profil']), 900);
-    }, 700);
+    this.fournisseurService.updateProfile(formData).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.showToast('Profil mis à jour avec succès.', 'success');
+        setTimeout(() => this.router.navigate(['/fournisseur/profil']), 900);
+      },
+      error: () => {
+        this.isSaving = false;
+        this.showToast('Erreur lors de la mise à jour du profil', 'error');
+      }
+    });
   }
 
   annuler(): void {

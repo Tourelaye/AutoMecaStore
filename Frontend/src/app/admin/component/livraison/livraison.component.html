@@ -10,34 +10,22 @@
         <h2>Gestion des livraisons</h2>
         <p>Gérez vos livraisons et leurs informations</p>
       </div>
-    </div>
 
-  <!-- KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--green"><i class="bi bi-check-circle-fill"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Livrées terminées</span>
-        <span class="kpi-card__value">{{ livreesTerminees }} colis</span>
+      <div class="header-stats">
+        <div class="hs-item">
+          <span class="hs-val text-green">{{ livreesTerminees }}</span>
+          <span class="hs-lbl">Livrées</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-blue">{{ enTransitActifs }}</span>
+          <span class="hs-lbl">En transit</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-red">{{ retardsConstates }}</span>
+          <span class="hs-lbl">Retards</span>
+        </div>
       </div>
     </div>
-
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--blue"><i class="bi bi-truck"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">En transit actifs</span>
-        <span class="kpi-card__value">{{ enTransitActifs }} colis</span>
-      </div>
-    </div>
-
-    <div class="kpi-card kpi-card--danger">
-      <span class="kpi-card__icon kpi-card__icon--red"><i class="bi bi-exclamation-triangle-fill"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Retards constatés</span>
-        <span class="kpi-card__value kpi-card__value--red">{{ retardsConstates }} incidents</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Barre de filtres -->
   <div class="toolbar">

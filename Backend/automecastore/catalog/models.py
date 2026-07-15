@@ -63,14 +63,14 @@ class GestionnaireStock(models.Model):
 
 
 # -----------------------------
-# Fournisseur
+# Fournisseur (source produit)
 # -----------------------------
 class Fournisseur(models.Model):
     nom_entreprise = models.CharField(max_length=100)
     delai_livraison = models.DateTimeField(blank=True, null=True)
     contrat_actif = models.BooleanField(default=True)
     note_fournisseur = models.FloatField(blank=True, null=True)
-    administrateur = models.ForeignKey(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True)
+    administrateur = models.ForeignKey(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True, related_name='catalog_fournisseurs')
 
     def __str__(self):
         return self.nom_entreprise
@@ -118,10 +118,35 @@ class Produit(models.Model):
     reference       = models.CharField(max_length=50, blank=True, null=True)
     marque          = models.CharField(max_length=100, blank=True, null=True)
     
+    # Fournisseur
+    fournisseur = models.ForeignKey(
+        'account.Fournisseur',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='produits'
+    )
+
+    # Statut online (actif / inactif)
+    statut = models.CharField(
+        max_length=20,
+        choices=[('actif', 'Actif'), ('inactif', 'Inactif')],
+        default='actif'
+    )
+
+    # Approbation admin
+    statut_approbation = models.CharField(
+        max_length=20,
+        choices=[('en_attente', 'En attente'), ('approuve', 'Approuvé'), ('rejete', 'Rejeté')],
+        default='en_attente'
+    )
+    motif_rejet = models.TextField(blank=True, null=True)
+    signale = models.BooleanField(default=False)
+
     # Soft delete - champ pour désactiver le produit au lieu de le supprimer
     is_active       = models.BooleanField(default=True)
     date_suppression = models.DateTimeField(null=True, blank=True)
-    
+
     # Managers
     objects = ProduitActifManager()  # Par défaut, ne retourne que les actifs
     all_objects = ProduitTousManager()  # Retourne tous les produits
@@ -235,3 +260,19 @@ class Livraison(models.Model):
         ordering = ['-date_creation']
         verbose_name = "Livraison"
         verbose_name_plural = "Livraisons"
+
+
+# -----------------------------
+# Promotion
+# -----------------------------
+class Promotion(models.Model):
+    fournisseur = models.ForeignKey('account.Fournisseur', on_delete=models.CASCADE, related_name='promotions')
+    produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name='promotions', null=True, blank=True)
+    pourcentage = models.DecimalField(max_digits=5, decimal_places=2)
+    date_debut = models.DateTimeField()
+    date_fin = models.DateTimeField()
+    statut = models.CharField(max_length=20, choices=[('active', 'Active'), ('planifiee', 'Planifiée'), ('expiree', 'Expirée')], default='planifiee')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.pourcentage}% - {self.fournisseur.nom_entreprise}"

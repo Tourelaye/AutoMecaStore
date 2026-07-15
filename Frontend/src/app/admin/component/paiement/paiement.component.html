@@ -10,42 +10,26 @@
         <h2>Gestion des Paiements</h2>
         <p>Gérez vos paiements et leurs informations</p>
       </div>
-    </div>
 
-  <!-- Cards KPI -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--green"><i class="bi bi-currency-euro"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Volume de CA global</span>
-        <span class="kpi-card__value">{{ volumeCA | number:'1.2-2':'fr' }} €</span>
+      <div class="header-stats">
+        <div class="hs-item">
+          <span class="hs-val text-green">{{ volumeCA | number:'1.2-2':'fr' }} €</span>
+          <span class="hs-lbl">Volume CA</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-blue">{{ commissionsNet | number:'1.2-2':'fr' }} €</span>
+          <span class="hs-lbl">Commissions</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-red">{{ paiementsEchoues }}</span>
+          <span class="hs-lbl">Échecs</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-amber">{{ remboursementsEmis }}</span>
+          <span class="hs-lbl">Remboursés</span>
+        </div>
       </div>
     </div>
-
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--blue"><i class="bi bi-graph-up-arrow"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Commissions net (10%)</span>
-        <span class="kpi-card__value">{{ commissionsNet | number:'1.2-2':'fr' }} €</span>
-      </div>
-    </div>
-
-    <div class="kpi-card kpi-card--danger">
-      <span class="kpi-card__icon kpi-card__icon--red"><i class="bi bi-exclamation-circle-fill"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Paiements échoués</span>
-        <span class="kpi-card__value kpi-card__value--red">{{ paiementsEchoues }} échecs</span>
-      </div>
-    </div>
-
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--amber"><i class="bi bi-arrow-repeat"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Remboursements émis</span>
-        <span class="kpi-card__value">{{ remboursementsEmis }} transactions</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Barre de filtres -->
   <div class="toolbar">

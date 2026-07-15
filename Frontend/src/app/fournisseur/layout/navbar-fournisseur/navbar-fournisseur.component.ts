@@ -2,7 +2,8 @@ import { Component, Output, EventEmitter, HostListener, OnInit } from '@angular/
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MockAuthService } from '../../../core/services/mock-auth.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { FournisseurService, FournisseurProfile } from '../../services/fournisseur.service';
 
 interface Notification {
   id: number;
@@ -29,39 +30,14 @@ export class NavbarFournisseurComponent implements OnInit {
   searchQuery = '';
 
   fournisseur = {
-    nom: 'AutoMeca Dakar Distribution',
-    shortNom: 'AutoMeca Dakar Dis...',
-    email: 'contact@automeca-dakar.com',
+    nom: '',
+    shortNom: '',
+    email: '',
     photo: '',
-    id: '559021'
+    id: ''
   };
 
-  notifications: Notification[] = [
-    {
-      id: 1,
-      message: 'Nouvelle commande reçue – CMD-2024-005',
-      time: 'Il y a 5 min',
-      icon: 'bi-cart-check',
-      type: 'order',
-      read: false
-    },
-    {
-      id: 2,
-      message: 'Stock faible : Amortisseur Monroe (6 unités)',
-      time: 'Il y a 1h',
-      icon: 'bi-exclamation-triangle',
-      type: 'stock',
-      read: false
-    },
-    {
-      id: 3,
-      message: 'Nouvel avis client 5★ sur Filtre Bosch',
-      time: 'Il y a 3h',
-      icon: 'bi-star-fill',
-      type: 'review',
-      read: false
-    }
-  ];
+  notifications: Notification[] = [];
 
   get notificationCount(): number {
     return this.notifications.filter(n => !n.read).length;
@@ -69,10 +45,29 @@ export class NavbarFournisseurComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private authService: MockAuthService
+    private authService: AuthService,
+    private fournisseurService: FournisseurService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadProfile();
+  }
+
+  private loadProfile(): void {
+    this.fournisseurService.getProfile().subscribe({
+      next: (p: FournisseurProfile) => {
+        const fullName = p.nom_complet || `${p.user?.prenom || ''} ${p.user?.nom || ''}`.trim() || 'Fournisseur';
+        this.fournisseur = {
+          nom: p.nom_entreprise || fullName,
+          shortNom: (p.nom_entreprise || fullName).slice(0, 20) + '...',
+          email: p.user?.email || '',
+          photo: p.logo || '',
+          id: `${p.user?.id || ''}`
+        };
+      },
+      error: (err) => console.error('Erreur chargement profil navbar:', err)
+    });
+  }
 
   onToggleSidebar(): void {
     this.toggleSidebar.emit();

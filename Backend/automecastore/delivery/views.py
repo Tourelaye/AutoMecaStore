@@ -4,6 +4,9 @@ from django.utils import timezone
 from .models import Livraison, Adresse
 from .serializers import LivraisonSerializer, AdresseSerializer
 from orders.models import Commande
+from account.permissions import IsAdmin
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 
 # -----------------------------
@@ -71,4 +74,57 @@ class UpdateStatutLivraisonView(generics.UpdateAPIView):
             livraison.commande.save()
 
         livraison.save()
+        return Response(LivraisonSerializer(livraison).data)
+
+
+# -----------------------------
+# Admin - Gestion des livraisons
+# -----------------------------
+class AdminLivraisonListView(generics.ListAPIView):
+    """
+    Liste toutes les livraisons pour l'administration
+    """
+    serializer_class = LivraisonSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['statut']
+    search_fields = ['commande__reference', 'client__user__nom', 'client__user__email']
+    ordering_fields = ['date_creation', 'date_livraison']
+    ordering = ['-date_creation']
+
+    def get_queryset(self):
+        return Livraison.objects.all().select_related('commande', 'client__user', 'adresse')
+
+
+class AdminLivraisonDetailView(generics.RetrieveUpdateAPIView):
+    """
+    Détail et mise à jour d'une livraison pour l'admin
+    """
+    serializer_class = LivraisonSerializer
+    permission_classes = [IsAdmin]
+    queryset = Livraison.objects.all().select_related('commande', 'client__user', 'adresse')
+
+
+class AdminLivraisonUpdateStatutView(generics.UpdateAPIView):
+    """
+    Mettre à jour le statut d'une livraison (admin)
+    """
+    serializer_class = LivraisonSerializer
+    permission_classes = [IsAdmin]
+    queryset = Livraison.objects.all()
+
+    def patch(self, request, *args, **kwargs):
+        livraison = self.get_object()
+        nouveau_statut = request.data.get("statut")
+
+        if nouveau_statut:
+            livraison.statut = nouveau_statut
+
+            if nouveau_statut == "LIVREE":
+                livraison.date_livraison = timezone.now()
+                livraison.commande.statut = "livre"
+                livraison.commande.save()
+
+            livraison.save()
+
         return Response(LivraisonSerializer(livraison).data)

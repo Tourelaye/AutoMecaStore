@@ -30,8 +30,11 @@ urlpatterns = [
     path('api/', include('catalog.urls')),
     path('api/', include('orders.urls')),
     path('api/', include('account.urls')),
-    # path('api/fournisseur/', include('fournisseur.urls')),  # À réactiver après résolution dépendances
-    # path('api/admin/', include('admin_api.urls')),  # À réactiver après migrations fournisseur
+    path('api/', include('payments.urls')),
+    path('api/', include('delivery.urls')),
+    path('api/', include('support.urls')),
+    path('api/fournisseur/', include('fournisseur.urls')),
+    path('api/admin/', include('admin_api.urls')),
 ]
 
 # Serve media files in development

@@ -3,10 +3,11 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+// RouterLink removed — not used in template
 import {
   trigger, transition, style, animate
 } from '@angular/animations';
+import { CommandeService } from '../../services/commande.service';
 
 export interface Commande {
   id:           number;
@@ -21,15 +22,15 @@ export interface Commande {
   prixUnitaire: number;
   total:        number;
   date:         string;
-  statut:       'en_attente' | 'confirmee' | 'expediee' | 'livree' | 'annulee';
+  statut:       'en_attente' | 'validee' | 'expediee' | 'livree' | 'annulee';
 }
 
-type StatutType = 'en_attente' | 'confirmee' | 'expediee' | 'livree' | 'annulee';
+type StatutType = 'en_attente' | 'validee' | 'expediee' | 'livree' | 'annulee';
 
 @Component({
   selector: 'app-liste-commandes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './liste-commandes.component.html',
   styleUrls: ['./liste-commandes.component.css'],
   animations: [
@@ -96,7 +97,7 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   statutTabs = [
     { value: '',           label: 'TOUS',        activeCls: 'stab-all'      },
     { value: 'en_attente', label: 'En attente',  activeCls: 'stab-attente'  },
-    { value: 'confirmee',  label: 'Confirmée',   activeCls: 'stab-confirmee'},
+    { value: 'validee',    label: 'Confirmée',   activeCls: 'stab-confirmee'},
     { value: 'expediee',   label: 'Expédiée',    activeCls: 'stab-expediee' },
     { value: 'livree',     label: 'Livrée',      activeCls: 'stab-livree'   },
     { value: 'annulee',    label: 'Annulée',     activeCls: 'stab-annulee'  },
@@ -105,83 +106,61 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   // ── Timeline ──────────────────────────────────────────────────────────
   statutTimeline = [
     { value: 'en_attente', label: 'En attente',  icon: 'bi-clock-fill'         },
-    { value: 'confirmee',  label: 'Confirmée',   icon: 'bi-check-circle-fill'  },
+    { value: 'validee',    label: 'Confirmée',   icon: 'bi-check-circle-fill'  },
     { value: 'expediee',   label: 'Expédiée',    icon: 'bi-truck'              },
     { value: 'livree',     label: 'Livrée',      icon: 'bi-house-check-fill'   },
   ];
 
   // ── Données ───────────────────────────────────────────────────────────
-  commandes: Commande[] = [
-    {
-      id:1, numero:'CMD-2026-0891', client:'Moussa Diop (Garage Teranga)',
-      adresse:'Avenue Bourguiba, Grand Dakar', telephone:'+221 77 123 45 67',
-      produit:'Jeu de 4 Plaquettes de Frein Brembo Sport',
-      produitImage:'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=60&h=60&fit=crop',
-      reference:'REF-BRM-P85020', quantite:2, prixUnitaire:45000, total:90000,
-      date:'2026-06-23T14:30:00', statut:'confirmee'
-    },
-    {
-      id:2, numero:'CMD-2026-0890', client:'Saliou Fall',
-      adresse:'Almadies, Zone 12, Dakar', telephone:'+221 76 234 56 78',
-      produit:'Pneu Michelin Primacy 4 205/55 R16',
-      produitImage:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=60&h=60&fit=crop',
-      reference:'REF-MCH-PR4-205', quantite:4, prixUnitaire:68000, total:272000,
-      date:'2026-06-23T11:15:00', statut:'confirmee'
-    },
-    {
-      id:3, numero:'CMD-2026-0888', client:'Transport Logistique Ndiaye & Fils',
-      adresse:'Port Autonome de Dakar, Môle 3', telephone:'+221 33 456 78 90',
-      produit:'Vanne de Freinage Pneumatique Wabco',
-      produitImage:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop',
-      reference:'REF-WBC-9710021500', quantite:1, prixUnitaire:185000, total:185000,
-      date:'2026-06-22T16:45:00', statut:'expediee'
-    },
-    {
-      id:4, numero:'CMD-2026-0885', client:'Ousmane Sow (Club Cycliste Dakar)',
-      adresse:'Mermoz Pyrotechnie', telephone:'+221 78 345 67 89',
-      produit:'Dérailleur Arrière Shimano Deore XT',
-      produitImage:'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=60&h=60&fit=crop',
-      reference:'REF-SHM-M8100', quantite:1, prixUnitaire:58000, total:58000,
-      date:'2026-06-21T09:20:00', statut:'livree'
-    },
-    {
-      id:5, numero:'CMD-2026-0880', client:'Cheikh Anta Sylla',
-      adresse:'Parcelles Assainies Unité 18', telephone:'+221 77 456 78 90',
-      produit:'Filtre à Huile Moteur Bosch Premium',
-      produitImage:'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=60&h=60&fit=crop',
-      reference:'REF-BSH-0451103079', quantite:3, prixUnitaire:8500, total:25500,
-      date:'2026-06-20T18:10:00', statut:'annulee'
-    },
-    {
-      id:6, numero:'CMD-2026-0877', client:'Fatou Mbaye (Garage Fatou)',
-      adresse:'Thiès, Quartier Industriel', telephone:'+221 76 567 89 01',
-      produit:'Kit Chaîne DID 520 Renforcé O-Ring',
-      reference:'REF-DID-520VX3', quantite:2, prixUnitaire:65000, total:130000,
-      date:'2026-06-19T10:00:00', statut:'en_attente'
-    },
-    {
-      id:7, numero:'CMD-2026-0875', client:'Ibrahima Ba Auto Service',
-      adresse:'Rufisque, Zone Industrielle', telephone:'+221 33 567 89 01',
-      produit:'Amortisseur Avant Gaz Sachs Ultra',
-      reference:'REF-SCH-314718', quantite:2, prixUnitaire:75000, total:150000,
-      date:'2026-06-18T15:30:00', statut:'en_attente'
-    },
-    {
-      id:8, numero:'CMD-2026-0872', client:'Garage Central Dakar',
-      adresse:'Medina, Rue 19', telephone:'+221 77 678 90 12',
-      produit:'Courroie de Distribution Gates PowerGrip',
-      reference:'REF-GAT-5479XS', quantite:5, prixUnitaire:28000, total:140000,
-      date:'2026-06-17T08:45:00', statut:'livree'
-    },
-  ];
-
+  commandes: Commande[] = [];
   filteredCommandes: Commande[] = [];
+
+  constructor(private commandeService: CommandeService) {}
+
+  ngOnInit(): void {
+    this.loadCommandes();
+  }
+
+  private loadCommandes(): void {
+    this.isLoading = true;
+    this.commandeService.getCommandes().subscribe({
+      next: (data) => {
+        this.commandes = data.map(c => this.mapApiCommande(c));
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.showToast('Erreur lors du chargement des commandes', 'error');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private mapApiCommande(apiCommande: any): Commande {
+    const ligne = apiCommande.lignes?.[0];
+    const produit = ligne?.produit;
+    return {
+      id: apiCommande.id,
+      numero: apiCommande.reference || 'CMD-' + apiCommande.id,
+      client: apiCommande.client ? `${apiCommande.client.prenom} ${apiCommande.client.nom}` : 'Client',
+      adresse: apiCommande.client?.adresse || apiCommande.client?.ville || 'Adresse inconnue',
+      telephone: apiCommande.client?.telephone || '',
+      produit: produit?.nom || 'Produit',
+      produitImage: produit?.image_url || produit?.image || '',
+      reference: apiCommande.reference || '',
+      quantite: ligne?.quantite || 0,
+      prixUnitaire: ligne?.prix_unitaire || 0,
+      total: apiCommande.montant_total || 0,
+      date: apiCommande.date_commande,
+      statut: apiCommande.statut
+    };
+  }
 
   // ── Computed ──────────────────────────────────────────────────────────
   get statsCards() {
     return [
       { label: 'En attente', count: this.getCount('en_attente'), icon: 'bi-clock-fill',         bg: '#fff7ed', color: '#f97316', trend: 12  },
-      { label: 'Confirmées', count: this.getCount('confirmee'),  icon: 'bi-check-circle-fill',  bg: '#eff6ff', color: '#3b82f6', trend: 8   },
+      { label: 'Confirmées', count: this.getCount('validee'),    icon: 'bi-check-circle-fill',  bg: '#eff6ff', color: '#3b82f6', trend: 8   },
       { label: 'Expédiées',  count: this.getCount('expediee'),   icon: 'bi-truck',              bg: '#f5f3ff', color: '#8b5cf6', trend: 5   },
       { label: 'Livrées',    count: this.getCount('livree'),     icon: 'bi-house-check-fill',   bg: '#f0fdf4', color: '#16a34a', trend: 0   },
       { label: 'Annulées',   count: this.getCount('annulee'),    icon: 'bi-x-circle-fill',      bg: '#fff1f2', color: '#e11d48', trend: -3  },
@@ -194,8 +173,6 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
     const s = (this.currentPage - 1) * this.pageSize;
     return this.filteredCommandes.slice(s, s + this.pageSize);
   }
-
-  ngOnInit(): void { this.applyFilters(); }
 
   ngOnDestroy(): void {
     if (this.toastTimer) clearTimeout(this.toastTimer);
@@ -275,15 +252,15 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   getStatutOptions(statut: StatutType): { value: StatutType; label: string; icon: string }[] {
     const all: Record<StatutType, { value: StatutType; label: string; icon: string }[]> = {
       en_attente: [
-        { value: 'confirmee', label: 'Confirmer',  icon: 'bi-check-circle-fill' },
-        { value: 'annulee',   label: 'Annuler',    icon: 'bi-x-circle-fill'     },
+        { value: 'validee', label: 'Confirmer',  icon: 'bi-check-circle-fill' },
+        { value: 'annulee', label: 'Annuler',    icon: 'bi-x-circle-fill'     },
       ],
-      confirmee: [
-        { value: 'expediee',  label: 'Expédier',   icon: 'bi-truck'             },
-        { value: 'annulee',   label: 'Annuler',    icon: 'bi-x-circle-fill'     },
+      validee: [
+        { value: 'expediee', label: 'Expédier',   icon: 'bi-truck'             },
+        { value: 'annulee',  label: 'Annuler',    icon: 'bi-x-circle-fill'     },
       ],
       expediee: [
-        { value: 'livree',    label: 'Marquer livrée', icon: 'bi-house-check-fill' },
+        { value: 'livree',   label: 'Marquer livrée', icon: 'bi-house-check-fill' },
       ],
       livree:   [],
       annulee:  [],
@@ -303,24 +280,30 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
 
   private doChangeStatut(cmd: Commande, newStatut: StatutType): void {
     this.updatingId = cmd.id;
-    setTimeout(() => {
-      const idx = this.commandes.findIndex(c => c.id === cmd.id);
-      if (idx !== -1) {
-        this.commandes[idx].statut = newStatut;
-        if (this.selectedCommande?.id === cmd.id) {
-          this.selectedCommande = { ...this.commandes[idx] };
+    this.commandeService.updateCommandeStatut(cmd.id, newStatut).subscribe({
+      next: (updated) => {
+        const idx = this.commandes.findIndex(c => c.id === cmd.id);
+        if (idx !== -1) {
+          this.commandes[idx].statut = updated.statut as StatutType;
+          if (this.selectedCommande?.id === cmd.id) {
+            this.selectedCommande = { ...this.commandes[idx] };
+          }
         }
+        this.applyFilters();
+        this.updatingId = null;
+        this.showToast(`Statut mis à jour : ${this.getStatutLabel(updated.statut as StatutType)}`, 'success');
+      },
+      error: () => {
+        this.showToast('Impossible de mettre à jour le statut', 'error');
+        this.updatingId = null;
       }
-      this.applyFilters();
-      this.updatingId = null;
-      this.showToast(`Statut mis à jour : ${this.getStatutLabel(newStatut)}`, 'success');
-    }, 800);
+    });
   }
 
   getNextStatutLabel(statut: StatutType): string {
     const map: Partial<Record<StatutType, string>> = {
       en_attente: 'Confirmée',
-      confirmee:  'Expédiée',
+      validee:    'Expédiée',
       expediee:   'Livrée',
       livree:     'Livrée ✓',
       annulee:    'Annulée ✕',
@@ -331,7 +314,7 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   getNextStatutBtnClass(statut: StatutType): string {
     const map: Partial<Record<StatutType, string>> = {
       en_attente: 'nsb-attente',
-      confirmee:  'nsb-confirmee',
+      validee:    'nsb-confirmee',
       expediee:   'nsb-expediee',
       livree:     'nsb-livree',
       annulee:    'nsb-annulee',
@@ -341,7 +324,7 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
 
   // ── Timeline ──────────────────────────────────────────────────────────
   isStepDone(step: string, currentStatut: string): boolean {
-    const order = ['en_attente', 'confirmee', 'expediee', 'livree'];
+    const order = ['en_attente', 'validee', 'expediee', 'livree'];
     return order.indexOf(step) <= order.indexOf(currentStatut);
   }
 
@@ -349,7 +332,7 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   getStatutClass(statut: string): string {
     const map: Record<string, string> = {
       en_attente: 'st-attente',
-      confirmee:  'st-confirmee',
+      validee:    'st-confirmee',
       expediee:   'st-expediee',
       livree:     'st-livree',
       annulee:    'st-annulee',
@@ -360,7 +343,7 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   getStatutIcon(statut: string): string {
     const map: Record<string, string> = {
       en_attente: 'bi-clock-fill',
-      confirmee:  'bi-check-circle-fill',
+      validee:    'bi-check-circle-fill',
       expediee:   'bi-truck',
       livree:     'bi-house-check-fill',
       annulee:    'bi-x-circle-fill',
@@ -371,7 +354,7 @@ export class ListeCommandesComponent implements OnInit, OnDestroy {
   getStatutLabel(statut: string): string {
     const map: Record<string, string> = {
       en_attente: 'En attente',
-      confirmee:  'Confirmée',
+      validee:    'Confirmée',
       expediee:   'Expédiée',
       livree:     'Livrée',
       annulee:    'Annulée',

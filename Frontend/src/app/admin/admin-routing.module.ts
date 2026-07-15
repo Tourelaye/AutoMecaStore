@@ -14,6 +14,7 @@ import { roleGuard } from '../core/guards/role.guard';
 import { FournisseurComponent } from './component/fournisseur/fournisseur.component';
 import { PaiementComponent } from './component/paiement/paiement.component';
 import { JournalComponent } from './component/journal/journal.component';
+import { ApprobationProduitComponent } from './component/approbation-produit/approbation-produit.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -35,6 +36,7 @@ const routes: Routes = [
       { path: 'avis', component: AvisComponent },
       { path: 'journal', component: JournalComponent },
       { path: 'parametres', component: ParametresComponent },
+      { path: 'approbation-produits', component: ApprobationProduitComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   }

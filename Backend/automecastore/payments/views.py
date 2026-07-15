@@ -4,6 +4,9 @@ from django.db import transaction
 from .models import Paiement
 from .serializers import PaiementSerializer
 from orders.models import Commande
+from account.permissions import IsAdmin
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 
 # -----------------------------
@@ -47,3 +50,31 @@ class CreerPaiementView(generics.CreateAPIView):
             PaiementSerializer(paiement).data,
             status=status.HTTP_201_CREATED
         )
+
+
+# -----------------------------
+# Admin - Gestion des paiements
+# -----------------------------
+class AdminPaiementListView(generics.ListAPIView):
+    """
+    Liste tous les paiements pour l'administration
+    """
+    serializer_class = PaiementSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['statut', 'type']
+    search_fields = ['commande__reference', 'client__user__nom', 'client__user__email']
+    ordering_fields = ['date_paiement', 'montant']
+    ordering = ['-date_paiement']
+
+    def get_queryset(self):
+        return Paiement.objects.all().select_related('commande', 'client__user')
+
+
+class AdminPaiementDetailView(generics.RetrieveAPIView):
+    """
+    Détail d'un paiement pour l'admin
+    """
+    serializer_class = PaiementSerializer
+    permission_classes = [IsAdmin]
+    queryset = Paiement.objects.all().select_related('commande', 'client__user')

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap, catchError, switchMap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { CommandeService } from './commande.service';
 import { NotificationService } from './notification.service';
@@ -111,24 +111,13 @@ export class PanierService {
   }
 
   private ajouterAuPanierBackend(produitId: number, quantite: number): Observable<any> {
-    const headers = this.getHeaders();
-    
-    return this.http.post(`${this.monCompteService['API_URL']}/panier/add/`, 
-      { produit_id: produitId, quantite: quantite }, 
-      { headers }
+    return this.http.post(`${this.apiUrl}/panier/add/`,
+      { produit_id: produitId, quantite: quantite }
     ).pipe(
       tap(() => {
         // Refresh cart from backend after adding
         this.monCompteService.getPanier().subscribe();
         this.lastAddedSubject.next('Produit ajouté');
-      }),
-      catchError(error => {
-        console.error('Erreur lors de l\'ajout au panier (backend):', error);
-        // Fallback to localStorage on error
-        console.log('Fallback vers localStorage pour l\'ajout au panier');
-        // We need to fetch the product details first for localStorage fallback
-        // For now, just return null - the UI should handle this
-        return of(null);
       })
     );
   }
@@ -267,19 +256,10 @@ export class PanierService {
   // =========================
   // API
   // =========================
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-  }
-
   syncAvecServeur(): Observable<any> {
     return this.http.post(
       `${this.apiUrl}/panier/sync/`,
-      { items: this.items },
-      { headers: this.getHeaders() }
+      { items: this.items }
     );
   }
 

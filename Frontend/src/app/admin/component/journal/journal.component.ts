@@ -25,6 +25,7 @@ export class JournalComponent implements OnInit {
     { value: 'securite', label: 'Sécurité' },
     { value: 'finances', label: 'Finances' },
     { value: 'vendeurs', label: 'Vendeurs' },
+    { value: 'produits', label: 'Produits' },
     { value: 'categories', label: 'Catégories' },
     { value: 'systeme', label: 'Système' }
   ];
@@ -54,25 +55,25 @@ export class JournalComponent implements OnInit {
     this.filtered = this.logs.filter(l => {
       const matchesSearch =
         !term ||
-        l.action.toLowerCase().includes(term) ||
-        l.ipAddress.toLowerCase().includes(term) ||
+        l.action_label.toLowerCase().includes(term) ||
+        l.utilisateur_nom.toLowerCase().includes(term) ||
         l.description.toLowerCase().includes(term) ||
-        l.adminUser.toLowerCase().includes(term);
-      const matchesCategory = this.categoryFilter === 'toutes' || l.category === this.categoryFilter;
+        l.categorie_label.toLowerCase().includes(term);
+      const matchesCategory = this.categoryFilter === 'toutes' || l.categorie === this.categoryFilter;
       return matchesSearch && matchesCategory;
     });
   }
 
-  categoryLabel(category: LogCategory): string {
-    const found = this.categoryOptions.find(o => o.value === category);
-    return (found?.label || category).toUpperCase();
+  categoryLabel(categorie: LogCategory): string {
+    const found = this.categoryOptions.find(o => o.value === categorie);
+    return (found?.label || categorie).toUpperCase();
   }
 
   // --- Export CSV réel, généré côté client ---
   exportCsv(): void {
-    const headers = ['Date', 'Heure (UTC)', 'Rubrique', 'Action', 'Utilisateur Admin', 'Adresse IP', 'Description'];
+    const headers = ['Date', 'Rubrique', 'Action', 'Utilisateur', 'Adresse IP', 'Description'];
     const rows = this.filtered.map(l => [
-      l.date, l.time, this.categoryLabel(l.category), l.action, l.adminUser, l.ipAddress, l.description
+      l.date_creation, this.categoryLabel(l.categorie), l.action_label, l.utilisateur_nom, l.ip_address || '', l.description
     ]);
 
     const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
@@ -92,7 +93,7 @@ export class JournalComponent implements OnInit {
     URL.revokeObjectURL(url);
   }
 
-  // --- Purge du journal (déconseillé en usage réel, voir avertissement dans la modale) ---
+  // --- Purge du journal ---
   openClearModal(): void {
     this.clearConfirmText = '';
     this.showClearModal = true;

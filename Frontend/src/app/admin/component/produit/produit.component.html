@@ -1,40 +1,60 @@
 <div class="pr-page">
 
-        <!-- PAGE HEADER -->
-    <div class="page-header fade-up">
-      <div class="page-title">
-        <div class="page-tag">
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Catalogue
-        </div>
-        <h2>Gestion des Produits</h2>
-        <p>Gérez vos produits et leurs informations</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        Catalogue
       </div>
+      <h2>Gestion des Produits</h2>
+      <p>Gérez vos produits et leurs informations</p>
     </div>
 
+    <div class="header-stats">
+      <div class="hs-item">
+        <span class="hs-val">{{ totalCount }}</span>
+        <span class="hs-lbl">Total</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-green">{{ onlineCount }}</span>
+        <span class="hs-lbl">En ligne</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-amber">{{ pendingCount }}</span>
+        <span class="hs-lbl">Attente</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-red">{{ signaledCount }}</span>
+        <span class="hs-lbl">Signalés</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Barre de filtres -->
-  <div class="toolbar">
-    <div class="toolbar__search">
-      <i class="bi bi-search"></i>
+  <div class="toolbar fade-up delay-1">
+    <div class="search-box">
+      <i class="bi bi-search search-ic"></i>
       <input
         type="text"
-        placeholder="Rechercher par pièce, OEM, marque..."
+        placeholder="Rechercher une pièce, OEM, marque..."
         [(ngModel)]="searchTerm"
         (ngModelChange)="applyFilters()"
       />
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">
+        <i class="bi bi-x"></i>
+      </button>
     </div>
 
-    <select class="toolbar__select" [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
-      <option *ngFor="let c of categories" [value]="c">{{ c === 'toutes' ? 'Toutes catégories' : c }}</option>
-    </select>
+    <div class="toolbar-actions">
+      <select class="toolbar__select" [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let c of categories" [value]="c">{{ c === 'toutes' ? 'Toutes catégories' : c }}</option>
+      </select>
 
-    <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
-      <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
-    </select>
-
-    <select class="toolbar__select" [(ngModel)]="stockFilter" (ngModelChange)="applyFilters()">
-      <option *ngFor="let opt of stockOptions" [value]="opt.value">{{ opt.label }}</option>
-    </select>
+      <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+    </div>
   </div>
 
   <!-- Chargement -->
@@ -44,88 +64,90 @@
   </div>
 
   <!-- Grille de produits -->
-  <div class="pr-grid" *ngIf="!loading">
-    <div
-      class="pr-card"
-      *ngFor="let p of filtered; let i = index; trackBy: trackByRef"
-      [style.--delay]="(i * 50) + 'ms'"
-    >
-      <div class="pr-card__top">
-        <span class="pr-card__ref">{{ p.ref }}</span>
-        <div class="pr-card__badges">
-          <span class="badge badge--signale" *ngIf="p.signale">SIGNALÉ</span>
-          <span class="badge" [class]="'badge--' + p.state">
-            {{ p.state === 'en_ligne' ? 'EN LIGNE' : p.state === 'desactive' ? 'DÉSACTIVÉ' : 'ATTENTE VALIDATION' }}
+  <div class="panel fade-up delay-2" *ngIf="!loading">
+    <div class="pr-grid">
+      <div
+        class="pr-card"
+        *ngFor="let p of filtered; let i = index; trackBy: trackById"
+        [style.--i]="i"
+      >
+        <div class="card-glow"></div>
+
+        <div class="card-top">
+          <div class="thumb">
+            <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
+            <i class="bi bi-box-seam" *ngIf="!p.image"></i>
+          </div>
+          <div class="pr-card__names">
+            <span class="pr-card__name">{{ p.name }}</span>
+            <span class="pr-card__sub">Réf: {{ p.ref }}</span>
+            <span class="pr-card__sub">Cat: {{ p.category }}</span>
+            <span class="pr-card__sub">Vendeur: <span class="pr-card__vendor">{{ p.vendor }}</span></span>
+          </div>
+        </div>
+
+        <div class="signal-banner" *ngIf="p.signale && p.signalReason">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Signalé: {{ p.signalReason }}</span>
+        </div>
+
+        <div class="card-body">
+          <div class="info-row">
+            <i class="bi bi-tag"></i>
+            <span>{{ p.price | number:'1.2-2':'fr' }} €</span>
+          </div>
+          <div class="info-row">
+            <i class="bi bi-box-seam"></i>
+            <span *ngIf="stockLevel(p) === 'ok'">{{ p.stock }} p.</span>
+            <span class="text-amber" *ngIf="stockLevel(p) === 'faible'">{{ p.stock }} p.</span>
+            <span class="text-red" *ngIf="stockLevel(p) === 'rupture'">Rupture</span>
+          </div>
+          <div class="info-row">
+            <i class="bi bi-graph-up"></i>
+            <span>{{ p.sales }} vendus</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span class="status-badge" [class]="'status-badge--' + p.state">
+            <span class="badge-dot"></span>
+            {{ p.state === 'en_ligne' ? 'En ligne' : p.state === 'desactive' ? 'Désactivé' : 'Attente' }}
           </span>
+
+          <div class="card-actions">
+            <ng-container *ngIf="p.state === 'attente_validation'; else normalActions">
+              <button class="ca-btn validate" (click)="validate(p)" title="Valider">
+                <i class="bi bi-check-lg"></i>
+              </button>
+              <button class="ca-btn refuse" (click)="askRefuse(p)" title="Refuser">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </ng-container>
+
+            <ng-template #normalActions>
+              <button class="ca-btn toggle" (click)="toggleActivation(p)" [title]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'">
+                <i class="bi" [class.bi-lock]="p.state === 'en_ligne'" [class.bi-unlock]="p.state === 'desactive'"></i>
+              </button>
+              <button class="ca-btn signal" *ngIf="!p.signale" (click)="askSignal(p)" title="Signaler">
+                <i class="bi bi-bell"></i>
+              </button>
+              <button class="ca-btn de-signal" *ngIf="p.signale" (click)="removeSignal(p)" title="Dé-signaler">
+                <i class="bi bi-bell-slash"></i>
+              </button>
+            </ng-template>
+
+            <button class="ca-btn delete" (click)="askDelete(p)" title="Supprimer">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="pr-card__identity">
-        <div class="thumb">
-          <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
-          <i class="bi bi-box-seam" *ngIf="!p.image"></i>
-        </div>
-        <div class="pr-card__names">
-          <span class="pr-card__name">{{ p.name }}</span>
-          <span class="pr-card__sub">Cat: {{ p.category }}</span>
-          <span class="pr-card__sub">Vendeur: <span class="pr-card__vendor">{{ p.vendor }}</span></span>
-        </div>
+      <div class="pr-empty" *ngIf="filtered.length === 0">
+        <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
+        <h4>Aucun produit trouvé</h4>
+        <p>{{ searchTerm ? 'Modifiez votre recherche.' : 'Aucun produit ne correspond à ces filtres.' }}</p>
       </div>
-
-      <div class="signal-banner" *ngIf="p.signale && p.signalReason">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span>Signalé: {{ p.signalReason }}</span>
-      </div>
-
-      <div class="pr-card__stats">
-        <div class="stat">
-          <span class="stat__label">Prix unitaire</span>
-          <span class="stat__value">{{ p.price | number:'1.2-2':'fr' }} €</span>
-        </div>
-        <div class="stat">
-          <span class="stat__label">Stock vendeur</span>
-          <span class="stat__value" *ngIf="stockLevel(p) === 'ok'">{{ p.stock }} p.</span>
-          <span class="stat__value stat__value--amber" *ngIf="stockLevel(p) === 'faible'">{{ p.stock }} p.</span>
-          <span class="stat__value stat__value--red" *ngIf="stockLevel(p) === 'rupture'">Rupture</span>
-        </div>
-        <div class="stat">
-          <span class="stat__label">Ventes plataf.</span>
-          <span class="stat__value stat__value--blue">{{ p.sales }} vendus</span>
-        </div>
-      </div>
-
-      <!-- Cas 1 : produit en attente de validation -->
-      <div class="pr-card__actions" *ngIf="p.state === 'attente_validation'">
-        <button class="btn-validate" (click)="validate(p)">
-          <i class="bi bi-check-lg"></i> Valider l'Article
-        </button>
-        <button class="btn-refuse" (click)="askRefuse(p)">
-          <i class="bi bi-x-lg"></i> Refuser
-        </button>
-      </div>
-
-      <!-- Cas 2 : produit normal (en ligne ou désactivé) -->
-      <div class="pr-card__actions" *ngIf="p.state !== 'attente_validation'">
-        <button class="btn-outline">
-          <i class="bi bi-eye"></i> Fiche
-        </button>
-        <button class="btn-outline" *ngIf="p.state === 'en_ligne'" (click)="toggleActivation(p)">
-          <i class="bi bi-lock"></i> Désactiver
-        </button>
-        <button class="btn-outline btn-outline--green" *ngIf="p.state === 'desactive'" (click)="toggleActivation(p)">
-          <i class="bi bi-unlock"></i> Réactiver
-        </button>
-        <button class="btn-link btn-link--danger" *ngIf="!p.signale" (click)="askSignal(p)">Signaler</button>
-        <button class="btn-link" *ngIf="p.signale" (click)="removeSignal(p)">Dé-signaler</button>
-        <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(p)">
-          <i class="bi bi-trash"></i>
-        </button>
-      </div>
-    </div>
-
-    <div class="pr-empty" *ngIf="filtered.length === 0">
-      <i class="bi bi-inboxes"></i>
-      <p>Aucun produit ne correspond à ces filtres.</p>
     </div>
   </div>
 

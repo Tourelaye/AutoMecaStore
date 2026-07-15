@@ -150,7 +150,8 @@ class ProduitSerializer(serializers.ModelSerializer):
 
             'est_en_promo', 'prix_promo', 'date_fin_promo',
 
-            'reference', 'marque', 'is_active', 'date_suppression'
+            'reference', 'marque', 'is_active', 'date_suppression',
+            'statut_approbation', 'motif_rejet'
 
         ]
 

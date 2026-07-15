@@ -1,0 +1,82 @@
+<div class="approbation-page">
+  <div class="page-header">
+    <h2>Produits en attente d'approbation</h2>
+    <p class="subtitle">Gérez les produits soumis par les fournisseurs</p>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Chargement des produits...</p>
+  </div>
+
+  <div *ngIf="!loading && produitsEnAttente.length === 0" class="empty-state">
+    <div class="empty-icon">📦</div>
+    <h3>Aucun produit en attente</h3>
+    <p>Tous les produits ont été traités.</p>
+  </div>
+
+  <div *ngIf="!loading && produitsEnAttente.length > 0" class="produits-grid">
+    <div
+      *ngFor="let produit of produitsEnAttente; let i = index"
+      class="produit-card"
+      [style.--i]="i"
+    >
+      <div class="card-glow"></div>
+      <div class="produit-image">
+        <img [src]="getImageUrl(produit.image)" [alt]="produit.nom" (error)="onImageError($event)">
+      </div>
+      <div class="produit-info">
+        <h3>{{ produit.nom }}</h3>
+        <p class="description">{{ produit.description | slice:0:100 }}{{ produit.description.length > 100 ? '...' : '' }}</p>
+        <div class="produit-details">
+          <span class="price">{{ produit.prix | currency:'XOF' }}</span>
+          <span class="stock">Stock: {{ produit.stock }}</span>
+        </div>
+        <div class="fournisseur-info" *ngIf="produit.fournisseur_nom">
+          <span class="fournisseur-label">Fournisseur:</span>
+          <span class="fournisseur-nom">{{ produit.fournisseur_nom }}</span>
+        </div>
+        <div class="date-info" *ngIf="produit.created_at">
+          <small>Soumis le: {{ produit.created_at | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+      </div>
+      <div class="produit-actions">
+        <button class="btn btn-approve" (click)="approuverProduit(produit)">
+          <span class="icon">✓</span>
+          Approuver
+        </button>
+        <button class="btn btn-reject" (click)="ouvrirModalRejet(produit)">
+          <span class="icon">✕</span>
+          Rejeter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de rejet -->
+  <div *ngIf="showRejetModal" class="modal-overlay" (click)="fermerModalRejet()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Rejeter le produit</h3>
+        <button class="close-btn" (click)="fermerModalRejet()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Vous êtes sur le point de rejeter le produit <strong>{{ produitSelectionne?.nom }}</strong>.</p>
+        <div class="form-group">
+          <label for="motif">Motif du rejet <span class="required">*</span></label>
+          <textarea 
+            id="motif" 
+            [(ngModel)]="motifRejet" 
+            placeholder="Expliquez pourquoi ce produit est rejeté..."
+            rows="4"
+            required
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="fermerModalRejet()">Annuler</button>
+        <button class="btn btn-danger" (click)="rejeterProduit()">Confirmer le rejet</button>
+      </div>
+    </div>
+  </div>
+</div>

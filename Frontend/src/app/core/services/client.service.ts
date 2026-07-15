@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { AuthService } from './auth.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 export interface Client {
   user: number;
@@ -55,23 +53,14 @@ export interface ClientFilters {
   providedIn: 'root'
 })
 export class ClientService {
-  private apiUrl = 'http://localhost:8000/api';
+  private apiUrl = 'http://127.0.0.1:8000/api';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
-
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Token ${token}`
-    });
-  }
+  constructor(private http: HttpClient) {}
 
   // =========================
   // LISTE DES CLIENTS
   // =========================
   getClients(filters?: ClientFilters): Observable<Client[]> {
-    const headers = this.getHeaders();
     let params = new URLSearchParams();
 
     if (filters) {
@@ -86,36 +75,27 @@ export class ClientService {
       }
     }
 
-    const url = params.toString() 
+    const url = params.toString()
       ? `${this.apiUrl}/clients/?${params.toString()}`
       : `${this.apiUrl}/clients/`;
 
-    return this.http.get<Client[]>(url, { headers }).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<Client[]>(url);
   }
 
   // =========================
   // DÉTAIL D'UN CLIENT
   // =========================
   getClientDetail(id: number): Observable<ClientDetail> {
-    const headers = this.getHeaders();
-    return this.http.get<ClientDetail>(`${this.apiUrl}/clients/${id}/`, { headers }).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ClientDetail>(`${this.apiUrl}/clients/${id}/`);
   }
 
   // =========================
   // ACTIVER/DÉSACTIVER UN CLIENT
   // =========================
   toggleClientActive(id: number): Observable<{message: string; statut: string; user_id: number}> {
-    const headers = this.getHeaders();
     return this.http.post<{message: string; statut: string; user_id: number}>(
-      `${this.apiUrl}/clients/${id}/toggle-active/`, 
-      {}, 
-      { headers }
-    ).pipe(
-      catchError(this.handleError)
+      `${this.apiUrl}/clients/${id}/toggle-active/`,
+      {}
     );
   }
 
@@ -123,20 +103,14 @@ export class ClientService {
   // SUPPRIMER UN CLIENT
   // =========================
   deleteClient(id: number): Observable<{message: string}> {
-    const headers = this.getHeaders();
-    return this.http.delete<{message: string}>(`${this.apiUrl}/clients/${id}/delete/`, { headers }).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.delete<{message: string}>(`${this.apiUrl}/clients/${id}/delete/`);
   }
 
   // =========================
   // STATISTIQUES CLIENTS
   // =========================
   getClientStats(): Observable<ClientStats> {
-    const headers = this.getHeaders();
-    return this.http.get<ClientStats>(`${this.apiUrl}/clients/stats/`, { headers }).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<ClientStats>(`${this.apiUrl}/clients/stats/`);
   }
 
   // =========================
@@ -153,43 +127,14 @@ export class ClientService {
   }
 
   // =========================
-  // GESTION DES ERREURS
-  // =========================
-  private handleError(error: any): Observable<never> {
-    console.error('Erreur ClientService:', error);
-    
-    let errorMessage = 'Une erreur est survenue';
-    
-    if (error.status === 401) {
-      errorMessage = 'Non autorisé - Veuillez vous reconnecter';
-    } else if (error.status === 403) {
-      errorMessage = 'Accès refusé - Permissions insuffisantes';
-    } else if (error.status === 404) {
-      errorMessage = 'Client non trouvé';
-    } else if (error.status === 500) {
-      errorMessage = 'Erreur serveur - Veuillez réessayer plus tard';
-    } else if (error.error?.message) {
-      errorMessage = error.error.message;
-    }
-    
-    return throwError(() => new Error(errorMessage));
-  }
-
-  // =========================
   // NOTIFICATIONS ADMIN
   // =========================
   getAdminNotifications(): Observable<{notifications: any[], count: number}> {
-    const headers = this.getHeaders();
-    return this.http.get<{notifications: any[], count: number}>(`${this.apiUrl}/notifications/`, { headers }).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.get<{notifications: any[], count: number}>(`${this.apiUrl}/notifications/`);
   }
 
   clearAdminNotifications(): Observable<{message: string}> {
-    const headers = this.getHeaders();
-    return this.http.delete<{message: string}>(`${this.apiUrl}/notifications/`, { headers }).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.delete<{message: string}>(`${this.apiUrl}/notifications/`);
   }
 
   // =========================

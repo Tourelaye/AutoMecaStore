@@ -10,34 +10,22 @@
         <h2>Gestion des Avis</h2>
         <p>Gérez les avis et réclamations des clients</p>
       </div>
-    </div>
-    
-  <!-- KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--amber"><i class="bi bi-star-fill"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Satisfaction globale</span>
-        <span class="kpi-card__value">{{ satisfactionGlobale }} / 5 ★</span>
-      </div>
-    </div>
 
-    <div class="kpi-card">
-      <span class="kpi-card__icon kpi-card__icon--blue"><i class="bi bi-chat-square-text-fill"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Commentaires audités</span>
-        <span class="kpi-card__value">{{ commentairesAudites }} avis reçus</span>
+      <div class="header-stats">
+        <div class="hs-item">
+          <span class="hs-val text-amber">{{ satisfactionGlobale }} / 5 ★</span>
+          <span class="hs-lbl">Satisfaction</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-blue">{{ commentairesAudites }}</span>
+          <span class="hs-lbl">Avis reçus</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-red">{{ avisSignales }}</span>
+          <span class="hs-lbl">Signalés</span>
+        </div>
       </div>
     </div>
-
-    <div class="kpi-card kpi-card--danger">
-      <span class="kpi-card__icon kpi-card__icon--red"><i class="bi bi-exclamation-triangle-fill"></i></span>
-      <div class="kpi-card__body">
-        <span class="kpi-card__label">Avis signalés modération</span>
-        <span class="kpi-card__value kpi-card__value--red">{{ avisSignales }} signalés</span>
-      </div>
-    </div>
-  </div>
 
   <!-- Barre de filtres -->
   <div class="toolbar">

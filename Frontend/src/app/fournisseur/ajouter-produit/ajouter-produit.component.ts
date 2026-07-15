@@ -1,7 +1,9 @@
-import { Component, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
+﻿import { Component, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ProduitService } from '../services/produit.service';
+import { ProduitService as CoreProduitService } from '../../core/services/produit.service';
 
 type CategorieVehicule = 'automobile' | 'moto' | 'poids-lourd' | 'velo';
 
@@ -75,6 +77,11 @@ export class AjouterProduitComponent {
   fichiersSecondaires: (File | null)[] = [null, null, null];
   imagesPreviewSecondaires: (string | null)[] = [null, null, null];
 
+  // Données chargées depuis l'API pour mapping id <-> nom
+  availableCategories: { id: number; nom: string }[] = [];
+  typePiecesMap: { [key: string]: number } = {};
+  availableTypePieces: any[] = [];
+
   get typesPieceDisponibles(): string[] {
     return this.form.categorieVehicule ? this.typesPieceParCategorie[this.form.categorieVehicule] : [];
   }
@@ -87,11 +94,66 @@ export class AjouterProduitComponent {
     return `${prefix}-${suffix}`;
   }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private produitService: ProduitService,
+    private coreProduitService: CoreProduitService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadCategories();
+  }
+
+  private loadCategories(): void {
+    this.coreProduitService.getCategories().subscribe({
+      next: (cats) => {
+        this.availableCategories = cats.map(c => ({ id: (c as any).id, nom: (c as any).nom }));
+      },
+      error: () => {
+        // fallback: keep UI categories
+      }
+    });
+  }
 
   selectCategorie(cat: CategorieVehicule): void {
     this.form.categorieVehicule = cat;
     this.form.typePiece = null;
+    // Charger les types de pièces pour la catégorie correspondante si possible
+    const catId = this.getCategorieIdForVehicule(cat);
+    if (catId) this.loadTypePiecesForCategorie(catId);
+  }
+
+  private getCategorieIdForVehicule(cat: CategorieVehicule): number | null {
+    const key = cat.toString().toLowerCase();
+    // Chercher une catégorie dont le nom contient un mot-clé
+    const heuristics: { [k: string]: string[] } = {
+      automobile: ['auto', 'automobile', 'voiture'],
+      moto: ['moto', 'motorcycle', 'motor'],
+      'poids-lourd': ['poids', 'lourd', 'pl', 'poids lourd'],
+      velo: ['velo', 'vélo', 'bicyc']
+    };
+    const keywords = heuristics[key] || [];
+    for (const c of this.availableCategories) {
+      const nom = c.nom.toLowerCase();
+      if (keywords.some(k => nom.includes(k))) return c.id;
+    }
+    return null;
+  }
+
+  private loadTypePiecesForCategorie(categorieId: number): void {
+    this.coreProduitService.getTypesPieces(categorieId).subscribe({
+      next: (types) => {
+        this.availableTypePieces = types;
+        types.forEach((tp: any) => {
+          const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
+          this.typePiecesMap[normalized] = tp.id;
+          this.typePiecesMap[tp.nom] = tp.id;
+        });
+      },
+      error: (err) => {
+        console.warn('Impossible de charger types de pièces', err);
+      }
+    });
   }
 
   // ── OUVERTURE DES SÉLECTEURS DE FICHIER ──
@@ -169,27 +231,44 @@ export class AjouterProduitComponent {
     this.isSaving = true;
 
     const formData = new FormData();
-    formData.append('categorieVehicule', this.form.categorieVehicule);
-    formData.append('typePiece', this.form.typePiece);
+    // map selections to backend expected fields: 'categorie' (id) and 'type_piece' (id)
+    const categorieId = this.getCategorieIdForVehicule(this.form.categorieVehicule!);
+    let typePieceId: number | null = null;
+    if (this.form.typePiece) {
+      const normalized = this.form.typePiece.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
+      typePieceId = this.typePiecesMap[this.form.typePiece] || this.typePiecesMap[normalized] || null;
+    }
+    if (!categorieId || !typePieceId) {
+      this.showToast('Impossible de déterminer la catégorie ou le type (IDs manquants).', 'error');
+      this.isSaving = false;
+      return;
+    }
+    formData.append('categorie', String(categorieId));
+    formData.append('type_piece', String(typePieceId));
     formData.append('nom', this.form.nom);
     formData.append('reference', this.form.reference);
     formData.append('marque', this.form.marque);
     formData.append('prix', String(this.form.prix));
     formData.append('stock', String(this.form.stock));
     formData.append('description', this.form.description);
-    formData.append('imagePrincipale', this.fichierPrincipal);
-
+    // Backend serializer attend les champs 'image', 'image_2', 'image_3', 'image_4'
+    formData.append('image', this.fichierPrincipal as Blob);
     this.fichiersSecondaires.forEach((file, i) => {
-      if (file) formData.append(`imageSecondaire${i + 1}`, file);
+      if (file) formData.append(`image_${i + 2}`, file);
     });
 
-    // TODO: this.produitService.creerProduit(formData).subscribe(...)
-
-    setTimeout(() => {
-      this.isSaving = false;
-      this.showToast(`"${this.form.nom}" a été ajouté au catalogue.`, 'success');
-      setTimeout(() => this.router.navigate(['/fournisseur/produits/list-produit']), 900);
-    }, 700);
+    this.produitService.createProduit(formData).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.showToast(`"${this.form.nom}" a été ajouté au catalogue.`, 'success');
+        setTimeout(() => this.router.navigate(['/fournisseur/produits/list-produit']), 900);
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.showToast("Erreur lors de l'ajout du produit", 'error');
+        console.error('Erreur création produit:', err);
+      }
+    });
   }
 
   retour(): void {

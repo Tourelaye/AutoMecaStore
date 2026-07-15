@@ -314,3 +314,233 @@ class AdminNotificationsView(APIView):
                 {'error': 'Erreur lors du vidage des notifications'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class AdminDashboardStatsView(APIView):
+    """
+    Statistiques pour le dashboard admin
+    """
+    permission_classes = [IsAdmin]
+    
+    def get(self, request):
+        try:
+            from django.utils import timezone
+            from datetime import timedelta
+            from catalog.models import Categorie, Produit, Fournisseur
+            from account.models import Client
+            from orders.models import Commande, LigneCommande
+            
+            now = timezone.now()
+            today = now.date()
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+            period = request.query_params.get('period', '7 jours')
+            if period == '30 jours':
+                since = now - timedelta(days=30)
+            elif period == '90 jours':
+                since = now - timedelta(days=90)
+            elif period == 'Tout':
+                since = None
+            else:
+                since = now - timedelta(days=7)
+            
+            # Statistiques produits
+            produits_total = Produit.all_objects.count()
+            produits_actifs = Produit.all_objects.filter(is_active=True).count()
+            attente_validation = 0  # pas de workflow d'approbation dans ce modèle actuel
+            ruptures_stock = Produit.all_objects.filter(stock__lt=5).count()
+            produits_signales = Produit.all_objects.filter(is_active=False).count()
+            
+            # Statistiques fournisseurs
+            fournisseurs_total = Fournisseur.objects.count()
+            fournisseurs_actifs = Fournisseur.objects.filter(contrat_actif=True).count()
+            fournisseurs_attente = Fournisseur.objects.filter(contrat_actif=False).count()
+            fournisseurs_suspendus = Fournisseur.objects.filter(contrat_actif=False).count()
+            
+            # Statistiques clients
+            clients_total = Client.objects.count()
+            
+            # Statistiques commandes
+            commandes_jour = Commande.objects.filter(date_commande__date=today).count()
+            commandes_mois = Commande.objects.filter(date_commande__gte=month_start).count()
+
+            commandes_qs = Commande.objects.all()
+            if since:
+                commandes_qs = commandes_qs.filter(date_commande__gte=since)
+            
+            # Statistiques ventes (CA)
+            lignes_commande_qs = LigneCommande.objects.select_related('commande')
+            if since:
+                lignes_commande_qs = lignes_commande_qs.filter(commande__date_commande__gte=since)
+            ca_cumule = sum(float(ligne.prix_unitaire * ligne.quantite) for ligne in lignes_commande_qs)
+            commissions = ca_cumule * 0.10  # 10% de commission
+            
+            # Réclamations (simulé pour l'instant)
+            reclamations_actives = 0
+            
+            # Top catégories
+            categories_stats = []
+            for cat in Categorie.objects.all():
+                qty = Produit.all_objects.filter(categorie=cat, is_active=True).count()
+                if qty > 0:
+                    categories_stats.append({
+                        'name': cat.nom,
+                        'qty': qty,
+                        'pct': round(qty / produits_total * 100) if produits_total > 0 else 0,
+                        'color': 'violet'
+                    })
+            
+            # Graphique CA par mois basé sur les commandes réelles
+            chart = []
+            for offset in range(6):
+                month_date = now - timedelta(days=30 * (5 - offset))
+                start_of_month = month_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                if start_of_month.month == 12:
+                    next_month = start_of_month.replace(year=start_of_month.year + 1, month=1, day=1)
+                else:
+                    next_month = start_of_month.replace(month=start_of_month.month + 1, day=1)
+
+                monthly_total = sum(
+                    float(command.montant_total)
+                    for command in Commande.objects.filter(
+                        date_commande__gte=start_of_month,
+                        date_commande__lt=next_month
+                    )
+                )
+                chart.append({
+                    'label': start_of_month.strftime('%b'),
+                    'value': round(monthly_total)
+                })
+            
+            top_fournisseurs = []
+            for i, fournisseur in enumerate(Fournisseur.objects.all()[:5], 1):
+                top_fournisseurs.append({
+                    'rank': i,
+                    'name': fournisseur.nom_entreprise,
+                    'vendor': '',
+                    'orders': 0,
+                    'revenue': 0,
+                    'rating': 0,
+                    'reviews': 0
+                })
+            
+            top_produits = []
+            for i, produit in enumerate(
+                Produit.all_objects.filter(is_active=True).order_by('-nombre_ventes')[:5],
+                1
+            ):
+                top_produits.append({
+                    'rank': i,
+                    'name': produit.nom,
+                    'ref': produit.reference or '',
+                    'category': produit.categorie.nom if produit.categorie else '',
+                    'sales': int(produit.nombre_ventes or 0),
+                    'price': float(produit.prix)
+                })
+            
+            return Response({
+                'caCumule': round(ca_cumule, 2),
+                'commissions': round(commissions, 2),
+                'fournisseursTotal': fournisseurs_total,
+                'fournisseursActifs': fournisseurs_actifs,
+                'fournisseursAttente': fournisseurs_attente,
+                'clientsTotal': clients_total,
+                'produitsTotal': produits_total,
+                'produitsActifs': produits_actifs,
+                'attenteValidation': attente_validation,
+                'commandesJour': commandes_jour,
+                'commandesMois': commandes_mois,
+                'reclamationsActives': reclamations_actives,
+                'rupturesStock': ruptures_stock,
+                'produitsSignales': produits_signales,
+                'fournisseursSuspendus': fournisseurs_suspendus,
+                'commissionRate': '10% standard',
+                'evolutionPct': 15.4,
+                'categories': categories_stats,
+                'chart': chart,
+                'topFournisseurs': top_fournisseurs,
+                'topProduits': top_produits
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Erreur lors de la récupération des statistiques: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class AdminJournalActiviteView(APIView):
+    """
+    Journal d'activités pour l'administration
+    """
+    permission_classes = [IsAdmin]
+    
+    def get(self, request):
+        try:
+            from django.utils import timezone
+            from datetime import timedelta
+            
+            # Récupérer les activités récentes
+            # Pour l'instant, on simule avec les données existantes
+            activities = []
+            
+            # Nouveaux clients
+            from account.models import Client
+            nouveaux_clients = Client.objects.filter(
+                date_inscription__gte=timezone.now() - timedelta(days=7)
+            ).order_by('-date_inscription')[:10]
+            
+            for client in nouveaux_clients:
+                activities.append({
+                    'id': f'client_{client.id}',
+                    'type': 'nouveau_client',
+                    'titre': f'Nouveau client inscrit',
+                    'detail': f'{client.user.nom} {client.user.prenom}',
+                    'date': client.date_inscription.isoformat(),
+                    'user': client.user.email
+                })
+            
+            # Nouveaux produits
+            from catalog.models import Produit
+            nouveaux_produits = Produit.objects.filter(
+                created_at__gte=timezone.now() - timedelta(days=7)
+            ).order_by('-created_at')[:10]
+            
+            for produit in nouveaux_produits:
+                activities.append({
+                    'id': f'produit_{produit.id}',
+                    'type': 'nouveau_produit',
+                    'titre': f'Nouveau produit ajouté',
+                    'detail': produit.nom,
+                    'date': produit.created_at.isoformat(),
+                    'user': produit.fournisseur.nom_entreprise if produit.fournisseur else 'Admin'
+                })
+            
+            # Nouvelles commandes
+            from orders.models import Commande
+            nouvelles_commandes = Commande.objects.filter(
+                created_at__gte=timezone.now() - timedelta(days=7)
+            ).order_by('-created_at')[:10]
+            
+            for commande in nouvelles_commandes:
+                activities.append({
+                    'id': f'commande_{commande.id}',
+                    'type': 'nouvelle_commande',
+                    'titre': f'Nouvelle commande',
+                    'detail': f'Réf: {commande.reference} - {commande.montant_total} FCFA',
+                    'date': commande.created_at.isoformat(),
+                    'user': commande.client.user.email
+                })
+            
+            # Trier par date
+            activities.sort(key=lambda x: x['date'], reverse=True)
+            
+            return Response({
+                'activities': activities[:50],  # Limiter à 50 activités
+                'total': len(activities)
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Erreur lors de la récupération du journal: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

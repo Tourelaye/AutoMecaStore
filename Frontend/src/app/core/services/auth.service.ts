@@ -1,5 +1,5 @@
 import { Injectable, inject, forwardRef } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { PanierService } from './panier.service';
 
@@ -80,11 +80,7 @@ export class AuthService {
   }
 
   fetchProfil(): Observable<Utilisateur> {
-    const token = this.getToken();
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    const user = this.utilisateurSubject.value;
-    const url = `${this.apiUrl}/me/${user?.id ?? ''}/`;
-    return this.http.get<Utilisateur>(url, { headers }).pipe(
+    return this.http.get<Utilisateur>(`${this.apiUrl}/me/`).pipe(
       tap((profil) => {
         this.utilisateurSubject.next(profil);
         localStorage.setItem('user', JSON.stringify(profil));
@@ -93,16 +89,7 @@ export class AuthService {
   }
 
   updateProfil(data: Partial<Utilisateur>): Observable<Utilisateur> {
-    const token = this.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-    return this.http.patch<Utilisateur>(
-      `${this.apiUrl}/me/`,
-      data,
-      { headers }
-    ).pipe(
+    return this.http.patch<Utilisateur>(`${this.apiUrl}/me/`, data).pipe(
       tap((profil) => {
         this.utilisateurSubject.next(profil);
         localStorage.setItem('user', JSON.stringify(profil));
@@ -133,6 +120,11 @@ export class AuthService {
     return user?.role === 'client';
   }
 
+  isFournisseur(): boolean {
+    const user = this.utilisateurSubject.value;
+    return user?.role === 'fournisseur';
+  }
+
   getCurrentUserRole(): string | null {
     const user = this.utilisateurSubject.value;
     return user?.role || null;
@@ -145,7 +137,15 @@ export class AuthService {
 
   getToken(): string | null { return localStorage.getItem('access_token'); }
   getUtilisateur(): Utilisateur | null { return this.utilisateurSubject.value; }
+  getCurrentUser(): Utilisateur | null { return this.utilisateurSubject.value; }
   isLoggedIn(): boolean { return this.isLoggedInSubject.value; }
+  isAuthenticated(): boolean { return this.isLoggedInSubject.value; }
+
+  homeRoute(): string {
+    const role = this.getCurrentUserRole();
+    return role === 'admin' ? '/admin/dashboard' : role === 'fournisseur' ? '/fournisseur/dashboard' : '/login';
+  }
+
   getPrenom(): string { return this.utilisateurSubject.value?.prenom ?? ''; }
 
   getInitiales(): string {
@@ -156,7 +156,17 @@ export class AuthService {
 
   private decodeToken(token: string): any {
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      const base64Url = token.split('.')[1];
+      if (!base64Url) return {};
+
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padding = base64.length % 4 === 0 ? '' : '='.repeat(4 - (base64.length % 4));
+      const binary = atob(base64 + padding);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+      const jsonPayload = new TextDecoder('utf-8').decode(bytes);
+
+      return JSON.parse(jsonPayload);
     } catch { return {}; }
   }
 }

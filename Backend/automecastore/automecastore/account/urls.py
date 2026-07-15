@@ -3,7 +3,7 @@ from .views import (
     RegisterView, MyTokenObtainPairView, UtilisateurDetailView, 
     CategorieListCreateView, CategorieDetailView, ProduitListCreateView, ProduitDetailView,
     ClientListView, ClientDetailView, ClientToggleActiveView, ClientDeleteView, ClientStatsView,
-    AdminNotificationsView, CreateAdminView
+    AdminNotificationsView, CreateAdminView, AdminDashboardStatsView, AdminJournalActiviteView
 )
 from .mon_compte_views import MeView, MesCommandesView, FavorisView, PanierView, AjouterAuPanierView, SupprimerDuPanierView, MettreAJourQuantiteView
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -27,6 +27,12 @@ urlpatterns = [
     
     # URLs pour les notifications admin
     path('notifications/', AdminNotificationsView.as_view(), name='admin_notifications'),
+    
+    # URL pour les statistiques du dashboard admin
+    path('admin/dashboard-stats/', AdminDashboardStatsView.as_view(), name='admin_dashboard_stats'),
+    
+    # URL pour le journal d'activités admin
+    path('admin/journal-activite/', AdminJournalActiviteView.as_view(), name='admin_journal_activite'),
     
     # URL pour la création d'administrateurs (sécurisée)
     path('create-admin/', CreateAdminView.as_view(), name='create_admin'),

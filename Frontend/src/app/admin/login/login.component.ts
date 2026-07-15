@@ -1,23 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { MockAuthService } from '../../core/services/mock-auth.service';
-
-interface DemoAccount {
-  email: string;
-  password: string;
-  nom: string;
-  prenom: string;
-  role: string;
-  avatar: string;
-  type: 'admin' | 'fournisseur';
-}
+import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
 })
@@ -43,28 +33,14 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   particles: { x: number; y: number; size: number; speed: number; opacity: number }[] = [];
 
-  demoAccounts: DemoAccount[] = [
-    {
-      email: 'admin@automeca.com', password: 'Admin123@',
-      nom: 'Diallo', prenom: 'Ibrahima',
-      role: 'Super Admin', avatar: 'IA', type: 'admin',
-    },
-    {
-      email: 'fournisseur@automeca.com', password: 'Fournisseur123@',
-      nom: 'Ndiaye', prenom: 'Fatou',
-      role: 'Fournisseur', avatar: 'FN', type: 'fournisseur',
-    },
-  ];
-
   constructor(
     private router: Router,
-    private authService: MockAuthService
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.generateParticles();
 
-    // ✅ Déjà connecté → redirection immédiate sans clignotement
     if (this.authService.isAuthenticated()) {
       this.router.navigateByUrl(this.authService.homeRoute());
       return;
@@ -98,10 +74,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
     this.errorMessage = '';
-    const emailLower = this.email.trim().toLowerCase();
-    this.activeRole =
-      emailLower === 'admin@automeca.com'       ? 'admin'       :
-      emailLower === 'fournisseur@automeca.com' ? 'fournisseur' : null;
     this.loginStep = 2;
   }
 
@@ -119,10 +91,11 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.login(this.email.trim().toLowerCase(), this.password)
       .subscribe({
-        next: (user) => {
+        next: () => {
           this.attempts  = 0;
           this.isLoading = false;
-          this.successMsg = `Bienvenue ! Redirection vers votre espace ${user.role}...`;
+          const role = this.authService.getCurrentUserRole();
+          this.successMsg = `Bienvenue ! Redirection vers votre espace ${role}...`;
 
           if (this.remember) {
             localStorage.setItem('automeca_remember', JSON.stringify({ email: this.email }));
@@ -130,22 +103,21 @@ export class LoginComponent implements OnInit, OnDestroy {
             localStorage.removeItem('automeca_remember');
           }
 
-          // ✅ FIX CLIGNOTEMENT :
-          // On utilise replaceUrl:true pour éviter que la page login
-          // reste dans l'historique et cause des re-renders
-          // On supprime aussi le setTimeout — la navigation est immédiate
-          // car MockAuthService.login() est synchrone (of())
           const route = this.authService.homeRoute();
           this.router.navigateByUrl(route, { replaceUrl: true });
         },
 
-        error: (err: Error) => {
+        error: (err: any) => {
           this.isLoading = false;
           this.attempts++;
+          let msg = err?.error?.detail || err?.error?.message || err?.message || 'Identifiants invalides.';
+          if (msg.startsWith('Http failure response')) {
+            msg = 'Identifiants invalides.';
+          }
           if (this.attempts >= 3) {
             this.blockAccount();
           } else {
-            this.errorMessage = `${err.message} Tentative ${this.attempts}/3.`;
+            this.errorMessage = `${msg} Tentative ${this.attempts}/3.`;
           }
         }
       });
@@ -160,11 +132,6 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.isBlocked = false; this.attempts = 0;
       }
     }, 1000);
-  }
-
-  fillDemo(account: DemoAccount): void {
-    this.email = account.email; this.activeRole = account.type; this.loginStep = 2;
-    setTimeout(() => { this.password = account.password; }, 300);
   }
 
   onKeyDown(event: KeyboardEvent): void {

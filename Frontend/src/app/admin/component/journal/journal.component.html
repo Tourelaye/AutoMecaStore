@@ -47,7 +47,7 @@
           <th>Date / Heure (UTC)</th>
           <th>Rubrique</th>
           <th>Action réalisée</th>
-          <th>Utilisateur admin</th>
+          <th>Utilisateur</th>
           <th>Adresse IP</th>
           <th>Description technique</th>
         </tr>
@@ -55,13 +55,13 @@
       <tbody>
         <tr *ngFor="let l of filtered; let i = index" [style.--delay]="(i * 40) + 'ms'">
           <td class="date-cell">
-            <span class="date-cell__date">{{ l.date }}</span>
-            <span class="date-cell__time mono">{{ l.time }}</span>
+            <span class="date-cell__date">{{ l.date_creation | date:'dd/MM/yyyy' }}</span>
+            <span class="date-cell__time mono">{{ l.date_creation | date:'HH:mm' }}</span>
           </td>
-          <td><span class="badge" [class]="'badge--' + l.category">{{ categoryLabel(l.category) }}</span></td>
-          <td class="strong">{{ l.action }}</td>
-          <td>{{ l.adminUser }}</td>
-          <td class="mono muted">{{ l.ipAddress }}</td>
+          <td><span class="badge" [class]="'badge--' + l.categorie">{{ l.categorie_label }}</span></td>
+          <td class="strong">{{ l.action_label }}</td>
+          <td>{{ l.utilisateur_nom }}</td>
+          <td class="mono muted">{{ l.ip_address || '-' }}</td>
           <td class="description">{{ l.description }}</td>
         </tr>
       </tbody>

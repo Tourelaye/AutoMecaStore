@@ -54,14 +54,10 @@ export class ParametresComponent {
 
   securite = {
     deuxFA: false,
-    telephoneMasque: '+221 77 *** ** 30'
+    telephoneMasque: ''
   };
 
-  sessions: Session[] = [
-    { appareil: 'Chrome sur Windows', icon: 'bi-windows', localisation: 'Dakar, Sénégal', derniereActivite: "Aujourd'hui, 14:32", current: true },
-    { appareil: 'Application mobile Android', icon: 'bi-phone', localisation: 'Dakar, Sénégal', derniereActivite: 'Hier, 19:10', current: false },
-    { appareil: 'Safari sur iPhone', icon: 'bi-apple', localisation: 'Thiès, Sénégal', derniereActivite: '3 jours', current: false }
-  ];
+  sessions: Session[] = [];
 
   // =============================================
   // NOTIFICATIONS
@@ -81,10 +77,7 @@ export class ParametresComponent {
   // =============================================
   showAddMethod = false;
 
-  methodesVersement: MethodeVersement[] = [
-    { id: 1, type: 'banque', nom: 'CBAO Groupe Attijariwafa Bank', detail: 'SN012 01001 034567890123 45', parDefaut: true },
-    { id: 2, type: 'mobile', nom: 'Wave / Orange Money', detail: '+221 77 845 20 30', parDefaut: false }
-  ];
+  methodesVersement: MethodeVersement[] = [];
 
   nouvelleMethode: { type: 'banque' | 'mobile'; nom: string; detail: string } = {
     type: 'banque',
