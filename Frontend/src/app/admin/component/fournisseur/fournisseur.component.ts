@@ -25,19 +25,21 @@ export class FournisseurComponent implements OnInit {
   statusOptions: { value: 'tous' | FournisseurStatus; label: string }[] = [
     { value: 'tous', label: 'Tous les statuts' },
     { value: 'actif', label: 'Actif' },
-    { value: 'suspendu', label: 'Suspendu' },
-    { value: 'en_attente', label: 'En attente de validation' }
+    { value: 'desactive', label: 'Suspendu' },
+    { value: 'attente', label: 'En attente de validation' }
   ];
 
   // --- Modale de validation ---
   showValidationModal = false;
   validationAction: 'valider' | 'suspendre' | 'reactiver' = 'valider';
   validationCommentaire = '';
+  validationError: string | null = null;
   targetFournisseur: Fournisseur | null = null;
   submitting = false;
 
   // --- Suppression ---
   pendingDeleteId: number | null = null;
+  deleteError: string | null = null;
 
   // ===== NOUVELLES PROPRIÉTÉS POUR AFFICHAGE DYNAMIQUE =====
   showDetailModal = false;
@@ -87,8 +89,8 @@ export class FournisseurComponent implements OnInit {
   statusLabel(statut: FournisseurStatus): string {
     const labels: Record<FournisseurStatus, string> = {
       'actif': 'ACTIF',
-      'suspendu': 'SUSPENDU',
-      'en_attente': 'EN ATTENTE'
+      'desactive': 'SUSPENDU',
+      'attente': 'EN ATTENTE'
     };
     return labels[statut] || statut;
   }
@@ -96,8 +98,8 @@ export class FournisseurComponent implements OnInit {
   statusClass(statut: FournisseurStatus): string {
     const classes: Record<FournisseurStatus, string> = {
       'actif': 'badge-success',
-      'suspendu': 'badge-danger',
-      'en_attente': 'badge-warning'
+      'desactive': 'badge-danger',
+      'attente': 'badge-warning'
     };
     return classes[statut] || 'badge-secondary';
   }
@@ -111,6 +113,8 @@ export class FournisseurComponent implements OnInit {
     this.targetFournisseur = f;
     this.validationAction = action;
     this.validationCommentaire = '';
+    this.validationError = null;
+    this.submitting = false;
     this.showValidationModal = true;
   }
 
@@ -118,6 +122,7 @@ export class FournisseurComponent implements OnInit {
     if (this.submitting) return;
     this.showValidationModal = false;
     this.targetFournisseur = null;
+    this.validationError = null;
   }
 
   confirmValidation(): void {
@@ -130,10 +135,12 @@ export class FournisseurComponent implements OnInit {
         this.submitting = false;
         this.showValidationModal = false;
         this.targetFournisseur = null;
+        this.validationError = null;
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.submitting = false;
+        this.validationError = err?.error?.error || "Une erreur est survenue lors de la mise à jour.";
       }
     });
   }
@@ -141,18 +148,26 @@ export class FournisseurComponent implements OnInit {
   // --- Suppression ---
   askDelete(f: Fournisseur): void {
     this.pendingDeleteId = f.user.id;
+    this.deleteError = null;
   }
 
   cancelDelete(): void {
     this.pendingDeleteId = null;
+    this.deleteError = null;
   }
 
   confirmDelete(): void {
     if (!this.pendingDeleteId) return;
-    this.fournisseurService.delete(this.pendingDeleteId).subscribe(() => {
-      this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== this.pendingDeleteId);
-      this.applyFilters();
-      this.pendingDeleteId = null;
+    this.fournisseurService.delete(this.pendingDeleteId).subscribe({
+      next: () => {
+        this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== this.pendingDeleteId);
+        this.applyFilters();
+        this.pendingDeleteId = null;
+        this.deleteError = null;
+      },
+      error: (err) => {
+        this.deleteError = err?.error?.error || "Une erreur est survenue lors de la suppression.";
+      }
     });
   }
 

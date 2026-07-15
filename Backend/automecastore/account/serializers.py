@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Utilisateur, Client 
+from .models import Utilisateur, Client, Fournisseur 
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from orders.models import Commande
@@ -38,11 +38,55 @@ class UtilisateurSerializer(serializers.ModelSerializer):
             'id',
             'nom',
             'prenom',
-            'email', 
-            'role', 
-            'adresse', 
-            'telephone'
+            'email',
+            'role',
+            'adresse',
+            'telephone',
+            'is_active',
+            'date_joined'
             ]
+
+class RegisterFournisseurSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    nom_entreprise = serializers.CharField(max_length=200, required=True)
+    siret = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    description = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = Utilisateur
+        fields = [
+            'id',
+            'email',
+            'password',
+            'nom',
+            'prenom',
+            'telephone',
+            'adresse',
+            'nom_entreprise',
+            'siret',
+            'description'
+        ]
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        nom_entreprise = validated_data.pop('nom_entreprise', '')
+        siret = validated_data.pop('siret', '')
+        description = validated_data.pop('description', '')
+        validated_data['role'] = 'fournisseur'
+        validated_data['email'] = validated_data['email'].strip().lower()
+        user = Utilisateur.objects.create_user(
+            password=password,
+            is_active=True,
+            **validated_data
+        )
+        Fournisseur.objects.create(
+            user=user,
+            nom_entreprise=nom_entreprise,
+            siret=siret,
+            description=description
+        )
+        return user
+
 
 class CategorieSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,6 +145,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['nom'] = user.nom
         token['prenom'] = user.prenom
         token['user_id'] = user.id
+        if user.role == 'fournisseur' and hasattr(user, 'fournisseur'):
+            token['fournisseur_status'] = user.fournisseur.statut
+        else:
+            token['fournisseur_status'] = None
         return token
 
 class ClientSerializer(serializers.ModelSerializer):

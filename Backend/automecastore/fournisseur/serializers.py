@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Transaction, HistoriqueActivite, Notification
 from account.models import Fournisseur
+from account.serializers import UtilisateurSerializer
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -34,6 +35,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class FournisseurSerializer(serializers.ModelSerializer):
+    user = UtilisateurSerializer(read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     nom = serializers.CharField(source='user.nom', read_only=True)
     prenom = serializers.CharField(source='user.prenom', read_only=True)

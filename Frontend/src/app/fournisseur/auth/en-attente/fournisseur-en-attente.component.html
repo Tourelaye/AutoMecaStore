@@ -1,0 +1,94 @@
+<div class="auth-page">
+  <div class="auth-shell waiting-shell">
+
+    <!-- ===== PANNEAU DE MARQUE ===== -->
+    <div class="brand-panel">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <div class="brand-content">
+        <div class="brand-logo">
+          <div class="logo-badge"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <span class="logo-title">AutoMeca<strong>Store</strong></span>
+            <span class="logo-sub">Espace Fournisseur</span>
+          </div>
+        </div>
+
+        <h1>Merci de votre inscription !</h1>
+        <p class="brand-text">
+          Notre équipe vérifie chaque nouveau compte fournisseur pour garantir la qualité et la fiabilité de notre marketplace.
+        </p>
+
+        <ul class="brand-features">
+          <li>
+            <span class="feat-icon"><i class="bi bi-clock-history"></i></span>
+            Validation généralement sous 24-48h ouvrées
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-envelope-check"></i></span>
+            Vous serez notifié dès l'activation
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-headset"></i></span>
+            Une question ? Contactez notre support
+          </li>
+        </ul>
+      </div>
+
+      <div class="brand-footer">
+        <i class="bi bi-c-circle"></i> {{ currentYear }} AutoMecaStore — Tous droits réservés
+      </div>
+    </div>
+
+    <!-- ===== PANNEAU STATUT ===== -->
+    <div class="form-panel">
+      <div class="form-wrap status-wrap">
+
+        <div class="status-icon-wrap">
+          <div class="status-icon-ring"></div>
+          <div class="status-icon"><i class="bi bi-hourglass-split"></i></div>
+        </div>
+
+        <div class="status-header">
+          <h2>Validation en cours</h2>
+          <p>
+            Votre compte fournisseur a bien été créé. Il doit maintenant être examiné et validé par un administrateur avant que vous puissiez accéder à votre espace vendeur.
+          </p>
+        </div>
+
+        <!-- TIMELINE DES ÉTAPES -->
+        <div class="steps-timeline">
+          <div class="step-line">
+            <div class="step-dot done"><i class="bi bi-check-lg"></i></div>
+            <div class="step-track done"></div>
+            <div class="step-dot active"><i class="bi bi-hourglass-split pulse-icon"></i></div>
+            <div class="step-track"></div>
+            <div class="step-dot"><i class="bi bi-check2-circle"></i></div>
+          </div>
+          <div class="step-labels">
+            <span class="done">Compte créé</span>
+            <span class="active">En vérification</span>
+            <span>Compte activé</span>
+          </div>
+        </div>
+
+        <div class="status-hint">
+          <i class="bi bi-info-circle"></i>
+          Vous recevrez un email de confirmation, ou vous pourrez simplement vous reconnecter une fois votre compte activé.
+        </div>
+
+        <div class="status-actions">
+          <button class="btn btn-outline" (click)="refreshStatus()" [disabled]="isRefreshing">
+            <i class="bi bi-arrow-clockwise" [class.spin]="isRefreshing"></i>
+            {{ isRefreshing ? 'Vérification...' : 'Vérifier mon statut' }}
+          </button>
+          <button class="btn btn-ghost" (click)="logout()">
+            <i class="bi bi-box-arrow-right"></i> Se déconnecter
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

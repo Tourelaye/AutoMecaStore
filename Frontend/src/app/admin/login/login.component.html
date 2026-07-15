@@ -42,30 +42,6 @@
           automatiquement votre rôle : administrateur ou fournisseur.
         </p>
 
-        <!-- Rôles -->
-        <!-- <div class="role-badges">
-          <div class="role-badge admin" [class.role-active]="activeRole === 'admin'">
-            <i class="bi bi-shield-lock-fill"></i>
-            <div>
-              <strong>Administrateur</strong>
-              <span>Gestion complète de la plateforme</span>
-            </div>
-            <span class="role-check" *ngIf="activeRole === 'admin'">
-              <i class="bi bi-check-circle-fill"></i>
-            </span>
-          </div>
-          <div class="role-badge fournisseur" [class.role-active]="activeRole === 'fournisseur'">
-            <i class="bi bi-truck"></i>
-            <div>
-              <strong>Fournisseur</strong>
-              <span>Produits, stock et commandes</span>
-            </div>
-            <span class="role-check" *ngIf="activeRole === 'fournisseur'">
-              <i class="bi bi-check-circle-fill"></i>
-            </span>
-          </div>
-        </div> -->
-
         <!-- Features -->
         <ul class="feature-list">
           <li>
@@ -115,36 +91,14 @@
           <span>AutoMecaStore</span>
         </div>
 
-        <!-- Indicateur de progression -->
-        <div class="step-indicator">
-          <div class="step-item" [class.step-done]="loginStep > 1" [class.step-current]="loginStep === 1">
-            <div class="step-circle">
-              <i class="bi bi-check" *ngIf="loginStep > 1"></i>
-              <span *ngIf="loginStep <= 1">1</span>
-            </div>
-            <span class="step-label">Identifiant</span>
-          </div>
-          <div class="step-line" [class.step-line-done]="loginStep > 1"></div>
-          <div class="step-item" [class.step-current]="loginStep === 2">
-            <div class="step-circle">2</div>
-            <span class="step-label">Mot de passe</span>
-          </div>
-        </div>
+        <a href="/" class="back-link">
+          <i class="bi bi-arrow-left"></i> Retour à l'accueil
+        </a>
 
-        <!-- Titre dynamique -->
+        <!-- Titre -->
         <div class="form-title">
-          <h3 *ngIf="loginStep === 1">Connexion</h3>
-          <h3 *ngIf="loginStep === 2 && !activeRole">Mot de passe</h3>
-          <h3 *ngIf="loginStep === 2 && activeRole">
-            Bonjour,
-            <span class="title-role" [class.role-admin]="activeRole==='admin'" [class.role-fourn]="activeRole==='fournisseur'">
-              {{ roleLabel }}
-            </span>
-          </h3>
-          <p *ngIf="loginStep === 1">Entrez votre email pour continuer</p>
-          <p *ngIf="loginStep === 2">
-            <span class="email-pill"><i class="bi bi-person-circle"></i> {{ email }}</span>
-          </p>
+          <h3>Connexion Admin</h3>
+          <p>Entrez votre email et votre mot de passe</p>
         </div>
 
         <!-- ALERTE BLOCAGE -->
@@ -168,84 +122,53 @@
           {{ successMsg }}
         </div>
 
-        <!-- Rôle détecté badge -->
-        <div class="detected-role" *ngIf="activeRole && loginStep === 2">
-          <i class="bi" [class.bi-shield-lock-fill]="activeRole==='admin'" [class.bi-truck]="activeRole==='fournisseur'"></i>
-          <span>Rôle détecté : <strong>{{ roleLabel }}</strong></span>
-          <span class="detected-ok"><i class="bi bi-check-circle-fill"></i></span>
-        </div>
-
         <!-- ===== FORMULAIRE ===== -->
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" autocomplete="off">
 
-          <!-- STEP 1 : EMAIL -->
-          <div class="form-step" [class.step-visible]="loginStep === 1" [class.step-hidden]="loginStep !== 1">
-            <div class="field-group">
-              <label>Adresse email</label>
-              <div class="field-wrap" [class.field-filled]="email" [class.field-valid]="emailValid">
-                <i class="bi bi-envelope-fill field-icon"></i>
-                <input
-                  type="email"
-                  [(ngModel)]="email"
-                  name="email"
-                  placeholder="votre@email.com"
-                  autocomplete="email"
-                  (keyup.enter)="nextStep()"
-                >
-                <i class="bi bi-check-circle-fill valid-icon" *ngIf="emailValid"></i>
-              </div>
+          <div class="field-group">
+            <label>Adresse email</label>
+            <div class="field-wrap" [class.field-filled]="email" [class.field-valid]="emailValid">
+              <i class="bi bi-envelope-fill field-icon"></i>
+              <input
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="votre@email.com"
+                autocomplete="email"
+                [disabled]="isLoading"
+              >
+              <i class="bi bi-check-circle-fill valid-icon" *ngIf="emailValid"></i>
             </div>
-
           </div>
 
-          <!-- STEP 2 : MOT DE PASSE -->
-          <div class="form-step" [class.step-visible]="loginStep === 2" [class.step-hidden]="loginStep !== 2">
-            <div class="field-group">
-              <div class="label-row">
-                <label>Mot de passe</label>
-                <a href="#" class="forgot-link">Mot de passe oublié ?</a>
-              </div>
-              <div class="field-wrap" [class.field-filled]="password">
-                <i class="bi bi-lock-fill field-icon"></i>
-                <input
-                  [type]="showPassword ? 'text' : 'password'"
-                  [(ngModel)]="password"
-                  name="password"
-                  placeholder="••••••••"
-                  autocomplete="current-password"
-                  (keydown)="onKeyDown($event)"
-                  (input)="calcStrength()"
-                >
-                <button type="button" class="toggle-eye" (click)="showPassword = !showPassword">
-                  <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
-                </button>
-              </div>
-
-              <!-- Caps Lock warning -->
-              <div class="caps-warning" *ngIf="capsLock">
-                <i class="bi bi-lock-fill"></i> Le verrouillage majuscules est activé
-              </div>
-
-              <!-- Force mot de passe -->
-              <div class="strength-bar-wrap" *ngIf="password">
-                <div class="strength-bars">
-                  <div class="strength-seg" *ngFor="let i of [1,2,3,4]"
-                    [class.active]="passwordStrength >= i"
-                    [style.background]="passwordStrength >= i ? strengthColor : ''">
-                  </div>
-                </div>
-                <span class="strength-label" [style.color]="strengthColor">{{ strengthLabel }}</span>
-              </div>
+          <div class="field-group">
+            <div class="label-row">
+              <label>Mot de passe</label>
+              <a href="#" class="forgot-link">Mot de passe oublié ?</a>
             </div>
-
-            <!-- Se souvenir de moi -->
-            <div class="remember-row">
-              <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="remember" name="remember">
-                <span class="custom-check"><i class="bi bi-check" *ngIf="remember"></i></span>
-                Se souvenir de moi
-              </label>
+            <div class="field-wrap" [class.field-filled]="password">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                [disabled]="isLoading"
+              >
+              <button type="button" class="toggle-eye" (click)="showPassword = !showPassword">
+                <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+              </button>
             </div>
+          </div>
+
+          <!-- Se souvenir de moi -->
+          <div class="remember-row">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="remember" name="remember" [disabled]="isLoading">
+              <span class="custom-check"><i class="bi bi-check" *ngIf="remember"></i></span>
+              Se souvenir de moi
+            </label>
           </div>
 
           <!-- BOUTON PRINCIPAL -->
@@ -255,10 +178,7 @@
             [disabled]="isLoading || isBlocked"
             [class.btn-success-state]="successMsg"
           >
-            <span *ngIf="!isLoading && !successMsg && loginStep === 1">
-              <i class="bi bi-arrow-right-circle"></i> Continuer
-            </span>
-            <span *ngIf="!isLoading && !successMsg && loginStep === 2">
+            <span *ngIf="!isLoading && !successMsg">
               <i class="bi bi-box-arrow-in-right"></i> Se connecter
             </span>
             <span *ngIf="isLoading" class="loading-row">
@@ -268,11 +188,6 @@
             <span *ngIf="successMsg">
               <i class="bi bi-check-circle-fill"></i> Connecté !
             </span>
-          </button>
-
-          <!-- Retour étape 1 -->
-          <button type="button" class="btn-back" *ngIf="loginStep === 2 && !isLoading" (click)="backStep()">
-            <i class="bi bi-arrow-left"></i> Changer d'email
           </button>
 
         </form>

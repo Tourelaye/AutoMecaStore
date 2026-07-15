@@ -1,10 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer, UtilisateurSerializer, CategorieSerializer, ProduitSerializer, MyTokenObtainPairSerializer, ClientSerializer, ClientDetailSerializer
+from .serializers import (
+    RegisterSerializer, RegisterFournisseurSerializer,
+    UtilisateurSerializer, CategorieSerializer, ProduitSerializer,
+    MyTokenObtainPairSerializer, ClientSerializer, ClientDetailSerializer
+)
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, permissions, filters
-from .models import Utilisateur, Client
+from .models import Utilisateur, Client, Fournisseur
 from catalog.models import Categorie, Produit
 from orders.models import Commande, LigneCommande
 from account.permissions import IsAdmin, IsClient
@@ -135,6 +139,54 @@ class RegisterView(APIView):
             print(f"DEBUG: Inscription - Erreurs validation: {serializer.errors}")
         return Response(serializer.errors, status=400)
     
+
+
+class RegisterFournisseurView(APIView):
+    """
+    Inscription publique d'un fournisseur.
+    Le compte est créé avec le statut 'attente' et doit être validé par un admin.
+    """
+    def post(self, request):
+        serializer = RegisterFournisseurSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+
+            # Notifier l'admin qu'un nouveau fournisseur est en attente de validation
+            try:
+                from django.core.cache import cache
+
+                notification_data = {
+                    'type': 'new_fournisseur',
+                    'message': f"Nouveau fournisseur en attente : {user.nom} {user.prenom} ({user.email})",
+                    'fournisseur_id': user.id,
+                    'timestamp': user.date_joined.isoformat(),
+                    'data': {
+                        'nom': user.nom,
+                        'prenom': user.prenom,
+                        'email': user.email,
+                        'telephone': user.telephone,
+                        'nom_entreprise': user.fournisseur.nom_entreprise,
+                        'date_inscription': user.date_joined.isoformat()
+                    }
+                }
+
+                notifications = cache.get('admin_notifications', [])
+                notifications.insert(0, notification_data)
+                cache.set('admin_notifications', notifications[:50], timeout=3600)
+            except Exception as e:
+                print(f"DEBUG: Erreur notification fournisseur: {e}")
+
+            return Response(
+                {
+                    "message": "Inscription réussie. Votre compte sera examiné et validé par un administrateur.",
+                    "email": user.email,
+                    "role": user.role
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # Liste & Création
 class CategorieListCreateView(generics.ListCreateAPIView):
     queryset = Categorie.objects.all()
@@ -312,8 +364,21 @@ class AdminNotificationsView(APIView):
             from datetime import timedelta
             from catalog.models import Produit
             from orders.models import Commande
+            from django.core.cache import cache
             
             notifications = []
+            
+            # Notifications temps réel en cache (inscriptions fournisseurs, clients...)
+            cached_notifications = cache.get('admin_notifications', [])
+            for n in cached_notifications:
+                notifications.append({
+                    'id': f"cache_{n.get('type', 'info')}_{n.get('fournisseur_id') or n.get('client_id')}",
+                    'message': n.get('message', 'Notification'),
+                    'time': 'À l\'instant',
+                    'type': n.get('type', 'info'),
+                    'read': False,
+                    'data': n.get('data', {})
+                })
             
             # Vérifier les nouvelles commandes (dernières 24h)
             recent_orders = Commande.objects.filter(
@@ -322,7 +387,7 @@ class AdminNotificationsView(APIView):
             
             if recent_orders > 0:
                 notifications.append({
-                    'id': 1,
+                    'id': 'orders_count',
                     'message': f'{recent_orders} nouvelle(s) commande(s) en attente',
                     'time': 'Il y a quelques minutes',
                     'type': 'order',
@@ -337,7 +402,7 @@ class AdminNotificationsView(APIView):
             
             if low_stock_products > 0:
                 notifications.append({
-                    'id': 2,
+                    'id': 'stock_count',
                     'message': f'{low_stock_products} produit(s) en stock critique',
                     'time': 'Il y a quelques minutes',
                     'type': 'stock',
@@ -351,17 +416,28 @@ class AdminNotificationsView(APIView):
             
             if new_clients > 0:
                 notifications.append({
-                    'id': 3,
+                    'id': 'clients_count',
                     'message': f'{new_clients} nouveau(x) client(s) inscrit(s)',
                     'time': 'Il y a quelques minutes',
                     'type': 'client',
                     'read': False
                 })
             
+            # Fournisseurs en attente de validation
+            fournisseurs_attente = Fournisseur.objects.filter(statut='attente').count()
+            if fournisseurs_attente > 0:
+                notifications.append({
+                    'id': 'fournisseurs_attente',
+                    'message': f'{fournisseurs_attente} fournisseur(s) en attente de validation',
+                    'time': 'À l\'instant',
+                    'type': 'fournisseur',
+                    'read': False
+                })
+            
             # Si aucune notification réelle, ajouter une notification système par défaut
             if not notifications:
                 notifications.append({
-                    'id': 4,
+                    'id': 'system',
                     'message': 'Système opérationnel',
                     'time': 'Il y a 1h',
                     'type': 'system',

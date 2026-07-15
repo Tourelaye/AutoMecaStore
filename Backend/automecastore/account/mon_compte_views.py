@@ -5,7 +5,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
-from .models import Utilisateur, Client, Favori
+from .models import Utilisateur, Client, Favori, Fournisseur
 from orders.models import Commande, LigneCommande, Panier, PanierItem
 from catalog.models import Produit
 from .permissions import IsClient, IsClientOrAdmin
@@ -18,32 +18,37 @@ class MeView(APIView):
     
     def get(self, request):
         user = request.user
+        base_data = {
+            'id': user.id,
+            'email': user.email,
+            'nom': user.nom,
+            'prenom': user.prenom,
+            'telephone': user.telephone,
+            'adresse': user.adresse,
+            'role': user.role,
+            'is_active': user.is_active
+        }
         try:
             client = Client.objects.get(user=user)
-            return Response({
-                'id': user.id,
-                'email': user.email,
-                'nom': user.nom,
-                'prenom': user.prenom,
-                'telephone': user.telephone,
-                'adresse': user.adresse,
-                'role': user.role,
+            base_data.update({
                 'date_inscription': client.date_inscription,
                 'point_fidelite': client.point_fidelite,
                 'mode_paiement_favoris': client.mode_paiement_favoris,
-                'is_active': user.is_active
             })
         except Client.DoesNotExist:
-            return Response({
-                'id': user.id,
-                'email': user.email,
-                'nom': user.nom,
-                'prenom': user.prenom,
-                'telephone': user.telephone,
-                'adresse': user.adresse,
-                'role': user.role,
-                'is_active': user.is_active
+            pass
+        try:
+            fournisseur = Fournisseur.objects.get(user=user)
+            base_data.update({
+                'statut': fournisseur.statut,
+                'date_validation': fournisseur.date_validation,
+                'nom_entreprise': fournisseur.nom_entreprise,
+                'siret': fournisseur.siret,
+                'description': fournisseur.description,
             })
+        except Fournisseur.DoesNotExist:
+            pass
+        return Response(base_data)
     
     def put(self, request):
         """Met à jour complètement le profil utilisateur"""
@@ -84,7 +89,7 @@ class MeView(APIView):
                     'is_active': user.is_active
                 })
             except Client.DoesNotExist:
-                return Response({
+                base_data = {
                     'id': user.id,
                     'email': user.email,
                     'nom': user.nom,
@@ -93,7 +98,19 @@ class MeView(APIView):
                     'adresse': user.adresse,
                     'role': user.role,
                     'is_active': user.is_active
-                })
+                }
+                try:
+                    fournisseur = Fournisseur.objects.get(user=user)
+                    base_data.update({
+                        'statut': fournisseur.statut,
+                        'date_validation': fournisseur.date_validation,
+                        'nom_entreprise': fournisseur.nom_entreprise,
+                        'siret': fournisseur.siret,
+                        'description': fournisseur.description,
+                    })
+                except Fournisseur.DoesNotExist:
+                    pass
+                return Response(base_data)
 
         except Exception as e:
             return Response(

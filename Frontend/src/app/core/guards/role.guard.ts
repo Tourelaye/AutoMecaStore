@@ -24,6 +24,11 @@ export const roleGuard: CanActivateFn = (route) => {
     return router.parseUrl(auth.homeRoute());
   }
 
+  // ── Fournisseur non validé ─────────────────────────────────────────
+  if (expectedRole === 'fournisseur' && !auth.isFournisseurValidated()) {
+    return router.parseUrl('/fournisseur/en-attente');
+  }
+
   // ── Accès autorisé ───────────────────────────────────────────────
   return true;
 };

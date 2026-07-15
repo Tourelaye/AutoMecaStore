@@ -1,0 +1,127 @@
+<div class="auth-page">
+  <div class="auth-shell">
+
+    <!-- ===== PANNEAU DE MARQUE ===== -->
+    <div class="brand-panel">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <div class="brand-content">
+        <div class="brand-logo">
+          <div class="logo-badge"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <span class="logo-title">AutoMeca<strong>Store</strong></span>
+            <span class="logo-sub">Espace Fournisseur</span>
+          </div>
+        </div>
+
+        <h1>Développez votre activité avec nous</h1>
+        <p class="brand-text">
+          Rejoignez le réseau de fournisseurs de pièces détachées automobile le plus dynamique et gérez vos ventes en toute simplicité.
+        </p>
+
+        <ul class="brand-features">
+          <li>
+            <span class="feat-icon"><i class="bi bi-box-seam"></i></span>
+            Gérez votre catalogue de produits facilement
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-graph-up-arrow"></i></span>
+            Suivez vos ventes et statistiques en temps réel
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-people-fill"></i></span>
+            Touchez des milliers de clients potentiels
+          </li>
+        </ul>
+      </div>
+
+      <div class="brand-footer">
+        <i class="bi bi-c-circle"></i> {{ currentYear }} AutoMecaStore — Tous droits réservés
+      </div>
+    </div>
+
+    <!-- ===== PANNEAU FORMULAIRE ===== -->
+    <div class="form-panel">
+      <div class="form-wrap">
+
+        <a routerLink="/fournisseur/register" class="back-link">
+          <i class="bi bi-arrow-left"></i> Retour au register
+        </a>
+
+        <div class="auth-header">
+          <h2>Bon retour parmi nous</h2>
+          <p>Connectez-vous pour accéder à votre espace vendeur.</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="auth-form">
+
+          <div class="field-group">
+            <label for="email">Adresse email</label>
+            <div class="input-wrap" [class.has-error]="errorMessage">
+              <i class="bi bi-envelope field-icon"></i>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                [(ngModel)]="email"
+                required
+                placeholder="votre@email.com"
+                [disabled]="isLoading"
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="label-row">
+              <label for="password">Mot de passe</label>
+              <a class="forgot-link" routerLink="/fournisseur/mot-de-passe-oublie">Mot de passe oublié ?</a>
+            </div>
+            <div class="input-wrap" [class.has-error]="errorMessage">
+              <i class="bi bi-lock field-icon"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="password"
+                name="password"
+                [(ngModel)]="password"
+                required
+                placeholder="••••••••"
+                [disabled]="isLoading"
+                autocomplete="current-password"
+              />
+              <button type="button" class="toggle-password" (click)="showPassword = !showPassword" tabindex="-1">
+                <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+              </button>
+            </div>
+          </div>
+
+          <label class="remember-row">
+            <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" />
+            <span class="checkmark"></span>
+            Se souvenir de moi
+          </label>
+
+          <div *ngIf="errorMessage" class="alert alert-error">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Se connecter</span>
+            <span *ngIf="isLoading" class="loading-content">
+              <i class="bi bi-arrow-repeat spin"></i> Connexion...
+            </span>
+          </button>
+        </form>
+
+        <div class="divider"><span>ou</span></div>
+
+        <div class="auth-footer">
+          <p>Pas encore inscrit ? <a routerLink="/fournisseur/register">Créer un compte fournisseur</a></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

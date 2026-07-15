@@ -84,10 +84,20 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.isBlocked) return;
-    if (this.loginStep === 1) { this.nextStep(); return; }
 
     this.errorMessage = '';
-    this.isLoading    = true;
+    this.successMsg   = '';
+
+    if (!this.email || !this.email.includes('@') || !this.email.includes('.')) {
+      this.errorMessage = 'Veuillez saisir une adresse email valide.';
+      return;
+    }
+    if (!this.password) {
+      this.errorMessage = 'Veuillez saisir votre mot de passe.';
+      return;
+    }
+
+    this.isLoading = true;
 
     this.authService.login(this.email.trim().toLowerCase(), this.password)
       .subscribe({
@@ -95,7 +105,14 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.attempts  = 0;
           this.isLoading = false;
           const role = this.authService.getCurrentUserRole();
-          this.successMsg = `Bienvenue ! Redirection vers votre espace ${role}...`;
+
+          if (role !== 'admin') {
+            this.authService.logout();
+            this.errorMessage = 'Accès réservé aux administrateurs.';
+            return;
+          }
+
+          this.successMsg = 'Bienvenue ! Redirection vers l\'espace admin...';
 
           if (this.remember) {
             localStorage.setItem('automeca_remember', JSON.stringify({ email: this.email }));
@@ -103,15 +120,14 @@ export class LoginComponent implements OnInit, OnDestroy {
             localStorage.removeItem('automeca_remember');
           }
 
-          const route = this.authService.homeRoute();
-          this.router.navigateByUrl(route, { replaceUrl: true });
+          this.router.navigateByUrl('/admin/dashboard', { replaceUrl: true });
         },
 
         error: (err: any) => {
           this.isLoading = false;
           this.attempts++;
           let msg = err?.error?.detail || err?.error?.message || err?.message || 'Identifiants invalides.';
-          if (msg.startsWith('Http failure response')) {
+          if (typeof msg === 'string' && msg.startsWith('Http failure response')) {
             msg = 'Identifiants invalides.';
           }
           if (this.attempts >= 3) {

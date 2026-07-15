@@ -14,6 +14,10 @@ class UtilisateurManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def get_by_natural_key(self, username):
+        # Recherche insensible à la casse et sans espaces
+        return self.get(**{self.model.USERNAME_FIELD + '__iexact': username.strip()})
+
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -141,6 +145,10 @@ class Fournisseur(models.Model):
         db_table = 'fournisseur'
         verbose_name = 'Fournisseur'
         verbose_name_plural = 'Fournisseurs'
+
+    @property
+    def nom_complet(self):
+        return f"{self.user.nom} {self.user.prenom}".strip()
 
     def __str__(self):
         return f"{self.nom_entreprise} ({self.user.email})"

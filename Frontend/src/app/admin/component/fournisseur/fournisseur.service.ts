@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export type FournisseurStatus = 'actif' | 'suspendu' | 'en_attente';
+export type FournisseurStatus = 'actif' | 'desactive' | 'attente';
 
 export interface Fournisseur {
   user: {

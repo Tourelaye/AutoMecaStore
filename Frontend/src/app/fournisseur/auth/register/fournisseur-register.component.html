@@ -1,0 +1,214 @@
+<div class="auth-page">
+  <div class="auth-shell register-shell">
+
+    <!-- ===== PANNEAU DE MARQUE ===== -->
+    <div class="brand-panel">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <div class="brand-content">
+        <div class="brand-logo">
+          <div class="logo-badge"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <span class="logo-title">AutoMeca<strong>Store</strong></span>
+            <span class="logo-sub">Espace Fournisseur</span>
+          </div>
+        </div>
+
+        <h1>Devenez fournisseur partenaire</h1>
+        <p class="brand-text">
+          Rejoignez notre marketplace de pièces détachées et développez votre chiffre d'affaires en quelques minutes.
+        </p>
+
+        <ul class="brand-features">
+          <li>
+            <span class="feat-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+            Inscription rapide et validation sous 24-48h
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-shop"></i></span>
+            Votre propre vitrine boutique en ligne
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-wallet2"></i></span>
+            Paiements sécurisés et suivis en temps réel
+          </li>
+        </ul>
+
+        <div class="steps-preview">
+          <div class="step-mini done">
+            <span class="step-mini-dot"><i class="bi bi-check-lg"></i></span>
+            <span>Créer votre compte</span>
+          </div>
+          <div class="step-mini-line"></div>
+          <div class="step-mini">
+            <span class="step-mini-dot">2</span>
+            <span>Validation admin</span>
+          </div>
+          <div class="step-mini-line"></div>
+          <div class="step-mini">
+            <span class="step-mini-dot">3</span>
+            <span>Vente en ligne</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-footer">
+        <i class="bi bi-c-circle"></i> {{ currentYear }} AutoMecaStore — Tous droits réservés
+      </div>
+    </div>
+
+    <!-- ===== PANNEAU FORMULAIRE ===== -->
+    <div class="form-panel">
+      <div class="form-wrap wide">
+
+        <a routerLink="/" class="back-link">
+          <i class="bi bi-arrow-left"></i> Retour à l'accueil
+        </a>
+
+        <div class="auth-header">
+          <h2>Créer votre compte fournisseur</h2>
+          <p>Renseignez les informations de votre entreprise pour commencer.</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="auth-form">
+
+          <!-- SECTION : INFORMATIONS PERSONNELLES -->
+          <div class="form-section">
+            <span class="section-label"><i class="bi bi-person-fill"></i> Informations personnelles</span>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label for="prenom">Prénom *</label>
+                <div class="input-wrap">
+                  <i class="bi bi-person field-icon"></i>
+                  <input type="text" id="prenom" name="prenom" [(ngModel)]="form.prenom" required [disabled]="isLoading" placeholder="Jean" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="nom">Nom *</label>
+                <div class="input-wrap">
+                  <i class="bi bi-person field-icon"></i>
+                  <input type="text" id="nom" name="nom" [(ngModel)]="form.nom" required [disabled]="isLoading" placeholder="Dupont" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="email">Email *</label>
+              <div class="input-wrap">
+                <i class="bi bi-envelope field-icon"></i>
+                <input type="email" id="email" name="email" [(ngModel)]="form.email" required [disabled]="isLoading" placeholder="votre@email.com" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label for="telephone">Téléphone</label>
+                <div class="input-wrap">
+                  <i class="bi bi-telephone field-icon"></i>
+                  <input type="tel" id="telephone" name="telephone" [(ngModel)]="form.telephone" [disabled]="isLoading" placeholder="+221 77 000 00 00" />
+                </div>
+              </div>
+              <div class="field-group">
+                <label for="adresse">Adresse</label>
+                <div class="input-wrap">
+                  <i class="bi bi-geo-alt field-icon"></i>
+                  <input type="text" id="adresse" name="adresse" [(ngModel)]="form.adresse" [disabled]="isLoading" placeholder="Ville, quartier" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION : ENTREPRISE -->
+          <div class="form-section">
+            <span class="section-label"><i class="bi bi-building"></i> Entreprise</span>
+
+            <div class="field-group">
+              <label for="nom_entreprise">Nom de l'entreprise *</label>
+              <div class="input-wrap">
+                <i class="bi bi-building field-icon"></i>
+                <input type="text" id="nom_entreprise" name="nom_entreprise" [(ngModel)]="form.nom_entreprise" required [disabled]="isLoading" placeholder="Ex: Garage Dupont Pièces" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="siret">SIRET / NINEA</label>
+              <div class="input-wrap">
+                <i class="bi bi-upc-scan field-icon"></i>
+                <input type="text" id="siret" name="siret" [(ngModel)]="form.siret" [disabled]="isLoading" placeholder="Numéro d'identification" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="description">Description de l'entreprise</label>
+              <textarea id="description" name="description" [(ngModel)]="form.description" rows="3" [disabled]="isLoading" placeholder="Décrivez brièvement votre activité..."></textarea>
+            </div>
+          </div>
+
+          <!-- SECTION : SÉCURITÉ -->
+          <div class="form-section">
+            <span class="section-label"><i class="bi bi-shield-lock"></i> Sécurité</span>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label for="password">Mot de passe *</label>
+                <div class="input-wrap">
+                  <i class="bi bi-lock field-icon"></i>
+                  <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="form.password" (ngModelChange)="onPasswordChange()" required [disabled]="isLoading" placeholder="8 caractères min." />
+                  <button type="button" class="toggle-password" (click)="showPassword = !showPassword" tabindex="-1">
+                    <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                  </button>
+                </div>
+                <!-- INDICATEUR DE FORCE -->
+                <div class="strength-meter" *ngIf="form.password">
+                  <div class="strength-bars">
+                    <span *ngFor="let bar of [0,1,2,3]" [class.filled]="passwordStrength > bar" [class]="'bar bar-' + strengthColor"></span>
+                  </div>
+                  <span class="strength-label" [class]="'label-' + strengthColor">{{ strengthLabel }}</span>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="confirmPassword">Confirmer *</label>
+                <div class="input-wrap" [class.has-error]="form.confirmPassword && !passwordsMatch">
+                  <i class="bi bi-lock field-icon"></i>
+                  <input [type]="showConfirmPassword ? 'text' : 'password'" id="confirmPassword" name="confirmPassword" [(ngModel)]="form.confirmPassword" required [disabled]="isLoading" placeholder="••••••••" />
+                  <button type="button" class="toggle-password" (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
+                    <i class="bi" [class.bi-eye]="!showConfirmPassword" [class.bi-eye-slash]="showConfirmPassword"></i>
+                  </button>
+                </div>
+                <span class="match-hint" *ngIf="form.confirmPassword">
+                  <i class="bi" [class.bi-check-circle-fill]="passwordsMatch" [class.bi-x-circle-fill]="!passwordsMatch"></i>
+                  {{ passwordsMatch ? 'Les mots de passe correspondent' : 'Les mots de passe ne correspondent pas' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-error">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            {{ errorMessage }}
+          </div>
+
+          <div *ngIf="successMessage" class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            {{ successMessage }}
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading || !!successMessage">
+            <span *ngIf="!isLoading">Créer mon compte fournisseur</span>
+            <span *ngIf="isLoading" class="loading-content">
+              <i class="bi bi-arrow-repeat spin"></i> Inscription en cours...
+            </span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <p>Déjà inscrit ? <a routerLink="/fournisseur/login">Se connecter</a></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -28,8 +28,10 @@ class IsLivreur(permissions.BasePermission):
 
 class IsFournisseur(permissions.BasePermission):
     def has_permission(self, request, view):
+        if not (request.user.is_authenticated and request.user.role == 'fournisseur'):
+            return False
+        fournisseur = getattr(request.user, 'fournisseur', None)
         return (
-            request.user.is_authenticated and
-            request.user.role == 'fournisseur' and
-            getattr(request.user, 'fournisseur', None) is not None
+            fournisseur is not None and
+            fournisseur.statut == 'actif'
         )

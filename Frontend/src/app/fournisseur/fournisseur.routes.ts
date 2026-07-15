@@ -17,7 +17,23 @@ import { ParametresComponent } from './parametres/parametres-fournisseur/paramet
 import { roleGuard } from '../core/guards/role.guard';
 import { ModifierProfilComponent } from './profil/modifier-profil/modifier-profil.component';
 import { HistoriquesComponent } from './historiques/historiques.component';
+import { FournisseurLoginComponent } from './auth/login/fournisseur-login.component';
+import { FournisseurRegisterComponent } from './auth/register/fournisseur-register.component';
+import { FournisseurEnAttenteComponent } from './auth/en-attente/fournisseur-en-attente.component';
+
 export const fournisseurRoutes: Routes = [
+  {
+    path: 'login',
+    component: FournisseurLoginComponent
+  },
+  {
+    path: 'register',
+    component: FournisseurRegisterComponent
+  },
+  {
+    path: 'en-attente',
+    component: FournisseurEnAttenteComponent
+  },
   {
     path: '',
     component: FournisseurLayoutComponent,

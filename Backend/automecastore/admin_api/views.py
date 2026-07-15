@@ -8,6 +8,9 @@ from account.permissions import IsAdmin
 from account.models import Utilisateur, Fournisseur
 from catalog.models import Produit, Categorie
 from orders.models import Commande, LigneCommande
+from django.db.models import Sum, Count
+from django.db.models.deletion import ProtectedError
+from django.db import IntegrityError
 from .models import FinanceConfig, PaymentGateway, RolePermission, ApiConfig
 from .serializers import (
     FinanceConfigSerializer,
@@ -38,7 +41,7 @@ class AdminDashboardStatsView(APIView):
 
             fournisseurs_total = Fournisseur.objects.count()
             fournisseurs_actifs = Fournisseur.objects.filter(statut='actif').count()
-            fournisseurs_attente = Fournisseur.objects.filter(statut='desactive').count()
+            fournisseurs_attente = Fournisseur.objects.filter(statut='attente').count()
             fournisseurs_suspendus = Fournisseur.objects.filter(statut='desactive').count()
 
             clients_total = Utilisateur.objects.filter(role='client').count()
@@ -47,20 +50,28 @@ class AdminDashboardStatsView(APIView):
             commandes_mois = Commande.objects.filter(date_commande__gte=month_start).count()
 
             lignes_commande = LigneCommande.objects.filter(commande__date_commande__gte=month_start)
-            ca_cumule = sum(ligne.quantite * ligne.prix_unitaire for ligne in lignes_commande)
+            ca_cumule = float(sum(ligne.quantite * ligne.prix_unitaire for ligne in lignes_commande))
             commissions = ca_cumule * 0.10
 
+            # Catégories : volume réel de pièces vendues par catégorie
+            cat_rows = (
+                lignes_commande
+                .exclude(produit__categorie__isnull=True)
+                .values('produit__categorie__nom')
+                .annotate(qty=Sum('quantite'))
+                .order_by('-qty')
+            )
+            total_cat_qty = sum(int(row['qty']) for row in cat_rows)
+            colors = ['violet', 'blue', 'green', 'amber', 'muted']
             categories_stats = []
-            categories = Categorie.objects.all()
-            for cat in categories:
-                qty = Produit.objects.filter(categorie=cat).count()
-                if qty > 0:
-                    categories_stats.append({
-                        'name': cat.nom,
-                        'qty': qty,
-                        'pct': round(qty / produits_total * 100) if produits_total > 0 else 0,
-                        'color': 'violet'
-                    })
+            for i, row in enumerate(cat_rows):
+                qty = int(row['qty'])
+                categories_stats.append({
+                    'name': row['produit__categorie__nom'],
+                    'qty': qty,
+                    'pct': round(qty / total_cat_qty * 100) if total_cat_qty > 0 else 0,
+                    'color': colors[i % len(colors)]
+                })
 
             chart = [
                 {'label': 'Jan', 'value': 52000},
@@ -72,27 +83,51 @@ class AdminDashboardStatsView(APIView):
                 {'label': 'Juil', 'value': float(ca_cumule)}
             ]
 
+            # Top fournisseurs par revenu généré
+            fournisseur_rows = (
+                lignes_commande
+                .exclude(produit__fournisseur__isnull=True)
+                .values('produit__fournisseur')
+                .annotate(revenue=Sum('sous_total'), orders=Count('commande', distinct=True))
+                .order_by('-revenue')
+            )
+            fournisseur_ids = [row['produit__fournisseur'] for row in fournisseur_rows]
+            fournisseurs_map = {f.user_id: f for f in Fournisseur.objects.filter(user_id__in=fournisseur_ids)}
+
             top_fournisseurs = []
-            for i, fournisseur in enumerate(Fournisseur.objects.all()[:5], 1):
+            for i, row in enumerate(fournisseur_rows[:5], 1):
+                f = fournisseurs_map.get(row['produit__fournisseur'])
                 top_fournisseurs.append({
                     'rank': i,
-                    'name': fournisseur.nom_entreprise,
-                    'vendor': fournisseur.user.nom if fournisseur.user else '',
-                    'orders': 0,
-                    'revenue': 0,
+                    'name': f.nom_entreprise if f else 'Fournisseur inconnu',
+                    'vendor': f.user.nom if f and f.user else '',
+                    'orders': row['orders'],
+                    'revenue': float(row['revenue'] or 0),
                     'rating': 0,
                     'reviews': 0
                 })
 
+            # Top produits par quantité vendue
+            produit_rows = (
+                lignes_commande
+                .exclude(produit__isnull=True)
+                .values('produit')
+                .annotate(sales=Sum('quantite'), revenue=Sum('sous_total'))
+                .order_by('-sales')
+            )
+            produit_ids = [row['produit'] for row in produit_rows]
+            produits_map = {p.id: p for p in Produit.objects.filter(id__in=produit_ids)}
+
             top_produits = []
-            for i, produit in enumerate(Produit.objects.all()[:5], 1):
+            for i, row in enumerate(produit_rows[:5], 1):
+                p = produits_map.get(row['produit'])
                 top_produits.append({
                     'rank': i,
-                    'name': produit.nom,
-                    'ref': produit.reference or '',
-                    'category': produit.categorie.nom if produit.categorie else '',
-                    'sales': 0,
-                    'price': float(produit.prix)
+                    'name': p.nom if p else 'Produit inconnu',
+                    'ref': p.reference or '' if p else '',
+                    'category': p.categorie.nom if p and p.categorie else '',
+                    'sales': int(row['sales'] or 0),
+                    'price': float(p.prix) if p else 0
                 })
 
             return Response({
@@ -485,17 +520,20 @@ class AdminFournisseurValidationView(APIView):
 
     def post(self, request, user_id):
         try:
+            from django.utils import timezone
             f = Fournisseur.objects.select_related('user').get(user_id=user_id)
             action = request.data.get('action')
             if action == 'valider':
                 f.statut = 'actif'
                 f.user.is_active = True
+                f.date_validation = timezone.now()
             elif action == 'suspendre':
                 f.statut = 'desactive'
                 f.user.is_active = False
             elif action == 'reactiver':
                 f.statut = 'actif'
                 f.user.is_active = True
+                f.date_validation = timezone.now()
             f.save()
             f.user.save()
             return Response({
@@ -520,6 +558,8 @@ class AdminFournisseurDeleteView(APIView):
             return Response({'message': f'Fournisseur {email} supprimé avec succès'})
         except Fournisseur.DoesNotExist:
             return Response({'error': 'Fournisseur non trouvé'}, status=404)
+        except (ProtectedError, IntegrityError) as e:
+            return Response({'error': f'Impossible de supprimer ce fournisseur : des données liées existent. ({str(e)})'}, status=400)
 
 
 class AdminFournisseurCommandesView(APIView):
@@ -529,21 +569,55 @@ class AdminFournisseurCommandesView(APIView):
         try:
             f = Fournisseur.objects.get(user_id=user_id)
             from orders.models import LigneCommande
-            lignes = LigneCommande.objects.filter(produit__fournisseur=f)
-            commandes = []
+            lignes = LigneCommande.objects.filter(
+                produit__fournisseur=f
+            ).select_related('commande', 'commande__client__user', 'produit')
+
+            commandes_dict = {}
             for ligne in lignes:
-                commandes.append({
-                    'id': ligne.commande.id,
-                    'reference': ligne.commande.reference,
-                    'client': f"{ligne.commande.client.prenom} {ligne.commande.client.nom}" if ligne.commande.client else 'Client',
-                    'produit': ligne.produit.nom,
+                cmd = ligne.commande
+                if not cmd:
+                    continue
+
+                cmd_id = cmd.id
+                if cmd_id not in commandes_dict:
+                    client = getattr(cmd, 'client', None)
+                    nom_client = 'Client'
+                    email_client = ''
+                    if client:
+                        u = getattr(client, 'user', None)
+                        if u:
+                            nom_client = f"{u.prenom or ''} {u.nom or ''}".strip() or 'Client'
+                            email_client = u.email or ''
+
+                    commandes_dict[cmd_id] = {
+                        'id': cmd_id,
+                        'reference': cmd.reference,
+                        'date': cmd.date_commande.isoformat() if cmd.date_commande else None,
+                        'statut': cmd.statut,
+                        'montant_total': float(cmd.montant_total or 0),
+                        'client': nom_client,
+                        'email': email_client,
+                        'lignes': []
+                    }
+
+                commandes_dict[cmd_id]['lignes'].append({
+                    'produit': ligne.produit.nom if ligne.produit else '',
                     'quantite': ligne.quantite,
-                    'prix_unitaire': float(ligne.prix_unitaire),
-                    'total': float(ligne.quantite * ligne.prix_unitaire),
-                    'statut': ligne.commande.statut,
-                    'date_commande': ligne.commande.date_commande,
+                    'prix_unitaire': float(ligne.prix_unitaire or 0),
+                    'sous_total': float(ligne.sous_total or (ligne.quantite * (ligne.prix_unitaire or 0))),
                 })
-            return Response(commandes)
+
+            commandes = list(commandes_dict.values())
+            stats = {
+                'total_commandes': len(commandes),
+                'montant_cumule': sum(c['montant_total'] for c in commandes),
+            }
+
+            return Response({
+                'commandes': commandes,
+                'stats': stats
+            })
         except Fournisseur.DoesNotExist:
             return Response({'error': 'Fournisseur non trouvé'}, status=404)
 
@@ -563,10 +637,22 @@ class AdminFournisseurProduitsView(APIView):
                     'reference': p.reference,
                     'prix': float(p.prix),
                     'stock': p.stock,
+                    'nombre_ventes': p.nombre_ventes,
+                    'is_active': p.is_active,
                     'statut': p.statut,
                     'statut_approbation': p.statut_approbation,
                 })
-            return Response(data)
+
+            stats = {
+                'total_produits': len(data),
+                'produits_actifs': sum(1 for p in data if p['is_active']),
+                'total_stock': sum(p['stock'] for p in data),
+            }
+
+            return Response({
+                'produits': data,
+                'stats': stats
+            })
         except Fournisseur.DoesNotExist:
             return Response({'error': 'Fournisseur non trouvé'}, status=404)
 
@@ -580,12 +666,27 @@ class AdminFournisseurStatsView(APIView):
             produits = Produit.objects.filter(fournisseur=f)
             from orders.models import LigneCommande
             lignes = LigneCommande.objects.filter(produit__fournisseur=f)
-            return Response({
-                'produits_total': produits.count(),
-                'produits_actifs': produits.filter(is_active=True).count(),
-                'commandes_total': len(set(l.values_list('commande_id', flat=True).distinct())),
-                'chiffre_affaires': float(sum(l.quantite * l.prix_unitaire for l in lignes)),
-                'ventes_total': sum(l.quantite for l in lignes),
-            })
+
+            stats = {
+                'produits': {
+                    'total': produits.count(),
+                    'actifs': produits.filter(is_active=True).count(),
+                    'ruptures': produits.filter(stock=0, is_active=True).count(),
+                    'total_stock': produits.aggregate(total=Sum('stock'))['total'] or 0,
+                },
+                'commandes': {
+                    'total': lignes.values('commande_id').distinct().count(),
+                    'total_lignes': lignes.count(),
+                    'montant_cumule': float(lignes.aggregate(total=Sum('sous_total'))['total'] or 0),
+                    'quantite_totale': lignes.aggregate(total=Sum('quantite'))['total'] or 0,
+                },
+                'ventes': {
+                    'total_ventes': produits.aggregate(total=Sum('nombre_ventes'))['total'] or 0,
+                    'total_favoris': produits.aggregate(total=Sum('nombre_favoris'))['total'] or 0,
+                    'total_vues': produits.aggregate(total=Sum('nombre_vues'))['total'] or 0,
+                }
+            }
+
+            return Response(stats)
         except Fournisseur.DoesNotExist:
             return Response({'error': 'Fournisseur non trouvé'}, status=404)

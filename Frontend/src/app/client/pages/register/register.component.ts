@@ -54,7 +54,7 @@ export class RegisterComponent {
       pattern: /^77|78|76|70|75/,
       minLength: 9,
       maxLength: 9,
-      example: '77 123 45 67'
+      example: '78 449 25 68'
     },
     {
       code: 'fr',
@@ -64,7 +64,7 @@ export class RegisterComponent {
       pattern: /^[67]/,
       minLength: 9,
       maxLength: 9,
-      example: '6 12 34 56 78'
+      example: '12 34 56 789'
     },
     {
       code: 'ci',
@@ -393,14 +393,56 @@ export class RegisterComponent {
     };
   }
 
+  // Format phone number with country-specific spacing
+  private formatPhoneNumber(value: string, country: Country): string {
+    let digits = (value || '').replace(/\D/g, '');
+    if (digits.length > country.maxLength) {
+      digits = digits.slice(0, country.maxLength);
+    }
+
+    switch (country.code) {
+      case 'sn': return this.applyGroups(digits, [2, 3, 2, 2]);
+      case 'fr': return this.applyGroups(digits, [2, 2, 2, 3]);
+      case 'ci': return this.applyGroups(digits, [2, 2, 2, 2, 2]);
+      case 'us': return this.applyGroups(digits, [3, 3, 4]);
+      case 'gh': return this.applyGroups(digits, [2, 3, 4]);
+      case 'ng': return this.applyGroups(digits, [3, 3, 4]);
+      case 'cm': return this.applyGroups(digits, [1, 2, 2, 2, 2]);
+      case 'ml':
+      case 'bf':
+      case 'ne': return this.applyGroups(digits, [2, 2, 2, 2]);
+      default:   return digits.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+    }
+  }
+
+  private applyGroups(digits: string, groups: number[]): string {
+    const parts: string[] = [];
+    let i = 0;
+    let groupIndex = 0;
+    while (i < digits.length) {
+      const size = groups[Math.min(groupIndex, groups.length - 1)];
+      const part = digits.slice(i, i + size);
+      if (part) {
+        parts.push(part);
+      }
+      i += size;
+      groupIndex++;
+    }
+    return parts.join(' ');
+  }
+
   // Country change handler
   onCountryChange(country: Country): void {
     this.selectedCountry = country;
     this.countryDropdownOpen = false;
-    
-    // Re-validate phone field when country changes
+
+    // Reformat existing phone number for new country
     const phoneControl = this.registerForm.get('telephone');
     if (phoneControl && phoneControl.value) {
+      const formatted = this.formatPhoneNumber(phoneControl.value, country);
+      if (phoneControl.value !== formatted) {
+        phoneControl.setValue(formatted, { emitEvent: false });
+      }
       phoneControl.updateValueAndValidity();
     }
   }
@@ -408,37 +450,17 @@ export class RegisterComponent {
   // Phone input handler for formatting
   onPhoneInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, ''); // Remove all non-digits
+    const formatted = this.formatPhoneNumber(input.value, this.selectedCountry);
 
-    // Format based on country
-    if (this.selectedCountry.code === 'intl') {
-      // International: no specific formatting, just add spaces for readability
-      value = value.replace(/(\d{3})(?=\d)/g, '$1 ');
-    } else if (this.selectedCountry.code === 'sn') {
-      // Senegal: 77 123 45 67
-      if (value.length > 2) value = value.slice(0, 2) + ' ' + value.slice(2);
-      if (value.length > 5) value = value.slice(0, 5) + ' ' + value.slice(5);
-      if (value.length > 8) value = value.slice(0, 8) + ' ' + value.slice(8);
-    } else if (this.selectedCountry.code === 'fr') {
-      // France: 6 12 34 56 78
-      if (value.length > 1) value = value.slice(0, 1) + ' ' + value.slice(1);
-      if (value.length > 4) value = value.slice(0, 4) + ' ' + value.slice(4);
-      if (value.length > 7) value = value.slice(0, 7) + ' ' + value.slice(7);
-    } else if (this.selectedCountry.code === 'ci') {
-      // Côte d'Ivoire: 07 01 02 03 04
-      if (value.length > 2) value = value.slice(0, 2) + ' ' + value.slice(2);
-      if (value.length > 5) value = value.slice(0, 5) + ' ' + value.slice(5);
-      if (value.length > 8) value = value.slice(0, 8) + ' ' + value.slice(8);
-    } else if (this.selectedCountry.code === 'us') {
-      // USA: 555 123 4567
-      if (value.length > 3) value = value.slice(0, 3) + ' ' + value.slice(3);
-      if (value.length > 7) value = value.slice(0, 7) + ' ' + value.slice(7);
-    } else {
-      // Default: add space every 3 digits
-      value = value.replace(/(\d{3})(?=\d)/g, '$1 ');
+    if (input.value !== formatted) {
+      input.value = formatted;
     }
 
-    input.value = value;
+    const phoneControl = this.registerForm.get('telephone');
+    if (phoneControl && phoneControl.value !== formatted) {
+      phoneControl.setValue(formatted, { emitEvent: false });
+      phoneControl.updateValueAndValidity();
+    }
   }
 
   // Get phone error message

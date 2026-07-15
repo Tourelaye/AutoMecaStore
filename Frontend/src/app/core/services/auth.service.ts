@@ -11,6 +11,7 @@ export interface Utilisateur {
   telephone?: string;
   adresse: string; // Removed the optional operator (?)
   role?: string;
+  statut?: string;
 }
 
 export interface LoginResponse {
@@ -64,7 +65,8 @@ export class AuthService {
           prenom: payload.prenom ?? '',
           email: email,
           adresse: '',
-          role: payload.role ?? 'client'
+          role: payload.role ?? 'client',
+          statut: payload.fournisseur_status ?? ''
         };
         this.utilisateurSubject.next(userFromToken);
         this.isLoggedInSubject.next(true);
@@ -99,6 +101,10 @@ export class AuthService {
 
   register(data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/register/`, data);
+  }
+
+  registerFournisseur(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register-fournisseur/`, data);
   }
 
   logout(): void {
@@ -143,7 +149,17 @@ export class AuthService {
 
   homeRoute(): string {
     const role = this.getCurrentUserRole();
-    return role === 'admin' ? '/admin/dashboard' : role === 'fournisseur' ? '/fournisseur/dashboard' : '/login';
+    if (role === 'admin') return '/admin/dashboard';
+    if (role === 'fournisseur') {
+      return this.getCurrentUser()?.statut === 'actif'
+        ? '/fournisseur/dashboard'
+        : '/fournisseur/en-attente';
+    }
+    return '/login';
+  }
+
+  isFournisseurValidated(): boolean {
+    return this.isFournisseur() && this.getCurrentUser()?.statut === 'actif';
   }
 
   getPrenom(): string { return this.utilisateurSubject.value?.prenom ?? ''; }

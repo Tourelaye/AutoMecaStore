@@ -730,7 +730,11 @@
     border: none;
     outline: none;
     padding: 10px 12px;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    font-variant-numeric: tabular-nums;
+    color: #1f2937;
     background: transparent;
     transition: all 0.3s;
   }
