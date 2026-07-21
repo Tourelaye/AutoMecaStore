@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   DashboardService,
   DashboardStats,
@@ -27,7 +28,7 @@ interface StatCard {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -132,8 +133,8 @@ export class DashboardComponent implements OnInit {
     this.statCards = [
       {
         key: 'ca', label: 'CA Cumulé', icon: 'currency', variant: 'default',
-        targetValue: s.caCumule, decimals: 2, suffix: ' €',
-        displayValue: '0,00 €', meta: `Commissions : ${s.commissions.toFixed(2).replace('.', ',')} €`, metaVariant: 'success'
+        targetValue: s.caCumule, decimals: 2, suffix: ' FCFA',
+        displayValue: '0,00 FCFA', meta: `Commissions : ${s.commissions.toFixed(2).replace('.', ',')} FCFA`, metaVariant: 'success'
       },
       {
         key: 'fournisseurs', label: 'Fournisseurs', icon: 'users', variant: 'default',

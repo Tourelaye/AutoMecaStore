@@ -55,10 +55,10 @@
         </p>
       </div>
       <div class="banner__actions">
-        <button class="btn-ghost">
+        <button class="btn-ghost" routerLink="/admin/fournisseurs">
           <i class="bi bi-people-fill"></i> Superviser Fournisseurs
         </button>
-        <button class="btn-primary">
+        <button class="btn-primary" routerLink="/admin/approbation-produits">
           <i class="bi bi-plus-lg"></i> Vérifier Produits ({{ stats.attenteValidation }})
         </button>
       </div>
@@ -191,7 +191,7 @@
             <span class="list-row__sub">Vendeur : {{ f.vendor }} | {{ f.orders }} commandes</span>
           </div>
           <div class="list-row__end">
-            <span class="list-row__amount">{{ f.revenue | number:'1.2-2':'fr' }} €</span>
+            <span class="list-row__amount">{{ f.revenue | number:'1.2-2':'fr' }} FCFA</span>
             <span class="list-row__rating" *ngIf="f.reviews > 0">
               {{ f.rating }}★ sur {{ f.reviews }} avis
             </span>
@@ -219,7 +219,7 @@
           </div>
           <div class="list-row__end">
             <span class="list-row__amount">{{ p.sales }} ventes</span>
-            <span class="list-row__rating">{{ p.price | number:'1.2-2':'fr' }} € / p.</span>
+            <span class="list-row__rating">{{ p.price | number:'1.2-2':'fr' }} FCFA / p.</span>
           </div>
         </div>
       </div>

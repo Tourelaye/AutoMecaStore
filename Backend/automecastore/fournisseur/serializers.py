@@ -30,7 +30,7 @@ class HistoriqueActiviteSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'destinataire_id', 'destinataire_type', 'type', 'message', 'lu', 'created_at']
+        fields = ['id', 'destinataire_id', 'destinataire_type', 'type', 'titre', 'message', 'lien', 'lu', 'created_at']
         read_only_fields = ['created_at']
 
 

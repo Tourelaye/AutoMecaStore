@@ -3,10 +3,14 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import NotFound
 from account.permissions import IsAdmin
-from account.models import Utilisateur, Fournisseur
+from account.models import Utilisateur, Fournisseur, FournisseurStatusHistory, Administrateur
 from catalog.models import Produit, Categorie
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 from orders.models import Commande, LigneCommande
 from django.db.models import Sum, Count
 from django.db.models.deletion import ProtectedError
@@ -310,15 +314,27 @@ def map_produit_to_admin(produit):
         ),
         'signale': produit.signale,
         'signalReason': produit.motif_rejet,
+        'sections': {
+            'bestOffer': produit.est_meilleure_offre,
+            'flashSale': produit.est_en_promo,
+            'bestSeller': produit.est_bestseller,
+            'trending': produit.est_tendance,
+            'lightningSale': produit.vente_eclair,
+        }
     }
 
 
 class AdminProduitListView(APIView):
-    """Liste tous les produits pour l'admin"""
+    """Liste les produits approuvés pour la gestion admin"""
     permission_classes = [IsAdmin]
 
     def get(self, request):
-        produits = Produit.all_objects.select_related('categorie', 'fournisseur').all()
+        # Seuls les produits approuvés et actifs apparaissent dans la gestion des produits.
+        # L'approbation/rejet se fait exclusivement dans Approbation Produit.
+        # Les produits supprimés (soft delete) sont exclus.
+        produits = Produit.objects.filter(
+            statut_approbation='approuve'
+        ).select_related('categorie', 'fournisseur')
         data = [map_produit_to_admin(p) for p in produits]
         return Response(data)
 
@@ -364,8 +380,31 @@ class AdminProduitSignalView(APIView):
 
 
 class AdminProduitDeleteView(APIView):
-    """Suppression (soft delete) d'un produit"""
+    """Détail et suppression (soft delete) d'un produit"""
     permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        try:
+            produit = Produit.all_objects.get(pk=pk)
+            return Response({
+                'id': produit.id,
+                'nom': produit.nom,
+                'description': produit.description,
+                'prix': float(produit.prix),
+                'stock': produit.stock,
+                'image': produit.image.url if produit.image else None,
+                'categorie': produit.categorie.id if produit.categorie else None,
+                'categorie_nom': produit.categorie.nom if produit.categorie else '',
+                'fournisseur': produit.fournisseur.pk if produit.fournisseur else None,
+                'fournisseur_nom': produit.fournisseur.nom_entreprise if produit.fournisseur else '',
+                'reference': produit.reference or '',
+                'marque': produit.marque or '',
+                'statut_approbation': produit.statut_approbation,
+                'motif_rejet': produit.motif_rejet or '',
+                'created_at': getattr(produit, 'created_at', None)
+            })
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=404)
 
     def delete(self, request, pk):
         try:
@@ -376,12 +415,36 @@ class AdminProduitDeleteView(APIView):
             return Response({'error': 'Produit non trouvé'}, status=404)
 
 
+class AdminProduitSectionsView(APIView):
+    """Met à jour les tags/sections d'un produit (meilleures offres, ventes flash, etc.)"""
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        try:
+            produit = Produit.all_objects.get(pk=pk)
+            data = request.data
+            produit.est_meilleure_offre = bool(data.get('bestOffer', produit.est_meilleure_offre))
+            produit.est_en_promo = bool(data.get('flashSale', produit.est_en_promo))
+            produit.est_bestseller = bool(data.get('bestSeller', produit.est_bestseller))
+            produit.est_tendance = bool(data.get('trending', produit.est_tendance))
+            produit.vente_eclair = bool(data.get('lightningSale', produit.vente_eclair))
+            produit.save()
+            return Response(map_produit_to_admin(produit))
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=404)
+
+
 class AdminProduitEnAttenteListView(APIView):
     """Liste les produits en attente d'approbation"""
     permission_classes = [IsAdmin]
 
     def get(self, request):
-        produits = Produit.all_objects.filter(statut_approbation='en_attente').select_related('categorie', 'fournisseur')
+        statut_approbation = request.query_params.get('statut_approbation', 'en_attente')
+        queryset = Produit.all_objects.select_related('categorie', 'fournisseur')
+        if statut_approbation and statut_approbation.lower() not in ('tous', 'all'):
+            queryset = queryset.filter(statut_approbation=statut_approbation)
+        # Ne garder que les produits soumis par un fournisseur dans l'approbation.
+        produits = queryset.exclude(fournisseur__isnull=True)
         data = []
         for p in produits:
             data.append({
@@ -393,7 +456,7 @@ class AdminProduitEnAttenteListView(APIView):
                 'image': p.image.url if p.image else None,
                 'categorie': p.categorie.id if p.categorie else None,
                 'categorie_nom': p.categorie.nom if p.categorie else '',
-                'fournisseur': p.fournisseur.id if p.fournisseur else None,
+                'fournisseur': p.fournisseur.pk if p.fournisseur else None,
                 'fournisseur_nom': p.fournisseur.nom_entreprise if p.fournisseur else '',
                 'statut_approbation': p.statut_approbation,
                 'motif_rejet': p.motif_rejet or '',
@@ -431,7 +494,7 @@ class AdminProduitApprobationView(APIView):
                 'image': produit.image.url if produit.image else None,
                 'categorie': produit.categorie.id if produit.categorie else None,
                 'categorie_nom': produit.categorie.nom if produit.categorie else '',
-                'fournisseur': produit.fournisseur.id if produit.fournisseur else None,
+                'fournisseur': produit.fournisseur.pk if produit.fournisseur else None,
                 'fournisseur_nom': produit.fournisseur.nom_entreprise if produit.fournisseur else '',
                 'statut_approbation': produit.statut_approbation,
                 'motif_rejet': produit.motif_rejet or '',
@@ -516,6 +579,7 @@ class AdminFournisseurDetailView(APIView):
 
 
 class AdminFournisseurValidationView(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdmin]
 
     def post(self, request, user_id):
@@ -523,29 +587,106 @@ class AdminFournisseurValidationView(APIView):
             from django.utils import timezone
             f = Fournisseur.objects.select_related('user').get(user_id=user_id)
             action = request.data.get('action')
+            commentaire = request.data.get('commentaire') or request.data.get('motif') or ''
+
+            admin_user = request.user
+            administrateur = getattr(admin_user, 'administrateur', None)
+
+            now = timezone.now()
+            old_statut = f.statut
+
             if action == 'valider':
                 f.statut = 'actif'
                 f.user.is_active = True
-                f.date_validation = timezone.now()
+                f.date_validation = now
+                f.validated_by = administrateur
+                f.raison_refus = ''
             elif action == 'suspendre':
                 f.statut = 'desactive'
-                f.user.is_active = False
+                f.user.is_active = True
+                f.raison_refus = commentaire
             elif action == 'reactiver':
                 f.statut = 'actif'
                 f.user.is_active = True
-                f.date_validation = timezone.now()
+                f.date_validation = now
+                f.validated_by = administrateur
+                f.raison_refus = ''
+            else:
+                return Response({'error': 'Action invalide. Utilisez valider, suspendre ou reactiver.'}, status=400)
+
             f.save()
             f.user.save()
+
+            FournisseurStatusHistory.objects.create(
+                fournisseur=f,
+                statut=f.statut,
+                changed_by=administrateur,
+                commentaire=commentaire
+            )
+
+            self._notify_fournisseur_status(f, action, commentaire)
+
             return Response({
                 'message': f"Statut du fournisseur mis à jour : {f.statut}",
                 'statut': f.statut,
-                'user_id': f.user.id
+                'user_id': f.user.id,
+                'old_statut': old_statut
             })
         except Fournisseur.DoesNotExist:
             return Response({'error': 'Fournisseur non trouvé'}, status=404)
 
+    def _notify_fournisseur_status(self, fournisseur, action, commentaire):
+        try:
+            user = fournisseur.user
+            if action in ('valider', 'reactiver'):
+                subject = 'Votre compte fournisseur AutoMecaStore a été approuvé'
+                html = render_to_string('emails/fournisseur_approved.html', {
+                    'nom': f"{user.prenom or ''} {user.nom or ''}".strip() or user.email,
+                    'prenom': user.prenom or '',
+                    'entreprise': fournisseur.nom_entreprise,
+                    'email': user.email,
+                    'site_name': 'AutoMecaStore'
+                })
+                plain = (
+                    f"Bonjour {user.prenom or ''},\n\n"
+                    f"Votre compte fournisseur {fournisseur.nom_entreprise} a été approuvé.\n"
+                    f"Vous pouvez dès maintenant vous connecter à votre espace vendeur : https://automecastore.sn/fournisseur/login\n\n"
+                    f"L'équipe AutoMecaStore"
+                )
+            elif action == 'suspendre':
+                subject = 'Votre demande de compte fournisseur AutoMecaStore'
+                html = render_to_string('emails/fournisseur_rejected.html', {
+                    'nom': f"{user.prenom or ''} {user.nom or ''}".strip() or user.email,
+                    'prenom': user.prenom or '',
+                    'entreprise': fournisseur.nom_entreprise,
+                    'email': user.email,
+                    'raison': commentaire or "Aucune raison donnée.",
+                    'site_name': 'AutoMecaStore'
+                })
+                plain = (
+                    f"Bonjour {user.prenom or ''},\n\n"
+                    f"Votre demande de compte fournisseur {fournisseur.nom_entreprise} a été refusée.\n"
+                    f"Raison : {commentaire or 'Aucune raison donnée'}\n\n"
+                    f"L'équipe AutoMecaStore"
+                )
+            else:
+                return
+
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@automecastore.sn')
+            send_mail(
+                subject,
+                plain,
+                from_email,
+                [user.email],
+                html_message=html,
+                fail_silently=True
+            )
+        except Exception as e:
+            print(f"DEBUG: Erreur envoi email fournisseur: {e}")
+
 
 class AdminFournisseurDeleteView(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdmin]
 
     def delete(self, request, user_id):

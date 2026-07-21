@@ -1,0 +1,223 @@
+<div class="security-page">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-icon">
+        <i class="bi bi-shield-lock"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Sécurité du compte admin</h1>
+        <p class="page-subtitle">Protégez votre compte administrateur et suivez son activité.</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  <div class="alerts" *ngIf="alerts.length">
+    <div *ngFor="let alert of alerts; let i = index" class="alert" [class.alert-success]="alert.type === 'success'" [class.alert-error]="alert.type === 'error'" [class.alert-info]="alert.type === 'info'">
+      <i class="bi" [ngClass]="{'bi-check-circle': alert.type === 'success', 'bi-exclamation-circle': alert.type === 'error', 'bi-info-circle': alert.type === 'info'}"></i>
+      <span>{{ alert.text }}</span>
+      <button class="alert-close" (click)="clearAlert(i)"><i class="bi bi-x"></i></button>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" *ngIf="loading"><div class="mini-spinner"></div><span>Chargement…</span></div>
+
+  <!-- Overview cards -->
+  <div class="cards-row">
+    <div class="stat-card">
+      <div class="stat-icon success"><i class="bi bi-shield-check"></i></div>
+      <div class="stat-body">
+        <span class="stat-label">2FA</span>
+        <span class="stat-value">{{ twoFactorEnabled ? 'Activée' : 'Désactivée' }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon info"><i class="bi bi-laptop"></i></div>
+      <div class="stat-body">
+        <span class="stat-label">Sessions actives</span>
+        <span class="stat-value">{{ overview.active_sessions_count ?? sessions.length }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon warning"><i class="bi bi-key"></i></div>
+      <div class="stat-body">
+        <span class="stat-label">Clés API</span>
+        <span class="stat-value">{{ overview.api_tokens_count ?? tokens.length }}</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon danger"><i class="bi bi-clock-history"></i></div>
+      <div class="stat-body">
+        <span class="stat-label">Dernière activité</span>
+        <span class="stat-value">{{ formatDate(overview.last_login) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="security-grid">
+    <!-- Change password -->
+    <section class="security-card">
+      <div class="card-head">
+        <i class="bi bi-key"></i>
+        <h2>Changer le mot de passe</h2>
+      </div>
+      <form (ngSubmit)="changePassword()" class="card-form">
+        <label class="field">
+          <span>Mot de passe actuel</span>
+          <input type="password" [(ngModel)]="passwordForm.current" name="currentPassword" required>
+        </label>
+        <label class="field">
+          <span>Nouveau mot de passe</span>
+          <input type="password" [(ngModel)]="passwordForm.new" name="newPassword" required minlength="8">
+        </label>
+        <label class="field">
+          <span>Confirmer le mot de passe</span>
+          <input type="password" [(ngModel)]="passwordForm.confirm" name="confirmPassword" required>
+        </label>
+        <button type="submit" class="btn-primary"><i class="bi bi-arrow-repeat"></i> Mettre à jour</button>
+      </form>
+    </section>
+
+    <!-- Two-factor -->
+    <section class="security-card">
+      <div class="card-head">
+        <i class="bi bi-shield-lock"></i>
+        <h2>Authentification à deux facteurs</h2>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <strong>Activer la 2FA</strong>
+            <p>Doublez la sécurité avec un code à usage unique.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [checked]="twoFactorEnabled" (change)="toggleTwoFactor()">
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <strong>Alertes par email</strong>
+            <p>Recevoir une notification en cas d'activité suspecte.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="emailAlertsEnabled" (change)="toggleEmailAlerts()" name="emailAlerts">
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+
+        <div class="two-fa-setup" *ngIf="twoFactorEnabled && showBackupCodes">
+          <p class="setup-info">Scannez le QR code avec votre application d'authentification ou copiez le secret.</p>
+          <div class="secret-box" *ngIf="twoFactorSecret">
+            <span class="secret">{{ twoFactorSecret }}</span>
+            <button class="btn-icon" (click)="copyToClipboard(twoFactorSecret!)" title="Copier"><i class="bi bi-copy"></i></button>
+          </div>
+          <p class="setup-info mt">Codes de secours — sauvegardez-les hors ligne.</p>
+          <ul class="backup-codes">
+            <li *ngFor="let code of backupCodes">{{ code }}</li>
+          </ul>
+          <button class="btn-secondary" (click)="downloadBackupCodes()"><i class="bi bi-download"></i> Télécharger les codes</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active sessions -->
+    <section class="security-card wide">
+      <div class="card-head">
+        <i class="bi bi-laptop"></i>
+        <h2>Sessions actives</h2>
+        <button class="btn-text" (click)="revokeOtherSessions()" *ngIf="sessions.length > 1"><i class="bi bi-slash-circle"></i> Révoquer les autres</button>
+      </div>
+      <div class="session-list">
+        <div class="session-item" *ngFor="let session of sessions" [class.current]="session.is_current">
+          <div class="session-icon"><i class="bi" [ngClass]="session.is_current ? 'bi-laptop-fill' : 'bi-laptop'"></i></div>
+          <div class="session-info">
+            <div class="session-title">
+              {{ session.device_name || 'Appareil' }}
+              <span class="badge-current" *ngIf="session.is_current">Actuelle</span>
+            </div>
+            <div class="session-meta">IP : {{ session.ip_address || 'Inconnue' }} — Dernière activité : {{ formatDate(session.last_active_at) }}</div>
+          </div>
+          <button class="btn-icon danger" (click)="revokeSession(session)" *ngIf="!session.is_current" title="Révoquer"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="empty" *ngIf="!sessions.length">Aucune session enregistrée.</div>
+      </div>
+    </section>
+
+    <!-- Activity log -->
+    <section class="security-card wide">
+      <div class="card-head">
+        <i class="bi bi-clock-history"></i>
+        <h2>Historique de sécurité</h2>
+      </div>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let act of activities">
+          <div class="activity-icon" [class]="'status-' + act.status"><i class="bi" [ngClass]="activityIcon(act.action_code)"></i></div>
+          <div class="activity-info">
+            <div class="activity-title">{{ act.action }}</div>
+            <div class="activity-meta">{{ formatDate(act.timestamp) }} — IP : {{ act.ip_address || 'Inconnue' }}</div>
+          </div>
+          <span class="activity-status" [class]="'status-' + act.status">{{ act.status }}</span>
+        </div>
+        <div class="empty" *ngIf="!activities.length">Aucune activité enregistrée.</div>
+      </div>
+    </section>
+
+    <!-- API tokens -->
+    <section class="security-card wide">
+      <div class="card-head">
+        <i class="bi bi-key"></i>
+        <h2>Clés API</h2>
+      </div>
+      <div class="token-create">
+        <input type="text" [(ngModel)]="newTokenName" name="tokenName" placeholder="Nom de la clé (ex : Intégration Stripe)">
+        <button class="btn-primary" (click)="createToken()"><i class="bi bi-plus-lg"></i> Générer</button>
+      </div>
+      <div class="token-list">
+        <div class="token-item" *ngFor="let token of tokens">
+          <div class="token-info">
+            <div class="token-name">{{ token.name }}</div>
+            <div class="token-key" *ngIf="lastCreatedTokenKey && token.key === lastCreatedTokenKey">
+              <span class="key">{{ token.key }}</span>
+              <button class="btn-icon" (click)="copyToClipboard(token.key)" title="Copier"><i class="bi bi-copy"></i></button>
+            </div>
+            <div class="token-meta">Créée le {{ formatDate(token.created_at) }} — Dernier usage : {{ formatDate(token.last_used_at) }}</div>
+          </div>
+          <button class="btn-icon danger" (click)="revokeToken(token.id)" title="Révoquer"><i class="bi bi-trash"></i></button>
+        </div>
+        <div class="empty" *ngIf="!tokens.length">Aucune clé API.</div>
+      </div>
+    </section>
+
+    <!-- Account actions -->
+    <section class="security-card wide danger-zone">
+      <div class="card-head">
+        <i class="bi bi-exclamation-triangle"></i>
+        <h2>Zone dangereuse</h2>
+      </div>
+      <div class="danger-actions">
+        <div class="danger-row">
+          <div>
+            <strong>Fermer toutes les sessions</strong>
+            <p>Déconnecte tous les appareils, y compris celui-ci.</p>
+          </div>
+          <button class="btn-warning" (click)="logoutAll()"><i class="bi bi-power"></i> Déconnexion globale</button>
+        </div>
+        <div class="danger-row">
+          <div>
+            <strong>Désactiver le compte</strong>
+            <p>Votre compte sera désactivé. Cette action est irréversible.</p>
+          </div>
+          <div class="deactivate-form">
+            <input type="password" [(ngModel)]="deactivatePassword" name="deactivatePassword" placeholder="Mot de passe">
+            <button class="btn-danger" (click)="deactivateAccount()"><i class="bi bi-person-x"></i> Désactiver</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

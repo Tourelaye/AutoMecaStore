@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface Categorie {
   id: number;
@@ -54,10 +55,39 @@ export interface Produit {
   est_tendance?: boolean;
   est_recommande?: boolean;
   est_bestseller?: boolean;
+  est_meilleure_offre?: boolean;
   nombre_vues?: number;
   nombre_favoris?: number;
   nombre_ventes?: number;
+  // Avis clients
+  note_moyenne?: number;
+  nombre_avis?: number;
   deleting?: boolean;
+  // Compatibilité
+  modeles_compatibles?: string[];
+  annee_debut?: number;
+  annee_fin?: number;
+  // Technique
+  etat?: 'neuf' | 'occasion' | 'reconditionne';
+  garantie_mois?: number;
+  pays_origine?: string;
+  reference_oem?: string;
+  poids?: number;
+  longueur?: number;
+  largeur?: number;
+  hauteur?: number;
+  // Stock
+  disponibilite?: 'en_stock' | 'faible_stock' | 'rupture' | 'precommande';
+  delai_livraison?: 'same_day' | '24h' | '48h' | '2_5j' | '5_7j' | '7j_plus';
+  // Complémentaires
+  mots_cles?: string[];
+  conseils_installation?: string;
+  conditions_retour?: string;
+  // Images
+  image_principale_index?: number;
+  // Nouveauté
+  date_ajout?: string;
+  is_new?: boolean;
 }
 
 export interface ProduitListResponse {
@@ -80,7 +110,9 @@ export class ProduitService {
   // Récupérer un produit spécifique
   // ---------------------------------
   getProduit(id: number): Observable<Produit> {
-    return this.http.get<Produit>(`${this.apiUrl}/produits/${id}/`);
+    return this.http.get<any>(`${this.apiUrl}/produits/${id}/`).pipe(
+      map((res: any) => res?.data || res)
+    ) as Observable<Produit>;
   }
 
   // ---------------------------------

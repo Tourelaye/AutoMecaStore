@@ -14,12 +14,14 @@ import { MessagerieComponent } from './messages/messagerie/messagerie.component'
 import { StatistiquesFournisseurComponent } from './statistiques/statistiques-fournisseur/statistiques-fournisseur.component';
 import { MonProfilComponent } from './profil/mon-profil/mon-profil.component';
 import { ParametresComponent } from './parametres/parametres-fournisseur/parametres-fournisseur.component';
-import { roleGuard } from '../core/guards/role.guard';
+import { supplierGuard } from '../core/guards/supplier.guard';
 import { ModifierProfilComponent } from './profil/modifier-profil/modifier-profil.component';
 import { HistoriquesComponent } from './historiques/historiques.component';
 import { FournisseurLoginComponent } from './auth/login/fournisseur-login.component';
 import { FournisseurRegisterComponent } from './auth/register/fournisseur-register.component';
 import { FournisseurEnAttenteComponent } from './auth/en-attente/fournisseur-en-attente.component';
+import { SecuriteComponent } from './securite/securite.component';
+import { NotificationsFournisseurComponent } from './notifications/notifications-fournisseur/notifications-fournisseur.component';
 
 export const fournisseurRoutes: Routes = [
   {
@@ -37,9 +39,8 @@ export const fournisseurRoutes: Routes = [
   {
     path: '',
     component: FournisseurLayoutComponent,
-    canActivate: [roleGuard],
-    canActivateChild: [roleGuard],
-    data: { role: 'fournisseur' },
+    canActivate: [supplierGuard],
+    canActivateChild: [supplierGuard],
     children: [
       {
         path: 'dashboard',
@@ -102,6 +103,14 @@ export const fournisseurRoutes: Routes = [
       {
         path: 'historiques',
         component: HistoriquesComponent
+      },
+      {
+        path: 'securite',
+        component: SecuriteComponent
+      },
+      {
+        path: 'notifications',
+        component: NotificationsFournisseurComponent
       },
       {
         path: '',

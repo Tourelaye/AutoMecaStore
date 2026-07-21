@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demande de compte fournisseur</title>
+  <style>
+    body { margin: 0; padding: 0; background: #f4f6f8; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+    .header { background: linear-gradient(135deg, #dc2626, #ef4444); padding: 40px 30px; text-align: center; color: #fff; }
+    .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+    .header p { margin: 10px 0 0; opacity: 0.9; font-size: 14px; }
+    .brand { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    .content { padding: 34px 30px; color: #334155; }
+    .content h2 { color: #0f172a; font-size: 20px; margin: 0 0 14px; }
+    .content p { line-height: 1.6; font-size: 15px; margin: 0 0 16px; }
+    .details { background: #f8fafc; border-radius: 12px; padding: 20px; margin: 22px 0; }
+    .details li { list-style: none; padding: 6px 0; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    .details li:last-child { border-bottom: none; }
+    .details strong { display: inline-block; width: 120px; color: #64748b; font-weight: 600; }
+    .reason { background: #fef2f2; border-left: 4px solid #ef4444; color: #7f1d1d; padding: 16px 18px; border-radius: 0 10px 10px 0; margin: 20px 0; font-size: 14px; }
+    .reason strong { display: block; margin-bottom: 6px; color: #991b1b; }
+    .footer { padding: 24px 30px; background: #f1f5f9; text-align: center; font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">AutoMeca<strong>Store</strong></div>
+      <h1>Demande non retenue</h1>
+      <p>Votre inscription fournisseur n'a pas été approuvée.</p>
+    </div>
+    <div class="content">
+      <h2>Bonjour {{ prenom|default:"Fournisseur" }},</h2>
+      <p>
+        Après examen de votre dossier, nous regrettons de vous informer que votre demande de compte fournisseur <strong>{{ entreprise }}</strong> n'a pas été approuvée.
+      </p>
+      <ul class="details">
+        <li><strong>Email :</strong> {{ email }}</li>
+        <li><strong>Entreprise :</strong> {{ entreprise }}</li>
+      </ul>
+      <div class="reason">
+        <strong>Motif du refus :</strong>
+        {{ raison }}
+      </div>
+      <p>
+        Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez fournir des informations complémentaires, vous pouvez contacter notre support.
+      </p>
+    </div>
+    <div class="footer">
+      © AutoMecaStore — Tous droits réservés.
+    </div>
+  </div>
+</body>
+</html>

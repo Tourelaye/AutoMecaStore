@@ -107,8 +107,9 @@
                     : 'bi bi-star'"
               ></i>
             </span>
-            <span class="note-val">{{ produit.note }}/5</span>
-            <span class="avis-count">({{ produit.avis }})</span>
+            <span class="note-val" *ngIf="produit.avis > 0">{{ produit.note | number:'1.1-1' }}/5</span>
+            <span class="avis-count" *ngIf="produit.avis > 0">({{ produit.avis }} avis)</span>
+            <span class="avis-count" *ngIf="produit.avis === 0">Aucune évaluation</span>
           </div>
 
           <!-- VENTES SEMAINE -->

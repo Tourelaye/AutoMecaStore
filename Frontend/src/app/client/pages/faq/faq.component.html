@@ -1,148 +1,184 @@
 <div class="faq-page">
 
-    <!-- HEADER -->
-    <div class="faq-header">
-      <h1>Centre d'Aide</h1>
-      <p>Trouvez rapidement les réponses à toutes vos questions</p>
-  
-      <div class="search-box">
-        <i class="bi bi-search"></i>
-        <input type="text" placeholder="Rechercher dans l'aide...">
-      </div>
-    </div>
-  
-    <!-- CONTENT -->
-    <div class="faq-container">
-  
-      <!-- SIDEBAR -->
-      <div class="faq-sidebar">
-  
-        <!-- CONTACT -->
-        <div class="card">
-          <h4>Besoin d'aide ?</h4>
-  
-          <button class="contact-btn">
-            <i class="bi bi-envelope"></i> Nous contacter
-          </button>
-  
-          <button class="contact-btn">
-            <i class="bi bi-telephone"></i> 0123 45 67 89
-          </button>
-  
-          <p class="hours">
-            <i class="bi bi-clock"></i>
-            Lun-Ven: 9h-18h <br>
-            Sam: 9h-12h
-          </p>
-        </div>
-  
-        <!-- CATEGORIES -->
-        <div class="card">
-          <h4>Catégories</h4>
-  
-          <div class="category-item">Commandes <span>12</span></div>
-          <div class="category-item">Livraison <span>8</span></div>
-          <div class="category-item">Paiement <span>6</span></div>
-          <div class="category-item">Retours <span>5</span></div>
-          <div class="category-item">Produits <span>10</span></div>
-          <div class="category-item">Sécurité <span>4</span></div>
-        </div>
-  
-        <!-- POPULAR -->
-        <div class="card">
-          <h4>Questions populaires</h4>
-  
-          <p>Comment passer une commande ?</p>
-          <p>Quels sont les délais de livraison ?</p>
-          <p>Comment retourner un produit ?</p>
-          <p>Quels modes de paiement acceptez-vous ?</p>
-          <p>Comment suivre ma commande ?</p>
-        </div>
-  
-      </div>
-  
-      <!-- MAIN CONTENT -->
-      <div class="faq-content">
-  
-        <!-- CATEGORIES GRID -->
-        <h3>Parcourir par catégorie</h3>
-  
-        <div class="category-grid">
-  
-          <div class="category-card">
-            <i class="bi bi-cart"></i>
-            <h5>Commandes</h5>
-            <p>12 articles</p>
-          </div>
-  
-          <div class="category-card">
-            <i class="bi bi-truck"></i>
-            <h5>Livraison</h5>
-            <p>8 articles</p>
-          </div>
-  
-          <div class="category-card">
-            <i class="bi bi-credit-card"></i>
-            <h5>Paiement</h5>
-            <p>6 articles</p>
-          </div>
-  
-          <div class="category-card">
-            <i class="bi bi-arrow-counterclockwise"></i>
-            <h5>Retours</h5>
-            <p>5 articles</p>
-          </div>
-  
-          <div class="category-card">
-            <i class="bi bi-box"></i>
-            <h5>Produits</h5>
-            <p>10 articles</p>
-          </div>
-  
-          <div class="category-card">
-            <i class="bi bi-shield"></i>
-            <h5>Sécurité</h5>
-            <p>4 articles</p>
-          </div>
-  
-        </div>
-  
-        <!-- FAQ -->
-        <h3 class="mt">Questions fréquentes</h3>
-  
-        <div class="faq-item active">
-          <div class="faq-question">
-            <i class="bi bi-question-circle"></i>
-            Puis-je modifier ma commande après l’avoir passée ?
-          </div>
-  
-          <div class="faq-answer">
-            Vous pouvez modifier votre commande dans les 30 minutes suivant sa validation...
-          </div>
-        </div>
-  
-        <div class="faq-item">
-          <div class="faq-question">
-            <i class="bi bi-question-circle"></i>
-            Comment annuler ma commande ?
-          </div>
-        </div>
-  
-        <div class="faq-item">
-          <div class="faq-question">
-            <i class="bi bi-question-circle"></i>
-            Quels sont les délais de livraison ?
-          </div>
-        </div>
-  
-        <div class="faq-item">
-          <div class="faq-question">
-            <i class="bi bi-question-circle"></i>
-            Comment suivre ma commande ?
-          </div>
-        </div>
-  
-      </div>
-  
+  <!-- HEADER -->
+  <div class="faq-header">
+    <h1>Centre d'Aide</h1>
+    <p>Trouvez rapidement les réponses à toutes vos questions</p>
+
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Rechercher dans l'aide...">
     </div>
   </div>
+
+  <!-- CONTENT -->
+  <div class="faq-container">
+
+    <!-- SIDEBAR -->
+    <div class="faq-sidebar">
+
+      <!-- CONTACT -->
+      <div class="card">
+        <h4>Besoin d'aide ?</h4>
+
+        <a href="aide" class="contact-btn">
+          <span class="contact-btn__icon"><i class="bi bi-envelope"></i></span>
+          Nous contacter
+        </a>
+
+        <a href="tel:+221123456789" class="contact-btn">
+          <span class="contact-btn__icon"><i class="bi bi-telephone"></i></span>
+          0123 45 67 89
+        </a>
+
+        <p class="hours">
+          <i class="bi bi-clock"></i>
+          Lun-Ven : 9h-18h <br>
+          Sam : 9h-12h
+        </p>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="card">
+        <h4>Catégories</h4>
+
+        <div class="category-item">
+          <span class="category-item__label"><i class="bi bi-cart"></i> Commandes</span>
+          <span class="count">12</span>
+        </div>
+        <div class="category-item">
+          <span class="category-item__label"><i class="bi bi-truck"></i> Livraison</span>
+          <span class="count">8</span>
+        </div>
+        <div class="category-item">
+          <span class="category-item__label"><i class="bi bi-credit-card"></i> Paiement</span>
+          <span class="count">6</span>
+        </div>
+        <div class="category-item">
+          <span class="category-item__label"><i class="bi bi-arrow-counterclockwise"></i> Retours</span>
+          <span class="count">5</span>
+        </div>
+        <div class="category-item">
+          <span class="category-item__label"><i class="bi bi-box"></i> Produits</span>
+          <span class="count">10</span>
+        </div>
+        <div class="category-item">
+          <span class="category-item__label"><i class="bi bi-shield"></i> Sécurité</span>
+          <span class="count">4</span>
+        </div>
+      </div>
+
+      <!-- POPULAR -->
+      <div class="card">
+        <h4>Questions populaires</h4>
+
+        <a href="#" class="popular-item">Comment passer une commande ?</a>
+        <a href="#" class="popular-item">Quels sont les délais de livraison ?</a>
+        <a href="#" class="popular-item">Comment retourner un produit ?</a>
+        <a href="#" class="popular-item">Quels modes de paiement acceptez-vous ?</a>
+        <a href="#" class="popular-item">Comment suivre ma commande ?</a>
+      </div>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="faq-content">
+
+      <!-- CATEGORIES GRID -->
+      <h3>Parcourir par catégorie</h3>
+
+      <div class="category-grid">
+
+        <div class="category-card">
+          <div class="category-card__icon"><i class="bi bi-cart"></i></div>
+          <h5>Commandes</h5>
+          <p>12 articles</p>
+        </div>
+
+        <div class="category-card">
+          <div class="category-card__icon"><i class="bi bi-truck"></i></div>
+          <h5>Livraison</h5>
+          <p>8 articles</p>
+        </div>
+
+        <div class="category-card">
+          <div class="category-card__icon"><i class="bi bi-credit-card"></i></div>
+          <h5>Paiement</h5>
+          <p>6 articles</p>
+        </div>
+
+        <div class="category-card">
+          <div class="category-card__icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+          <h5>Retours</h5>
+          <p>5 articles</p>
+        </div>
+
+        <div class="category-card">
+          <div class="category-card__icon"><i class="bi bi-box"></i></div>
+          <h5>Produits</h5>
+          <p>10 articles</p>
+        </div>
+
+        <div class="category-card">
+          <div class="category-card__icon"><i class="bi bi-shield"></i></div>
+          <h5>Sécurité</h5>
+          <p>4 articles</p>
+        </div>
+
+      </div>
+
+      <!-- FAQ ACCORDÉON (fonctionnel, pur CSS) -->
+      <h3 class="mt">Questions fréquentes</h3>
+
+      <div class="faq-item">
+        <input type="checkbox" id="faq1" class="faq-toggle" checked hidden>
+        <label for="faq1" class="faq-question">
+          <i class="bi bi-question-circle"></i>
+          <span>Puis-je modifier ma commande après l'avoir passée ?</span>
+          <i class="bi bi-chevron-down faq-chevron"></i>
+        </label>
+        <div class="faq-answer">
+          Vous pouvez modifier votre commande dans les 30 minutes suivant sa validation, directement depuis la section "Mes commandes" de votre espace client. Passé ce délai, la préparation ayant déjà commencé, contactez notre service client au plus vite pour voir ce qui est encore possible.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <input type="checkbox" id="faq2" class="faq-toggle" hidden>
+        <label for="faq2" class="faq-question">
+          <i class="bi bi-question-circle"></i>
+          <span>Comment annuler ma commande ?</span>
+          <i class="bi bi-chevron-down faq-chevron"></i>
+        </label>
+        <div class="faq-answer">
+          Rendez-vous dans "Mes commandes", sélectionnez la commande concernée et cliquez sur "Annuler". L'annulation est possible tant que la commande n'a pas été expédiée. Le remboursement est effectué sous 3 à 5 jours ouvrés sur votre moyen de paiement d'origine.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <input type="checkbox" id="faq3" class="faq-toggle" hidden>
+        <label for="faq3" class="faq-question">
+          <i class="bi bi-question-circle"></i>
+          <span>Quels sont les délais de livraison ?</span>
+          <i class="bi bi-chevron-down faq-chevron"></i>
+        </label>
+        <div class="faq-answer">
+          Comptez 24 à 48h pour Dakar et sa banlieue, et 3 à 5 jours ouvrés pour le reste du Sénégal. Un numéro de suivi vous est envoyé par email dès l'expédition de votre colis.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <input type="checkbox" id="faq4" class="faq-toggle" hidden>
+        <label for="faq4" class="faq-question">
+          <i class="bi bi-question-circle"></i>
+          <span>Comment suivre ma commande ?</span>
+          <i class="bi bi-chevron-down faq-chevron"></i>
+        </label>
+        <div class="faq-answer">
+          Connectez-vous à votre espace client puis ouvrez "Mes commandes" : le statut (en préparation, expédiée, livrée) et le numéro de suivi transporteur y sont mis à jour en temps réel.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

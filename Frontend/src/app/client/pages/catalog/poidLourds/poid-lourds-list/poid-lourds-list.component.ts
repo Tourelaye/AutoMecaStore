@@ -93,12 +93,12 @@ export class PoidLourdsListComponent implements OnInit {
           prixNouveau: parseFloat(p.prix_promo ?? p.prix),
           prixAncien: p.prix_promo ? parseFloat(p.prix) : null,
           discount: p.prix_promo ? Math.round((1 - p.prix_promo / p.prix) * 100) : null,
-          note: 4.5,
-          avis: 0,
+          note: p.note_moyenne ?? 0,
+          avis: p.nombre_avis ?? 0,
           stock: p.stock || 10,
           livraison: true,
           isFavori: false,
-          isNew: false,
+          isNew: p.is_new ?? this.isProduitNouveau(p.date_ajout),
           categorie: this.mapCategorieToPoidLourds(p.type_piece_nom || '')
         }));
 
@@ -128,6 +128,20 @@ export class PoidLourdsListComponent implements OnInit {
       'eclairage': 'eclairage'
     };
     return mapping[typePieceNom] || 'tous';
+  }
+
+  // Détermine si un produit est une nouveauté (moins de 30 jours)
+  private isProduitNouveau(dateAjout?: string): boolean {
+    if (!dateAjout) return false;
+    const ajout = new Date(dateAjout);
+    const now = new Date();
+    const diff = now.getTime() - ajout.getTime();
+    return diff <= 30 * 24 * 60 * 60 * 1000;
+  }
+
+  // Nombre de nouveautés affichées dans le badge du filtre
+  getNouveautesCount(): number {
+    return this.tousLesProduits.filter(p => p.isNew).length;
   }
 
   // Charger les données mock en cas d'erreur API

@@ -126,11 +126,23 @@ export class ProduitsComponent implements OnInit, OnDestroy {
         });
 
         // Construire la liste des images avec les URLs complètes
-        this.images = [];
-        if (produit.image_url) this.images.push(produit.image_url);
-        if (produit.image_2_url) this.images.push(produit.image_2_url);
-        if (produit.image_3_url) this.images.push(produit.image_3_url);
-        if (produit.image_4_url) this.images.push(produit.image_4_url);
+        const allImages = [];
+        if (produit.image_url) allImages.push(produit.image_url);
+        if (produit.image_2_url) allImages.push(produit.image_2_url);
+        if (produit.image_3_url) allImages.push(produit.image_3_url);
+        if (produit.image_4_url) allImages.push(produit.image_4_url);
+
+        // Placer l'image principale sélectionnée en premier
+        const mainIndex = (produit.image_principale_index || 1) - 1;
+        if (allImages.length > 0 && mainIndex >= 0 && mainIndex < allImages.length) {
+          this.images = [
+            allImages[mainIndex],
+            ...allImages.slice(0, mainIndex),
+            ...allImages.slice(mainIndex + 1)
+          ];
+        } else {
+          this.images = allImages;
+        }
 
         // Si aucune image, utiliser une image par défaut
         if (this.images.length === 0) {
@@ -279,6 +291,67 @@ export class ProduitsComponent implements OnInit, OnDestroy {
       return 0;
     }
     return Math.round((1 - this.produit.prix_promo / this.produit.prix) * 100);
+  }
+
+  getNoteMoyenne(): number {
+    return this.produit?.note_moyenne ?? 0;
+  }
+
+  getNombreAvis(): number {
+    return this.produit?.nombre_avis ?? 0;
+  }
+
+  getEtoiles(): number[] {
+    return [1, 2, 3, 4, 5];
+  }
+
+  isPleine(i: number, note: number): boolean {
+    return i <= Math.floor(note || 0);
+  }
+
+  isDemi(i: number, note: number): boolean {
+    const n = note || 0;
+    return i === Math.ceil(n) && (n % 1) >= 0.5;
+  }
+
+  getEtatLabel(etat?: string): string {
+    const map: any = { neuf: 'Neuf', occasion: 'Occasion', reconditionne: 'Reconditionné' };
+    return map[etat || ''] || 'Non spécifié';
+  }
+
+  getDisponibiliteLabel(dispo?: string): string {
+    const map: any = {
+      en_stock: 'En stock',
+      faible_stock: 'Faible stock',
+      rupture: 'Rupture de stock',
+      precommande: 'Précommande'
+    };
+    return map[dispo || ''] || 'Non spécifié';
+  }
+
+  getDelaiLivraisonLabel(delai?: string): string {
+    const map: any = {
+      same_day: 'Livraison le jour même',
+      '24h': '24 heures',
+      '48h': '48 heures',
+      '2_5j': '2 à 5 jours',
+      '5_7j': '5 à 7 jours',
+      '7j_plus': 'Plus de 7 jours'
+    };
+    return map[delai || ''] || 'Non spécifié';
+  }
+
+  getPaysLabel(pays?: string): string {
+    const map: any = {
+      japon: 'Japon', allemagne: 'Allemagne', france: 'France',
+      coree_sud: 'Corée du Sud', chine: 'Chine', usa: 'États-Unis',
+      italie: 'Italie', espagne: 'Espagne', turquie: 'Turquie', inde: 'Inde'
+    };
+    return map[pays || ''] || 'Non spécifié';
+  }
+
+  getGarantieLabel(mois?: number): string {
+    return mois ? `${mois} mois` : 'Sans garantie';
   }
 
   // ── Wishlist ───────────────────────────────────────────────────────────────

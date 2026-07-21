@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from django.core.cache import cache
 from account.permissions import IsFournisseur
 from .models import Transaction, HistoriqueActivite, Notification
 from .serializers import TransactionSerializer, HistoriqueActiviteSerializer, NotificationSerializer, FournisseurSerializer
@@ -84,9 +85,9 @@ class NotificationListView(generics.ListAPIView):
         )
 
 
-class NotificationDetailView(generics.RetrieveUpdateAPIView):
+class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Détail et marquer comme lu une notification
+    Détail, mise à jour (marquer comme lu) et suppression d'une notification
     """
     serializer_class = NotificationSerializer
     permission_classes = [IsFournisseur]
@@ -97,8 +98,36 @@ class NotificationDetailView(generics.RetrieveUpdateAPIView):
             destinataire_type='fournisseur'
         )
 
-    def perform_update(self, serializer):
-        serializer.save(lu=True)
+
+class NotificationCountView(APIView):
+    """
+    Compteur de notifications non lues
+    """
+    permission_classes = [IsFournisseur]
+
+    def get(self, request):
+        count = Notification.objects.filter(
+            destinataire_id=request.user.id,
+            destinataire_type='fournisseur',
+            lu=False
+        ).count()
+        return Response({'unread_count': count})
+
+
+class NotificationMarkAllReadView(APIView):
+    """
+    Marquer toutes les notifications comme lues
+    """
+    permission_classes = [IsFournisseur]
+
+    def post(self, request):
+        count = Notification.objects.filter(
+            destinataire_id=request.user.id,
+            destinataire_type='fournisseur',
+            lu=False
+        ).update(lu=True)
+        return Response({'marked_as_read': count})
+
 
 
 class FournisseurProfileView(generics.RetrieveUpdateAPIView):
@@ -164,7 +193,33 @@ class FournisseurProduitListCreateView(generics.ListCreateAPIView):
         return Produit.objects.filter(fournisseur=self.request.user.fournisseur)
 
     def perform_create(self, serializer):
-        serializer.save(fournisseur=self.request.user.fournisseur)
+        fournisseur = self.request.user.fournisseur
+        produit = serializer.save(
+            fournisseur=fournisseur,
+            statut='inactif',
+            statut_approbation='en_attente',
+            is_active=True
+        )
+
+        # Notifier les admins en temps réel
+        try:
+            notifications = cache.get('admin_notifications', [])
+            notifications.insert(0, {
+                'type': 'produit',
+                'message': f"Nouveau produit à approuver : {produit.nom} (fournisseur {fournisseur.nom_entreprise})",
+                'produit_id': produit.id,
+                'fournisseur_id': fournisseur.user_id,
+                'timestamp': None,
+                'data': {
+                    'produit_id': produit.id,
+                    'produit_nom': produit.nom,
+                    'fournisseur_nom': fournisseur.nom_entreprise,
+                    'lien': '/admin/approbation-produits'
+                }
+            })
+            cache.set('admin_notifications', notifications[:50], timeout=3600)
+        except Exception:
+            pass
 
 
 class FournisseurProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -237,8 +292,20 @@ class FournisseurStockUpdateView(APIView):
     def patch(self, request, pk):
         try:
             produit = Produit.objects.get(pk=pk, fournisseur=request.user.fournisseur)
+            old_stock = produit.stock
             produit.stock = request.data.get('stock', produit.stock)
             produit.save()
+
+            # 🔔 Alerte stock faible
+            if produit.stock <= 5 and old_stock > 5:
+                creer_notification_fournisseur(
+                    fournisseur_id=request.user.id,
+                    type_notif='stock',
+                    titre='Alerte stock faible',
+                    message=f"Le stock de « {produit.nom} » est faible ({produit.stock} unité(s)).",
+                    lien='/fournisseur/stocks'
+                )
+
             return Response(ProduitSerializer(produit).data)
         except Produit.DoesNotExist:
             return Response({'error': 'Produit non trouvé'}, status=status.HTTP_404_NOT_FOUND)

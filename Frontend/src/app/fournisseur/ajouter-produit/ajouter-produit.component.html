@@ -8,7 +8,7 @@
     <div class="page-icon-wrap"><i class="bi bi-plus-lg"></i></div>
     <div>
       <h1 class="page-title">Ajouter un nouveau produit</h1>
-      <p class="page-sub">Renseignez les caractéristiques techniques et visuelles de votre pièce.</p>
+      <p class="page-sub">Renseignez les caractéristiques techniques, compatibilités et visuelles de votre pièce.</p>
     </div>
   </div>
 
@@ -98,16 +98,181 @@
           </div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Quantité en stock *</label>
-          <input type="number" class="field-input" name="stock" [(ngModel)]="form.stock" required min="0"
-                 placeholder="10">
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Quantité en stock *</label>
+            <input type="number" class="field-input" name="stock" [(ngModel)]="form.stock" required min="0"
+                   (ngModelChange)="onStockChange()" placeholder="10">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Disponibilité</label>
+            <select class="field-input" name="disponibilite" [(ngModel)]="form.disponibilite">
+              <option *ngFor="let d of disponibilites" [value]="d.value">{{ d.label }}</option>
+            </select>
+          </div>
         </div>
 
         <div class="field-group">
           <label class="field-label">Description détaillée *</label>
           <textarea class="field-input field-textarea" name="description" [(ngModel)]="form.description" required
-                    rows="4" placeholder="Décrivez les compatibilités modèles (ex: Peugeot 308, Golf 7...), caractéristiques techniques et avantages."></textarea>
+                    rows="4" placeholder="Décrivez les compatibilités modèles, caractéristiques techniques et avantages."></textarea>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 : COMPATIBILITÉ VÉHICULE -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">3</span>
+            <h2>Compatibilité du véhicule</h2>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Modèles compatibles</label>
+          <div class="tag-input-wrap">
+            <input type="text" class="field-input" name="modeleInput" [(ngModel)]="modeleInput"
+                   (keydown)="onModeleInputKeydown($event)" placeholder="Tapez un modèle et appuyez sur Entrée">
+          </div>
+          <div class="suggestions">
+            <button type="button" class="suggestion-chip" *ngFor="let m of modelesSuggestions" (click)="ajouterModeleDepuisSuggestion(m)">
+              <i class="bi bi-plus"></i> {{ m }}
+            </button>
+          </div>
+          <div class="tags-list" *ngIf="modelesCompatibles.length">
+            <span class="tag-pill" *ngFor="let m of modelesCompatibles; let i = index">
+              {{ m }}
+              <button type="button" (click)="retirerModele(i)"><i class="bi bi-x"></i></button>
+            </span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Année de début</label>
+            <select class="field-input" name="anneeDebut" [(ngModel)]="form.anneeDebut">
+              <option [ngValue]="null">--</option>
+              <option *ngFor="let a of annees" [ngValue]="a">{{ a }}</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Année de fin</label>
+            <select class="field-input" name="anneeFin" [(ngModel)]="form.anneeFin">
+              <option [ngValue]="null">--</option>
+              <option *ngFor="let a of annees" [ngValue]="a">{{ a }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 4 : INFORMATIONS TECHNIQUES -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">4</span>
+            <h2>Informations techniques</h2>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">État du produit</label>
+            <select class="field-input" name="etat" [(ngModel)]="form.etat">
+              <option *ngFor="let e of etats" [value]="e.value">{{ e.label }}</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Garantie</label>
+            <select class="field-input" name="garantieMois" [(ngModel)]="form.garantieMois">
+              <option *ngFor="let g of garanties" [ngValue]="g.value">{{ g.label }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Pays d'origine</label>
+            <select class="field-input" name="paysOrigine" [(ngModel)]="form.paysOrigine">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let p of pays" [value]="p.value">{{ p.label }}</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Référence OEM / Constructeur</label>
+            <input type="text" class="field-input mono" name="referenceOem" [(ngModel)]="form.referenceOem"
+                   placeholder="ex: 04465-0K340">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Poids (kg)</label>
+            <input type="number" step="0.01" class="field-input" name="poids" [(ngModel)]="form.poids" min="0"
+                   placeholder="2.5">
+          </div>
+          <div class="field-group dimensions-group">
+            <label class="field-label">Dimensions (L x l x H) cm</label>
+            <div class="dimensions-row">
+              <input type="number" step="0.1" class="field-input" name="longueur" [(ngModel)]="form.longueur" min="0" placeholder="Long.">
+              <span>x</span>
+              <input type="number" step="0.1" class="field-input" name="largeur" [(ngModel)]="form.largeur" min="0" placeholder="Larg.">
+              <span>x</span>
+              <input type="number" step="0.1" class="field-input" name="hauteur" [(ngModel)]="form.hauteur" min="0" placeholder="Haut.">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 5 : GESTION DU STOCK -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">5</span>
+            <h2>Gestion du stock</h2>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Délai de livraison</label>
+          <select class="field-input" name="delaiLivraison" [(ngModel)]="form.delaiLivraison">
+            <option *ngFor="let dl of delais" [value]="dl.value">{{ dl.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 6 : INFORMATIONS COMPLÉMENTAIRES -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">6</span>
+            <h2>Informations complémentaires</h2>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Mots-clés</label>
+          <div class="tag-input-wrap">
+            <input type="text" class="field-input" name="motCleInput" [(ngModel)]="motCleInput"
+                   (keydown)="onMotCleInputKeydown($event)" placeholder="Frein, Plaquette, Toyota... puis Entrée">
+          </div>
+          <div class="tags-list" *ngIf="motsCles.length">
+            <span class="tag-pill keyword" *ngFor="let m of motsCles; let i = index">
+              {{ m }}
+              <button type="button" (click)="retirerMotCle(i)"><i class="bi bi-x"></i></button>
+            </span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Conseils d'installation</label>
+          <textarea class="field-input field-textarea" name="conseilsInstallation" [(ngModel)]="form.conseilsInstallation"
+                    rows="3" placeholder="Recommandations de montage, outils nécessaires, précautions..."></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Conditions de retour</label>
+          <textarea class="field-input field-textarea" name="conditionsRetour" [(ngModel)]="form.conditionsRetour"
+                    rows="2" placeholder="Conditions spécifiques de retour du produit."></textarea>
         </div>
       </div>
 
@@ -123,46 +288,59 @@
           </div>
         </div>
 
-        <!-- IMAGE PRINCIPALE -->
-        <label class="field-label">Image principale *</label>
-        <div class="upload-zone main-zone" [class.has-image]="imagePreviewPrincipale" (click)="fileInputPrincipale.click()">
-          <img *ngIf="imagePreviewPrincipale" [src]="imagePreviewPrincipale" alt="Image principale">
-          <div class="upload-placeholder" *ngIf="!imagePreviewPrincipale">
-            <i class="bi bi-cloud-arrow-up-fill"></i>
-            <span>Cliquez ou glissez une image ici</span>
-            <small>PNG, JPG jusqu'à 5 Mo</small>
+        <label class="field-label">Images du produit (glissez-déposez pour réorganiser)</label>
+        <div class="images-grid">
+          <div class="upload-zone image-slot"
+               *ngFor="let img of images; let i = index"
+               [class.has-image]="img.preview"
+               [class.is-main]="i === mainImageIndex"
+               draggable="true"
+               (dragstart)="onDragStart(i)"
+               (dragover)="onDragOver($event, i)"
+               (drop)="onDrop($event, i)"
+               (click)="ouvrirFileInput(i)">
+            <img *ngIf="img.preview" [src]="img.preview" [alt]="'Image ' + (i + 1)">
+            <div class="upload-placeholder sm" *ngIf="!img.preview">
+              <i class="bi bi-plus-lg"></i>
+              <small>Image {{ i + 1 }}</small>
+            </div>
+            <span class="main-badge" *ngIf="i === mainImageIndex">Principale</span>
+            <button type="button" class="btn-remove-img sm" *ngIf="img.preview"
+                    (click)="$event.stopPropagation(); retirerImage(i)">
+              <i class="bi bi-x"></i>
+            </button>
+            <button type="button" class="btn-set-main" *ngIf="img.preview && i !== mainImageIndex"
+                    (click)="$event.stopPropagation(); definirImagePrincipale(i)">
+              <i class="bi bi-star"></i>
+            </button>
+            <input #fileInput type="file" accept="image/*" hidden (change)="onImageFileSelected($event, i)">
           </div>
-          <span class="preview-badge" *ngIf="imagePreviewPrincipale">Principale</span>
-          <button type="button" class="btn-remove-img" *ngIf="imagePreviewPrincipale"
-                  (click)="$event.stopPropagation(); retirerImagePrincipale()">
-            <i class="bi bi-x"></i>
-          </button>
         </div>
-        <input #fileInputPrincipale type="file" accept="image/*" hidden
-               (change)="onFichierPrincipalSelectionne($event)">
 
+        <button type="button" class="btn-preview" (click)="togglePreview()">
+          <i class="bi bi-eye"></i> {{ showPreview ? 'Masquer l\'aperçu' : 'Aperçu avant publication' }}
+        </button>
 
-<!-- IMAGES SECONDAIRES -->
-<label class="field-label preview-label">Images secondaires (optionnelles)</label>
-<div class="preview-secondaires">
-  <div class="upload-zone sec-zone"
-       *ngFor="let preview of imagesPreviewSecondaires; let i = index"
-       [class.has-image]="preview"
-       (click)="ouvrirFileInputSecondaire(i)">
-    <img *ngIf="preview" [src]="preview" [alt]="'Image secondaire ' + (i + 1)">
-    <div class="upload-placeholder sm" *ngIf="!preview">
-      <i class="bi bi-plus-lg"></i>
-      <small>Sec {{ i + 1 }}</small>
-    </div>
-    <button type="button" class="btn-remove-img sm" *ngIf="preview"
-            (click)="$event.stopPropagation(); retirerImageSecondaire(i)">
-      <i class="bi bi-x"></i>
-    </button>
-  </div>
-</div>
-<input #fileInputSecondaire *ngFor="let x of [0,1,2]; let i = index"
-       type="file" accept="image/*" hidden
-       (change)="onFichierSecondaireSelectionne($event, i)">
+        <!-- APERÇU -->
+        <div class="preview-card" *ngIf="showPreview">
+          <div class="preview-image">
+            <img *ngIf="mainPreview" [src]="mainPreview" alt="Aperçu">
+            <div class="no-preview" *ngIf="!mainPreview"><i class="bi bi-image"></i></div>
+          </div>
+          <div class="preview-body">
+            <h3>{{ form.nom || 'Nom du produit' }}</h3>
+            <div class="preview-price" *ngIf="form.prix">{{ form.prix | number }} FCFA</div>
+            <div class="preview-meta">
+              <span *ngIf="form.marque"><i class="bi bi-tag"></i> {{ form.marque }}</span>
+              <span *ngIf="form.reference"><i class="bi bi-upc"></i> {{ form.reference }}</span>
+              <span *ngIf="form.stock !== null"><i class="bi bi-box-seam"></i> Stock: {{ form.stock }}</span>
+              <span *ngIf="dimensionsDisplay"><i class="bi bi-rulers"></i> {{ dimensionsDisplay }}</span>
+            </div>
+            <div class="preview-tags" *ngIf="modelesCompatibles.length">
+              <span class="preview-tag" *ngFor="let m of modelesCompatibles">{{ m }}</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Actions -->
         <button type="submit" class="btn-save" [disabled]="produitForm.invalid || isSaving">

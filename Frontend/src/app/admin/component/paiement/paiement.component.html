@@ -13,11 +13,11 @@
 
       <div class="header-stats">
         <div class="hs-item">
-          <span class="hs-val text-green">{{ volumeCA | number:'1.2-2':'fr' }} €</span>
+          <span class="hs-val text-green">{{ volumeCA | number:'1.2-2':'fr' }} FCFA</span>
           <span class="hs-lbl">Volume CA</span>
         </div>
         <div class="hs-item">
-          <span class="hs-val text-blue">{{ commissionsNet | number:'1.2-2':'fr' }} €</span>
+          <span class="hs-val text-blue">{{ commissionsNet | number:'1.2-2':'fr' }} FCFA</span>
           <span class="hs-lbl">Commissions</span>
         </div>
         <div class="hs-item">
@@ -79,8 +79,8 @@
           <td>{{ p.vendor }}</td>
           <td class="muted">{{ p.gateway }}</td>
           <td class="muted">{{ p.date }}</td>
-          <td class="ta-right strong">{{ p.netClient | number:'1.2-2':'fr' }} €</td>
-          <td class="ta-right commission">{{ p.commission | number:'1.2-2':'fr' }} €</td>
+          <td class="ta-right strong">{{ p.netClient | number:'1.2-2':'fr' }} FCFA</td>
+          <td class="ta-right commission">{{ p.commission | number:'1.2-2':'fr' }} FCFA</td>
           <td>
             <span class="badge" [class]="'badge--' + p.status">{{ statusLabel(p.status) }}</span>
           </td>
@@ -110,7 +110,7 @@
       <h3 class="modal__title" *ngIf="activeModal === 'retry'">Relancer ce paiement ?</h3>
 
       <p class="modal__text" *ngIf="activeModal === 'refund'">
-        <strong>{{ targetPaiement?.netClient | number:'1.2-2':'fr' }} €</strong> seront remboursés à
+        <strong>{{ targetPaiement?.netClient | number:'1.2-2':'fr' }} FCFA</strong> seront remboursés à
         <strong>{{ targetPaiement?.client }}</strong> pour la commande <strong>{{ targetPaiement?.orderRef }}</strong>.
         Cette action est irréversible.
       </p>

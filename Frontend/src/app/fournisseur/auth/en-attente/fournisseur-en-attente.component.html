@@ -47,14 +47,23 @@
 
         <div class="status-icon-wrap">
           <div class="status-icon-ring"></div>
-          <div class="status-icon"><i class="bi bi-hourglass-split"></i></div>
+          <div class="status-icon" [class.refused]="isRefused">
+            <i class="bi" [ngClass]="isRefused ? 'bi-x-circle' : 'bi-hourglass-split'"></i>
+          </div>
         </div>
 
         <div class="status-header">
-          <h2>Validation en cours</h2>
-          <p>
+          <h2>{{ isRefused ? 'Compte refusé' : 'Validation en cours' }}</h2>
+          <p *ngIf="!isRefused">
             Votre compte fournisseur a bien été créé. Il doit maintenant être examiné et validé par un administrateur avant que vous puissiez accéder à votre espace vendeur.
           </p>
+          <p *ngIf="isRefused">
+            Votre demande de compte fournisseur a été refusée ou suspendue par un administrateur.
+          </p>
+          <div class="refusal-box" *ngIf="isRefused && raisonRefus">
+            <strong>Motif :</strong>
+            <p>{{ raisonRefus }}</p>
+          </div>
         </div>
 
         <!-- TIMELINE DES ÉTAPES -->

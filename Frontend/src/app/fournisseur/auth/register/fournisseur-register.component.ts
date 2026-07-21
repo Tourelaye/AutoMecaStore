@@ -26,6 +26,21 @@ export class FournisseurRegisterComponent {
     confirmPassword: ''
   };
 
+  selectedPrefix = '+221';
+  phoneLocal = '';
+  phoneError = '';
+
+  readonly phonePrefixes = [
+    { code: '+221', label: '+221 Sénégal', localLength: 9, pattern: /^(70|75|76|77|78)\d{7}$/ },
+    { code: '+33', label: '+33 France', localLength: 9, pattern: /^[1-9]\d{8}$/ },
+    { code: '+225', label: '+225 Côte d\'Ivoire', localLength: 10, pattern: /^\d{10}$/ },
+    { code: '+212', label: '+212 Maroc', localLength: 9, pattern: /^\d{9}$/ },
+    { code: '+213', label: '+213 Algérie', localLength: 9, pattern: /^\d{9}$/ },
+    { code: '+216', label: '+216 Tunisie', localLength: 8, pattern: /^\d{8}$/ },
+    { code: '+32', label: '+32 Belgique', localLength: 9, pattern: /^\d{9}$/ },
+    { code: '+86', label: '+86 Chine', localLength: 11, pattern: /^1\d{10}$/ }
+  ];
+
   showPassword = false;
   showConfirmPassword = false;
   isLoading = false;
@@ -74,12 +89,80 @@ export class FournisseurRegisterComponent {
     return this.form.password === this.form.confirmPassword;
   }
 
+  get phonePlaceholder(): string {
+    const prefix = this.phonePrefixes.find(p => p.code === this.selectedPrefix);
+    if (this.selectedPrefix === '+221') return '77 000 00 00';
+    if (this.selectedPrefix === '+33') return '6 00 00 00 00';
+    return '0'.repeat(prefix?.localLength || 9);
+  }
+
+  get formattedPhone(): string {
+    return this.formatPhoneLocal(this.phoneLocal);
+  }
+
+  get fullPhone(): string {
+    return this.selectedPrefix + this.phoneLocal;
+  }
+
+  onPrefixChange(): void {
+    this.validatePhone();
+  }
+
+  onPhoneInput(value: string): void {
+    const digits = (value || '').replace(/\D/g, '');
+    const prefix = this.phonePrefixes.find(p => p.code === this.selectedPrefix);
+    this.phoneLocal = prefix && digits.length > prefix.localLength ? digits.slice(0, prefix.localLength) : digits;
+    this.validatePhone();
+  }
+
+  private formatPhoneLocal(digits: string): string {
+    if (!digits) return '';
+    if (this.selectedPrefix === '+221' && digits.length <= 9) {
+      const parts = [
+        digits.slice(0, 2),
+        digits.slice(2, 5),
+        digits.slice(5, 7),
+        digits.slice(7, 9)
+      ].filter(part => part.length > 0);
+      return parts.join(' ');
+    }
+    // Group other numbers by 2
+    const parts: string[] = [];
+    for (let i = 0; i < digits.length; i += 2) {
+      parts.push(digits.slice(i, i + 2));
+    }
+    return parts.join(' ');
+  }
+
+  validatePhone(): boolean {
+    this.phoneError = '';
+    if (!this.phoneLocal) {
+      this.phoneError = 'Le numéro de téléphone est obligatoire.';
+      return false;
+    }
+    const prefix = this.phonePrefixes.find(p => p.code === this.selectedPrefix);
+    if (prefix && this.phoneLocal.length !== prefix.localLength) {
+      this.phoneError = `Le numéro doit comporter ${prefix.localLength} chiffres pour ${this.selectedPrefix}.`;
+      return false;
+    }
+    if (prefix && !prefix.pattern.test(this.phoneLocal)) {
+      this.phoneError = 'Le format du numéro ne correspond pas au pays sélectionné.';
+      return false;
+    }
+    return true;
+  }
+
   onSubmit(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
     if (!this.form.prenom || !this.form.nom || !this.form.email || !this.form.nom_entreprise || !this.form.password) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires.';
+      return;
+    }
+
+    if (!this.validatePhone()) {
+      this.errorMessage = this.phoneError;
       return;
     }
 
@@ -100,6 +183,7 @@ export class FournisseurRegisterComponent {
 
     this.isLoading = true;
 
+    this.form.telephone = this.fullPhone;
     const data = { ...this.form };
     delete (data as any).confirmPassword;
 

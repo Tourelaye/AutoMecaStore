@@ -12,9 +12,12 @@ export const roleGuard: CanActivateFn = (route) => {
   // ── Non authentifié ──────────────────────────────────────────────
   if (!auth.isAuthenticated()) {
     // ✅ Redirige vers la bonne page login selon le rôle attendu
-    const loginUrl = expectedRole === 'fournisseur'
-      ? '/fournisseur/login'
-      : '/admin/login';
+    let loginUrl = '/admin/login';
+    if (expectedRole === 'fournisseur') {
+      loginUrl = '/fournisseur/login';
+    } else if (expectedRole === 'client') {
+      loginUrl = '/login';
+    }
     return router.parseUrl(loginUrl);
   }
 

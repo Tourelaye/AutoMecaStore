@@ -6,6 +6,12 @@ from .views import (
     AdminNotificationsView, CreateAdminView
 )
 from .mon_compte_views import MeView, MesCommandesView, FavorisView, PanierView
+from .security_views import (
+    SecurityOverviewView, ChangePasswordView, TwoFactorView,
+    SecurityActivityView, SessionsListView, RegisterSessionView,
+    RevokeSessionView, RevokeOtherSessionsView, APITokenListCreateView,
+    APITokenRevokeView, LogoutAllDevicesView, DeactivateAccountView
+)
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -38,4 +44,18 @@ urlpatterns = [
     path('panier/', PanierView.as_view(), name='panier'),
     path('panier/add/', PanierView.as_view(), name='panier_add'),
     path('panier/<int:item_id>/', PanierView.as_view(), name='panier_item'),
+
+    # URLs pour la sécurité du compte
+    path('security/overview/', SecurityOverviewView.as_view(), name='security_overview'),
+    path('security/change-password/', ChangePasswordView.as_view(), name='security_change_password'),
+    path('security/two-factor/', TwoFactorView.as_view(), name='security_two_factor'),
+    path('security/activity/', SecurityActivityView.as_view(), name='security_activity'),
+    path('security/sessions/', SessionsListView.as_view(), name='security_sessions'),
+    path('security/sessions/register/', RegisterSessionView.as_view(), name='security_register_session'),
+    path('security/sessions/revoke-others/', RevokeOtherSessionsView.as_view(), name='security_revoke_other_sessions'),
+    path('security/sessions/<str:session_key>/revoke/', RevokeSessionView.as_view(), name='security_revoke_session'),
+    path('security/tokens/', APITokenListCreateView.as_view(), name='security_tokens'),
+    path('security/tokens/<int:token_id>/', APITokenRevokeView.as_view(), name='security_revoke_token'),
+    path('security/logout-all/', LogoutAllDevicesView.as_view(), name='security_logout_all'),
+    path('security/deactivate/', DeactivateAccountView.as_view(), name='security_deactivate'),
 ]

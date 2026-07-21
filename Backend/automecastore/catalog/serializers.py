@@ -1,5 +1,9 @@
 from rest_framework import serializers
 from django.conf import settings
+from django.db.models import Avg, Count
+from django.apps import apps
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison, Promotion
 
@@ -76,6 +80,12 @@ class ProduitSerializer(serializers.ModelSerializer):
     image_4_url = serializers.SerializerMethodField()
     # is_active - gérer la conversion depuis FormData
     is_active = serializers.BooleanField(required=False, default=True)
+    # Avis clients (lecture seule)
+    note_moyenne = serializers.SerializerMethodField()
+    nombre_avis = serializers.SerializerMethodField()
+
+    # Nouveauté (lecture seule)
+    is_new = serializers.SerializerMethodField()
 
     class Meta:
         model = Produit
@@ -89,11 +99,26 @@ class ProduitSerializer(serializers.ModelSerializer):
             'est_en_promo', 'prix_promo', 'pourcentage_reduction',
             'date_debut_promo', 'date_fin_promo',
             'vente_eclair', 'heure_debut_eclair', 'heure_fin_eclair',
-            'est_vedette', 'est_tendance', 'est_recommande', 'est_bestseller',
+            'est_vedette', 'est_tendance', 'est_recommande', 'est_bestseller', 'est_meilleure_offre',
             'nombre_vues', 'nombre_favoris', 'nombre_ventes',
-            'reference', 'marque', 'is_active', 'date_suppression'
+            'reference', 'marque', 'is_active', 'date_suppression',
+            # Avis
+            'note_moyenne', 'nombre_avis',
+            # Compatibilité
+            'modeles_compatibles', 'annee_debut', 'annee_fin',
+            # Informations techniques
+            'etat', 'garantie_mois', 'pays_origine', 'reference_oem',
+            'poids', 'longueur', 'largeur', 'hauteur',
+            # Stock
+            'disponibilite', 'delai_livraison',
+            # Complémentaires
+            'mots_cles', 'conseils_installation', 'conditions_retour',
+            # Images
+            'image_principale_index',
+            # Nouveauté
+            'date_ajout', 'is_new'
         ]
-        read_only_fields = ['date_suppression', 'categorie_detail', 'categorie_nom', 'type_piece_detail', 'type_piece_nom', 'image_url', 'image_2_url', 'image_3_url', 'image_4_url', 'nombre_vues', 'nombre_favoris', 'nombre_ventes']
+        read_only_fields = ['date_suppression', 'categorie_detail', 'categorie_nom', 'type_piece_detail', 'type_piece_nom', 'image_url', 'image_2_url', 'image_3_url', 'image_4_url', 'nombre_vues', 'nombre_favoris', 'nombre_ventes', 'note_moyenne', 'nombre_avis', 'date_ajout', 'is_new']
         extra_kwargs = {
             'is_active': {'default': True}
         }
@@ -133,6 +158,27 @@ class ProduitSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.image_4.url)
             return f"{settings.MEDIA_URL}{obj.image_4}"
         return None
+
+    def _get_avis_qs(self, obj):
+        Avis = apps.get_model('support', 'Avis')
+        return Avis.objects.filter(produit=obj)
+
+    def get_nombre_avis(self, obj):
+        """Retourne le nombre d'avis clients approuvés"""
+        return self._get_avis_qs(obj).count()
+
+    def get_note_moyenne(self, obj):
+        """Retourne la note moyenne arrondie à 1 décimale (0 si pas d'avis)"""
+        result = self._get_avis_qs(obj).aggregate(avg_note=Avg('note'), total=Count('id'))
+        if not result or result.get('total', 0) == 0:
+            return 0
+        return round(float(result['avg_note']), 1)
+
+    def get_is_new(self, obj):
+        """Retourne True si le produit a été ajouté il y a moins de 30 jours"""
+        if not obj.date_ajout:
+            return False
+        return (timezone.now() - obj.date_ajout) <= timedelta(days=30)
 
     def create(self, validated_data):
         """Assure que is_active est True par défaut lors de la création"""

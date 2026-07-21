@@ -7,14 +7,14 @@
    ============================================= */
 
 .navbar-fournisseur {
-  --bg-1: #2c5364;
-  --bg-2: #203a43;
-  --bg-3: #0f2027;
+  --bg-1: #0b1f1d;
+  --bg-2: #102a27;
+  --bg-3: #0f3d38;
 
-  --accent: #49e0c8;
-  --accent-deep: #1fb8a8;
-  --accent-soft: rgba(73, 224, 200, 0.14);
-  --accent-glow: rgba(73, 224, 200, 0.35);
+  --accent: #2dd4bf;
+  --accent-deep: #0d9488;
+  --accent-soft: rgba(45, 212, 191, 0.16);
+  --accent-glow: rgba(45, 212, 191, 0.45);
 
   --gold: #e3bf7d;
   --gold-soft: rgba(227, 191, 125, 0.16);
@@ -35,9 +35,14 @@
 
   position: static;
   z-index: 900;
-  background: linear-gradient(120deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
+  background:
+    linear-gradient(120deg, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%),
+    radial-gradient(circle at 50% 100%, var(--accent-glow) 0%, transparent 60%);
+  background-size: 100% 100%, 200% 200%;
+  background-position: 0 0, 0 0;
+  animation: bg-pulse 6s ease-in-out infinite;
   border-bottom: 1px solid var(--glass-border);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 0 50px var(--accent-soft);
 }
 
 .navbar-inner {
@@ -251,6 +256,22 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
+.notif-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-mark-all {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.btn-mark-all:hover { color: var(--accent); }
+
 .notif-count-badge {
   background: var(--accent-soft);
   color: var(--accent);
@@ -260,6 +281,11 @@
   border-radius: 20px;
 }
 
+.notif-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
 .notif-item {
   display: flex;
   align-items: flex-start;
@@ -267,10 +293,16 @@
   padding: 11px 16px;
   transition: background 0.15s;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  position: relative;
 }
 
 .notif-item:hover {
   background: var(--glass-hover);
+}
+
+.notif-item.unread {
+  background: rgba(45, 212, 191, 0.04);
 }
 
 .notif-icon {
@@ -286,28 +318,63 @@
 
 /* Remap sémantique : mint = commande, rouge = alerte stock,
    or = avis clients, bleu doux = info générale */
-.notif-icon.order   { background: var(--accent-soft); color: var(--accent); }
-.notif-icon.stock   { background: var(--alert-soft);  color: var(--alert); }
-.notif-icon.review  { background: var(--gold-soft);   color: var(--gold); }
-.notif-icon.info    { background: var(--info-soft);   color: var(--info); }
+.notif-icon.commande   { background: var(--accent-soft); color: var(--accent); }
+.notif-icon.stock      { background: var(--alert-soft);  color: var(--alert); }
+.notif-icon.avis       { background: var(--gold-soft);   color: var(--gold); }
+.notif-icon.promotion  { background: var(--gold-soft);   color: var(--gold); }
+.notif-icon.systeme    { background: var(--info-soft);   color: var(--info); }
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 12px;
+  flex-shrink: 0;
+}
 
 .notif-content {
   flex: 1;
   min-width: 0;
 }
 
-.notif-text {
+.notif-title {
   margin: 0 0 2px;
   font-size: 12.5px;
   color: var(--text-primary);
-  font-weight: 500;
-  line-height: 1.4;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.notif-text {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .notif-time {
   font-size: 11px;
   color: var(--text-faint);
 }
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 16px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
+.notif-empty i { font-size: 24px; }
 
 .dropdown-panel-footer {
   padding: 10px 16px;

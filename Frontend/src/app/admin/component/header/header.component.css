@@ -187,6 +187,8 @@
 }
 .notif-item:hover { background: rgba(255,255,255,0.03); }
 .notif-item.unread { background: rgba(56,189,248,0.04); }
+.notif-item.clickable { cursor: pointer; }
+.notif-item.clickable:hover { background: rgba(168,85,247,0.08); }
 
 .notif-icon-wrap {
   width: 30px; height: 30px; border-radius: 8px;
@@ -212,13 +214,16 @@
   padding: 10px 16px;
   border-top: 1px solid rgba(255,255,255,0.05);
 }
+.notif-footer .notif-footer-link,
 .notif-footer button {
   width: 100%; background: none; border: none;
   color: #38bdf8; font-size: 12px; font-weight: 600;
   cursor: pointer; padding: 5px;
   display: flex; align-items: center; justify-content: center; gap: 6px;
   transition: opacity 0.2s;
+  text-decoration: none;
 }
+.notif-footer .notif-footer-link:hover,
 .notif-footer button:hover { opacity: 0.75; }
 
 /* ── USER MENU ── */

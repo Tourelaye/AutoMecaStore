@@ -24,3 +24,16 @@ img, svg, video, canvas { max-width: 100%; height: auto; }
 @media (max-width: 576px) {
   body { font-size: 14px; }
 }
+
+/* ==================================================
+   EFFET LUMINEUX VERT MENTHE — FOURNISSEUR
+   ================================================== */
+@keyframes bg-pulse {
+  0%, 100% { background-position: 0 0, 0% 0%; }
+  50% { background-position: 0 0, 100% 100%; }
+}
+
+@keyframes glow-flash {
+  0%, 100% { box-shadow: 0 0 20px rgba(45, 212, 191, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(45, 212, 191, 0.35); }
+}

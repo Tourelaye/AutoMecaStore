@@ -1,0 +1,238 @@
+<div class="profile-page">
+  <!-- Alerts -->
+  <div class="alerts" *ngIf="alerts.length">
+    <div *ngFor="let alert of alerts; let i = index"
+         class="alert"
+         [class.alert-success]="alert.type === 'success'"
+         [class.alert-error]="alert.type === 'error'"
+         [class.alert-info]="alert.type === 'info'">
+      <i class="bi" [ngClass]="{'bi-check-circle': alert.type === 'success', 'bi-exclamation-circle': alert.type === 'error', 'bi-info-circle': alert.type === 'info'}"></i>
+      <span>{{ alert.text }}</span>
+      <button class="alert-close" (click)="dismissAlert(i)"><i class="bi bi-x"></i></button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="page-header card-anim" style="--delay:0">
+    <div class="header-left">
+      <div class="page-icon">
+        <i class="bi bi-person-badge"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Mon profil admin</h1>
+        <p class="page-subtitle">Gérez vos informations personnelles et vos préférences.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" [routerLink]="['/admin/securite']">
+        <i class="bi bi-shield-lock"></i> Sécurité
+      </button>
+      <button class="btn-primary" (click)="toggleEdit()" *ngIf="!isEditing">
+        <i class="bi bi-pencil"></i> Modifier
+      </button>
+    </div>
+  </header>
+
+  <div class="profile-grid">
+    <!-- Profile card -->
+    <section class="profile-card card-anim" style="--delay:1">
+      <div class="avatar-section">
+        <div class="avatar-wrapper">
+          <div class="avatar-ring"></div>
+          <div class="avatar" [class.has-image]="avatarPreview || user">
+            <img *ngIf="avatarPreview" [src]="avatarPreview" alt="Avatar">
+            <span *ngIf="!avatarPreview">{{ getInitials() }}</span>
+          </div>
+          <label class="avatar-upload" *ngIf="isEditing" for="avatarInput">
+            <i class="bi bi-camera"></i>
+          </label>
+          <input id="avatarInput" type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+          <button class="avatar-remove" *ngIf="isEditing && (avatarPreview)" (click)="removeAvatar()" title="Supprimer l'avatar">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        <h2 class="profile-name">{{ getFullName() }}</h2>
+        <span class="profile-role">{{ getRoleLabel(user?.role) }}</span>
+        <span class="profile-email">{{ user?.email }}</span>
+      </div>
+
+      <div class="profile-meta">
+        <div class="meta-item">
+          <i class="bi bi-calendar"></i>
+          <div>
+            <small>Membre depuis</small>
+            <strong>{{ formatDate(user?.date_joined) || '-' }}</strong>
+          </div>
+        </div>
+        <div class="meta-item">
+          <i class="bi bi-clock-history"></i>
+          <div>
+            <small>Dernière connexion</small>
+            <strong>{{ formatDate(overview.last_login) || '-' }}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Edit / Info card -->
+    <section class="info-card card-anim" style="--delay:2">
+      <div class="card-header">
+        <h2><i class="bi bi-person-lines-fill"></i> Informations personnelles</h2>
+      </div>
+
+      <form *ngIf="isEditing" (ngSubmit)="saveProfile()" class="profile-form">
+        <div class="form-grid">
+          <label class="field">
+            <span>Prénom</span>
+            <input type="text" [(ngModel)]="form.prenom" name="prenom" required>
+          </label>
+          <label class="field">
+            <span>Nom</span>
+            <input type="text" [(ngModel)]="form.nom" name="nom" required>
+          </label>
+          <label class="field wide">
+            <span>Email</span>
+            <input type="email" [(ngModel)]="form.email" name="email" required>
+          </label>
+          <label class="field wide">
+            <span>Téléphone</span>
+            <input type="tel" [(ngModel)]="form.telephone" name="telephone" placeholder="+225 ...">
+          </label>
+          <label class="field wide">
+            <span>Adresse</span>
+            <textarea [(ngModel)]="form.adresse" name="adresse" rows="3"></textarea>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="toggleEdit()">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="loading">
+            <i class="bi bi-check-lg" *ngIf="!loading"></i>
+            <span class="mini-spinner" *ngIf="loading"></span>
+            {{ loading ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </div>
+      </form>
+
+      <div *ngIf="!isEditing" class="info-list">
+        <div class="info-row">
+          <span class="info-label"><i class="bi bi-person"></i> Nom complet</span>
+          <span class="info-value">{{ getFullName() || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+          <span class="info-value">{{ user?.email || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="bi bi-telephone"></i> Téléphone</span>
+          <span class="info-value">{{ user?.telephone || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="bi bi-geo-alt"></i> Adresse</span>
+          <span class="info-value">{{ user?.adresse || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><i class="bi bi-shield-check"></i> Rôle</span>
+          <span class="info-value role-badge">{{ getRoleLabel(user?.role) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Preferences -->
+    <section class="preferences-card card-anim" style="--delay:3">
+      <div class="card-header">
+        <h2><i class="bi bi-sliders"></i> Préférences</h2>
+      </div>
+      <div class="preference-list">
+        <div class="preference-item">
+          <div>
+            <strong>Notifications par email</strong>
+            <p>Recevoir les alertes et récapitulatifs par email.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="preferences.emailNotifications" name="emailNotifications" (change)="savePreferences()">
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+        <div class="preference-item">
+          <div>
+            <strong>Mode sombre</strong>
+            <p>Interface en thème sombre (toujours actif).</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="preferences.darkMode" name="darkMode" (change)="savePreferences()">
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+        <div class="preference-item">
+          <div>
+            <strong>Sidebar compact</strong>
+            <p>Réduire la sidebar par défaut.</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" [(ngModel)]="preferences.compactSidebar" name="compactSidebar" (change)="savePreferences()">
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick stats -->
+    <section class="stats-card card-anim" style="--delay:4">
+      <div class="stat-tile">
+        <div class="stat-icon accent-blue"><i class="bi bi-laptop"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ overview.active_sessions_count ?? 0 }}</span>
+          <span class="stat-label">Sessions actives</span>
+        </div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-icon accent-violet"><i class="bi bi-key"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ overview.api_tokens_count ?? 0 }}</span>
+          <span class="stat-label">Clés API</span>
+        </div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-icon accent-amber"><i class="bi bi-clock-history"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ recentActivity.length }}</span>
+          <span class="stat-label">Actions récentes</span>
+        </div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-icon accent-green"><i class="bi bi-shield-check"></i></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ overview.two_factor_enabled ? 'Oui' : 'Non' }}</span>
+          <span class="stat-label">2FA activée</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent activity -->
+    <section class="activity-card card-anim" style="--delay:5">
+      <div class="card-header">
+        <h2><i class="bi bi-activity"></i> Activité récente</h2>
+      </div>
+      <div class="activity-list" *ngIf="!activityLoading && recentActivity.length">
+        <div class="activity-item" *ngFor="let act of recentActivity">
+          <div class="activity-icon" [class]="'status-' + act.status">
+            <i class="bi" [ngClass]="activityIcon(act.action_code)"></i>
+          </div>
+          <div class="activity-body">
+            <span class="activity-title">{{ act.action }}</span>
+            <span class="activity-meta">{{ timeAgo(act.timestamp) }} — IP : {{ act.ip_address || 'Inconnue' }}</span>
+          </div>
+          <span class="activity-status" [class]="'status-' + act.status">{{ act.status }}</span>
+        </div>
+      </div>
+      <div class="empty" *ngIf="!activityLoading && !recentActivity.length">
+        <i class="bi bi-activity"></i>
+        <p>Aucune activité récente.</p>
+      </div>
+      <div class="loader" *ngIf="activityLoading">
+        <div class="mini-spinner"></div>
+        <span>Chargement…</span>
+      </div>
+    </section>
+  </div>
+</div>

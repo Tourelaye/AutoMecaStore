@@ -8,38 +8,53 @@
         Catalogue
       </div>
       <h2>Gestion des Produits</h2>
-      <p>Gérez vos produits et leurs informations</p>
+      <p>Produits approuvés : activez, désactivez ou supprimez du catalogue.</p>
     </div>
+  </div>
 
-    <div class="header-stats">
-      <div class="hs-item">
-        <span class="hs-val">{{ totalCount }}</span>
-        <span class="hs-lbl">Total</span>
+  <!-- STATS CARDS -->
+  <div class="stats-grid fade-up delay-1">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--blue"><i class="bi bi-boxes"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ totalCount }}</span>
+        <span class="stat-label">Total produits</span>
       </div>
-      <div class="hs-item">
-        <span class="hs-val text-green">{{ onlineCount }}</span>
-        <span class="hs-lbl">En ligne</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--green"><i class="bi bi-broadcast"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ onlineCount }}</span>
+        <span class="stat-label">En ligne</span>
       </div>
-      <div class="hs-item">
-        <span class="hs-val text-amber">{{ pendingCount }}</span>
-        <span class="hs-lbl">Attente</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--amber"><i class="bi bi-lock-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ offlineCount }}</span>
+        <span class="stat-label">Désactivés</span>
       </div>
-      <div class="hs-item">
-        <span class="hs-val text-red">{{ signaledCount }}</span>
-        <span class="hs-lbl">Signalés</span>
+    </div>
+    <div class="stat-card" [class.stat-card--pulse]="signaledCount > 0">
+      <div class="stat-icon stat-icon--red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ signaledCount }}</span>
+        <span class="stat-label">Signalés</span>
       </div>
     </div>
   </div>
 
-  <!-- Barre de filtres -->
-  <div class="toolbar fade-up delay-1">
-    <div class="search-box">
+  <!-- TOOLBAR -->
+  <div class="toolbar fade-up delay-2">
+    <div class="search-box" [class.focused]="searchFocused">
       <i class="bi bi-search search-ic"></i>
       <input
         type="text"
         placeholder="Rechercher une pièce, OEM, marque..."
         [(ngModel)]="searchTerm"
-        (ngModelChange)="applyFilters()"
+        (input)="applyFilters()"
+        (focus)="searchFocused = true"
+        (blur)="searchFocused = false"
       />
       <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">
         <i class="bi bi-x"></i>
@@ -54,133 +69,298 @@
       <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
         <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
+
+      <select class="toolbar__select" [(ngModel)]="stockFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let opt of stockOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+
+      <!-- SWITCH DE VUE — pur CSS -->
+      <input type="radio" name="viewmode" id="viewTable" class="view-radio" checked>
+      <input type="radio" name="viewmode" id="viewGrid" class="view-radio">
+      <div class="view-switch">
+        <label for="viewTable" class="view-switch__btn" title="Vue tableau">
+          <i class="bi bi-list-ul"></i>
+        </label>
+        <label for="viewGrid" class="view-switch__btn" title="Vue grille">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+        </label>
+      </div>
     </div>
   </div>
 
-  <!-- Chargement -->
-  <div class="pr-loading" *ngIf="loading">
-    <div class="spinner"></div>
-    <span>Chargement des produits...</span>
-  </div>
+  <!-- PANEL -->
+  <div class="panel fade-up delay-3">
 
-  <!-- Grille de produits -->
-  <div class="panel fade-up delay-2" *ngIf="!loading">
-    <div class="pr-grid">
-      <div
-        class="pr-card"
-        *ngFor="let p of filtered; let i = index; trackBy: trackById"
-        [style.--i]="i"
-      >
-        <div class="card-glow"></div>
+    <!-- LOADING -->
+    <div class="pr-loading" *ngIf="loading && produits.length === 0">
+      <div class="skeleton-rows">
+        <div class="sk-row" *ngFor="let i of [1,2,3,4,5]">
+          <div class="sk-product">
+            <div class="sk-img"></div>
+            <div class="sk-lines">
+              <div class="sk-line"></div>
+              <div class="sk-line sm"></div>
+            </div>
+          </div>
+          <div class="sk-vendor"></div>
+          <div class="sk-line"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-actions"></div>
+        </div>
+      </div>
+    </div>
 
-        <div class="card-top">
-          <div class="thumb">
-            <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
-            <i class="bi bi-box-seam" *ngIf="!p.image"></i>
-          </div>
-          <div class="pr-card__names">
-            <span class="pr-card__name">{{ p.name }}</span>
-            <span class="pr-card__sub">Réf: {{ p.ref }}</span>
-            <span class="pr-card__sub">Cat: {{ p.category }}</span>
-            <span class="pr-card__sub">Vendeur: <span class="pr-card__vendor">{{ p.vendor }}</span></span>
-          </div>
+    <ng-container *ngIf="!loading || produits.length > 0">
+
+      <!-- ======================= VUE TABLEAU ======================= -->
+      <div class="table-wrap view-table">
+
+        <div class="table-head">
+          <span class="th">Produit</span>
+          <span class="th">Fournisseur</span>
+          <span class="th text-right">Prix</span>
+          <span class="th text-center">Stock</span>
+          <span class="th text-center">Ventes</span>
+          <span class="th">Statut</span>
+          <span class="th text-right">Actions</span>
         </div>
 
-        <div class="signal-banner" *ngIf="p.signale && p.signalReason">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          <span>Signalé: {{ p.signalReason }}</span>
-        </div>
+        <div
+          class="table-row"
+          *ngFor="let p of filtered; let i = index; trackBy: trackById"
+          [style.--i]="i"
+          [class.is-signaled]="p.signale"
+        >
 
-        <div class="card-body">
-          <div class="info-row">
-            <i class="bi bi-tag"></i>
-            <span>{{ p.price | number:'1.2-2':'fr' }} €</span>
+          <div class="td" data-label="Produit">
+            <div class="product-cell">
+              <div class="product-img">
+                <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
+                <i class="bi bi-box-seam" *ngIf="!p.image"></i>
+              </div>
+              <div class="product-meta">
+                <span class="product-name">{{ p.name }}</span>
+                <span class="product-ref">Réf: {{ p.ref }}</span>
+                <span class="product-cat">{{ p.category }}</span>
+              </div>
+            </div>
           </div>
-          <div class="info-row">
-            <i class="bi bi-box-seam"></i>
-            <span *ngIf="stockLevel(p) === 'ok'">{{ p.stock }} p.</span>
-            <span class="text-amber" *ngIf="stockLevel(p) === 'faible'">{{ p.stock }} p.</span>
-            <span class="text-red" *ngIf="stockLevel(p) === 'rupture'">Rupture</span>
+
+          <div class="td" data-label="Fournisseur">
+            <div class="vendor-cell">
+              <div class="vendor-av">{{ getInitials(p.vendor) }}</div>
+              <span>{{ p.vendor }}</span>
+            </div>
           </div>
-          <div class="info-row">
-            <i class="bi bi-graph-up"></i>
-            <span>{{ p.sales }} vendus</span>
+
+          <div class="td text-right" data-label="Prix">
+            <span class="montant-chip">{{ p.price | number:'1.0-0':'fr' }} FCFA</span>
           </div>
-        </div>
 
-        <div class="card-footer">
-          <span class="status-badge" [class]="'status-badge--' + p.state">
-            <span class="badge-dot"></span>
-            {{ p.state === 'en_ligne' ? 'En ligne' : p.state === 'desactive' ? 'Désactivé' : 'Attente' }}
-          </span>
+          <div class="td text-center" data-label="Stock">
+            <span class="stock-chip" [class.low]="stockLevel(p) === 'faible'" [class.out]="stockLevel(p) === 'rupture'">
+              {{ p.stock === 0 ? 'Rupture' : p.stock + ' p.' }}
+            </span>
+          </div>
 
-          <div class="card-actions">
-            <ng-container *ngIf="p.state === 'attente_validation'; else normalActions">
-              <button class="ca-btn validate" (click)="validate(p)" title="Valider">
-                <i class="bi bi-check-lg"></i>
-              </button>
-              <button class="ca-btn refuse" (click)="askRefuse(p)" title="Refuser">
-                <i class="bi bi-x-lg"></i>
-              </button>
-            </ng-container>
+          <div class="td text-center" data-label="Ventes">
+            <span class="sales-chip">{{ p.sales }}</span>
+          </div>
 
-            <ng-template #normalActions>
-              <button class="ca-btn toggle" (click)="toggleActivation(p)" [title]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'">
+          <div class="td" data-label="Statut">
+            <span class="status-badge" [class]="'status-badge--' + p.state">
+              <span class="badge-dot"></span>
+              {{ p.state === 'en_ligne' ? 'En ligne' : 'Désactivé' }}
+            </span>
+            <div class="signal-tag" *ngIf="p.signale">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Signalé
+            </div>
+            <div class="section-tags" *ngIf="p.sections">
+              <span class="section-tag" *ngIf="p.sections.bestOffer" title="Meilleure offre"><i class="bi bi-award"></i></span>
+              <span class="section-tag" *ngIf="p.sections.flashSale" title="Vente flash"><i class="bi bi-lightning"></i></span>
+              <span class="section-tag" *ngIf="p.sections.bestSeller" title="Top ventes"><i class="bi bi-trophy"></i></span>
+              <span class="section-tag" *ngIf="p.sections.trending" title="En vogue"><i class="bi bi-fire"></i></span>
+              <span class="section-tag" *ngIf="p.sections.lightningSale" title="Vente éclair"><i class="bi bi-stopwatch"></i></span>
+            </div>
+          </div>
+
+          <div class="td text-right" data-label="Actions">
+            <div class="card-actions">
+              <button class="btn-action btn-toggle" (click)="toggleActivation(p)" [disabled]="submitting" [title]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'" [attr.aria-label]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'">
                 <i class="bi" [class.bi-lock]="p.state === 'en_ligne'" [class.bi-unlock]="p.state === 'desactive'"></i>
               </button>
-              <button class="ca-btn signal" *ngIf="!p.signale" (click)="askSignal(p)" title="Signaler">
+              <button class="btn-action btn-sections" (click)="askSections(p)" [disabled]="submitting" title="Sections" aria-label="Sections">
+                <i class="bi bi-tags"></i>
+              </button>
+              <button class="btn-action btn-signal" *ngIf="!p.signale" (click)="askSignal(p)" [disabled]="submitting" title="Signaler" aria-label="Signaler">
                 <i class="bi bi-bell"></i>
               </button>
-              <button class="ca-btn de-signal" *ngIf="p.signale" (click)="removeSignal(p)" title="Dé-signaler">
+              <button class="btn-action btn-remove-signal" *ngIf="p.signale" (click)="removeSignal(p)" [disabled]="submitting" title="Retirer le signalement" aria-label="Retirer le signalement">
                 <i class="bi bi-bell-slash"></i>
               </button>
-            </ng-template>
-
-            <button class="ca-btn delete" (click)="askDelete(p)" title="Supprimer">
-              <i class="bi bi-trash"></i>
-            </button>
+              <button class="btn-action btn-delete" (click)="askDelete(p)" [disabled]="submitting" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </div>
+
+        </div>
+
+        <div class="pr-empty" *ngIf="!loading && filtered.length === 0">
+          <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
+          <h4>Aucun produit trouvé</h4>
+          <p>{{ searchTerm ? 'Modifiez votre recherche.' : 'Aucun produit ne correspond à ces filtres.' }}</p>
         </div>
       </div>
 
-      <div class="pr-empty" *ngIf="filtered.length === 0">
-        <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
-        <h4>Aucun produit trouvé</h4>
-        <p>{{ searchTerm ? 'Modifiez votre recherche.' : 'Aucun produit ne correspond à ces filtres.' }}</p>
+      <!-- ======================= VUE GRILLE ======================= -->
+      <div class="grid-wrap view-grid">
+        <div class="grid-cards" *ngIf="filtered.length > 0">
+          <div
+            class="product-card"
+            *ngFor="let p of filtered; let i = index; trackBy: trackById"
+            [style.--i]="i"
+            [class.is-signaled]="p.signale"
+          >
+            <div class="product-card__img">
+              <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
+              <i class="bi bi-box-seam" *ngIf="!p.image"></i>
+              <span class="status-badge status-badge--floating" [class]="'status-badge--' + p.state">
+                <span class="badge-dot"></span>
+                {{ p.state === 'en_ligne' ? 'En ligne' : 'Désactivé' }}
+              </span>
+              <div class="signal-ribbon" *ngIf="p.signale">
+                <i class="bi bi-exclamation-triangle-fill"></i> Signalé
+              </div>
+            </div>
+
+            <div class="product-card__body">
+              <span class="product-name">{{ p.name }}</span>
+              <span class="product-ref">Réf: {{ p.ref }} · {{ p.category }}</span>
+
+              <div class="vendor-cell">
+                <div class="vendor-av">{{ getInitials(p.vendor) }}</div>
+                <span>{{ p.vendor }}</span>
+              </div>
+
+              <div class="product-card__meta">
+                <span class="montant-chip">{{ p.price | number:'1.0-0':'fr' }} FCFA</span>
+                <span class="stock-chip" [class.low]="stockLevel(p) === 'faible'" [class.out]="stockLevel(p) === 'rupture'">
+                  {{ p.stock === 0 ? 'Rupture' : p.stock + ' p.' }}
+                </span>
+                <span class="sales-chip">{{ p.sales }} ventes</span>
+              </div>
+            </div>
+
+            <div class="product-card__actions">
+              <button class="btn-action btn-toggle" (click)="toggleActivation(p)" [disabled]="submitting" [title]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'">
+                <i class="bi" [class.bi-lock]="p.state === 'en_ligne'" [class.bi-unlock]="p.state === 'desactive'"></i>
+              </button>
+              <button class="btn-action btn-sections" (click)="askSections(p)" [disabled]="submitting" title="Sections">
+                <i class="bi bi-tags"></i>
+              </button>
+              <button class="btn-action btn-signal" *ngIf="!p.signale" (click)="askSignal(p)" [disabled]="submitting" title="Signaler">
+                <i class="bi bi-bell"></i>
+              </button>
+              <button class="btn-action btn-remove-signal" *ngIf="p.signale" (click)="removeSignal(p)" [disabled]="submitting" title="Retirer le signalement">
+                <i class="bi bi-bell-slash"></i>
+              </button>
+              <button class="btn-action btn-delete" (click)="askDelete(p)" [disabled]="submitting" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pr-empty" *ngIf="!loading && filtered.length === 0">
+          <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
+          <h4>Aucun produit trouvé</h4>
+          <p>{{ searchTerm ? 'Modifiez votre recherche.' : 'Aucun produit ne correspond à ces filtres.' }}</p>
+        </div>
       </div>
+
+    </ng-container>
+
+    <!-- FOOTER -->
+    <div class="table-footer" *ngIf="filtered.length > 0">
+      <span>{{ filtered.length }} produit(s) affiché(s)</span>
     </div>
+
   </div>
 
-  <!-- ===================== MODALE GÉNÉRIQUE ===================== -->
+  <!-- MODAL -->
   <div class="modal-backdrop" *ngIf="activeModal" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
 
       <ng-container [ngSwitch]="activeModal">
 
         <ng-container *ngSwitchCase="'delete'">
+          <div class="modal__icon modal__icon--danger"><i class="bi bi-trash3-fill"></i></div>
           <h3 class="modal__title">Supprimer ce produit ?</h3>
           <p class="modal__text">
             <strong>{{ targetProduit?.name }}</strong> sera définitivement retiré du catalogue. Cette action est irréversible.
           </p>
         </ng-container>
 
-        <ng-container *ngSwitchCase="'refuse'">
-          <h3 class="modal__title">Refuser cet article ?</h3>
-          <p class="modal__text">
-            <strong>{{ targetProduit?.name }}</strong> restera désactivé et ne sera pas visible côté client.
-          </p>
-        </ng-container>
-
         <ng-container *ngSwitchCase="'signal'">
+          <div class="modal__icon modal__icon--amber"><i class="bi bi-bell-fill"></i></div>
           <h3 class="modal__title">Signaler ce produit</h3>
+          <p class="modal__text">
+            Signaler <strong>{{ targetProduit?.name }}</strong> le marquera comme nécessitant une vérification.
+          </p>
+
+          <div class="quick-reasons">
+            <button type="button" class="reason-chip" (click)="reasonInput = 'Incompatibilité avec le code OEM annoncé.'">Incompatibilité OEM</button>
+            <button type="button" class="reason-chip" (click)="reasonInput = 'Description ou photos trompeuses.'">Description trompeuse</button>
+            <button type="button" class="reason-chip" (click)="reasonInput = 'Signalé par plusieurs clients pour non-conformité.'">Signalements clients</button>
+          </div>
+
           <div class="field">
-            <label>Motif du signalement</label>
+            <label>
+              Motif du signalement
+              <span class="char-count">{{ reasonInput.length || 0 }}/300</span>
+            </label>
             <textarea
               rows="3"
+              maxlength="300"
               placeholder="ex: Incompatibilité avec le code OEM, description trompeuse..."
               [(ngModel)]="reasonInput"
               [ngModelOptions]="{ standalone: true }"
             ></textarea>
+          </div>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'sections'">
+          <div class="modal__icon modal__icon--info"><i class="bi bi-tags-fill"></i></div>
+          <h3 class="modal__title">Sections du produit</h3>
+          <p class="modal__text">
+            Choisissez les sections d'accueil auxquelles <strong>{{ targetProduit?.name }}</strong> appartient.
+          </p>
+
+          <div class="section-list">
+            <label class="section-row">
+              <input type="checkbox" [(ngModel)]="sectionsForm.bestOffer" />
+              <span><i class="bi bi-award"></i> Meilleures offres</span>
+            </label>
+            <label class="section-row">
+              <input type="checkbox" [(ngModel)]="sectionsForm.flashSale" />
+              <span><i class="bi bi-lightning"></i> Ventes flash</span>
+            </label>
+            <label class="section-row">
+              <input type="checkbox" [(ngModel)]="sectionsForm.bestSeller" />
+              <span><i class="bi bi-trophy"></i> Les plus vendus</span>
+            </label>
+            <label class="section-row">
+              <input type="checkbox" [(ngModel)]="sectionsForm.trending" />
+              <span><i class="bi bi-fire"></i> En vogue</span>
+            </label>
+            <label class="section-row">
+              <input type="checkbox" [(ngModel)]="sectionsForm.lightningSale" />
+              <span><i class="bi bi-stopwatch"></i> Vente éclair</span>
+            </label>
           </div>
         </ng-container>
 
@@ -191,12 +371,14 @@
         <button
           type="button"
           class="btn-text"
-          [class.btn-text--danger]="activeModal === 'delete' || activeModal === 'refuse' || activeModal === 'signal'"
+          [class.btn-text--danger]="activeModal === 'delete' || activeModal === 'signal'"
+          [class.btn-text--primary]="activeModal === 'sections'"
           [disabled]="submitting"
           (click)="confirmModal()"
         >
+          <i class="bi bi-arrow-repeat spin" *ngIf="submitting"></i>
           <span *ngIf="!submitting">
-            {{ activeModal === 'delete' ? 'Supprimer' : activeModal === 'refuse' ? 'Refuser' : 'Signaler' }}
+            {{ activeModal === 'delete' ? 'Supprimer' : activeModal === 'signal' ? 'Signaler' : 'Enregistrer' }}
           </span>
           <span *ngIf="submitting">Traitement...</span>
         </button>

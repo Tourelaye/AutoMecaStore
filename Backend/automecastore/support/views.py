@@ -5,6 +5,7 @@ from .serializers import TicketSerializer, MessageSupportSerializer, Reclamation
 from account.permissions import IsAdmin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from fournisseur.models import creer_notification_fournisseur
 
 
 # -----------------------------
@@ -45,7 +46,16 @@ class AvisCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(client=self.request.user.client)
+        super().perform_create(serializer)
+        avis = serializer.instance
+        if avis.produit and avis.produit.fournisseur_id:
+            creer_notification_fournisseur(
+                fournisseur_id=avis.produit.fournisseur_id,
+                type_notif='avis',
+                titre='Nouvel avis',
+                message=f"Votre produit « {avis.produit.nom} » a reçu un avis de {avis.note}/5.",
+                lien='/fournisseur/avis'
+            )
 
 
 # -----------------------------

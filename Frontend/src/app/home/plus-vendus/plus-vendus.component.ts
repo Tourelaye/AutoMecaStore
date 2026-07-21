@@ -89,8 +89,8 @@ export class PlusVendusComponent implements OnInit, OnDestroy {
       image: p.image_url || null,
       prixNouveau,
       prixAncien,
-      note: 4 + Math.random(), // Simulation de note
-      avis: Math.floor(Math.random() * 400) + 100, // Simulation d'avis
+      note: p.note_moyenne ?? 0,
+      avis: p.nombre_avis ?? 0,
       badge,
       expirationDate: this.addHours(24, 0), // 24h par défaut
       stock: p.stock,

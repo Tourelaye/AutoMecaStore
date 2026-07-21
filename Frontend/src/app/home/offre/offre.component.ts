@@ -82,8 +82,8 @@ export class OffreComponent implements OnInit {
       prixNouveau,
       prixAncien,
       discount,
-      note: 4.5 + Math.random() * 0.5, // Simulation de note
-      avis: Math.floor(Math.random() * 200) + 50, // Simulation d'avis
+      note: p.note_moyenne ?? 0,
+      avis: p.nombre_avis ?? 0,
       livraison: true,
       badge,
       stock: p.stock

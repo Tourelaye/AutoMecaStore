@@ -40,12 +40,13 @@ export class FournisseurComponent implements OnInit {
   // --- Suppression ---
   pendingDeleteId: number | null = null;
   deleteError: string | null = null;
+  deleting = false;
 
-  // ===== NOUVELLES PROPRIÉTÉS POUR AFFICHAGE DYNAMIQUE =====
+  // ===== PROPRIÉTÉS POUR AFFICHAGE DYNAMIQUE =====
   showDetailModal = false;
   selectedFournisseur: Fournisseur | null = null;
   detailTab: 'info' | 'produits' | 'commandes' | 'stats' = 'info';
-  
+
   // Données détail
   fournisseurProduits: any[] = [];
   fournisseurCommandes: any[] = [];
@@ -66,7 +67,8 @@ export class FournisseurComponent implements OnInit {
         this.applyFilters();
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('[Fournisseur] Erreur lors du chargement de la liste :', err);
         this.loading = false;
       }
     });
@@ -108,6 +110,37 @@ export class FournisseurComponent implements OnInit {
     return name?.trim()?.charAt(0)?.toUpperCase() || '?';
   }
 
+  /**
+   * Extrait un message d'erreur lisible depuis une réponse HTTP,
+   * quel que soit le format renvoyé par le backend Django.
+   */
+  private extractError(err: any, fallback: string): string {
+    if (!err) return fallback;
+
+    // Erreur réseau (backend injoignable, CORS bloqué, pas de connexion...)
+    if (err.status === 0) {
+      return "Impossible de joindre le serveur. Vérifiez votre connexion ou l'état du backend.";
+    }
+    if (err.status === 401) {
+      return "Votre session a expiré ou vous n'êtes pas authentifié. Reconnectez-vous.";
+    }
+    if (err.status === 403) {
+      return "Action refusée par le serveur (droits insuffisants ou protection CSRF).";
+    }
+    if (err.status === 404) {
+      return "Ressource introuvable (l'URL de l'API a peut-être changé).";
+    }
+
+    return (
+      err?.error?.detail ||
+      err?.error?.error ||
+      err?.error?.message ||
+      (typeof err?.error === 'string' ? err.error : null) ||
+      err?.message ||
+      fallback
+    );
+  }
+
   // --- Validation ---
   openValidation(f: Fournisseur, action: 'valider' | 'suspendre' | 'reactiver'): void {
     this.targetFournisseur = f;
@@ -126,8 +159,9 @@ export class FournisseurComponent implements OnInit {
   }
 
   confirmValidation(): void {
-    if (!this.targetFournisseur) return;
+    if (!this.targetFournisseur || this.submitting) return;
     this.submitting = true;
+    this.validationError = null;
     const userId = this.targetFournisseur.user.id;
 
     this.fournisseurService.valider(userId, this.validationAction, this.validationCommentaire).subscribe({
@@ -136,11 +170,13 @@ export class FournisseurComponent implements OnInit {
         this.showValidationModal = false;
         this.targetFournisseur = null;
         this.validationError = null;
+        this.statusFilter = 'tous';
         this.load();
       },
       error: (err) => {
+        console.error('[Fournisseur] Erreur lors de la validation :', err);
         this.submitting = false;
-        this.validationError = err?.error?.error || "Une erreur est survenue lors de la mise à jour.";
+        this.validationError = this.extractError(err, "Une erreur est survenue lors de la mise à jour.");
       }
     });
   }
@@ -149,33 +185,42 @@ export class FournisseurComponent implements OnInit {
   askDelete(f: Fournisseur): void {
     this.pendingDeleteId = f.user.id;
     this.deleteError = null;
+    this.deleting = false;
   }
 
   cancelDelete(): void {
+    if (this.deleting) return;
     this.pendingDeleteId = null;
     this.deleteError = null;
   }
 
   confirmDelete(): void {
-    if (!this.pendingDeleteId) return;
-    this.fournisseurService.delete(this.pendingDeleteId).subscribe({
+    // Garde-fou : id null/undefined ET anti double-clic
+    if (this.pendingDeleteId === null || this.pendingDeleteId === undefined || this.deleting) return;
+
+    this.deleting = true;
+    this.deleteError = null;
+    const idToDelete = this.pendingDeleteId;
+
+    this.fournisseurService.delete(idToDelete).subscribe({
       next: () => {
-        this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== this.pendingDeleteId);
+        this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== idToDelete);
+        this.statusFilter = 'tous';
         this.applyFilters();
         this.pendingDeleteId = null;
         this.deleteError = null;
+        this.deleting = false;
       },
       error: (err) => {
-        this.deleteError = err?.error?.error || "Une erreur est survenue lors de la suppression.";
+        console.error('[Fournisseur] Erreur lors de la suppression :', err);
+        this.deleting = false;
+        this.deleteError = this.extractError(err, "Une erreur est survenue lors de la suppression.");
       }
     });
   }
 
-  // ===== NOUVELLES MÉTHODES POUR AFFICHAGE DYNAMIQUE =====
-  
-  /**
-   * Ouvre la modale de détail avec les informations complètes du fournisseur
-   */
+  // ===== MÉTHODES POUR AFFICHAGE DYNAMIQUE =====
+
   openDetail(f: Fournisseur): void {
     this.selectedFournisseur = f;
     this.detailTab = 'info';
@@ -191,46 +236,25 @@ export class FournisseurComponent implements OnInit {
     this.fournisseurStats = null;
   }
 
-  /**
-   * Charge les données détaillées du fournisseur
-   */
   loadDetailData(fournisseur: Fournisseur): void {
     const userId = fournisseur.user.id;
-    
-    // Charger les stats
+
     this.fournisseurService.getStats(userId).subscribe({
-      next: (stats) => {
-        this.fournisseurStats = stats;
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des stats:', err);
-      }
+      next: (stats) => { this.fournisseurStats = stats; },
+      error: (err) => console.error('[Fournisseur] Erreur lors du chargement des stats :', err)
     });
 
-    // Charger les produits
     this.fournisseurService.getProduits(userId).subscribe({
-      next: (data) => {
-        this.fournisseurProduits = data.produits || [];
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des produits:', err);
-      }
+      next: (data) => { this.fournisseurProduits = data.produits || []; },
+      error: (err) => console.error('[Fournisseur] Erreur lors du chargement des produits :', err)
     });
 
-    // Charger les commandes
     this.fournisseurService.getCommandes(userId).subscribe({
-      next: (data) => {
-        this.fournisseurCommandes = data.commandes || [];
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des commandes:', err);
-      }
+      next: (data) => { this.fournisseurCommandes = data.commandes || []; },
+      error: (err) => console.error('[Fournisseur] Erreur lors du chargement des commandes :', err)
     });
   }
 
-  /**
-   * Change l'onglet actif dans le détail
-   */
   selectTab(tab: 'info' | 'produits' | 'commandes' | 'stats'): void {
     this.detailTab = tab;
   }
@@ -238,4 +262,10 @@ export class FournisseurComponent implements OnInit {
   trackByUserId(_index: number, item: Fournisseur): number {
     return item.user.id;
   }
+
+  // --- Stats cards ---
+  get totalCount(): number { return this.fournisseurs.length; }
+  get actifsCount(): number { return this.fournisseurs.filter(f => f.statut === 'actif').length; }
+  get suspendusCount(): number { return this.fournisseurs.filter(f => f.statut === 'desactive').length; }
+  get attenteCount(): number { return this.fournisseurs.filter(f => f.statut === 'attente').length; }
 }

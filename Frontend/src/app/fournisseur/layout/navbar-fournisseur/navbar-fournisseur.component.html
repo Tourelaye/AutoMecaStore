@@ -35,19 +35,32 @@
         <div class="dropdown-panel notif-panel" *ngIf="showNotifications">
           <div class="dropdown-panel-header">
             <span>Notifications</span>
-            <span class="notif-count-badge">{{ notificationCount }}</span>
-          </div>
-          <div class="notif-item" *ngFor="let n of notifications">
-            <div class="notif-icon" [ngClass]="n.type">
-              <i class="bi {{ n.icon }}"></i>
+            <div class="notif-actions">
+              <button class="btn-mark-all" (click)="markAllRead($event)" *ngIf="notificationCount > 0">
+                Tout marquer comme lu
+              </button>
+              <span class="notif-count-badge">{{ notificationCount }}</span>
             </div>
-            <div class="notif-content">
-              <p class="notif-text">{{ n.message }}</p>
-              <span class="notif-time">{{ n.time }}</span>
+          </div>
+          <div class="notif-list">
+            <div class="notif-item" *ngFor="let n of notifications" (click)="onNotificationClick(n)" [class.unread]="!n.lu">
+              <div class="notif-icon" [ngClass]="n.type">
+                <i class="bi {{ n.icon }}"></i>
+              </div>
+              <div class="notif-content">
+                <p class="notif-title">{{ n.titre }}</p>
+                <p class="notif-text">{{ n.message }}</p>
+                <span class="notif-time">{{ n.time }}</span>
+              </div>
+              <span class="unread-dot" *ngIf="!n.lu"></span>
+            </div>
+            <div class="notif-empty" *ngIf="!notifications.length">
+              <i class="bi bi-bell-slash"></i>
+              <span>Aucune notification</span>
             </div>
           </div>
           <div class="dropdown-panel-footer">
-            <a href="#">Voir toutes les notifications</a>
+            <a routerLink="/fournisseur/notifications" (click)="showNotifications = false">Voir toutes les notifications</a>
           </div>
         </div>
       </div>
@@ -89,11 +102,11 @@
           <a class="dp-item" routerLink="/fournisseur/parametres" (click)="closeDropdown()">
             <i class="bi bi-gear"></i> Paramètres
           </a>
-          <a class="dp-item" href="#" (click)="closeDropdown()">
+          <a class="dp-item" routerLink="/fournisseur/securite" (click)="closeDropdown()">
             <i class="bi bi-shield-check"></i> Sécurité
           </a>
           <div class="dropdown-divider"></div>
-          <a class="dp-item dp-logout" href="#" (click)="logout(); $event.preventDefault()">
+          <a class="dp-item dp-logout" routerLink="/fournisseur/login" (click)="logout()">
             <i class="bi bi-box-arrow-right"></i> Déconnexion
           </a>
         </div>

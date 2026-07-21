@@ -156,7 +156,7 @@ class RegisterFournisseurView(APIView):
                 from django.core.cache import cache
 
                 notification_data = {
-                    'type': 'new_fournisseur',
+                    'type': 'fournisseur',
                     'message': f"Nouveau fournisseur en attente : {user.nom} {user.prenom} ({user.email})",
                     'fournisseur_id': user.id,
                     'timestamp': user.date_joined.isoformat(),
@@ -243,9 +243,7 @@ class ClientListView(generics.ListAPIView):
     """
     queryset = Client.objects.filter(user__role='client').select_related('user').order_by('-date_inscription')
     serializer_class = ClientSerializer
-    # Temporarily allow any authenticated user for testing
-    # TODO: Revert to [IsAdmin] in production
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['user__is_active']
     search_fields = ['user__nom', 'user__prenom', 'user__email', 'user__telephone']
@@ -258,9 +256,7 @@ class ClientDetailView(generics.RetrieveAPIView):
     """
     queryset = Client.objects.all().select_related('user')
     serializer_class = ClientDetailSerializer
-    # Temporarily allow any authenticated user for testing
-    # TODO: Revert to [IsAdmin] in production
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdmin]
     lookup_field = 'user'
     lookup_url_kwarg = 'user_id'
 
@@ -268,10 +264,8 @@ class ClientToggleActiveView(APIView):
     """
     Activer/Désactiver un client
     """
-    # Temporarily allow any authenticated user for testing
-    # TODO: Revert to [IsAdmin] in production
-    permission_classes = [permissions.IsAuthenticated]
-    
+    permission_classes = [IsAdmin]
+
     def post(self, request, user_id):
         try:
             client = Client.objects.get(user_id=user_id)
@@ -298,10 +292,8 @@ class ClientDeleteView(APIView):
     """
     Supprimer un client (optionnel - avec confirmation)
     """
-    # Temporarily allow any authenticated user for testing
-    # TODO: Revert to [IsAdmin] in production
-    permission_classes = [permissions.IsAuthenticated]
-    
+    permission_classes = [IsAdmin]
+
     def delete(self, request, user_id):
         try:
             client = Client.objects.get(user_id=user_id)
@@ -326,10 +318,8 @@ class ClientStatsView(APIView):
     """
     Statistiques sur les clients
     """
-    # Temporarily allow any authenticated user for testing
-    # TODO: Revert to [IsAdmin] in production
-    permission_classes = [permissions.IsAuthenticated]
-    
+    permission_classes = [IsAdmin]
+
     def get(self, request):
         total_clients = Client.objects.count()
         clients_actifs = Client.objects.filter(user__is_active=True).count()
@@ -354,10 +344,8 @@ class AdminNotificationsView(APIView):
     """
     Récupérer les notifications admin pour le temps réel
     """
-    # Temporarily allow any authenticated user for testing
-    # TODO: Revert to [IsAdmin] in production
-    permission_classes = [permissions.IsAuthenticated]
-    
+    permission_classes = [IsAdmin]
+
     def get(self, request):
         try:
             from django.utils import timezone
@@ -370,6 +358,7 @@ class AdminNotificationsView(APIView):
             
             # Notifications temps réel en cache (inscriptions fournisseurs, clients...)
             cached_notifications = cache.get('admin_notifications', [])
+            notified_fournisseur_ids = set()
             for n in cached_notifications:
                 notifications.append({
                     'id': f"cache_{n.get('type', 'info')}_{n.get('fournisseur_id') or n.get('client_id')}",
@@ -378,6 +367,29 @@ class AdminNotificationsView(APIView):
                     'type': n.get('type', 'info'),
                     'read': False,
                     'data': n.get('data', {})
+                })
+                if n.get('type') == 'fournisseur' and n.get('fournisseur_id'):
+                    notified_fournisseur_ids.add(int(n.get('fournisseur_id')))
+
+            # Fournisseurs en attente de validation
+            pending_suppliers = Fournisseur.objects.filter(statut='attente').select_related('user')
+            for f in pending_suppliers:
+                if f.user_id in notified_fournisseur_ids:
+                    continue
+                notifications.append({
+                    'id': f'fournisseur_{f.user_id}',
+                    'message': f"Fournisseur en attente : {f.user.nom} {f.user.prenom} ({f.user.email})",
+                    'time': 'À l\'instant',
+                    'type': 'fournisseur',
+                    'read': False,
+                    'data': {
+                        'nom': f.user.nom,
+                        'prenom': f.user.prenom,
+                        'email': f.user.email,
+                        'telephone': f.user.telephone,
+                        'nom_entreprise': f.nom_entreprise,
+                        'date_inscription': f.date_inscription.isoformat() if f.date_inscription else None
+                    }
                 })
             
             # Vérifier les nouvelles commandes (dernières 24h)
@@ -423,14 +435,14 @@ class AdminNotificationsView(APIView):
                     'read': False
                 })
             
-            # Fournisseurs en attente de validation
-            fournisseurs_attente = Fournisseur.objects.filter(statut='attente').count()
-            if fournisseurs_attente > 0:
+            # Produits en attente d'approbation
+            produits_attente = Produit.objects.filter(statut_approbation='en_attente').count()
+            if produits_attente > 0:
                 notifications.append({
-                    'id': 'fournisseurs_attente',
-                    'message': f'{fournisseurs_attente} fournisseur(s) en attente de validation',
+                    'id': 'produits_attente',
+                    'message': f'{produits_attente} produit(s) en attente d\'approbation',
                     'time': 'À l\'instant',
-                    'type': 'fournisseur',
+                    'type': 'produit',
                     'read': False
                 })
             

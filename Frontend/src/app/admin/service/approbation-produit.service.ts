@@ -13,6 +13,8 @@ export interface Produit {
   categorie_nom?: string;
   fournisseur?: number;
   fournisseur_nom?: string;
+  reference?: string;
+  marque?: string;
   statut_approbation: 'en_attente' | 'approuve' | 'rejete';
   motif_rejet?: string;
   created_at?: string | null;
@@ -28,7 +30,15 @@ export class ApprobationProduitService {
 
   // Liste des produits en attente d'approbation
   getProduitsEnAttente(): Observable<Produit[]> {
-    return this.http.get<Produit[]>(`${this.apiUrl}/en-attente/`);
+    return this.getProduits('en_attente');
+  }
+
+  // Liste des produits filtrée par statut d'approbation ('tous' pour tout)
+  getProduits(statut_approbation: 'tous' | 'en_attente' | 'approuve' | 'rejete' = 'tous'): Observable<Produit[]> {
+    const url = statut_approbation === 'tous'
+      ? `${this.apiUrl}/en-attente/?statut_approbation=tous`
+      : `${this.apiUrl}/en-attente/?statut_approbation=${statut_approbation}`;
+    return this.http.get<Produit[]>(url);
   }
 
   // Approuver un produit
@@ -44,5 +54,15 @@ export class ApprobationProduitService {
       statut: 'rejete',
       motif_rejet: motif
     });
+  }
+
+  // Supprimer (soft delete) un produit
+  supprimerProduit(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/`);
+  }
+
+  // Détails d'un produit
+  getProduitDetail(id: number): Observable<Produit> {
+    return this.http.get<Produit>(`${this.apiUrl}/${id}/`);
   }
 }

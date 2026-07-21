@@ -26,6 +26,31 @@ export interface Produit {
   date_debut_promo?: string;
   date_fin_promo?: string;
   is_active?: boolean;
+  // Compatibilité
+  modeles_compatibles?: string[];
+  annee_debut?: number;
+  annee_fin?: number;
+  // Technique
+  etat?: 'neuf' | 'occasion' | 'reconditionne';
+  garantie_mois?: number;
+  pays_origine?: string;
+  reference_oem?: string;
+  poids?: number;
+  longueur?: number;
+  largeur?: number;
+  hauteur?: number;
+  // Stock
+  disponibilite?: 'en_stock' | 'faible_stock' | 'rupture' | 'precommande';
+  delai_livraison?: 'same_day' | '24h' | '48h' | '2_5j' | '5_7j' | '7j_plus';
+  // Complémentaires
+  mots_cles?: string[];
+  conseils_installation?: string;
+  conditions_retour?: string;
+  // Avis clients
+  note_moyenne?: number;
+  nombre_avis?: number;
+  // Images
+  image_principale_index?: number;
 }
 
 @Injectable({

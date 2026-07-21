@@ -43,10 +43,18 @@ export class FournisseurLoginComponent implements OnInit {
 
     this.isLoading = true;
 
-    this.authService.login(this.email.trim().toLowerCase(), this.password)
+    this.authService.login(this.email.trim().toLowerCase(), this.password, 'fournisseur')
       .subscribe({
         next: () => {
           this.isLoading = false;
+          const role = this.authService.getCurrentUserRole();
+
+          if (role !== 'fournisseur') {
+            this.authService.logout();
+            this.errorMessage = 'Accès réservé aux fournisseurs.';
+            return;
+          }
+
           this.router.navigateByUrl(this.authService.homeRoute(), { replaceUrl: true });
         },
         error: (err: any) => {

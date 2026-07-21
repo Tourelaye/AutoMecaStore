@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'fournisseur';
+export type UserRole = 'admin' | 'fournisseur' | 'client';
 
 export interface AuthUser {
   email: string;
@@ -7,5 +7,6 @@ export interface AuthUser {
 
 export const ROLE_HOME: Record<UserRole, string> = {
   admin: '/admin/dashboard',
-  fournisseur: '/fournisseur/dashboard'
+  fournisseur: '/fournisseur/dashboard',
+  client: '/'
 };

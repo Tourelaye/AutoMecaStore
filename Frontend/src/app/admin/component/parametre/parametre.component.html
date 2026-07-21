@@ -1,33 +1,44 @@
 <div class="param-page">
 
-            <!-- PAGE HEADER -->
-    <div class="page-header fade-up">
-      <div class="page-title">
-        <div class="page-tag">
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Catalogue
-        </div>
-        <h2>Gestion des Fournisseurs</h2>
-        <p>Gérez vos fournisseurs et leurs informations</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        Catalogue
       </div>
+      <h2>Paramètres de la plateforme</h2>
+      <p>Configurez le profil administrateur, la finance et les intégrations</p>
     </div>
-    
+  </div>
+
   <div class="param-layout">
 
-
-
     <!-- Navigation des onglets -->
-    <div class="param-nav">
+    <div class="param-nav" role="tablist">
       <span class="param-nav__title">Configuration</span>
+
       <button
         *ngFor="let tab of tabs"
+        role="tab"
+        [attr.aria-selected]="activeTab === tab.id"
         class="param-nav__item"
         [class.active]="activeTab === tab.id"
         (click)="selectTab(tab.id)"
       >
-        <i class="bi" [ngClass]="tab.icon"></i>
-        {{ tab.label }}
+        <span class="param-nav__icon">
+          <i class="bi" [ngClass]="tab.icon"></i>
+        </span>
+        <span class="param-nav__label">
+          {{ tab.label }}
+        </span>
+        <i class="bi bi-chevron-right param-nav__chevron"></i>
       </button>
+
+      <div class="param-nav__footer">
+        <i class="bi bi-shield-check"></i>
+        Modifications appliquées en temps réel
+      </div>
     </div>
 
     <!-- Panneau de contenu -->
@@ -35,41 +46,95 @@
 
       <!-- ===================== ONGLET : PROFIL ADMINISTRATEUR ===================== -->
       <div class="panel-content" *ngIf="activeTab === 'profil'">
-        <h3 class="panel-content__title">Profil Administrateur</h3>
-        <p class="panel-content__subtitle">Mettez à jour vos informations de contact et votre mot de passe principal.</p>
+        <div class="panel-content__head">
+          <div>
+            <h3 class="panel-content__title">Profil Administrateur</h3>
+            <p class="panel-content__subtitle">Mettez à jour vos informations de contact et votre mot de passe principal.</p>
+          </div>
+          <span class="dirty-badge" *ngIf="profileFormRef.dirty">
+            <i class="bi bi-record-circle-fill"></i> Modifications non enregistrées
+          </span>
+        </div>
 
         <form #profileFormRef="ngForm" (ngSubmit)="saveProfile(profileFormRef)" novalidate>
+
+          <div class="identity-strip">
+            <span class="avatar-circle">
+              {{ (profileForm.fullName || 'A') | slice:0:1 }}
+            </span>
+            <div class="identity-strip__text">
+              <strong>{{ profileForm.fullName || 'Administrateur' }}</strong>
+              <span>{{ profileForm.email || 'email@automeca.com' }}</span>
+            </div>
+            <span class="role-chip"><i class="bi bi-shield-lock-fill"></i> Super Admin</span>
+          </div>
+
           <div class="field-row">
             <div class="field">
-              <label>Nom Complet</label>
+              <label><i class="bi bi-person"></i> Nom Complet</label>
               <input
                 type="text" name="fullName" [(ngModel)]="profileForm.fullName"
                 required #fullNameCtrl="ngModel"
+                [class.field--invalid]="fullNameCtrl.invalid && fullNameCtrl.touched"
               />
-              <span class="field__error" *ngIf="fullNameCtrl.invalid && fullNameCtrl.touched">Champ requis</span>
+              <span class="field__error" *ngIf="fullNameCtrl.invalid && fullNameCtrl.touched">
+                <i class="bi bi-exclamation-circle"></i> Champ requis
+              </span>
             </div>
             <div class="field">
-              <label>E-mail d'administration</label>
+              <label><i class="bi bi-envelope"></i> E-mail d'administration</label>
               <input
                 type="email" name="email" [(ngModel)]="profileForm.email"
                 required email #emailCtrl="ngModel"
+                [class.field--invalid]="emailCtrl.invalid && emailCtrl.touched"
               />
-              <span class="field__error" *ngIf="emailCtrl.invalid && emailCtrl.touched">Email invalide</span>
+              <span class="field__error" *ngIf="emailCtrl.invalid && emailCtrl.touched">
+                <i class="bi bi-exclamation-circle"></i> Email invalide
+              </span>
             </div>
           </div>
 
           <div class="field">
             <label><i class="bi bi-lock"></i> Nouveau mot de passe (Facultatif)</label>
-            <input
-              type="password" name="password" [(ngModel)]="profileForm.password"
-              placeholder="Laisser vide pour ne pas modifier" minlength="8" #passwordCtrl="ngModel"
-            />
-            <span class="field__error" *ngIf="passwordCtrl.invalid && passwordCtrl.touched">8 caractères minimum</span>
+
+            <!-- Bascule afficher/masquer en pur CSS, sans dépendance au composant -->
+            <input type="checkbox" id="pwToggle" class="pw-toggle-input" hidden>
+
+            <div class="password-field">
+              <input
+                type="password" name="password" [(ngModel)]="profileForm.password"
+                placeholder="Laisser vide pour ne pas modifier" minlength="8" #passwordCtrl="ngModel"
+                [class.field--invalid]="passwordCtrl.invalid && passwordCtrl.touched"
+                class="password-field__input password-field__input--masked"
+              />
+              <input
+                type="text" name="passwordVisible" [ngModel]="profileForm.password"
+                (ngModelChange)="profileForm.password = $event"
+                placeholder="Laisser vide pour ne pas modifier"
+                class="password-field__input password-field__input--clear"
+                tabindex="-1"
+              />
+              <label for="pwToggle" class="password-field__eye">
+                <i class="bi bi-eye eye-off"></i>
+                <i class="bi bi-eye-slash eye-on"></i>
+              </label>
+            </div>
+
+            <span class="field__error" *ngIf="passwordCtrl.invalid && passwordCtrl.touched">
+              <i class="bi bi-exclamation-circle"></i> 8 caractères minimum
+            </span>
+            <span class="field__hint" *ngIf="!passwordCtrl.invalid">
+              <i class="bi bi-info-circle"></i> Laissez ce champ vide si vous ne souhaitez pas changer votre mot de passe.
+            </span>
           </div>
 
           <div class="panel-content__footer">
             <span class="save-confirm" *ngIf="profileSaved"><i class="bi bi-check-circle-fill"></i> Profil enregistré</span>
-            <button type="submit" class="btn-primary" [disabled]="savingProfile">
+            <button
+              type="submit" class="btn-primary"
+              [disabled]="savingProfile || profileFormRef.invalid || profileFormRef.pristine"
+            >
+              <i class="bi bi-arrow-repeat spin" *ngIf="savingProfile"></i>
               <span *ngIf="!savingProfile">Sauvegarder le profil</span>
               <span *ngIf="savingProfile">Sauvegarde...</span>
             </button>
@@ -79,8 +144,15 @@
 
       <!-- ===================== ONGLET : COMMISSIONS & TAXES ===================== -->
       <div class="panel-content" *ngIf="activeTab === 'finance'">
-        <h3 class="panel-content__title">Commissions de Plateforme &amp; Frais de Livraison</h3>
-        <p class="panel-content__subtitle">Ces paramètres s'appliquent en temps réel lors du calcul des gains fournisseurs.</p>
+        <div class="panel-content__head">
+          <div>
+            <h3 class="panel-content__title">Commissions de Plateforme &amp; Frais de Livraison</h3>
+            <p class="panel-content__subtitle">Ces paramètres s'appliquent en temps réel lors du calcul des gains fournisseurs.</p>
+          </div>
+          <span class="dirty-badge" *ngIf="financeFormRef.dirty">
+            <i class="bi bi-record-circle-fill"></i> Modifications non enregistrées
+          </span>
+        </div>
 
         <form #financeFormRef="ngForm" (ngSubmit)="saveFinance(financeFormRef)" novalidate>
           <div class="field-row field-row--3">
@@ -89,24 +161,67 @@
               <input
                 type="number" name="commissionRate" [(ngModel)]="financeForm.commissionRate"
                 required min="0" max="100" step="0.1" #commissionCtrl="ngModel"
+                [class.field--invalid]="commissionCtrl.invalid && commissionCtrl.touched"
               />
-              <span class="field__error" *ngIf="commissionCtrl.invalid && commissionCtrl.touched">Entre 0 et 100</span>
+              <span class="field__error" *ngIf="commissionCtrl.invalid && commissionCtrl.touched">
+                <i class="bi bi-exclamation-circle"></i> Entre 0 et 100
+              </span>
             </div>
             <div class="field">
-              <label>Taux de TVA (%)</label>
+              <label><i class="bi bi-receipt"></i> Taux de TVA (%)</label>
               <input
                 type="number" name="vatRate" [(ngModel)]="financeForm.vatRate"
                 required min="0" max="100" step="0.1" #vatCtrl="ngModel"
+                [class.field--invalid]="vatCtrl.invalid && vatCtrl.touched"
               />
-              <span class="field__error" *ngIf="vatCtrl.invalid && vatCtrl.touched">Entre 0 et 100</span>
+              <span class="field__error" *ngIf="vatCtrl.invalid && vatCtrl.touched">
+                <i class="bi bi-exclamation-circle"></i> Entre 0 et 100
+              </span>
             </div>
             <div class="field">
-              <label><i class="bi bi-truck"></i> Frais de port de base (€)</label>
+              <label><i class="bi bi-truck"></i> Frais de port de base (FCFA)</label>
               <input
                 type="number" name="baseShippingFee" [(ngModel)]="financeForm.baseShippingFee"
                 required min="0" step="0.1" #shippingCtrl="ngModel"
+                [class.field--invalid]="shippingCtrl.invalid && shippingCtrl.touched"
               />
-              <span class="field__error" *ngIf="shippingCtrl.invalid && shippingCtrl.touched">Doit être positif</span>
+              <span class="field__error" *ngIf="shippingCtrl.invalid && shippingCtrl.touched">
+                <i class="bi bi-exclamation-circle"></i> Doit être positif
+              </span>
+            </div>
+          </div>
+
+          <!-- SIMULATEUR EN TEMPS RÉEL — calcul pur template, aucune méthode requise -->
+          <div class="simulator" *ngIf="financeFormRef.valid">
+            <div class="simulator__head">
+              <i class="bi bi-calculator"></i>
+              <span>Simulation sur une commande de 100,00&nbsp;FCFA</span>
+            </div>
+            <div class="simulator__grid">
+              <div class="simulator__item">
+                <span class="simulator__label">Commission plateforme</span>
+                <span class="simulator__value simulator__value--down">
+                  − {{ (100 * (financeForm.commissionRate || 0) / 100) | number:'1.2-2' }} FCFA
+                </span>
+              </div>
+              <div class="simulator__item">
+                <span class="simulator__label">Reversé au fournisseur</span>
+                <span class="simulator__value simulator__value--up">
+                  {{ (100 - (100 * (financeForm.commissionRate || 0) / 100)) | number:'1.2-2' }} FCFA
+                </span>
+              </div>
+              <div class="simulator__item">
+                <span class="simulator__label">TVA appliquée</span>
+                <span class="simulator__value">
+                  {{ (100 * (financeForm.vatRate || 0) / 100) | number:'1.2-2' }} FCFA
+                </span>
+              </div>
+              <div class="simulator__item">
+                <span class="simulator__label">Frais de port client</span>
+                <span class="simulator__value">
+                  {{ (financeForm.baseShippingFee || 0) | number:'1.2-2' }} FCFA
+                </span>
+              </div>
             </div>
           </div>
 
@@ -117,7 +232,11 @@
 
           <div class="panel-content__footer">
             <span class="save-confirm" *ngIf="financeSaved"><i class="bi bi-check-circle-fill"></i> Configuration enregistrée</span>
-            <button type="submit" class="btn-primary" [disabled]="savingFinance">
+            <button
+              type="submit" class="btn-primary"
+              [disabled]="savingFinance || financeFormRef.invalid || financeFormRef.pristine"
+            >
+              <i class="bi bi-arrow-repeat spin" *ngIf="savingFinance"></i>
               <span *ngIf="!savingFinance">Enregistrer la configuration financière</span>
               <span *ngIf="savingFinance">Enregistrement...</span>
             </button>
@@ -127,53 +246,91 @@
 
       <!-- ===================== ONGLET : PASSERELLES DE PAIEMENT ===================== -->
       <div class="panel-content" *ngIf="activeTab === 'passerelles'">
-        <h3 class="panel-content__title">Passerelles Bancaires &amp; Moyens de Paiement</h3>
-        <p class="panel-content__subtitle">Activez ou désactivez les moyens de paiement acceptés sur le checkout client.</p>
+        <div class="panel-content__head">
+          <div>
+            <h3 class="panel-content__title">Passerelles Bancaires &amp; Moyens de Paiement</h3>
+            <p class="panel-content__subtitle">Activez ou désactivez les moyens de paiement acceptés sur le checkout client.</p>
+          </div>
+        </div>
 
-        <div class="gateway-grid">
-          <div class="gateway-card" *ngFor="let g of gateways">
+        <div class="gateway-grid" *ngIf="gateways.length > 0">
+          <div class="gateway-card" *ngFor="let g of gateways" [class.gateway-card--on]="g.enabled">
+            <div class="gateway-card__icon">
+              <i class="bi" [ngClass]="g.icon"></i>
+            </div>
             <div class="gateway-card__info">
-              <span class="gateway-card__name"><i class="bi" [ngClass]="g.icon"></i> {{ g.name }}</span>
+              <span class="gateway-card__name">{{ g.name }}</span>
               <span class="gateway-card__desc">{{ g.description }}</span>
             </div>
-            <button
-              class="gateway-toggle"
-              [class.gateway-toggle--on]="g.enabled"
-              (click)="onGatewayToggle(g)"
-            >
-              {{ g.enabled ? 'Activé' : 'Désactivé' }}
-            </button>
+
+            <label class="switch" [class.switch--on]="g.enabled">
+              <input type="checkbox" [checked]="g.enabled" (change)="onGatewayToggle(g)" />
+              <span class="switch__track"><span class="switch__thumb"></span></span>
+              <span class="switch__label">{{ g.enabled ? 'Activé' : 'Désactivé' }}</span>
+            </label>
           </div>
+        </div>
+
+        <div class="empty-state" *ngIf="gateways.length === 0">
+          <i class="bi bi-credit-card-2-front"></i>
+          <p>Aucune passerelle configurée pour le moment.</p>
         </div>
       </div>
 
       <!-- ===================== ONGLET : RÔLES & PERMISSIONS API ===================== -->
       <div class="panel-content" *ngIf="activeTab === 'roles'">
-        <h3 class="panel-content__title">Fiche des Permissions d'Accès &amp; Sécurité API</h3>
-        <p class="panel-content__subtitle">Consultez la grille des droits d'accès configurée par défaut pour la liaison Django REST Framework.</p>
+        <div class="panel-content__head">
+          <div>
+            <h3 class="panel-content__title">Fiche des Permissions d'Accès &amp; Sécurité API</h3>
+            <p class="panel-content__subtitle">Consultez la grille des droits d'accès configurée par défaut pour la liaison Django REST Framework.</p>
+          </div>
+        </div>
 
-        <div class="role-row" *ngFor="let r of roles">
-          <span class="role-row__title">{{ r.title }}</span>
-          <p class="role-row__desc">{{ r.description }}</p>
+        <!-- Recherche locale (filtrage pur DOM, aucune méthode composant requise) -->
+        <div class="role-search" [style.display]="roles.length > 3 ? 'flex' : 'none'">
+          <i class="bi bi-search"></i>
+          <input type="text" #roleQuery placeholder="Filtrer les rôles..." />
+        </div>
+
+        <div class="role-list">
+          <ng-container *ngFor="let r of roles">
+            <div
+              class="role-row"
+              *ngIf="!roleQuery || !roleQuery.value || r.title.toLowerCase().includes(roleQuery.value.toLowerCase())"
+            >
+              <span class="role-row__icon"><i class="bi bi-shield-check"></i></span>
+              <div class="role-row__body">
+                <span class="role-row__title">{{ r.title }}</span>
+                <p class="role-row__desc">{{ r.description }}</p>
+              </div>
+            </div>
+          </ng-container>
         </div>
 
         <div class="api-config" *ngIf="apiConfig">
-          <span class="api-config__title">Configuration Backend Sync</span>
-
-          <div class="api-config__row">
-            <span class="api-config__key">DRF_AUTH_METHOD:</span>
-            <span class="api-config__value">{{ apiConfig.authMethod }}</span>
-            <button class="copy-btn" (click)="copyToClipboard(apiConfig.authMethod, 'auth')" title="Copier">
-              <i class="bi" [ngClass]="copiedField === 'auth' ? 'bi-check-lg' : 'bi-clipboard'"></i>
-            </button>
+          <div class="api-config__bar">
+            <span class="api-config__dot api-config__dot--red"></span>
+            <span class="api-config__dot api-config__dot--amber"></span>
+            <span class="api-config__dot api-config__dot--green"></span>
+            <span class="api-config__title">Configuration Backend Sync</span>
           </div>
 
-          <div class="api-config__row">
-            <span class="api-config__key">DATABASE_ROUTING:</span>
-            <span class="api-config__value">{{ apiConfig.databaseRouting }}</span>
-            <button class="copy-btn" (click)="copyToClipboard(apiConfig.databaseRouting, 'db')" title="Copier">
-              <i class="bi" [ngClass]="copiedField === 'db' ? 'bi-check-lg' : 'bi-clipboard'"></i>
-            </button>
+          <div class="api-config__body">
+            <div class="api-config__row">
+              <span class="api-config__key">DRF_AUTH_METHOD:</span>
+              <span class="api-config__value">{{ apiConfig.authMethod }}</span>
+              <button class="copy-btn" (click)="copyToClipboard(apiConfig.authMethod, 'auth')" title="Copier">
+                <i class="bi" [ngClass]="copiedField === 'auth' ? 'bi-check-lg' : 'bi-clipboard'"></i>
+              </button>
+            </div>
+
+            <div class="api-config__row">
+              <span class="api-config__key">DATABASE_ROUTING:</span>
+              <span class="api-config__value">{{ apiConfig.databaseRouting }}</span>
+              <button class="copy-btn" (click)="copyToClipboard(apiConfig.databaseRouting, 'db')" title="Copier">
+                <i class="bi" [ngClass]="copiedField === 'db' ? 'bi-check-lg' : 'bi-clipboard'"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -184,6 +341,7 @@
   <!-- ===================== MODALE : CONFIRMATION DÉSACTIVATION PASSERELLE ===================== -->
   <div class="modal-backdrop" *ngIf="pendingDisableGateway" (click)="cancelDisableGateway()">
     <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
       <h3 class="modal__title">Désactiver {{ pendingDisableGateway.name }} ?</h3>
       <p class="modal__text">
         Les clients ne pourront plus payer via <strong>{{ pendingDisableGateway.name }}</strong> sur le checkout.

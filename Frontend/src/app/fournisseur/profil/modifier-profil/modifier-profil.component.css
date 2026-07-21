@@ -4,14 +4,14 @@
    ============================================= */
 
 :host {
-  --bg-1: #2c5364;
-  --bg-2: #203a43;
-  --bg-3: #0f2027;
+  --bg-1: #0b1f1d;
+  --bg-2: #102a27;
+  --bg-3: #0f3d38;
 
-  --accent: #49e0c8;
-  --accent-deep: #1fb8a8;
-  --accent-soft: rgba(73, 224, 200, 0.14);
-  --accent-glow: rgba(73, 224, 200, 0.35);
+  --accent: #2dd4bf;
+  --accent-deep: #0d9488;
+  --accent-soft: rgba(45, 212, 191, 0.16);
+  --accent-glow: rgba(45, 212, 191, 0.45);
 
   --gold: #e3bf7d;
   --gold-soft: rgba(227, 191, 125, 0.16);
@@ -29,7 +29,13 @@
   --glass-input: rgba(255, 255, 255, 0.05);
 
   display: block;
-  background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+  background:
+    linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%),
+    radial-gradient(circle at 50% -50%, var(--accent-glow) 0%, transparent 60%);
+  background-size: 100% 100%, 200% 200%;
+  background-position: 0 0, 0 0;
+  box-shadow: inset 0 0 80px var(--accent-soft);
+  animation: bg-pulse 6s ease-in-out infinite;
   min-height: 100vh;
 }
 
@@ -170,8 +176,8 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-.upload-zone:hover { border-color: rgba(73, 224, 200, 0.4); background: var(--accent-soft); }
-.upload-zone.has-image { border-style: solid; border-color: rgba(73, 224, 200, 0.3); }
+.upload-zone:hover { border-color: rgba(45, 212, 191, 0.4); background: var(--accent-soft); }
+.upload-zone.has-image { border-style: solid; border-color: rgba(45, 212, 191, 0.3); }
 .upload-zone img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .logo-zone { height: 110px; }
@@ -251,7 +257,7 @@
   align-items: flex-start;
   gap: 10px;
   background: var(--accent-soft);
-  border: 1px solid rgba(73, 224, 200, 0.3);
+  border: 1px solid rgba(45, 212, 191, 0.3);
   border-radius: 10px;
   padding: 14px 16px;
   font-size: 12.5px;

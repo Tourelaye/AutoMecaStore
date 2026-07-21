@@ -1,0 +1,93 @@
+<div class="notifications-page">
+  <header class="page-header">
+    <div class="header-left">
+      <div class="header-icon">
+        <i class="bi bi-bell"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Centre de notifications</h1>
+        <p class="page-subtitle">Gérez vos alertes commandes, stock, avis et promotions.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="markAllRead()" [disabled]="unreadCount === 0">
+        <i class="bi bi-check-all"></i> Tout marquer comme lu
+      </button>
+    </div>
+  </header>
+
+  <!-- Filtres -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Type</label>
+      <select [(ngModel)]="filterType" (change)="applyFilters()" name="filterType">
+        <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Statut</label>
+      <select [(ngModel)]="filterRead" (change)="applyFilters()" name="filterRead">
+        <option value="all">Toutes</option>
+        <option value="unread">Non lues</option>
+        <option value="read">Lues</option>
+      </select>
+    </div>
+    <div class="stats-pill">
+      <span class="count">{{ unreadCount }}</span>
+      <span class="label">non lue{{ unreadCount > 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" *ngIf="loading">
+    <div class="mini-spinner"></div>
+    <span>Chargement…</span>
+  </div>
+
+  <!-- Liste -->
+  <div class="notifications-list" *ngIf="!loading">
+    <div
+      class="notification-item"
+      *ngFor="let n of filteredNotifications"
+      [class.unread]="!n.lu"
+      (click)="onNotificationClick(n)"
+    >
+      <div class="notif-icon" [ngClass]="n.type">
+        <i class="bi" [ngClass]="getIcon(n.type)"></i>
+      </div>
+      <div class="notif-body">
+        <div class="notif-meta-row">
+          <span class="notif-type">{{ getTypeLabel(n.type) }}</span>
+          <span class="notif-time">{{ timeAgo(n.created_at) }}</span>
+        </div>
+        <h3 class="notif-title">{{ n.titre || getTypeLabel(n.type) }}</h3>
+        <p class="notif-message">{{ n.message }}</p>
+        <div class="notif-actions" *ngIf="n.lien">
+          <span class="notif-link">{{ n.lien }}</span>
+        </div>
+      </div>
+      <div class="notif-controls">
+        <button
+          *ngIf="!n.lu"
+          class="btn-icon"
+          title="Marquer comme lu"
+          (click)="markAsRead(n, $event)"
+        >
+          <i class="bi bi-check2"></i>
+        </button>
+        <button
+          class="btn-icon danger"
+          title="Supprimer"
+          (click)="deleteNotification(n, $event)"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!filteredNotifications.length && !loading">
+      <i class="bi bi-bell-slash"></i>
+      <p>Aucune notification pour les filtres sélectionnés.</p>
+    </div>
+  </div>
+</div>

@@ -108,7 +108,7 @@
           <input type="checkbox" [(ngModel)]="filtreNew" (change)="appliquerFiltres()">
           <span class="cards"><i class="bi bi-star"></i></span>
           Nouveautés
-          <span class="badge">2</span>
+          <span class="badge">{{ getNouveautesCount() }}</span>
         </label>
       </div>
 
@@ -249,8 +249,9 @@
                         : isDemi(star, p.note) ? 'bi bi-star-half'
                         : 'bi bi-star'"></i>
             </span>
-            <span class="note-val">{{ p.note }}</span>
-            <span class="avis-count">({{ p.avis }})</span>
+            <span class="note-val" *ngIf="p.avis > 0">{{ p.note | number:'1.1-1' }}</span>
+            <span class="avis-count" *ngIf="p.avis > 0">({{ p.avis }} avis)</span>
+            <span class="avis-count" *ngIf="p.avis === 0">Aucune évaluation</span>
           </div>
 
           <div class="price">
@@ -304,8 +305,9 @@
                           : isDemi(star, p.note) ? 'bi bi-star-half'
                           : 'bi bi-star'"></i>
               </span>
-              <span class="note-val">{{ p.note }}</span>
-              <span class="avis-count">({{ p.avis }} avis)</span>
+              <span class="note-val" *ngIf="p.avis > 0">{{ p.note | number:'1.1-1' }}</span>
+              <span class="avis-count" *ngIf="p.avis > 0">({{ p.avis }} avis)</span>
+              <span class="avis-count" *ngIf="p.avis === 0">Aucune évaluation</span>
             </div>
             <div class="list-tags">
               <span class="tag-livraison" *ngIf="p.livraison">

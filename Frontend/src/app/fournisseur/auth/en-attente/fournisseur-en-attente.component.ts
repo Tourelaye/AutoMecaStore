@@ -18,13 +18,40 @@ export class FournisseurEnAttenteComponent {
   constructor(
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) {
+    this.checkValidated();
+  }
 
-  // Recharge la page pour re-déclencher les guards/résolveurs
-  // et vérifier si le compte a été validé entre-temps.
+  get statut(): string {
+    return this.authService.getUtilisateur()?.statut || 'attente';
+  }
+
+  get raisonRefus(): string {
+    return this.authService.getUtilisateur()?.raisonRefus || '';
+  }
+
+  get isRefused(): boolean {
+    return this.statut === 'desactive';
+  }
+
+  private checkValidated(): void {
+    if (this.authService.isFournisseurValidated()) {
+      this.router.navigateByUrl('/fournisseur/dashboard', { replaceUrl: true });
+    }
+  }
+
   refreshStatus(): void {
     this.isRefreshing = true;
-    setTimeout(() => window.location.reload(), 400);
+    this.authService.fetchProfil().subscribe({
+      next: () => {
+        this.isRefreshing = false;
+        window.location.reload();
+      },
+      error: () => {
+        this.isRefreshing = false;
+        window.location.reload();
+      }
+    });
   }
 
   logout(): void {

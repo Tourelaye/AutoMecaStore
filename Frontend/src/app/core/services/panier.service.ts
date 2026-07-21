@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, from } from 'rxjs';
+import { tap, concatMap, toArray } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { CommandeService } from './commande.service';
 import { NotificationService } from './notification.service';
@@ -30,6 +30,26 @@ export class PanierService {
     private monCompteService: MonCompteService
   ) {
     this.loadFromStorage();
+
+    // Garde le panier local synchronisé avec le backend pour les utilisateurs connectés
+    this.monCompteService.panier$.subscribe(panier => {
+      if (this.authService.isLoggedIn() && panier && panier.items) {
+        const localItems: PanierItem[] = panier.items.map(item => ({
+          id: item.id,
+          produit: {
+            id: item.produit_id,
+            nom: item.produit_nom,
+            prix: item.prix,
+            image: item.image
+          } as any,
+          nom: item.produit_nom,
+          prix: item.prix,
+          quantite: item.quantite,
+          favori: false
+        }));
+        this.save(localItems);
+      }
+    });
   }
 
   // =========================
@@ -68,17 +88,14 @@ export class PanierService {
   ajouterAuPanier(item: PanierItem): void {
     console.log('🛒 Ajout au panier:', item);
     console.log('🔑 Utilisateur authentifié:', this.authService.isLoggedIn());
-    
+
     // Sync with backend if user is authenticated
     if (this.authService.isLoggedIn()) {
       this.ajouterAuPanierBackend(item.produit.id, item.quantite).subscribe({
         next: (response) => {
           console.log('✅ Backend response:', response);
-          if (response === null) {
-            // Backend failed, fallback to localStorage
-            console.log('⚠️ Backend failed, using localStorage fallback');
-            this.ajouterAuPanierLocal(item);
-          }
+          // Synchronise le state et notifie
+          this.lastAddedSubject.next(item.nom);
         },
         error: (error) => {
           console.error('❌ Backend error, using localStorage fallback:', error);
@@ -115,9 +132,8 @@ export class PanierService {
       { produit_id: produitId, quantite: quantite }
     ).pipe(
       tap(() => {
-        // Refresh cart from backend after adding
-        this.monCompteService.getPanier().subscribe();
-        this.lastAddedSubject.next('Produit ajouté');
+        // Synchronise le panier local avec le backend après l'ajout
+        this.syncBackendToLocal();
       })
     );
   }
@@ -278,20 +294,19 @@ export class PanierService {
 
     console.log('🔄 Syncing localStorage cart to backend:', localItems);
 
-    // Add each item to backend
-    localItems.forEach(item => {
-      this.ajouterAuPanierBackend(item.produit.id, item.quantite).subscribe({
-        next: () => {
-          console.log('✅ Item synced:', item.nom);
-        },
-        error: (error) => {
-          console.error('❌ Error syncing item:', error);
-        }
-      });
+    // Add each item to backend sequentially, then clear localStorage
+    from(localItems).pipe(
+      concatMap(item => this.ajouterAuPanierBackend(item.produit.id, item.quantite)),
+      toArray()
+    ).subscribe({
+      next: () => {
+        console.log('✅ All items synced to backend');
+        this.viderPanier();
+      },
+      error: (error) => {
+        console.error('❌ Error syncing cart to backend:', error);
+      }
     });
-
-    // Clear localStorage after sync
-    this.viderPanier();
   }
 
   // =========================
@@ -303,8 +318,8 @@ export class PanierService {
     }
 
     this.monCompteService.getPanier().subscribe(panier => {
-      if (panier && panier.items.length > 0) {
-        const localItems: PanierItem[] = panier.items.map(item => ({
+      if (panier) {
+        const localItems: PanierItem[] = (panier.items || []).map(item => ({
           id: item.id,
           produit: {
             id: item.produit_id,

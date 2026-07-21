@@ -10,7 +10,7 @@ export interface AdminProfile {
 export interface FinanceConfig {
   commissionRate: number; // %
   vatRate: number; // %
-  baseShippingFee: number; // €
+  baseShippingFee: number; // FCFA
 }
 
 export interface PaymentGateway {

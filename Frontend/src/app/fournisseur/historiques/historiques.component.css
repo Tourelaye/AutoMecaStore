@@ -5,14 +5,14 @@
    ============================================= */
 
 :host {
-  --bg-1: #2c5364;
-  --bg-2: #203a43;
-  --bg-3: #0f2027;
+  --bg-1: #0b1f1d;
+  --bg-2: #102a27;
+  --bg-3: #0f3d38;
 
-  --accent: #49e0c8;
-  --accent-deep: #1fb8a8;
-  --accent-soft: rgba(73, 224, 200, 0.14);
-  --accent-glow: rgba(73, 224, 200, 0.35);
+  --accent: #2dd4bf;
+  --accent-deep: #0d9488;
+  --accent-soft: rgba(45, 212, 191, 0.16);
+  --accent-glow: rgba(45, 212, 191, 0.45);
 
   --gold: #e3bf7d;
   --gold-soft: rgba(227, 191, 125, 0.16);
@@ -36,7 +36,13 @@
   --glass-input: rgba(255, 255, 255, 0.05);
 
   display: block;
-  background: linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%);
+  background:
+    linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 45%, var(--bg-3) 100%),
+    radial-gradient(circle at 50% -50%, var(--accent-glow) 0%, transparent 60%);
+  background-size: 100% 100%, 200% 200%;
+  background-position: 0 0, 0 0;
+  box-shadow: inset 0 0 80px var(--accent-soft);
+  animation: bg-pulse 6s ease-in-out infinite;
   min-height: 100vh;
 }
 
@@ -129,7 +135,7 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
-.sim-produit   { color: var(--accent); border-color: rgba(73, 224, 200, 0.3); }
+.sim-produit   { color: var(--accent); border-color: rgba(45, 212, 191, 0.3); }
 .sim-produit:hover   { background: var(--accent-soft); transform: translateY(-1px); }
 .sim-commande  { color: var(--info); border-color: var(--info-border); }
 .sim-commande:hover  { background: var(--info-soft); transform: translateY(-1px); }
@@ -243,7 +249,7 @@
   flex-shrink: 0;
   z-index: 1;
 }
-.icon-produit   { border-color: rgba(73, 224, 200, 0.4); color: var(--accent); }
+.icon-produit   { border-color: rgba(45, 212, 191, 0.4); color: var(--accent); }
 .icon-commande  { border-color: var(--info-border); color: var(--info); }
 .icon-stock     { border-color: var(--gold-border); color: var(--gold); }
 .icon-promotion { border-color: var(--alert-border); color: var(--alert); }
@@ -292,7 +298,7 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-.badge-produit   { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(73, 224, 200, 0.3); }
+.badge-produit   { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(45, 212, 191, 0.3); }
 .badge-commande  { background: var(--info-soft);   color: var(--info);   border: 1px solid var(--info-border); }
 .badge-stock     { background: var(--gold-soft);   color: var(--gold);   border: 1px solid var(--gold-border); }
 .badge-promotion { background: var(--alert-soft);  color: var(--alert);  border: 1px solid var(--alert-border); }

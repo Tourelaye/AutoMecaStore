@@ -5,6 +5,8 @@ from .views import (
     HistoriqueActiviteListView,
     NotificationListView,
     NotificationDetailView,
+    NotificationCountView,
+    NotificationMarkAllReadView,
     FournisseurProfileView,
     FournisseurProduitListCreateView,
     FournisseurProduitDetailView,
@@ -57,5 +59,7 @@ urlpatterns = [
 
     # Notifications
     path('notifications/', NotificationListView.as_view(), name='fournisseur_notifications'),
+    path('notifications/count/', NotificationCountView.as_view(), name='fournisseur_notification_count'),
+    path('notifications/mark-all-read/', NotificationMarkAllReadView.as_view(), name='fournisseur_notification_mark_all_read'),
     path('notifications/<int:pk>/', NotificationDetailView.as_view(), name='fournisseur_notification_detail'),
 ]

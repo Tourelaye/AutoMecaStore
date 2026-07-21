@@ -1,5 +1,6 @@
 /* ==========================================================
    AUTH FOURNISSEUR — Design system partagé (login / register / attente)
+   Thème : Menthe / Turquoise (aligné sur le dashboard fournisseur)
    ========================================================== */
 
 * { box-sizing: border-box; }
@@ -9,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0b1220;
+  background: #0a1614;
   padding: 24px;
 }
 
@@ -24,12 +25,21 @@
   overflow: hidden;
   box-shadow: 0 30px 80px rgba(0,0,0,0.45);
   animation: shellIn 0.6s cubic-bezier(0.22,1,0.36,1);
+  position: relative;
+}
+
+.auth-shell::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #0d9488, #2dd4bf, #5eead4);
+  z-index: 3;
 }
 
 /* ===== PANNEAU DE MARQUE (gauche) ===== */
 .brand-panel {
   position: relative;
-  background: linear-gradient(160deg, #0f172a 0%, #1e293b 55%, #1d3a6e 100%);
+  background: linear-gradient(160deg, #0b1f1d 0%, #102a27 55%, #0f3d38 100%);
   padding: 48px 40px;
   display: flex;
   flex-direction: column;
@@ -49,7 +59,7 @@
 .blob-1 {
   width: 280px;
   height: 280px;
-  background: #3b82f6;
+  background: #2dd4bf;
   top: -80px;
   right: -80px;
   animation: floatBlob 8s ease-in-out infinite;
@@ -58,7 +68,7 @@
 .blob-2 {
   width: 220px;
   height: 220px;
-  background: #22c55e;
+  background: #10b981;
   bottom: -60px;
   left: -60px;
   animation: floatBlob 10s ease-in-out infinite reverse;
@@ -81,13 +91,13 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #2dd4bf, #0d9488);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(59,130,246,0.4);
+  color: #063a35;
+  box-shadow: 0 6px 16px rgba(45,212,191,0.35);
   flex-shrink: 0;
 }
 
@@ -103,7 +113,7 @@
 .logo-sub {
   display: block;
   font-size: 11px;
-  color: #60a5fa;
+  color: #5eead4;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -149,13 +159,13 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(45,212,191,0.1);
+  border: 1px solid rgba(45,212,191,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: #60a5fa;
+  color: #2dd4bf;
   flex-shrink: 0;
 }
 
@@ -196,7 +206,7 @@
   transition: color 0.2s ease;
 }
 
-.back-link:hover { color: #2563eb; }
+.back-link:hover { color: #0d9488; }
 
 .auth-header { margin-bottom: 28px; }
 
@@ -233,7 +243,7 @@
 .forgot-link {
   font-size: 12px;
   font-weight: 600;
-  color: #2563eb;
+  color: #0d9488;
   text-decoration: none;
 }
 
@@ -270,12 +280,12 @@
 
 .input-wrap input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #2dd4bf;
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+  box-shadow: 0 0 0 4px rgba(45,212,191,0.12);
 }
 
-.input-wrap:focus-within .field-icon { color: #2563eb; }
+.input-wrap:focus-within .field-icon { color: #0d9488; }
 
 .input-wrap.has-error input {
   border-color: #fca5a5;
@@ -324,13 +334,13 @@
 }
 
 .remember-row input:checked + .checkmark {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-color: #2563eb;
+  background: linear-gradient(135deg, #2dd4bf, #0d9488);
+  border-color: #0d9488;
 }
 
 .remember-row input:checked + .checkmark::after {
   content: '✓';
-  color: #fff;
+  color: #063a35;
   font-size: 11px;
   font-weight: 900;
 }
@@ -364,14 +374,14 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(37,99,235,0.3);
+  background: linear-gradient(135deg, #2dd4bf, #0d9488);
+  color: #063a35;
+  box-shadow: 0 8px 20px rgba(13,148,136,0.35);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(37,99,235,0.4);
+  box-shadow: 0 12px 28px rgba(13,148,136,0.45);
 }
 
 .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
@@ -409,7 +419,7 @@
 }
 
 .auth-footer a {
-  color: #2563eb;
+  color: #0d9488;
   font-weight: 700;
   text-decoration: none;
 }

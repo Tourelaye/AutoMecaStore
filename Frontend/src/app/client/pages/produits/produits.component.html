@@ -121,11 +121,14 @@
         <!-- ÉTOILES -->
         <div class="rating-row">
           <div class="stars">
-            <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4]"></i>
-            <i class="bi bi-star-half"></i>
+            <i *ngFor="let s of getEtoiles()"
+               [class]="isPleine(s, getNoteMoyenne()) ? 'bi bi-star-fill'
+                       : isDemi(s, getNoteMoyenne()) ? 'bi bi-star-half'
+                       : 'bi bi-star'"></i>
           </div>
-          <span class="rating-val">4.8</span>
-          <span class="rating-count">({{ produit.nombre_vues || 0 }} vues)</span>
+          <span class="rating-val" *ngIf="getNombreAvis() > 0">{{ getNoteMoyenne() | number:'1.1-1' }}</span>
+          <span class="rating-count" *ngIf="getNombreAvis() > 0">({{ getNombreAvis() }} avis)</span>
+          <span class="rating-count" *ngIf="getNombreAvis() === 0">Aucune évaluation</span>
           <span class="sep">·</span>
           <span class="sold-count"><i class="bi bi-bag-check-fill"></i> {{ produit.nombre_ventes || 0 }} vendus</span>
           <span class="sep">·</span>
@@ -135,13 +138,13 @@
         <!-- PRIX -->
         <div class="price-block">
           <div class="price-main" *ngIf="!produit.est_en_promo || !produit.prix_promo">
-            {{ produit.prix / 100 | number:'1.2-2' }} FCFA
+            {{ produit.prix | number:'1.2-2' }} FCFA
           </div>
           <div class="price-main" *ngIf="produit.est_en_promo && produit.prix_promo">
-            {{ produit.prix_promo / 100 | number:'1.2-2' }} FCFA
+            {{ produit.prix_promo | number:'1.2-2' }} FCFA
           </div>
           <div class="price-old" *ngIf="produit.est_en_promo && produit.prix_promo">
-            {{ produit.prix / 100 | number:'1.2-2' }} FCFA
+            {{ produit.prix | number:'1.2-2' }} FCFA
           </div>
           <div class="price-discount" *ngIf="produit.est_en_promo && produit.pourcentage_reduction">
             -{{ produit.pourcentage_reduction }}%
@@ -224,13 +227,17 @@
 
         <!-- INFOS RAPIDES -->
         <div class="quick-info">
-          <div class="qi-item">
+          <div class="qi-item" *ngIf="produit.garantie_mois">
             <i class="bi bi-shield-fill-check"></i>
-            <span>Garantie 2 ans</span>
+            <span>{{ getGarantieLabel(produit.garantie_mois) }}</span>
           </div>
-          <div class="qi-item">
+          <div class="qi-item" *ngIf="produit.pays_origine">
             <i class="bi bi-patch-check-fill"></i>
-            <span>Pièce d'origine</span>
+            <span>Origine {{ getPaysLabel(produit.pays_origine) }}</span>
+          </div>
+          <div class="qi-item" *ngIf="produit.delai_livraison">
+            <i class="bi bi-truck-front-fill"></i>
+            <span>{{ getDelaiLivraisonLabel(produit.delai_livraison) }}</span>
           </div>
           <div class="qi-item">
             <i class="bi bi-lock-fill"></i>
@@ -242,7 +249,7 @@
     </div>
 
     <!-- ============ TABS ============ -->
-    <div class="tabs-section" *ngIf="produit">
+    <div class="tabs-section" *ngIf="produit" appScrollReveal [revealDelay]="120">
 
       <!-- TAB BUTTONS -->
       <div class="tabs-bar">
@@ -275,6 +282,10 @@
             <span class="spec-val">{{ produit.reference || 'N/A' }}</span>
           </div>
           <div class="spec-row">
+            <span class="spec-key">Référence OEM</span>
+            <span class="spec-val">{{ produit.reference_oem || 'N/A' }}</span>
+          </div>
+          <div class="spec-row">
             <span class="spec-key">Marque</span>
             <span class="spec-val">{{ produit.marque || 'N/A' }}</span>
           </div>
@@ -287,12 +298,52 @@
             <span class="spec-val">{{ produit.type_piece_nom || 'N/A' }}</span>
           </div>
           <div class="spec-row">
+            <span class="spec-key">État</span>
+            <span class="spec-val">{{ getEtatLabel(produit.etat) }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Garantie</span>
+            <span class="spec-val">{{ getGarantieLabel(produit.garantie_mois) }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Pays d'origine</span>
+            <span class="spec-val">{{ getPaysLabel(produit.pays_origine) }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Poids</span>
+            <span class="spec-val">{{ produit.poids ? (produit.poids + ' kg') : 'N/A' }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Dimensions (L × l × H)</span>
+            <span class="spec-val">{{ produit.longueur || produit.largeur || produit.hauteur ? (produit.longueur || '—') + ' × ' + (produit.largeur || '—') + ' × ' + (produit.hauteur || '—') + ' cm' : 'N/A' }}</span>
+          </div>
+          <div class="spec-row">
             <span class="spec-key">Stock</span>
             <span class="spec-val">{{ produit.stock }} unités</span>
           </div>
           <div class="spec-row">
+            <span class="spec-key">Disponibilité</span>
+            <span class="spec-val">{{ getDisponibiliteLabel(produit.disponibilite) }}</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-key">Délai de livraison</span>
+            <span class="spec-val">{{ getDelaiLivraisonLabel(produit.delai_livraison) }}</span>
+          </div>
+          <div class="spec-row">
             <span class="spec-key">Prix</span>
-            <span class="spec-val">{{ produit.prix / 100 | number:'1.2-2' }} FCFA</span>
+            <span class="spec-val">{{ produit.prix | number:'1.2-2' }} FCFA</span>
+          </div>
+          <div class="spec-row" *ngIf="produit.mots_cles?.length">
+            <span class="spec-key">Mots-clés</span>
+            <span class="spec-val">{{ produit.mots_cles?.join(', ') }}</span>
+          </div>
+          <div class="spec-row" *ngIf="produit.conseils_installation">
+            <span class="spec-key">Conseils d'installation</span>
+            <span class="spec-val">{{ produit.conseils_installation }}</span>
+          </div>
+          <div class="spec-row" *ngIf="produit.conditions_retour">
+            <span class="spec-key">Conditions de retour</span>
+            <span class="spec-val">{{ produit.conditions_retour }}</span>
           </div>
         </div>
       </div>
@@ -300,12 +351,17 @@
       <!-- COMPATIBILITÉ -->
       <div class="tab-panel" *ngIf="activeTab === 'compatibilite'" @fadeSlide>
         <h5><i class="bi bi-car-front-fill"></i> Véhicules compatibles</h5>
-        <p *ngIf="!produit.reference">Les informations de compatibilité seront bientôt disponibles.</p>
-        <div class="compat-grid" *ngIf="produit.reference">
-          <div class="compat-item">
-            <i class="bi bi-info-circle"></i>
-            Consultez la référence {{ produit.reference }} pour vérifier la compatibilité avec votre véhicule.
+        <div *ngIf="!produit.modeles_compatibles?.length && !produit.annee_debut && !produit.annee_fin">
+          <p>Les informations de compatibilité seront bientôt disponibles.</p>
+        </div>
+        <div class="compat-grid" *ngIf="produit.modeles_compatibles?.length">
+          <div class="compat-item" *ngFor="let modele of produit.modeles_compatibles">
+            <i class="bi bi-car-front"></i>
+            <span>{{ modele }}</span>
           </div>
+        </div>
+        <div class="compat-years" *ngIf="produit.annee_debut || produit.annee_fin">
+          <p><i class="bi bi-calendar"></i> Années de compatibilité : <strong>{{ (produit.annee_debut || '—') + ' - ' + (produit.annee_fin || '—') }}</strong></p>
         </div>
       </div>
 
@@ -313,7 +369,19 @@
       <div class="tab-panel" *ngIf="activeTab === 'avis'" @fadeSlide>
         <h5><i class="bi bi-star-half"></i> Avis clients</h5>
         <div class="avis-summary">
-          <div class="avis-empty-note">
+          <div class="avis-rating" *ngIf="getNombreAvis() > 0">
+            <div class="big-stars">
+              <i *ngFor="let s of getEtoiles()"
+                 [class]="isPleine(s, getNoteMoyenne()) ? 'bi bi-star-fill'
+                         : isDemi(s, getNoteMoyenne()) ? 'bi bi-star-half'
+                         : 'bi bi-star'"></i>
+            </div>
+            <div class="big-rating">
+              <strong>{{ getNoteMoyenne() | number:'1.1-1' }}</strong>
+              <span>sur 5 — {{ getNombreAvis() }} avis</span>
+            </div>
+          </div>
+          <div class="avis-empty-note" *ngIf="getNombreAvis() === 0">
             <i class="bi bi-chat-left-text"></i>
             <p>Soyez le premier à partager votre expérience sur ce produit !</p>
             <button class="btn-write-review">
@@ -327,7 +395,7 @@
     </div>
 
     <!-- ============ PRODUITS SIMILAIRES ============ -->
-    <div class="similaires-section" *ngIf="produits.length > 0">
+    <div class="similaires-section" *ngIf="produits.length > 0" appScrollReveal [revealDelay]="160">
 
       <div class="sim-header">
         <h5>Produits similaires</h5>
@@ -364,16 +432,16 @@
             <h6 class="sim-name">{{ p.nom }}</h6>
 
             <div class="sim-stars">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-half"></i>
-              <span>4.5</span>
+              <i *ngFor="let s of getEtoiles()"
+                 [class]="isPleine(s, (p.note_moyenne || 0)) ? 'bi bi-star-fill'
+                         : isDemi(s, (p.note_moyenne || 0)) ? 'bi bi-star-half'
+                         : 'bi bi-star'"></i>
+              <span *ngIf="p.nombre_avis">{{ (p.note_moyenne || 0) | number:'1.1-1' }} ({{ p.nombre_avis }} avis)</span>
+              <span *ngIf="!p.nombre_avis">Aucune évaluation</span>
             </div>
 
             <div class="sim-footer">
-              <span class="sim-price">{{ p.prix / 100 | number:'1.2-2' }} FCFA</span>
+              <span class="sim-price">{{ p.prix | number:'1.2-2' }} FCFA</span>
               <span class="sim-stock out" *ngIf="p.stock === 0">Rupture</span>
               <span class="sim-stock" *ngIf="p.stock > 0">En stock</span>
             </div>

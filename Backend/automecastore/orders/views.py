@@ -4,6 +4,7 @@ from django.db import transaction, models
 from .models import Commande, LigneCommande, Panier, PanierItem
 from .serializers import CommandeSerializer, LigneCommandeSerializer, PanierSerializer, PanierItemSerializer
 from catalog.models import Produit
+from fournisseur.models import creer_notification_fournisseur
 
 
 # -----------------------------
@@ -129,6 +130,8 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
         commande = Commande.objects.create(client=request.user.client)
         print(f"✅ Commande créée: ID={commande.id}, Reference={commande.reference}")
 
+        fournisseurs_notifies = set()
+
         for item in panier.items.all():
             produit = item.produit
             print(f"🔍 Produit: {produit.nom}, Quantité demandée: {item.quantite}, Stock disponible: {produit.stock}")
@@ -150,6 +153,19 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
             produit.stock -= item.quantite
             produit.save()
             print(f"✅ Stock déduit pour {produit.nom}: nouveau stock={produit.stock}")
+
+            if produit.fournisseur_id and produit.fournisseur_id not in fournisseurs_notifies:
+                fournisseurs_notifies.add(produit.fournisseur_id)
+
+        # 🔔 Notifier les fournisseurs concernés
+        for fid in fournisseurs_notifies:
+            creer_notification_fournisseur(
+                fournisseur_id=fid,
+                type_notif='commande',
+                titre='Nouvelle commande',
+                message=f"Une nouvelle commande ({commande.reference}) a été passée pour l'un de vos produits.",
+                lien='/fournisseur/commandes'
+            )
 
         # 🧹 Vider panier
         panier.items.all().delete()

@@ -18,7 +18,7 @@ class Commande(models.Model):
     date_commande = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(max_length=30, choices=STATUT_CHOICES, default='en_attente')
     montant_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, related_name='commandes')
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL, related_name='commandes', null=True, blank=True)
     administrateur = models.ForeignKey(Administrateur, on_delete=models.SET_NULL, null=True, blank=True)
     livreur = models.ForeignKey(Livreur, on_delete=models.SET_NULL, null=True, blank=True)
     reference = models.CharField(max_length=20, unique=True, blank=True, null=True)
@@ -35,7 +35,8 @@ class Commande(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.reference} - {self.client.user.email}"
+        client_email = self.client.user.email if self.client else 'Client supprimé'
+        return f"{self.reference} - {client_email}"
 
 
 # -----------------------------

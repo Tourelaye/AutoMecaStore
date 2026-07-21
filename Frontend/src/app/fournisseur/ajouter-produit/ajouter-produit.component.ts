@@ -1,4 +1,4 @@
-﻿import { Component, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
+﻿import { Component, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,6 +16,30 @@ interface ProduitForm {
   prix: number | null;
   stock: number | null;
   description: string;
+  // Compatibilité
+  anneeDebut: number | null;
+  anneeFin: number | null;
+  // Technique
+  etat: 'neuf' | 'occasion' | 'reconditionne';
+  garantieMois: number;
+  paysOrigine: string;
+  referenceOem: string;
+  poids: number | null;
+  longueur: number | null;
+  largeur: number | null;
+  hauteur: number | null;
+  // Stock
+  disponibilite: 'en_stock' | 'faible_stock' | 'rupture' | 'precommande';
+  delaiLivraison: 'same_day' | '24h' | '48h' | '2_5j' | '5_7j' | '7j_plus';
+  // Complémentaires
+  conseilsInstallation: string;
+  conditionsRetour: string;
+}
+
+interface ImageSlot {
+  id: number;
+  file: File | null;
+  preview: string | null;
 }
 
 @Component({
@@ -27,17 +51,17 @@ interface ProduitForm {
 })
 export class AjouterProduitComponent {
 
-  @ViewChild('fileInputPrincipale') fileInputPrincipaleRef!: ElementRef<HTMLInputElement>;
-  @ViewChildren('fileInputSecondaire') fileInputsSecondairesRefs!: QueryList<ElementRef<HTMLInputElement>>;
+  @ViewChildren('fileInput') fileInputRefs!: QueryList<ElementRef<HTMLInputElement>>;
 
-  get fileInputsSecondaires(): HTMLInputElement[] {
-    return this.fileInputsSecondairesRefs.toArray().map(ref => ref.nativeElement);
+  get fileInputs(): HTMLInputElement[] {
+    return this.fileInputRefs.toArray().map(ref => ref.nativeElement);
   }
 
   isSaving = false;
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
   private toastTimeout: any;
+  showPreview = false;
 
   categoriesVehicule: { value: CategorieVehicule; label: string; icon: string }[] = [
     { value: 'automobile', label: 'Automobile', icon: 'bi-car-front-fill' },
@@ -60,6 +84,61 @@ export class AjouterProduitComponent {
     velo: 'REF-VEL'
   };
 
+  // Suggestions de modèles courants
+  modelesSuggestions: string[] = [ ];
+  modelesCompatibles: string[] = [];
+  modeleInput = '';
+
+  motsCles: string[] = [];
+  motCleInput = '';
+
+  anneeCourante = new Date().getFullYear();
+  annees: number[] = Array.from({ length: 36 }, (_, i) => this.anneeCourante - 30 + i);
+
+  etats = [
+    { value: 'neuf', label: 'Neuf' },
+    { value: 'occasion', label: 'Occasion' },
+    { value: 'reconditionne', label: 'Reconditionné' }
+  ];
+
+  garanties = [
+    { value: 0, label: 'Sans garantie' },
+    { value: 3, label: '3 mois' },
+    { value: 6, label: '6 mois' },
+    { value: 12, label: '12 mois' },
+    { value: 24, label: '24 mois' }
+  ];
+
+  pays = [
+    { value: 'japon', label: 'Japon' },
+    { value: 'allemagne', label: 'Allemagne' },
+    { value: 'france', label: 'France' },
+    { value: 'coree_sud', label: 'Corée du Sud' },
+    { value: 'chine', label: 'Chine' },
+    { value: 'usa', label: 'États-Unis' },
+    { value: 'italie', label: 'Italie' },
+    { value: 'espagne', label: 'Espagne' },
+    { value: 'turquie', label: 'Turquie' },
+    { value: 'inde', label: 'Inde' },
+    { value: 'belgique', label: 'Belgique' }
+  ];
+
+  disponibilites = [
+    { value: 'en_stock', label: 'En stock' },
+    { value: 'faible_stock', label: 'Faible stock' },
+    { value: 'rupture', label: 'Rupture de stock' },
+    { value: 'precommande', label: 'Précommande' }
+  ];
+
+  delais = [
+    { value: 'same_day', label: 'Livraison le jour même' },
+    { value: '24h', label: '24 heures' },
+    { value: '48h', label: '48 heures' },
+    { value: '2_5j', label: '2 à 5 jours' },
+    { value: '5_7j', label: '5 à 7 jours' },
+    { value: '7j_plus', label: 'Plus de 7 jours' }
+  ];
+
   form: ProduitForm = {
     categorieVehicule: null,
     typePiece: null,
@@ -68,14 +147,27 @@ export class AjouterProduitComponent {
     marque: '',
     prix: null,
     stock: null,
-    description: ''
+    description: '',
+    anneeDebut: null,
+    anneeFin: null,
+    etat: 'neuf',
+    garantieMois: 0,
+    paysOrigine: '',
+    referenceOem: '',
+    poids: null,
+    longueur: null,
+    largeur: null,
+    hauteur: null,
+    disponibilite: 'en_stock',
+    delaiLivraison: '2_5j',
+    conseilsInstallation: '',
+    conditionsRetour: ''
   };
 
-  fichierPrincipal: File | null = null;
-  imagePreviewPrincipale: string | null = null;
-
-  fichiersSecondaires: (File | null)[] = [null, null, null];
-  imagesPreviewSecondaires: (string | null)[] = [null, null, null];
+  // Jusqu'à 4 images (index 0 = principale par défaut)
+  images: ImageSlot[] = Array.from({ length: 4 }, (_, i) => ({ id: i + 1, file: null, preview: null }));
+  mainImageIndex = 0;
+  dragIndex: number | null = null;
 
   // Données chargées depuis l'API pour mapping id <-> nom
   availableCategories: { id: number; nom: string }[] = [];
@@ -91,7 +183,25 @@ export class AjouterProduitComponent {
       ? this.refPrefixParCategorie[this.form.categorieVehicule]
       : 'REF-AMS';
     const suffix = Math.floor(100000 + Math.random() * 899999);
-    return `${prefix}-${suffix}`;
+    return prefix + '-' + suffix;
+  }
+
+  get mainPreview(): string | null {
+    return this.images[this.mainImageIndex]?.preview || null;
+  }
+
+  get hasImages(): boolean {
+    return this.images.some(img => img.file !== null);
+  }
+
+  get dimensionsDisplay(): string {
+    const l = this.form.longueur;
+    const la = this.form.largeur;
+    const h = this.form.hauteur;
+    if (l && la && h) {
+      return l + ' x ' + la + ' x ' + h + ' cm';
+    }
+    return '';
   }
 
   constructor(
@@ -118,14 +228,12 @@ export class AjouterProduitComponent {
   selectCategorie(cat: CategorieVehicule): void {
     this.form.categorieVehicule = cat;
     this.form.typePiece = null;
-    // Charger les types de pièces pour la catégorie correspondante si possible
     const catId = this.getCategorieIdForVehicule(cat);
     if (catId) this.loadTypePiecesForCategorie(catId);
   }
 
   private getCategorieIdForVehicule(cat: CategorieVehicule): number | null {
     const key = cat.toString().toLowerCase();
-    // Chercher une catégorie dont le nom contient un mot-clé
     const heuristics: { [k: string]: string[] } = {
       automobile: ['auto', 'automobile', 'voiture'],
       moto: ['moto', 'motorcycle', 'motor'],
@@ -156,46 +264,127 @@ export class AjouterProduitComponent {
     });
   }
 
-  // ── OUVERTURE DES SÉLECTEURS DE FICHIER ──
-  ouvrirFileInputPrincipale(): void {
-    this.fileInputPrincipaleRef.nativeElement.click();
+  // ── MODÈLES COMPATIBLES ──
+  onModeleInputKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      this.ajouterModele(this.modeleInput.trim());
+    }
   }
 
-  ouvrirFileInputSecondaire(index: number): void {
-    const refs = this.fileInputsSecondairesRefs.toArray();
-    refs[index]?.nativeElement.click();
+  ajouterModeleDepuisSuggestion(modele: string): void {
+    if (!this.modelesCompatibles.includes(modele)) {
+      this.modelesCompatibles.push(modele);
+    }
   }
 
-  // ── IMAGE PRINCIPALE ──
-  onFichierPrincipalSelectionne(event: Event): void {
+  ajouterModele(value: string): void {
+    const clean = value.replace(/,/g, '').trim();
+    if (clean && !this.modelesCompatibles.includes(clean)) {
+      this.modelesCompatibles.push(clean);
+    }
+    this.modeleInput = '';
+  }
+
+  retirerModele(index: number): void {
+    this.modelesCompatibles.splice(index, 1);
+  }
+
+  // ── MOTS-CLÉS ──
+  onMotCleInputKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      this.ajouterMotCle(this.motCleInput.trim());
+    }
+  }
+
+  ajouterMotCle(value: string): void {
+    const clean = value.replace(/,/g, '').trim();
+    if (clean && !this.motsCles.includes(clean)) {
+      this.motsCles.push(clean);
+    }
+    this.motCleInput = '';
+  }
+
+  retirerMotCle(index: number): void {
+    this.motsCles.splice(index, 1);
+  }
+
+  // ── GESTION DU STOCK ──
+  onStockChange(): void {
+    const stock = this.form.stock ?? 0;
+    if (stock === 0) {
+      this.form.disponibilite = 'rupture';
+    } else if (stock < 10) {
+      this.form.disponibilite = 'faible_stock';
+    } else {
+      this.form.disponibilite = 'en_stock';
+    }
+  }
+
+  // ── IMAGES ──
+  ouvrirFileInput(index: number): void {
+    const input = this.fileInputs[index];
+    input?.click();
+  }
+
+  onImageFileSelected(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
     if (!this.validerFichierImage(file)) return;
 
-    this.fichierPrincipal = file;
-    this.lireApercu(file, (dataUrl) => (this.imagePreviewPrincipale = dataUrl));
+    this.images[index].file = file;
+    this.lireApercu(file, (dataUrl) => (this.images[index].preview = dataUrl));
   }
 
-  retirerImagePrincipale(): void {
-    this.fichierPrincipal = null;
-    this.imagePreviewPrincipale = null;
+  retirerImage(index: number): void {
+    this.images[index].file = null;
+    this.images[index].preview = null;
+    if (this.mainImageIndex === index) {
+      this.mainImageIndex = 0;
+    }
+    const input = this.fileInputs[index];
+    if (input) input.value = '';
   }
 
-  // ── IMAGES SECONDAIRES ──
-  onFichierSecondaireSelectionne(event: Event, index: number): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (!this.validerFichierImage(file)) return;
-
-    this.fichiersSecondaires[index] = file;
-    this.lireApercu(file, (dataUrl) => (this.imagesPreviewSecondaires[index] = dataUrl));
+  definirImagePrincipale(index: number): void {
+    if (this.images[index].file) {
+      this.mainImageIndex = index;
+    }
   }
 
-  retirerImageSecondaire(index: number): void {
-    this.fichiersSecondaires[index] = null;
-    this.imagesPreviewSecondaires[index] = null;
+  onDragStart(index: number): void {
+    this.dragIndex = index;
+  }
+
+  onDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+  }
+
+  onDrop(event: DragEvent, index: number): void {
+    event.preventDefault();
+    if (this.dragIndex === null || this.dragIndex === index) return;
+    this.swapImages(this.dragIndex, index);
+    this.dragIndex = null;
+  }
+
+  private swapImages(from: number, to: number): void {
+    const temp = this.images[from];
+    this.images[from] = this.images[to];
+    this.images[to] = temp;
+    if (this.mainImageIndex === from) {
+      this.mainImageIndex = to;
+    } else if (this.mainImageIndex === to) {
+      this.mainImageIndex = from;
+    }
+    // repositionne les inputs file pour garder la correspondance
+    this.fileInputRefs.forEach(ref => ref.nativeElement.value = '');
+  }
+
+  // ── PRÉVISUALISATION ──
+  togglePreview(): void {
+    this.showPreview = !this.showPreview;
   }
 
   // ── UTILITAIRES ──
@@ -206,7 +395,7 @@ export class AjouterProduitComponent {
       return false;
     }
     if (file.size > maxSizeMo * 1024 * 1024) {
-      this.showToast(`L'image dépasse la taille maximale de ${maxSizeMo} Mo.`, 'error');
+      this.showToast('L\'image dépasse la taille maximale de ' + maxSizeMo + ' Mo.', 'error');
       return false;
     }
     return true;
@@ -223,7 +412,7 @@ export class AjouterProduitComponent {
       this.showToast('Merci de choisir une catégorie et un type de pièce.', 'error');
       return;
     }
-    if (!this.fichierPrincipal) {
+    if (!this.images[0].file) {
       this.showToast("L'image principale est obligatoire.", 'error');
       return;
     }
@@ -231,7 +420,6 @@ export class AjouterProduitComponent {
     this.isSaving = true;
 
     const formData = new FormData();
-    // map selections to backend expected fields: 'categorie' (id) and 'type_piece' (id)
     const categorieId = this.getCategorieIdForVehicule(this.form.categorieVehicule!);
     let typePieceId: number | null = null;
     if (this.form.typePiece) {
@@ -243,6 +431,7 @@ export class AjouterProduitComponent {
       this.isSaving = false;
       return;
     }
+
     formData.append('categorie', String(categorieId));
     formData.append('type_piece', String(typePieceId));
     formData.append('nom', this.form.nom);
@@ -251,21 +440,62 @@ export class AjouterProduitComponent {
     formData.append('prix', String(this.form.prix));
     formData.append('stock', String(this.form.stock));
     formData.append('description', this.form.description);
-    // Backend serializer attend les champs 'image', 'image_2', 'image_3', 'image_4'
-    formData.append('image', this.fichierPrincipal as Blob);
-    this.fichiersSecondaires.forEach((file, i) => {
-      if (file) formData.append(`image_${i + 2}`, file);
+
+    // Compatibilité
+    formData.append('modeles_compatibles', JSON.stringify(this.modelesCompatibles));
+    if (this.form.anneeDebut !== null && this.form.anneeDebut !== undefined) {
+      formData.append('annee_debut', String(this.form.anneeDebut));
+    }
+    if (this.form.anneeFin !== null && this.form.anneeFin !== undefined) {
+      formData.append('annee_fin', String(this.form.anneeFin));
+    }
+
+    // Technique
+    formData.append('etat', this.form.etat);
+    formData.append('garantie_mois', String(this.form.garantieMois));
+    formData.append('pays_origine', this.form.paysOrigine);
+    formData.append('reference_oem', this.form.referenceOem);
+    if (this.form.poids !== null && this.form.poids !== undefined) formData.append('poids', String(this.form.poids));
+    if (this.form.longueur !== null && this.form.longueur !== undefined) formData.append('longueur', String(this.form.longueur));
+    if (this.form.largeur !== null && this.form.largeur !== undefined) formData.append('largeur', String(this.form.largeur));
+    if (this.form.hauteur !== null && this.form.hauteur !== undefined) formData.append('hauteur', String(this.form.hauteur));
+
+    // Stock
+    formData.append('disponibilite', this.form.disponibilite);
+    formData.append('delai_livraison', this.form.delaiLivraison);
+
+    // Complémentaires
+    formData.append('mots_cles', JSON.stringify(this.motsCles));
+    formData.append('conseils_installation', this.form.conseilsInstallation);
+    formData.append('conditions_retour', this.form.conditionsRetour);
+
+    // Images (image principale = index mainImageIndex + 1)
+    this.images.forEach((img, i) => {
+      if (img.file) {
+        const key = i === 0 ? 'image' : 'image_' + (i + 1);
+        formData.append(key, img.file);
+      }
     });
+    formData.append('image_principale_index', String(this.mainImageIndex + 1));
 
     this.produitService.createProduit(formData).subscribe({
       next: () => {
         this.isSaving = false;
-        this.showToast(`"${this.form.nom}" a été ajouté au catalogue.`, 'success');
+        this.showToast('"' + this.form.nom + '" a été ajouté au catalogue.', 'success');
         setTimeout(() => this.router.navigate(['/fournisseur/produits/list-produit']), 900);
       },
       error: (err) => {
         this.isSaving = false;
-        this.showToast("Erreur lors de l'ajout du produit", 'error');
+        let msg = "Erreur lors de l'ajout du produit";
+        if (err?.error?.detail) {
+          msg = String(err.error.detail);
+        } else if (err?.error && typeof err.error === 'object') {
+          const messages = Object.values(err.error).flat().filter(Boolean);
+          if (messages.length) msg = messages.join(' / ');
+        } else if (err?.message) {
+          msg = err.message;
+        }
+        this.showToast(msg, 'error');
         console.error('Erreur création produit:', err);
       }
     });

@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Produit, ProduitService, ProduitState } from './produit.service';
+import { Produit, ProductSections, ProduitService, ProduitState } from './produit.service';
 
 type StatusFilter = 'tous' | ProduitState | 'signale';
 type StockFilter = 'tous' | 'en_stock' | 'stock_faible' | 'rupture';
-type ModalKind = 'delete' | 'refuse' | 'signal' | null;
+type ModalKind = 'delete' | 'signal' | 'sections' | null;
 
 @Component({
   selector: 'app-produit',
@@ -30,7 +30,6 @@ export class ProduitComponent implements OnInit {
     { value: 'tous', label: 'Tous les statuts' },
     { value: 'en_ligne', label: 'En ligne' },
     { value: 'desactive', label: 'Désactivé' },
-    { value: 'attente_validation', label: 'Attente validation' },
     { value: 'signale', label: 'Signalé' }
   ];
 
@@ -41,11 +40,13 @@ export class ProduitComponent implements OnInit {
     { value: 'rupture', label: 'Rupture' }
   ];
 
-  // --- Modale générique (suppression / refus / signalement) ---
+  // --- Modale générique (suppression / signalement) ---
   activeModal: ModalKind = null;
   targetProduit: Produit | null = null;
   reasonInput = '';
+  sectionsForm: ProductSections = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
   submitting = false;
+  searchFocused = false;
 
   constructor(private produitService: ProduitService) {}
 
@@ -55,11 +56,17 @@ export class ProduitComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.produitService.getAll().subscribe(list => {
-      this.produits = list;
-      this.categories = ['toutes', ...Array.from(new Set(list.map(p => p.category)))];
-      this.applyFilters();
-      this.loading = false;
+    this.produitService.getAll().subscribe({
+      next: list => {
+        this.produits = list;
+        this.categories = ['toutes', ...Array.from(new Set(list.map(p => p.category)))];
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        alert('Erreur lors du chargement des produits.');
+      }
     });
   }
 
@@ -94,18 +101,26 @@ export class ProduitComponent implements OnInit {
     return 'ok';
   }
 
-  // --- Actions directes (pas de confirmation nécessaire) ---
+  // --- Actions directes ---
   toggleActivation(p: Produit): void {
+    if (this.submitting) return;
+    this.submitting = true;
     const nextState: ProduitState = p.state === 'desactive' ? 'en_ligne' : 'desactive';
-    this.produitService.setState(p.id, nextState).subscribe(updated => this.replace(updated));
-  }
-
-  validate(p: Produit): void {
-    this.produitService.setState(p.id, 'en_ligne').subscribe(updated => this.replace(updated));
+    this.produitService.setState(p.id, nextState).subscribe({
+      next: updated => this.replace(updated),
+      error: () => { alert('Erreur lors du changement d\'état.'); this.submitting = false; },
+      complete: () => this.submitting = false
+    });
   }
 
   removeSignal(p: Produit): void {
-    this.produitService.setSignal(p.id, false).subscribe(updated => this.replace(updated));
+    if (this.submitting) return;
+    this.submitting = true;
+    this.produitService.setSignal(p.id, false).subscribe({
+      next: updated => this.replace(updated),
+      error: () => { alert('Erreur lors du retrait du signalement.'); this.submitting = false; },
+      complete: () => this.submitting = false
+    });
   }
 
   // --- Actions avec confirmation / saisie ---
@@ -114,16 +129,16 @@ export class ProduitComponent implements OnInit {
     this.activeModal = 'delete';
   }
 
-  askRefuse(p: Produit): void {
-    this.targetProduit = p;
-    this.reasonInput = '';
-    this.activeModal = 'refuse';
-  }
-
   askSignal(p: Produit): void {
     this.targetProduit = p;
     this.reasonInput = '';
     this.activeModal = 'signal';
+  }
+
+  askSections(p: Produit): void {
+    this.targetProduit = p;
+    this.sectionsForm = { ...p.sections };
+    this.activeModal = 'sections';
   }
 
   closeModal(): void {
@@ -133,25 +148,43 @@ export class ProduitComponent implements OnInit {
   }
 
   confirmModal(): void {
-    if (!this.targetProduit) return;
+    if (!this.targetProduit || this.submitting) return;
     const id = this.targetProduit.id;
     this.submitting = true;
 
     if (this.activeModal === 'delete') {
-      this.produitService.delete(id).subscribe(() => {
-        this.produits = this.produits.filter(p => p.id !== id);
-        this.applyFilters();
-        this.endModal();
-      });
-    } else if (this.activeModal === 'refuse') {
-      this.produitService.setState(id, 'desactive').subscribe(updated => {
-        this.replace(updated);
-        this.endModal();
+      this.produitService.delete(id).subscribe({
+        next: () => {
+          this.produits = this.produits.filter(p => p.id !== id);
+          this.applyFilters();
+          this.endModal();
+        },
+        error: () => {
+          alert('Erreur lors de la suppression.');
+          this.submitting = false;
+        }
       });
     } else if (this.activeModal === 'signal') {
-      this.produitService.setSignal(id, true, this.reasonInput.trim() || 'Signalé par un administrateur.').subscribe(updated => {
-        this.replace(updated);
-        this.endModal();
+      this.produitService.setSignal(id, true, this.reasonInput.trim() || 'Signalé par un administrateur.').subscribe({
+        next: updated => {
+          this.replace(updated);
+          this.endModal();
+        },
+        error: () => {
+          alert('Erreur lors du signalement.');
+          this.submitting = false;
+        }
+      });
+    } else if (this.activeModal === 'sections') {
+      this.produitService.setSections(id, this.sectionsForm).subscribe({
+        next: updated => {
+          this.replace(updated);
+          this.endModal();
+        },
+        error: () => {
+          alert('Erreur lors de la mise à jour des sections.');
+          this.submitting = false;
+        }
       });
     }
   }
@@ -160,6 +193,8 @@ export class ProduitComponent implements OnInit {
     this.submitting = false;
     this.activeModal = null;
     this.targetProduit = null;
+    this.reasonInput = '';
+    this.sectionsForm = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
   }
 
   private replace(updated: Produit): void {
@@ -168,11 +203,21 @@ export class ProduitComponent implements OnInit {
   }
 
   get onlineCount(): number { return this.produits.filter(p => p.state === 'en_ligne').length; }
-  get pendingCount(): number { return this.produits.filter(p => p.state === 'attente_validation').length; }
+  get offlineCount(): number { return this.produits.filter(p => p.state === 'desactive').length; }
   get signaledCount(): number { return this.produits.filter(p => p.signale).length; }
   get totalCount(): number { return this.produits.length; }
 
   trackById(_index: number, item: Produit): string {
     return item.id.toString();
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .filter(w => w.length > 0)
+      .map(w => w[0].toUpperCase())
+      .slice(0, 2)
+      .join('');
   }
 }

@@ -5,6 +5,14 @@ import { map } from 'rxjs/operators';
 
 export type ProduitState = 'en_ligne' | 'desactive' | 'attente_validation';
 
+export interface ProductSections {
+  bestOffer: boolean;
+  flashSale: boolean;
+  bestSeller: boolean;
+  trending: boolean;
+  lightningSale: boolean;
+}
+
 export interface Produit {
   id: number;
   ref: string;
@@ -18,6 +26,7 @@ export interface Produit {
   state: ProduitState;
   signale: boolean;
   signalReason?: string;
+  sections: ProductSections;
 }
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -38,8 +47,12 @@ export class ProduitService {
     return `${this.baseUrl}${separator}${image}`;
   }
 
+  private defaultSections(): ProductSections {
+    return { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
+  }
+
   private normalizeProduit(p: Produit): Produit {
-    return { ...p, image: this.normalizeImage(p.image) };
+    return { ...p, image: this.normalizeImage(p.image), sections: { ...this.defaultSections(), ...(p.sections || {}) } };
   }
 
   getAll(): Observable<Produit[]> {
@@ -57,6 +70,12 @@ export class ProduitService {
 
   setSignal(id: number, signale: boolean, reason?: string): Observable<Produit> {
     return this.http.patch<Produit>(`${this.apiUrl}${id}/signal/`, { signale, motif: reason }).pipe(
+      map(p => this.normalizeProduit(p))
+    );
+  }
+
+  setSections(id: number, sections: ProductSections): Observable<Produit> {
+    return this.http.patch<Produit>(`${this.apiUrl}${id}/sections/`, sections).pipe(
       map(p => this.normalizeProduit(p))
     );
   }

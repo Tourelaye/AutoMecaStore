@@ -87,13 +87,13 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Détection de l'onglet via l'URL (ex: /mon-compte/securite)
+    // Détection de l'onglet via l'URL (ex: /mon-compte/securite, /mes-favoris, /mes-commandes)
     this.route.url.subscribe(segments => {
       const last = segments[segments.length - 1]?.path;
       if (last === 'securite')       this.ongletActif = 'securite';
       else if (last === 'confidentialite') this.ongletActif = 'confidentialite';
-      else if (last === 'commandes') this.ongletActif = 'commandes';
-      else if (last === 'favoris') this.ongletActif = 'favoris';
+      else if (last === 'commandes' || last === 'mes-commandes') this.ongletActif = 'commandes';
+      else if (last === 'favoris' || last === 'mes-favoris') this.ongletActif = 'favoris';
       else if (last === 'panier') this.ongletActif = 'panier';
       else                           this.ongletActif = 'profil';
     });

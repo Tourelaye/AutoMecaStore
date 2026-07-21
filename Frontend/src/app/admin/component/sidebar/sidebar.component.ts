@@ -44,6 +44,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Livraisons',          icon: 'bi-truck',          route: '/admin/livraisons' },
     { label: 'Avis & Réclamations', icon: 'bi-chat-left-text', route: '/admin/avis'       },
     { label: 'Journal d\'activités',             icon: 'bi-journal-text',   route: '/admin/journal'    },
+    { label: 'Notifications',       icon: 'bi-bell',           route: '/admin/notifications' },
+    { label: 'Sécurité',            icon: 'bi-shield-lock',   route: '/admin/securite'    },
     { label: 'Paramètres',          icon: 'bi-gear',           route: '/admin/parametres' },
   ];
 

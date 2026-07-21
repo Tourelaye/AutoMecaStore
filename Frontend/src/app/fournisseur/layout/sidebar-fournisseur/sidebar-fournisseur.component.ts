@@ -95,6 +95,11 @@ export class SidebarFournisseurComponent {
       label: 'Paramètres',
       path: '/fournisseur/parametres',
     },
+    {
+      icon: 'bi-shield-lock',
+      label: 'Sécurité',
+      path: '/fournisseur/securite',
+    },
     // {
     //   icon: 'bi-headset',
     //   label: 'Support',

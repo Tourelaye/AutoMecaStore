@@ -9,9 +9,13 @@ export interface Utilisateur {
   prenom: string;
   email: string;
   telephone?: string;
-  adresse: string; // Removed the optional operator (?)
+  adresse: string;
   role?: string;
   statut?: string;
+  raisonRefus?: string;
+  date_joined?: string;
+  avatar?: string;
+  is_active?: boolean;
 }
 
 export interface LoginResponse {
@@ -52,8 +56,8 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login/`, { email, password }).pipe(
+  login(email: string, password: string, portal?: 'client' | 'fournisseur' | 'admin'): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login/`, { email, password, portal }).pipe(
       tap((response) => {
         localStorage.setItem('access_token', response.access);
         localStorage.setItem('refresh_token', response.refresh);
@@ -66,7 +70,9 @@ export class AuthService {
           email: email,
           adresse: '',
           role: payload.role ?? 'client',
-          statut: payload.fournisseur_status ?? ''
+          statut: payload.fournisseur_status ?? '',
+          raisonRefus: payload.fournisseur_raison_refus ?? '',
+          is_active: payload.is_active ?? true
         };
         this.utilisateurSubject.next(userFromToken);
         this.isLoggedInSubject.next(true);
@@ -84,8 +90,12 @@ export class AuthService {
   fetchProfil(): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.apiUrl}/me/`).pipe(
       tap((profil) => {
-        this.utilisateurSubject.next(profil);
-        localStorage.setItem('user', JSON.stringify(profil));
+        const data = {
+          ...profil,
+          raisonRefus: (profil as any).raison_refus || ''
+        };
+        this.utilisateurSubject.next(data);
+        localStorage.setItem('user', JSON.stringify(data));
       })
     );
   }
@@ -111,6 +121,7 @@ export class AuthService {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+    localStorage.removeItem('panier_items');
     this.utilisateurSubject.next(null);
     this.isLoggedInSubject.next(false);
   }
@@ -155,6 +166,7 @@ export class AuthService {
         ? '/fournisseur/dashboard'
         : '/fournisseur/en-attente';
     }
+    if (role === 'client') return '/';
     return '/login';
   }
 

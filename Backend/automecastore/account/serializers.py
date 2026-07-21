@@ -1,4 +1,8 @@
+import re
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
+from django.db.models import Avg, Count
+from django.apps import apps
 from .models import Utilisateur, Client, Fournisseur 
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -51,6 +55,7 @@ class RegisterFournisseurSerializer(serializers.ModelSerializer):
     nom_entreprise = serializers.CharField(max_length=200, required=True)
     siret = serializers.CharField(max_length=50, required=False, allow_blank=True)
     description = serializers.CharField(required=False, allow_blank=True)
+    telephone = serializers.CharField(required=True, allow_blank=True, max_length=20)
 
     class Meta:
         model = Utilisateur
@@ -66,6 +71,39 @@ class RegisterFournisseurSerializer(serializers.ModelSerializer):
             'siret',
             'description'
         ]
+
+    def validate(self, attrs):
+        telephone = attrs.get('telephone', '')
+        if not telephone or not str(telephone).strip():
+            raise serializers.ValidationError({'telephone': 'Le numéro de téléphone est obligatoire.'})
+
+        cleaned = re.sub(r'[\s\-.]', '', str(telephone)).strip()
+        if cleaned.startswith('00'):
+            cleaned = '+' + cleaned[2:]
+
+        if not cleaned:
+            raise serializers.ValidationError({'telephone': 'Le numéro de téléphone est obligatoire.'})
+
+        if cleaned.startswith('+'):
+            if not re.fullmatch(r'\+[1-9]\d{6,14}', cleaned):
+                raise serializers.ValidationError({'telephone': 'Le numéro international n\'est pas valide.'})
+            if cleaned.startswith('+221'):
+                rest = cleaned[4:]
+                if not re.fullmatch(r'(70|75|76|77|78)\d{7}', rest):
+                    raise serializers.ValidationError({'telephone': 'Numéro sénégalais invalide. Exemple : +22177XXXXXXX ou 77XXXXXXX.'})
+            elif cleaned.startswith('+86'):
+                rest = cleaned[3:]
+                if not re.fullmatch(r'1\d{10}', rest):
+                    raise serializers.ValidationError({'telephone': 'Numéro chinois invalide. Exemple : +861XXXXXXXXXX (11 chiffres commençant par 1).'})
+        else:
+            if not re.fullmatch(r'(70|75|76|77|78)\d{7}', cleaned):
+                raise serializers.ValidationError({'telephone': 'Numéro de téléphone invalide. Utilisez un numéro sénégalais (77XXXXXXX) ou le format international (+221XXXXXXXXX).'})
+
+        if Utilisateur.objects.filter(role='fournisseur', telephone=cleaned).exists():
+            raise serializers.ValidationError({'telephone': 'Ce numéro est déjà utilisé par un autre fournisseur.'})
+
+        attrs['telephone'] = cleaned
+        return attrs
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -102,6 +140,11 @@ class CategorieSerializer(serializers.ModelSerializer):
             ]
         
 class ProduitSerializer(serializers.ModelSerializer):
+    modeles_compatibles = serializers.JSONField(required=False)
+    mots_cles = serializers.JSONField(required=False)
+    note_moyenne = serializers.SerializerMethodField()
+    nombre_avis = serializers.SerializerMethodField()
+
     class Meta:
         model = Produit
         fields = [
@@ -111,44 +154,104 @@ class ProduitSerializer(serializers.ModelSerializer):
             'prix',
             'stock',
             'categorie',
-            'gestionnaire_stock'
+            'gestionnaire_stock',
+            # Avis
+            'note_moyenne', 'nombre_avis',
+            # Compatibilité
+            'modeles_compatibles', 'annee_debut', 'annee_fin',
+            # Informations techniques
+            'etat', 'garantie_mois', 'pays_origine', 'reference_oem',
+            'poids', 'longueur', 'largeur', 'hauteur',
+            # Stock
+            'disponibilite', 'delai_livraison',
+            # Complémentaires
+            'mots_cles', 'conseils_installation', 'conditions_retour',
         ]
+        read_only_fields = ['note_moyenne', 'nombre_avis']
+
+    def get_nombre_avis(self, obj):
+        Avis = apps.get_model('support', 'Avis')
+        return Avis.objects.filter(produit=obj).count()
+
+    def get_note_moyenne(self, obj):
+        Avis = apps.get_model('support', 'Avis')
+        result = Avis.objects.filter(produit=obj).aggregate(avg_note=Avg('note'), total=Count('id'))
+        if not result or result.get('total', 0) == 0:
+            return 0
+        return round(float(result['avg_note']), 1)
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     # Les champs par défaut sont username et password, mais on utilise email
     username_field = 'email'
-    
+
     def validate(self, attrs):
         print(f"DEBUG: Données reçues: {attrs}")
         # Transformer email en username pour le serializer parent
         email = attrs.get('email')
         password = attrs.get('password')
         print(f"DEBUG: Email: {email}, Password: {'*' * len(password) if password else 'None'}")
-        
+
         # Pour le serializer parent, il faut username
         attrs['username'] = email
         print(f"DEBUG: Attributs après transformation: {attrs}")
-        
+
         try:
             result = super().validate(attrs)
             print(f"DEBUG: Validation réussie")
-            return result
         except Exception as e:
             print(f"DEBUG: Erreur validation: {e}")
             raise
-    
+
+        # Portail demandé (client, fournisseur, admin)
+        request = self.context.get('request')
+        portal = request.data.get('portal') if request else None
+
+        user = self.user
+        if portal:
+            if portal == 'client':
+                if user.role != 'client':
+                    raise PermissionDenied(
+                        "Ce compte n'est pas autorisé à accéder à l'espace Client. Veuillez utiliser le portail correspondant à votre rôle."
+                    )
+
+            elif portal == 'fournisseur':
+                if user.role != 'fournisseur':
+                    raise PermissionDenied(
+                        "Ce compte n'est pas autorisé à accéder à l'espace Fournisseur."
+                    )
+                if not user.is_active:
+                    raise PermissionDenied(
+                        "Votre compte est inactif. Veuillez contacter l'administrateur."
+                    )
+                fournisseur = getattr(user, 'fournisseur', None)
+                if not fournisseur or fournisseur.statut != 'actif':
+                    raise PermissionDenied(
+                        "Votre compte est en attente de validation par un administrateur. Vous recevrez un e-mail dès que votre demande sera approuvée."
+                    )
+
+            elif portal == 'admin':
+                if user.role != 'admin' or not user.is_staff:
+                    raise PermissionDenied(
+                        "Accès refusé. Vous ne disposez pas des autorisations nécessaires pour accéder à cet espace."
+                    )
+
+        return result
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Ajoute le rôle dans le token
+        # Ajoute le rôle et le statut dans le token
         token['role'] = user.role
         token['nom'] = user.nom
         token['prenom'] = user.prenom
         token['user_id'] = user.id
+        token['is_active'] = user.is_active
         if user.role == 'fournisseur' and hasattr(user, 'fournisseur'):
             token['fournisseur_status'] = user.fournisseur.statut
+            token['fournisseur_raison_refus'] = user.fournisseur.raison_refus or ''
         else:
             token['fournisseur_status'] = None
+            token['fournisseur_raison_refus'] = ''
         return token
 
 class ClientSerializer(serializers.ModelSerializer):

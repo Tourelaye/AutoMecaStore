@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HeaderService, Notification } from './header.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { interval, Subscription } from 'rxjs';
@@ -16,7 +16,7 @@ interface AdminInfo {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
@@ -113,6 +113,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       order:  'bi-cart-check-fill',
       stock:  'bi-exclamation-triangle-fill',
       client:  'bi-person-plus-fill',
+      produit: 'bi-box-seam-fill',
       system:  'bi-gear-fill'
     };
     return map[type] ?? 'bi-bell-fill';
@@ -123,6 +124,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       order:  '#3b82f6',
       stock:  '#ef4444',
       client:  '#16a34a',
+      produit: '#a855f7',
       system:  '#f97316'
     };
     return map[type] ?? '#6b7280';
@@ -141,6 +143,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.searchQuery.trim()) {
       console.log('Recherche:', this.searchQuery);
       // TODO: brancher sur l'API de recherche
+    }
+  }
+
+  onNotificationClick(n: any): void {
+    if (n.type === 'produit') {
+      this.router.navigate(['/admin/approbation-produits']);
+      this.showNotifications = false;
     }
   }
 }

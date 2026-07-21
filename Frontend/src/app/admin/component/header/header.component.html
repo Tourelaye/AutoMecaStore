@@ -52,6 +52,8 @@
             class="notif-item"
             *ngFor="let n of notifications"
             [class.unread]="!n.read"
+            [class.clickable]="n.type === 'produit'"
+            (click)="onNotificationClick(n)"
           >
             <div class="notif-icon-wrap" [style.background]="getNotifColor(n.type) + '20'">
               <i class="bi {{ getNotifIcon(n.type) }}" [style.color]="getNotifColor(n.type)"></i>
@@ -65,10 +67,10 @@
         </div>
 
         <div class="notif-footer">
-          <button>
+          <a class="notif-footer-link" routerLink="/admin/notifications" (click)="showNotifications = false">
             <i class="bi bi-arrow-right-circle-fill"></i>
             Voir toutes les notifications
-          </button>
+          </a>
         </div>
 
       </div>
@@ -113,7 +115,7 @@
             </div>
             <i class="bi bi-chevron-right udm-arrow"></i>
           </a>
-          <a class="udm-item" routerLink="/admin/parametre">
+          <a class="udm-item" routerLink="/admin/parametres">
             <div class="udm-icon icon-green"><i class="bi bi-gear-fill"></i></div>
             <div class="udm-text">
               <span>Paramètres</span>

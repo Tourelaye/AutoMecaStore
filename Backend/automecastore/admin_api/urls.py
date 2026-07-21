@@ -13,6 +13,7 @@ from .views import (
     AdminProduitListView,
     AdminProduitToggleActiveView,
     AdminProduitSignalView,
+    AdminProduitSectionsView,
     AdminProduitDeleteView,
     AdminProduitEnAttenteListView,
     AdminProduitApprobationView,
@@ -55,6 +56,7 @@ urlpatterns = [
     path('produits/en-attente/', AdminProduitEnAttenteListView.as_view(), name='admin-produits-en-attente'),
     path('produits/<int:pk>/toggle-active/', AdminProduitToggleActiveView.as_view(), name='admin-produit-toggle-active'),
     path('produits/<int:pk>/signal/', AdminProduitSignalView.as_view(), name='admin-produit-signal'),
+    path('produits/<int:pk>/sections/', AdminProduitSectionsView.as_view(), name='admin-produit-sections'),
     path('produits/<int:pk>/approbation/', AdminProduitApprobationView.as_view(), name='admin-produit-approbation'),
     path('produits/<int:pk>/', AdminProduitDeleteView.as_view(), name='admin-produit-delete'),
 

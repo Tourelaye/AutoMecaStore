@@ -21,8 +21,9 @@ export class LoginComponent implements OnInit {
 
   // Comptes démo (à retirer en prod)
   demoAccounts = [
-    { label: 'Admin',  letter: 'A', role: 'admin',  email: 'admin@automecastore.sn',  password: 'Admin123!', color: '#e74c3c' },
-    { label: 'Client', letter: 'C', role: 'client', email: 'client@automecastore.sn', password: 'Client123!', color: '#ff5a00' }
+    { label: 'Admin',       letter: 'A', role: 'admin',       email: 'admin@automecastore.sn',       password: 'Admin123!',       color: '#e74c3c' },
+    { label: 'Fournisseur', letter: 'F', role: 'fournisseur', email: 'fournisseur@automecastore.sn', password: 'Fournisseur123!', color: '#3498db' },
+    { label: 'Client',      letter: 'C', role: 'client',      email: 'client@automecastore.sn',      password: 'Client123!',      color: '#ff5a00' }
   ];
 
   constructor(
@@ -32,9 +33,9 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Si déjà connecté → redirection
+    // Si déjà connecté → redirection vers son espace
     if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/']);
+      this.router.navigateByUrl(this.authService.homeRoute());
       return;
     }
 
@@ -85,17 +86,23 @@ export class LoginComponent implements OnInit {
       localStorage.removeItem('remembered_email');
     }
 
-    this.authService.login(email, password).subscribe({
+    this.authService.login(email, password, 'client').subscribe({
       next: () => {
         this.isLoading = false;
+        if (!this.authService.isClient()) {
+          this.authService.logout();
+          this.errorMessage = "Ce compte n'est pas autorisé à accéder à l'espace Client.";
+          return;
+        }
         this.router.navigate(['/']);
       },
       error: (err) => {
         this.isLoading = false;
-        if (err.status === 401) {
-          this.errorMessage = 'Email ou mot de passe incorrect.';
-        } else if (err.status === 0) {
+        if (err.status === 0) {
           this.errorMessage = 'Impossible de joindre le serveur. Vérifiez votre connexion.';
+        } else if (err.status === 401 || err.status === 403) {
+          const detail = err?.error?.detail;
+          this.errorMessage = typeof detail === 'string' ? detail : 'Email ou mot de passe incorrect.';
         } else {
           this.errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
         }

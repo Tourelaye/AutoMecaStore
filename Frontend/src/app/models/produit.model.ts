@@ -9,7 +9,10 @@ export interface Produit {
   gestionnaire_stock: number | any;
   /** Référence catalogue / EAN (optionnel) */
   reference?: string | null;
-  quantite?: number; 
+  quantite?: number;
+  /** Nouveauté */
+  date_ajout?: string;
+  is_new?: boolean;
 }
 
 export interface ProduitFavoris{

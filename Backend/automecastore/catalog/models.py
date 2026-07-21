@@ -109,6 +109,7 @@ class Produit(models.Model):
     est_tendance    = models.BooleanField(default=False, help_text="Produit tendance")
     est_recommande  = models.BooleanField(default=False, help_text="Produit recommandé")
     est_bestseller  = models.BooleanField(default=False, help_text="Bestseller")
+    est_meilleure_offre = models.BooleanField(default=False, help_text="Meilleure offre / bon plan")
 
     # Statistiques
     nombre_vues     = models.PositiveIntegerField(default=0, help_text="Nombre de vues du produit")
@@ -117,7 +118,76 @@ class Produit(models.Model):
 
     reference       = models.CharField(max_length=50, blank=True, null=True)
     marque          = models.CharField(max_length=100, blank=True, null=True)
-    
+
+    # Compatibilité véhicule
+    modeles_compatibles = models.JSONField(default=list, blank=True, help_text="Liste des modèles compatibles")
+    annee_debut     = models.PositiveIntegerField(blank=True, null=True, help_text="Année de début de compatibilité")
+    annee_fin       = models.PositiveIntegerField(blank=True, null=True, help_text="Année de fin de compatibilité")
+
+    # Informations techniques
+    ETAT_CHOICES = [
+        ('neuf', 'Neuf'),
+        ('occasion', 'Occasion'),
+        ('reconditionne', 'Reconditionné'),
+    ]
+    etat            = models.CharField(max_length=20, choices=ETAT_CHOICES, default='neuf', blank=True)
+
+    GARANTIE_CHOICES = [
+        (0, 'Sans garantie'),
+        (3, '3 mois'),
+        (6, '6 mois'),
+        (12, '12 mois'),
+        (24, '24 mois'),
+    ]
+    garantie_mois   = models.PositiveIntegerField(choices=GARANTIE_CHOICES, default=0, blank=True)
+
+    PAYS_CHOICES = [
+        ('japon', 'Japon'),
+        ('allemagne', 'Allemagne'),
+        ('france', 'France'),
+        ('coree_sud', 'Corée du Sud'),
+        ('chine', 'Chine'),
+        ('usa', 'États-Unis'),
+        ('italie', 'Italie'),
+        ('espagne', 'Espagne'),
+        ('turquie', 'Turquie'),
+        ('inde', 'Inde'),
+    ]
+    pays_origine    = models.CharField(max_length=50, choices=PAYS_CHOICES, blank=True, default='')
+    reference_oem   = models.CharField(max_length=100, blank=True, default='', help_text="Référence OEM / constructeur")
+
+    poids           = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True, help_text="Poids en kg")
+    longueur        = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True, help_text="Longueur en cm")
+    largeur         = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True, help_text="Largeur en cm")
+    hauteur         = models.DecimalField(max_digits=6, decimal_places=1, blank=True, null=True, help_text="Hauteur en cm")
+
+    # Gestion du stock
+    DISPONIBILITE_CHOICES = [
+        ('en_stock', 'En stock'),
+        ('faible_stock', 'Faible stock'),
+        ('rupture', 'Rupture de stock'),
+        ('precommande', 'Précommande'),
+    ]
+    disponibilite   = models.CharField(max_length=20, choices=DISPONIBILITE_CHOICES, default='en_stock', blank=True)
+
+    DELAI_LIVRAISON_CHOICES = [
+        ('same_day', 'Livraison le jour même'),
+        ('24h', '24 heures'),
+        ('48h', '48 heures'),
+        ('2_5j', '2 à 5 jours'),
+        ('5_7j', '5 à 7 jours'),
+        ('7j_plus', 'Plus de 7 jours'),
+    ]
+    delai_livraison = models.CharField(max_length=20, choices=DELAI_LIVRAISON_CHOICES, default='2_5j', blank=True)
+
+    # Informations complémentaires
+    mots_cles       = models.JSONField(default=list, blank=True, help_text="Mots-clés pour la recherche")
+    conseils_installation = models.TextField(blank=True, default='', help_text="Conseils d'installation")
+    conditions_retour = models.TextField(blank=True, default='', help_text="Conditions de retour")
+
+    # Images
+    image_principale_index = models.PositiveIntegerField(default=1, help_text="Index de l'image principale (1 à 4)")
+
     # Fournisseur
     fournisseur = models.ForeignKey(
         'account.Fournisseur',
@@ -146,6 +216,9 @@ class Produit(models.Model):
     # Soft delete - champ pour désactiver le produit au lieu de le supprimer
     is_active       = models.BooleanField(default=True)
     date_suppression = models.DateTimeField(null=True, blank=True)
+
+    # Date d'ajout du produit (utilisée pour le filtre Nouveautés)
+    date_ajout      = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # Managers
     objects = ProduitActifManager()  # Par défaut, ne retourne que les actifs

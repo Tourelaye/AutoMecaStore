@@ -1,0 +1,152 @@
+<div class="notifications-page">
+  <header class="page-header fade-up">
+    <div class="header-left">
+      <div class="header-icon">
+        <i class="bi bi-bell"></i>
+        <span class="header-icon__dot" *ngIf="unreadCount > 0"></span>
+      </div>
+      <div>
+        <h1 class="page-title">Centre de notifications</h1>
+        <p class="page-subtitle">Gérez toutes les alertes admin : commandes, stocks, clients, produits et système.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="markAllRead()" [disabled]="unreadCount === 0">
+        <i class="bi bi-check-all"></i> Tout marquer comme lu
+      </button>
+      <button class="btn-danger-ghost" (click)="showClearConfirm = true" [disabled]="notifications.length === 0">
+        <i class="bi bi-trash"></i> Vider
+      </button>
+    </div>
+  </header>
+
+  <!-- STATS CARDS -->
+  <div class="stats-row fade-up delay-1">
+    <div class="stat-chip stat-chip--total">
+      <i class="bi bi-collection"></i>
+      <div>
+        <span class="stat-chip__val">{{ notifications.length }}</span>
+        <span class="stat-chip__lbl">Total</span>
+      </div>
+    </div>
+    <div class="stat-chip stat-chip--unread" [class.stat-chip--pulse]="unreadCount > 0">
+      <i class="bi bi-envelope-exclamation"></i>
+      <div>
+        <span class="stat-chip__val">{{ unreadCount }}</span>
+        <span class="stat-chip__lbl">Non lues</span>
+      </div>
+    </div>
+
+    <ng-container *ngFor="let t of types">
+      <div class="stat-chip" [ngClass]="'stat-chip--' + t.value" *ngIf="t.value !== 'all'">
+        <i class="bi" [ngClass]="getIcon(t.value)"></i>
+        <div>
+          <span class="stat-chip__val">{{ countByType(t.value) }}</span>
+          <span class="stat-chip__lbl">{{ t.label }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-bar fade-up delay-2">
+    <div class="filter-group">
+      <label>Type</label>
+      <select [(ngModel)]="filterType" (change)="applyFilters()" name="filterType">
+        <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Statut</label>
+      <select [(ngModel)]="filterRead" (change)="applyFilters()" name="filterRead">
+        <option value="all">Toutes</option>
+        <option value="unread">Non lues</option>
+        <option value="read">Lues</option>
+      </select>
+    </div>
+    <div class="stats-pill">
+      <span class="count">{{ filteredNotifications.length }}</span>
+      <span class="label">résultat{{ filteredNotifications.length > 1 ? 's' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="skeleton-list" *ngIf="loading">
+    <div class="skeleton-item" *ngFor="let i of [1,2,3,4]">
+      <div class="sk-circle"></div>
+      <div class="sk-lines">
+        <div class="sk-line sm"></div>
+        <div class="sk-line"></div>
+        <div class="sk-line md"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste -->
+  <div class="notifications-list" *ngIf="!loading">
+    <div
+      class="notification-item"
+      *ngFor="let n of filteredNotifications; let i = index"
+      [style.--i]="i"
+      [class.unread]="!n.read"
+      (click)="onNotificationClick(n)"
+    >
+      <div class="notif-icon" [ngClass]="n.type">
+        <i class="bi" [ngClass]="getIcon(n.type)"></i>
+        <span class="notif-icon__dot" *ngIf="!n.read"></span>
+      </div>
+      <div class="notif-body">
+        <div class="notif-meta-row">
+          <span class="notif-type">{{ getTypeLabel(n.type) }}</span>
+          <span class="notif-time"><i class="bi bi-clock-history"></i> {{ timeAgo(n.time) }}</span>
+        </div>
+        <p class="notif-message">{{ n.message }}</p>
+        <div class="notif-link" *ngIf="n.lien">
+          <i class="bi bi-link-45deg"></i>
+          <span>{{ n.lien }}</span>
+        </div>
+      </div>
+      <div class="notif-controls">
+        <button
+          *ngIf="!n.read"
+          class="btn-icon"
+          title="Marquer comme lu"
+          (click)="markAsRead(n, $event)"
+        >
+          <i class="bi bi-check2"></i>
+        </button>
+        <button
+          class="btn-icon danger"
+          title="Supprimer"
+          (click)="deleteNotification(n, $event)"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!filteredNotifications.length">
+      <div class="empty__icon"><i class="bi bi-bell-slash"></i></div>
+      <h4>Aucune notification</h4>
+      <p>Aucun résultat pour les filtres sélectionnés.</p>
+    </div>
+  </div>
+
+  <!-- MODALE CONFIRMATION VIDER -->
+  <div class="modal-backdrop" *ngIf="showClearConfirm" (click)="showClearConfirm = false">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <h3 class="modal__title">Vider toutes les notifications ?</h3>
+      <p class="modal__text">
+        Les <strong>{{ notifications.length }}</strong> notification(s) seront définitivement supprimées. Cette action est irréversible.
+      </p>
+      <div class="modal__footer">
+        <button type="button" class="btn-text" (click)="showClearConfirm = false">Annuler</button>
+        <button type="button" class="btn-text btn-text--danger" (click)="clearAll(); showClearConfirm = false">
+          <i class="bi bi-trash"></i> Tout supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

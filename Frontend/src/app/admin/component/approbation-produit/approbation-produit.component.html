@@ -1,82 +1,446 @@
 <div class="approbation-page">
-  <div class="page-header">
-    <h2>Produits en attente d'approbation</h2>
-    <p class="subtitle">Gérez les produits soumis par les fournisseurs</p>
-  </div>
 
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>Chargement des produits...</p>
-  </div>
-
-  <div *ngIf="!loading && produitsEnAttente.length === 0" class="empty-state">
-    <div class="empty-icon">📦</div>
-    <h3>Aucun produit en attente</h3>
-    <p>Tous les produits ont été traités.</p>
-  </div>
-
-  <div *ngIf="!loading && produitsEnAttente.length > 0" class="produits-grid">
-    <div
-      *ngFor="let produit of produitsEnAttente; let i = index"
-      class="produit-card"
-      [style.--i]="i"
-    >
-      <div class="card-glow"></div>
-      <div class="produit-image">
-        <img [src]="getImageUrl(produit.image)" [alt]="produit.nom" (error)="onImageError($event)">
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-patch-check-fill"></i>
+        Approbations
       </div>
-      <div class="produit-info">
-        <h3>{{ produit.nom }}</h3>
-        <p class="description">{{ produit.description | slice:0:100 }}{{ produit.description.length > 100 ? '...' : '' }}</p>
-        <div class="produit-details">
-          <span class="price">{{ produit.prix | currency:'XOF' }}</span>
-          <span class="stock">Stock: {{ produit.stock }}</span>
-        </div>
-        <div class="fournisseur-info" *ngIf="produit.fournisseur_nom">
-          <span class="fournisseur-label">Fournisseur:</span>
-          <span class="fournisseur-nom">{{ produit.fournisseur_nom }}</span>
-        </div>
-        <div class="date-info" *ngIf="produit.created_at">
-          <small>Soumis le: {{ produit.created_at | date:'dd/MM/yyyy HH:mm' }}</small>
-        </div>
+      <h2>Approbation des produits</h2>
+      <p>Gérez les produits soumis par les fournisseurs avant publication</p>
+    </div>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stats-grid fade-up delay-1">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--blue"><i class="bi bi-boxes"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getStats().total }}</span>
+        <span class="stat-label">Total produits</span>
       </div>
-      <div class="produit-actions">
-        <button class="btn btn-approve" (click)="approuverProduit(produit)">
-          <span class="icon">✓</span>
-          Approuver
+    </div>
+    <div class="stat-card stat-card--pulse">
+      <div class="stat-icon stat-icon--amber"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getStats().enAttente }}</span>
+        <span class="stat-label">En attente</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--green"><i class="bi bi-patch-check-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getStats().approuves }}</span>
+        <span class="stat-label">Approuvés</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--red"><i class="bi bi-x-octagon-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getStats().rejetes }}</span>
+        <span class="stat-label">Rejetés</span>
+      </div>
+    </div>
+
+    <button class="btn-refresh" (click)="refreshProduits()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar fade-up delay-2">
+    <div class="search-box" [class.focused]="searchFocused">
+      <i class="bi bi-search search-ic"></i>
+      <input
+        type="text"
+        placeholder="Rechercher par produit, fournisseur, référence..."
+        [(ngModel)]="searchTerm"
+        (input)="searchProduits()"
+        (focus)="searchFocused = true"
+        (blur)="searchFocused = false"
+      >
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; searchProduits()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="toolbar-right">
+      <div class="filter-pills">
+        <button
+          class="fpill"
+          *ngFor="let s of ['all','en_attente','approuve','rejete']"
+          [class.active]="activeFilter === s"
+          (click)="setFilter($any(s))"
+        >
+          {{ getFilterLabel(s) }}
+          <span class="fpill-count" *ngIf="s !== 'all'">{{ getFilterCount(s) }}</span>
         </button>
-        <button class="btn btn-reject" (click)="ouvrirModalRejet(produit)">
-          <span class="icon">✕</span>
-          Rejeter
-        </button>
+      </div>
+
+      <!-- SWITCH DE VUE — pur CSS, aucune donnée composant requise -->
+      <input type="radio" name="viewmode" id="viewTable" class="view-radio" checked>
+      <input type="radio" name="viewmode" id="viewGrid" class="view-radio">
+      <div class="view-switch">
+        <label for="viewTable" class="view-switch__btn">
+          <i class="bi bi-list-ul"></i>
+        </label>
+        <label for="viewGrid" class="view-switch__btn">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+        </label>
       </div>
     </div>
   </div>
 
-  <!-- Modal de rejet -->
-  <div *ngIf="showRejetModal" class="modal-overlay" (click)="fermerModalRejet()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>Rejeter le produit</h3>
-        <button class="close-btn" (click)="fermerModalRejet()">✕</button>
-      </div>
-      <div class="modal-body">
-        <p>Vous êtes sur le point de rejeter le produit <strong>{{ produitSelectionne?.nom }}</strong>.</p>
-        <div class="form-group">
-          <label for="motif">Motif du rejet <span class="required">*</span></label>
-          <textarea 
-            id="motif" 
-            [(ngModel)]="motifRejet" 
-            placeholder="Expliquez pourquoi ce produit est rejeté..."
-            rows="4"
-            required
-          ></textarea>
+  <!-- PANEL -->
+  <div class="panel fade-up delay-3">
+
+    <!-- LOADING -->
+    <div class="loading-state" *ngIf="loading && produits.length === 0">
+      <div class="spinner"></div>
+      <p>Chargement des produits...</p>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="error && !loading">
+      <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <h4>Erreur de chargement</h4>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="chargerProduits()">
+        <i class="bi bi-arrow-clockwise"></i> Réessayer
+      </button>
+    </div>
+
+    <ng-container *ngIf="!error">
+
+      <!-- SKELETON -->
+      <div class="skeleton-rows" *ngIf="loading && produits.length === 0">
+        <div class="sk-row" *ngFor="let i of [1,2,3,4,5]">
+          <div class="sk-product">
+            <div class="sk-img"></div>
+            <div class="sk-lines">
+              <div class="sk-line"></div>
+              <div class="sk-line sm"></div>
+            </div>
+          </div>
+          <div class="sk-vendor"></div>
+          <div class="sk-line"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-line sm"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-actions"></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="fermerModalRejet()">Annuler</button>
-        <button class="btn btn-danger" (click)="rejeterProduit()">Confirmer le rejet</button>
+
+      <!-- ======================= VUE TABLEAU ======================= -->
+      <div class="table-wrap view-table" *ngIf="!loading || produits.length > 0">
+
+        <div class="table-head">
+          <span class="th">Produit</span>
+          <span class="th">Fournisseur</span>
+          <span class="th text-right">Prix</span>
+          <span class="th text-center">Stock</span>
+          <span class="th">Date</span>
+          <span class="th">Statut</span>
+          <span class="th text-right">Actions</span>
+        </div>
+
+        <div
+          class="table-row"
+          *ngFor="let p of produitsFiltres; let i = index; trackBy: trackByProduitId"
+          [style.--i]="i"
+          [class.updating]="updatingId === p.id"
+          [class.is-pending]="p.statut_approbation === 'en_attente'"
+        >
+          <div class="td" data-label="Produit">
+            <div class="product-cell">
+              <div class="product-img" (click)="ouvrirModalDetails(p)">
+                <img [src]="getImageUrl(p.image)" [alt]="p.nom" (error)="onImageError($event)">
+                <span class="product-img__zoom"><i class="bi bi-zoom-in"></i></span>
+              </div>
+              <div class="product-meta">
+                <span class="product-name">{{ p.nom }}</span>
+                <span class="product-ref">{{ p.reference || 'Réf. non renseignée' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="td" data-label="Fournisseur">
+            <div class="vendor-cell" *ngIf="p.fournisseur_nom">
+              <div class="vendor-av">{{ getInitials(p.fournisseur_nom) }}</div>
+              <span>{{ p.fournisseur_nom }}</span>
+            </div>
+            <span class="text-muted" *ngIf="!p.fournisseur_nom">AutoMecaStore</span>
+          </div>
+
+          <div class="td text-right" data-label="Prix">
+            <span class="montant-chip">{{ p.prix | currency:'XOF' }}</span>
+          </div>
+
+          <div class="td text-center" data-label="Stock">
+            <span class="stock-chip">{{ p.stock }}</span>
+          </div>
+
+          <div class="td" data-label="Date">
+            <span class="date-chip">
+              <i class="bi bi-calendar3"></i>
+              {{ formatDate(p.created_at) }}
+            </span>
+          </div>
+
+          <div class="td" data-label="Statut">
+            <span class="status-badge" [ngClass]="getStatutClass(p.statut_approbation)">
+              <i class="bi" [ngClass]="getStatutIcon(p.statut_approbation)"></i>
+              {{ getStatutLabel(p.statut_approbation) }}
+            </span>
+          </div>
+
+          <div class="td text-right" data-label="Actions">
+            <div class="action-btns">
+              <button class="btn-icon btn-info" (click)="ouvrirModalDetails(p)" title="Détails">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn-icon btn-approve" (click)="approuverProduit(p)" [disabled]="updatingId === p.id" title="Approuver">
+                <i class="bi" [ngClass]="updatingId === p.id ? 'bi-arrow-repeat spin' : 'bi-check-lg'"></i>
+              </button>
+              <button class="btn-icon btn-reject" (click)="ouvrirModalRejet(p)" [disabled]="updatingId === p.id" title="Rejeter">
+                <i class="bi bi-x-lg"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="supprimerProduit(p)" [disabled]="updatingId === p.id" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && produitsFiltres.length === 0">
+          <div class="empty-icon"><i class="bi bi-box-seam"></i></div>
+          <h4>Aucun produit trouvé</h4>
+          <p *ngIf="searchTerm">Aucun résultat pour "{{ searchTerm }}"</p>
+          <p *ngIf="!searchTerm && activeFilter !== 'all'">Aucun produit avec ce statut.</p>
+          <p *ngIf="!searchTerm && activeFilter === 'all'">Aucun produit à afficher.</p>
+        </div>
+      </div>
+
+      <!-- ======================= VUE GRILLE ======================= -->
+      <div class="grid-wrap view-grid" *ngIf="!loading || produits.length > 0">
+        <div class="grid-cards" *ngIf="produitsFiltres.length > 0">
+          <div
+            class="product-card"
+            *ngFor="let p of produitsFiltres; let i = index; trackBy: trackByProduitId"
+            [style.--i]="i"
+            [class.updating]="updatingId === p.id"
+            [class.is-pending]="p.statut_approbation === 'en_attente'"
+          >
+            <div class="product-card__img" (click)="ouvrirModalDetails(p)">
+              <img [src]="getImageUrl(p.image)" [alt]="p.nom" (error)="onImageError($event)">
+              <span class="status-badge status-badge--floating" [ngClass]="getStatutClass(p.statut_approbation)">
+                <i class="bi" [ngClass]="getStatutIcon(p.statut_approbation)"></i>
+                {{ getStatutLabel(p.statut_approbation) }}
+              </span>
+              <span class="product-img__zoom"><i class="bi bi-zoom-in"></i></span>
+            </div>
+
+            <div class="product-card__body">
+              <span class="product-name">{{ p.nom }}</span>
+              <span class="product-ref">{{ p.reference || 'Réf. non renseignée' }}</span>
+
+              <div class="vendor-cell" *ngIf="p.fournisseur_nom">
+                <div class="vendor-av">{{ getInitials(p.fournisseur_nom) }}</div>
+                <span>{{ p.fournisseur_nom }}</span>
+              </div>
+              <span class="text-muted" *ngIf="!p.fournisseur_nom">AutoMecaStore</span>
+
+              <div class="product-card__meta">
+                <span class="montant-chip">{{ p.prix | currency:'XOF' }}</span>
+                <span class="stock-chip">Stock : {{ p.stock }}</span>
+              </div>
+
+              <span class="date-chip">
+                <i class="bi bi-calendar3"></i>
+                {{ formatDate(p.created_at) }}
+              </span>
+            </div>
+
+            <div class="product-card__actions">
+              <button class="btn-icon btn-info" (click)="ouvrirModalDetails(p)" title="Détails">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn-icon btn-approve" (click)="approuverProduit(p)" [disabled]="updatingId === p.id" title="Approuver">
+                <i class="bi" [ngClass]="updatingId === p.id ? 'bi-arrow-repeat spin' : 'bi-check-lg'"></i>
+              </button>
+              <button class="btn-icon btn-reject" (click)="ouvrirModalRejet(p)" [disabled]="updatingId === p.id" title="Rejeter">
+                <i class="bi bi-x-lg"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="supprimerProduit(p)" [disabled]="updatingId === p.id" title="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && produitsFiltres.length === 0">
+          <div class="empty-icon"><i class="bi bi-box-seam"></i></div>
+          <h4>Aucun produit trouvé</h4>
+          <p *ngIf="searchTerm">Aucun résultat pour "{{ searchTerm }}"</p>
+          <p *ngIf="!searchTerm && activeFilter !== 'all'">Aucun produit avec ce statut.</p>
+          <p *ngIf="!searchTerm && activeFilter === 'all'">Aucun produit à afficher.</p>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- FOOTER -->
+    <div class="table-footer" *ngIf="produitsFiltres.length > 0">
+      <span>{{ produitsFiltres.length }} produit(s) affiché(s)</span>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL REJET -->
+<div *ngIf="showRejetModal" class="modal-overlay" (click)="fermerModalRejet()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header--danger">
+      <div class="modal-header__icon"><i class="bi bi-x-octagon-fill"></i></div>
+      <div>
+        <h3>Refuser le produit</h3>
+        <p class="modal-header__sub">Le fournisseur sera informé du motif</p>
+      </div>
+      <button class="close-btn" (click)="fermerModalRejet()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Vous êtes sur le point de refuser le produit <strong>{{ produitSelectionne?.nom }}</strong>.</p>
+
+      <!-- MOTIFS RAPIDES -->
+      <div class="quick-reasons">
+        <span class="quick-reasons__label">Motifs fréquents :</span>
+        <div class="quick-reasons__list">
+          <button type="button" class="reason-chip" (click)="motifRejet = 'Photos du produit non conformes ou de mauvaise qualité.'">
+            Photos non conformes
+          </button>
+          <button type="button" class="reason-chip" (click)="motifRejet = 'Description incomplète ou insuffisamment détaillée.'">
+            Description incomplète
+          </button>
+          <button type="button" class="reason-chip" (click)="motifRejet = 'Prix incohérent par rapport au marché.'">
+            Prix incohérent
+          </button>
+          <button type="button" class="reason-chip" (click)="motifRejet = 'Produit similaire déjà référencé dans le catalogue.'">
+            Doublon catalogue
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="motif">
+          Motif du refus <span class="required">*</span>
+          <span class="char-count" [class.char-count--warn]="motifRejet.length > 280">{{ motifRejet.length }}/300</span>
+        </label>
+        <textarea
+          id="motif"
+          [(ngModel)]="motifRejet"
+          placeholder="Expliquez pourquoi ce produit est refusé..."
+          rows="4"
+          maxlength="300"
+          required
+        ></textarea>
       </div>
     </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="fermerModalRejet()">Annuler</button>
+      <button class="btn btn-danger" (click)="rejeterProduit()" [disabled]="updatingId === produitSelectionne?.id || !motifRejet">
+        <i class="bi" [ngClass]="updatingId === produitSelectionne?.id ? 'bi-arrow-repeat spin' : 'bi-x-lg'"></i>
+        Confirmer le refus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAILS -->
+<div *ngIf="showDetailModal" class="modal-overlay" (click)="fermerModalDetails()">
+  <div class="modal-content modal-content--detail" (click)="$event.stopPropagation()">
+    <button class="close-btn close-btn--floating" (click)="fermerModalDetails()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="modal-body modal-body--flush" *ngIf="produitDetail">
+      <div class="detail-image" *ngIf="produitDetail.image">
+        <img [src]="getImageUrl(produitDetail.image)" [alt]="produitDetail.nom" (error)="onImageError($event)">
+        <span class="status-badge status-badge--floating" [ngClass]="getStatutClass(produitDetail.statut_approbation)">
+          <i class="bi" [ngClass]="getStatutIcon(produitDetail.statut_approbation)"></i>
+          {{ getStatutLabel(produitDetail.statut_approbation) }}
+        </span>
+      </div>
+
+      <div class="detail-content">
+        <h4>{{ produitDetail.nom }}</h4>
+        <p class="detail-description">{{ produitDetail.description }}</p>
+
+        <div class="detail-grid">
+          <div class="detail-tile">
+            <span class="detail-tile__label"><i class="bi bi-cash-coin"></i> Prix</span>
+            <span class="detail-tile__value">{{ produitDetail.prix | currency:'XOF' }}</span>
+          </div>
+          <div class="detail-tile">
+            <span class="detail-tile__label"><i class="bi bi-boxes"></i> Stock</span>
+            <span class="detail-tile__value">{{ produitDetail.stock }}</span>
+          </div>
+          <div class="detail-tile">
+            <span class="detail-tile__label"><i class="bi bi-tag"></i> Catégorie</span>
+            <span class="detail-tile__value">{{ produitDetail.categorie_nom || 'Non renseignée' }}</span>
+          </div>
+          <div class="detail-tile">
+            <span class="detail-tile__label"><i class="bi bi-award"></i> Marque</span>
+            <span class="detail-tile__value">{{ produitDetail.marque || 'Non renseignée' }}</span>
+          </div>
+          <div class="detail-tile">
+            <span class="detail-tile__label"><i class="bi bi-person-badge"></i> Fournisseur</span>
+            <span class="detail-tile__value">{{ produitDetail.fournisseur_nom || 'Non renseigné' }}</span>
+          </div>
+          <div class="detail-tile">
+            <span class="detail-tile__label"><i class="bi bi-upc-scan"></i> Référence</span>
+            <span class="detail-tile__value">{{ produitDetail.reference || 'Non renseignée' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button
+        class="btn btn-approve-solid"
+        *ngIf="produitDetail?.statut_approbation === 'en_attente'"
+        (click)="approuverProduit(produitDetail); fermerModalDetails()"
+      >
+        <i class="bi bi-check-lg"></i> Approuver
+      </button>
+      <button class="btn btn-secondary" (click)="fermerModalDetails()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notif-stack">
+  <div
+    class="notif-toast"
+    *ngIf="notification"
+    [class.success]="notification.type === 'success'"
+    [class.error]="notification.type === 'error'"
+    [class.info]="notification.type === 'info'"
+  >
+    <span class="notif-icon">
+      <i class="bi"
+        [class.bi-check-circle-fill]="notification.type === 'success'"
+        [class.bi-exclamation-circle-fill]="notification.type === 'error'"
+        [class.bi-info-circle-fill]="notification.type === 'info'"
+      ></i>
+    </span>
+    <span>{{ notification.message }}</span>
+    <button class="notif-close" (click)="notification = null">
+      <i class="bi bi-x"></i>
+    </button>
+    <span class="notif-progress"></span>
   </div>
 </div>

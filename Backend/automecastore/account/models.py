@@ -50,6 +50,12 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)  # Pour accéder à l’admin
     date_joined = models.DateTimeField(auto_now_add=True)  # Optionnel mais pratique
 
+    # Paramètres de sécurité
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=64, blank=True, null=True)
+    email_alerts_enabled = models.BooleanField(default=True)
+    password_changed_at = models.DateTimeField(null=True, blank=True)
+
     objects = UtilisateurManager()
 
     USERNAME_FIELD = 'email'
@@ -131,10 +137,12 @@ class Fournisseur(models.Model):
     date_inscription = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(
         max_length=20,
-        choices=[('actif', 'Actif'), ('desactive', 'Désactivé'), ('attente', 'En attente')],
+        choices=[('attente', 'En attente de validation'), ('actif', 'Validé'), ('desactive', 'Refusé / Suspendu')],
         default='attente'
     )
     date_validation = models.DateTimeField(blank=True, null=True)
+    validated_by = models.ForeignKey('Administrateur', on_delete=models.SET_NULL, null=True, blank=True, related_name='fournisseurs_valides')
+    raison_refus = models.TextField(blank=True, null=True)
     note_moyenne = models.DecimalField(max_digits=2, decimal_places=1, blank=True, null=True)
     nombre_avis = models.IntegerField(default=0)
     nombre_produits = models.IntegerField(default=0)
@@ -153,6 +161,23 @@ class Fournisseur(models.Model):
     def __str__(self):
         return f"{self.nom_entreprise} ({self.user.email})"
 
+
+class FournisseurStatusHistory(models.Model):
+    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name='status_history')
+    statut = models.CharField(max_length=20)
+    changed_by = models.ForeignKey('Administrateur', on_delete=models.SET_NULL, null=True, blank=True, related_name='fournisseur_status_changes')
+    commentaire = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'fournisseur_status_history'
+        ordering = ['-created_at']
+        verbose_name = 'Historique statut fournisseur'
+        verbose_name_plural = 'Historiques statuts fournisseurs'
+
+    def __str__(self):
+        return f"{self.fournisseur.nom_entreprise} -> {self.statut} ({self.created_at:%Y-%m-%d %H:%M})"
+
 # -----------------------------
 # Favori
 # -----------------------------
@@ -170,3 +195,84 @@ class Favori(models.Model):
     def __str__(self):
         return f"{self.client.user.email} - {self.produit.nom}"
 
+
+# -----------------------------
+# Sécurité du compte
+# -----------------------------
+class SecurityActivity(models.Model):
+    ACTION_CHOICES = [
+        ('login', 'Connexion'),
+        ('logout', 'Déconnexion'),
+        ('password_change', 'Changement de mot de passe'),
+        ('password_change_failed', 'Échec changement mot de passe'),
+        ('two_factor_enabled', '2FA activé'),
+        ('two_factor_disabled', '2FA désactivé'),
+        ('session_revoked', 'Session révoquée'),
+        ('all_sessions_revoked', 'Toutes les sessions révoquées'),
+        ('token_created', 'Clé API créée'),
+        ('token_revoked', 'Clé API révoquée'),
+        ('account_deactivated', 'Compte désactivé'),
+        ('security_alert', 'Alerte sécurité'),
+    ]
+
+    user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='security_activities')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    status = models.CharField(max_length=20, default='success', choices=[
+        ('success', 'Succès'),
+        ('failure', 'Échec'),
+        ('info', 'Info'),
+        ('warning', 'Avertissement'),
+    ])
+    metadata = models.JSONField(default=dict, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        db_table = 'security_activity'
+
+    def __str__(self):
+        return f"{self.user.email} - {self.action} ({self.timestamp})"
+
+
+class UserSession(models.Model):
+    user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='security_sessions')
+    session_key = models.CharField(max_length=128, unique=True)
+    device_name = models.CharField(max_length=200, blank=True)
+    user_agent = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    location = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_active_at = models.DateTimeField(auto_now=True)
+    is_current = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-last_active_at']
+        db_table = 'user_session'
+
+    def __str__(self):
+        return f"{self.user.email} - {self.device_name} ({'actuel' if self.is_current else 'autre'})"
+
+
+class APIToken(models.Model):
+    user = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='api_tokens')
+    name = models.CharField(max_length=100)
+    key = models.CharField(max_length=64, unique=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        db_table = 'api_token'
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            import secrets
+            self.key = secrets.token_urlsafe(32)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} - {self.user.email}"

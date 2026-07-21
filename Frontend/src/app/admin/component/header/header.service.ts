@@ -6,8 +6,9 @@ export interface Notification {
   id: number;
   message: string;
   time: string;
-  type: 'order' | 'stock' | 'client' | 'system';
+  type: 'order' | 'stock' | 'client' | 'produit' | 'system';
   read: boolean;
+  data?: any;
 }
 
 export interface NotificationsResponse {

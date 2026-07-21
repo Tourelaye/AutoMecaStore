@@ -11,7 +11,8 @@ import { AideComponent } from './client/pages/aide/aide.component';
 import { FaqComponent } from './client/pages/faq/faq.component';
 import { PanierComponent } from './client/pages/panier/panier.component';
 import { MonCompteComponent } from './client/pages/mon-compte/mon-compte.component';
-import { fournisseurRoutes } from './fournisseur/fournisseur.routes'; 
+import { fournisseurRoutes } from './fournisseur/fournisseur.routes';
+import { clientGuard } from './core/guards/client.guard'; 
 
 export const routes: Routes = [
   { path: '',             component: HomeComponent },
@@ -23,15 +24,15 @@ export const routes: Routes = [
   { path: 'register',            component: RegisterComponent },
   { path: 'aide',                component: AideComponent },
   { path: 'faq',                 component: FaqComponent },
-  { path: 'panier',              component: PanierComponent },
+  { path: 'panier',              component: PanierComponent, canActivate: [clientGuard] },
   { path: 'produits',            component: ProduitsComponent },
 
   // ===== ESPACE CLIENT =====
-  { path: 'mon-compte',                  component: MonCompteComponent },
-  { path: 'mon-compte/securite',         component: MonCompteComponent },
-  { path: 'mon-compte/confidentialite',  component: MonCompteComponent },
-  { path: 'mes-commandes',               component: MonCompteComponent },
-  { path: 'mes-favoris',                 component: MonCompteComponent },
+  { path: 'mon-compte',                  component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mon-compte/securite',         component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mon-compte/confidentialite',  component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mes-commandes',               component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mes-favoris',                 component: MonCompteComponent, canActivate: [clientGuard] },
 
   {
     path: 'admin',

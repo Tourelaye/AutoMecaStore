@@ -99,7 +99,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
 
-    this.authService.login(this.email.trim().toLowerCase(), this.password)
+    this.authService.login(this.email.trim().toLowerCase(), this.password, 'admin')
       .subscribe({
         next: () => {
           this.attempts  = 0;

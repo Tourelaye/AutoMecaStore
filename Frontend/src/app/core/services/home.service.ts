@@ -46,6 +46,9 @@ export interface Produit {
   nombre_vues: number;
   nombre_favoris: number;
   nombre_ventes: number;
+  // Avis clients
+  note_moyenne?: number;
+  nombre_avis?: number;
   reference?: string;
   marque?: string;
   is_active: boolean;

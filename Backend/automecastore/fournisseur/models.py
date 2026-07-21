@@ -62,9 +62,29 @@ class Notification(models.Model):
     destinataire_id = models.IntegerField()  # ID du fournisseur ou admin
     destinataire_type = models.CharField(max_length=20, choices=[('fournisseur', 'Fournisseur'), ('admin', 'Admin')])
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    titre = models.CharField(max_length=200, blank=True)
     message = models.TextField()
+    lien = models.CharField(max_length=255, blank=True)
     lu = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        db_table = 'fournisseur_notification'
+
     def __str__(self):
         return f"{self.type} - {self.destinataire_type}"
+
+
+def creer_notification_fournisseur(fournisseur_id, type_notif, titre='', message='', lien=''):
+    """Crée une notification destinée à un fournisseur."""
+    if not fournisseur_id:
+        return None
+    return Notification.objects.create(
+        destinataire_id=fournisseur_id,
+        destinataire_type='fournisseur',
+        type=type_notif,
+        titre=titre,
+        message=message,
+        lien=lien
+    )
