@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Renderer2, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, Renderer2, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, interval } from 'rxjs';
@@ -110,10 +110,14 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadData();
     this.startPolling();
+    window.addEventListener('scroll', this.onViewportChange, true);
+    window.addEventListener('resize', this.onViewportChange);
   }
 
   ngOnDestroy(): void {
     this.polling?.unsubscribe();
+    window.removeEventListener('scroll', this.onViewportChange, true);
+    window.removeEventListener('resize', this.onViewportChange);
   }
 
   // ─────────────────────────────────────────
@@ -155,6 +159,7 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
 
   startPolling(): void {
     this.polling = interval(30000).subscribe(() => {
+      if (this.dropdownOpenId !== null || this.modalAction) return;
       this.loadUtilisateurs();
       this.loadStats();
     });
@@ -391,29 +396,83 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
   // ─────────────────────────────────────────
   // DROPDOWN
   // ─────────────────────────────────────────
-  dropdownOpenId: number | null = null;
-  dropdownMenuUp: boolean = false;
+  @ViewChild('dropdownMenu') dropdownMenuRef?: ElementRef<HTMLElement>;
 
-  toggleDropdown(id: number, event: Event): void {
+  dropdownOpenId: number | null = null;
+  dropdownUser: AdminUtilisateur | null = null;
+  dropdownMenuUp = false;
+  dropdownTop = 0;
+  dropdownLeft = 0;
+
+  private dropdownAnchor: HTMLElement | null = null;
+  private readonly dropdownFallbackWidth = 244;
+  private readonly dropdownFallbackHeight = 280;
+  private readonly dropdownGap = 6;
+  private readonly viewportMargin = 12;
+
+  toggleDropdown(u: AdminUtilisateur, event: MouseEvent): void {
     event.stopPropagation();
-    this.dropdownOpenId = this.dropdownOpenId === id ? null : id;
-    if (this.dropdownOpenId === id) {
-      const button = event.target as HTMLElement;
-      const rect = button.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      this.dropdownMenuUp = rect.bottom > windowHeight - 200;
+    if (this.dropdownOpenId === u.id) {
+      this.closeDropdown();
+      return;
     }
+    this.dropdownOpenId = u.id;
+    this.dropdownUser = u;
+    this.dropdownAnchor = event.currentTarget as HTMLElement;
+    this.positionDropdown();
+    setTimeout(() => this.positionDropdown());
   }
+
+  closeDropdown(): void {
+    this.dropdownOpenId = null;
+    this.dropdownUser = null;
+    this.dropdownAnchor = null;
+    this.dropdownMenuUp = false;
+  }
+
+  runDropdownAction(action: typeof this.modalAction, u: AdminUtilisateur): void {
+    this.closeDropdown();
+    this.openActionModal(action, u);
+  }
+
+  private positionDropdown(): void {
+    if (!this.dropdownAnchor) return;
+    const anchor = this.dropdownAnchor.getBoundingClientRect();
+    const menu = this.dropdownMenuRef?.nativeElement;
+    const height = menu?.offsetHeight || this.dropdownFallbackHeight;
+    const width = menu?.offsetWidth || this.dropdownFallbackWidth;
+
+    const spaceBelow = window.innerHeight - anchor.bottom - this.viewportMargin;
+    const spaceAbove = anchor.top - this.viewportMargin;
+    this.dropdownMenuUp = spaceBelow < height && spaceAbove > spaceBelow;
+
+    const top = this.dropdownMenuUp
+      ? anchor.top - height - this.dropdownGap
+      : anchor.bottom + this.dropdownGap;
+
+    this.dropdownTop = this.clamp(top, this.viewportMargin, window.innerHeight - height - this.viewportMargin);
+    this.dropdownLeft = this.clamp(anchor.right - width, this.viewportMargin, window.innerWidth - width - this.viewportMargin);
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(value, Math.max(min, max)));
+  }
+
+  private onViewportChange = (): void => {
+    if (this.dropdownOpenId !== null) this.closeDropdown();
+  };
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
-    const dropdown = target.closest('.dropdown');
-    const dropdownMenu = target.closest('.dropdown-menu');
-    if (!dropdown && !dropdownMenu) {
-      this.dropdownOpenId = null;
-      this.dropdownMenuUp = false;
+    if (!target.closest('.dropdown') && !target.closest('.dropdown-menu')) {
+      this.closeDropdown();
     }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeDropdown();
   }
 
   // ─────────────────────────────────────────

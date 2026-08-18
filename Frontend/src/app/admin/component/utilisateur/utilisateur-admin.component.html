@@ -194,44 +194,11 @@
             <i class="bi bi-pencil"></i>
           </button>
           <div class="dropdown">
-          <button class="btn-icon" title="Actions" (click)="toggleDropdown(u.id, $event)">
-            <i class="bi bi-three-dots-vertical"></i>
-          </button>
-          <div class="dropdown-menu" [class.dropdown-menu-up]="dropdownMenuUp && dropdownOpenId === u.id" *ngIf="dropdownOpenId === u.id" (click)="$event.stopPropagation()">
-            <div class="dropdown-section">
-              <span class="dropdown-section-label">Communication</span>
-              <button (click)="openActionModal('notifier', u); dropdownOpenId = null">
-                <i class="bi bi-envelope"></i> Envoyer notification
-              </button>
-            </div>
-            <div class="dropdown-separator"></div>
-            <div class="dropdown-section">
-              <span class="dropdown-section-label">Statut du compte</span>
-              <button *ngIf="u.statut !== 'actif'" (click)="openActionModal('reactiver', u); dropdownOpenId = null">
-                <i class="bi bi-check-circle"></i> Réactiver
-              </button>
-              <button *ngIf="u.statut === 'actif'" (click)="openActionModal('suspendre', u); dropdownOpenId = null">
-                <i class="bi bi-pause-circle"></i> Suspendre
-              </button>
-              <button *ngIf="u.statut !== 'desactive'" (click)="openActionModal('desactiver', u); dropdownOpenId = null">
-                <i class="bi bi-x-circle"></i> Désactiver
-              </button>
-            </div>
-            <div class="dropdown-separator"></div>
-            <div class="dropdown-section">
-              <span class="dropdown-section-label">Sécurité</span>
-              <button (click)="openActionModal('reset', u); dropdownOpenId = null">
-                <i class="bi bi-key"></i> Réinitialiser mot de passe
-              </button>
-            </div>
-            <div class="dropdown-separator" *ngIf="u.role !== 'admin'"></div>
-            <div class="dropdown-section" *ngIf="u.role !== 'admin'">
-              <button class="danger" (click)="openActionModal('supprimer', u); dropdownOpenId = null">
-                <i class="bi bi-trash"></i> Supprimer le compte
-              </button>
-            </div>
+            <button class="btn-icon" title="Actions" [class.active]="dropdownOpenId === u.id"
+                    (click)="toggleDropdown(u, $event)">
+              <i class="bi bi-three-dots-vertical"></i>
+            </button>
           </div>
-        </div>
         </div>
       </div>
 
@@ -241,6 +208,50 @@
     </div>
   </div>
 
+</div>
+
+<!-- MENU ACTIONS (ancré au bouton ⋮ de la ligne sélectionnée) -->
+<div class="dropdown-menu"
+     #dropdownMenu
+     *ngIf="dropdownUser as u"
+     [class.dropdown-menu--up]="dropdownMenuUp"
+     [style.top.px]="dropdownTop"
+     [style.left.px]="dropdownLeft"
+     (click)="$event.stopPropagation()">
+  <div class="dropdown-section">
+    <span class="dropdown-section-label">Communication</span>
+    <button (click)="runDropdownAction('notifier', u)">
+      <i class="bi bi-envelope"></i> Envoyer notification
+    </button>
+  </div>
+  <div class="dropdown-separator"></div>
+  <div class="dropdown-section">
+    <span class="dropdown-section-label">Statut</span>
+    <button *ngIf="u.statut !== 'actif'" (click)="runDropdownAction('reactiver', u)">
+      <i class="bi bi-check-circle"></i> Réactiver
+    </button>
+    <button *ngIf="u.statut === 'actif'" (click)="runDropdownAction('suspendre', u)">
+      <i class="bi bi-pause-circle"></i> Suspendre
+    </button>
+    <button *ngIf="u.statut !== 'desactive'" (click)="runDropdownAction('desactiver', u)">
+      <i class="bi bi-x-circle"></i> Désactiver
+    </button>
+  </div>
+  <div class="dropdown-separator"></div>
+  <div class="dropdown-section">
+    <span class="dropdown-section-label">Sécurité</span>
+    <button (click)="runDropdownAction('reset', u)">
+      <i class="bi bi-key"></i> Réinitialiser mot de passe
+    </button>
+  </div>
+  <ng-container *ngIf="u.role !== 'admin'">
+    <div class="dropdown-separator"></div>
+    <div class="dropdown-section">
+      <button class="danger" (click)="runDropdownAction('supprimer', u)">
+        <i class="bi bi-trash"></i> Supprimer le compte
+      </button>
+    </div>
+  </ng-container>
 </div>
 
 <!-- DETAIL DRAWER -->
@@ -408,7 +419,7 @@
 <!-- ACTION MODAL -->
 <div class="modal-overlay" *ngIf="modalAction" (click)="closeModal()">
   <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
+    <div class="modal-header" *ngIf="modalAction !== 'modifier'">
       <h3 *ngIf="modalAction === 'suspendre'">Suspendre {{ modalUtilisateur?.nom_complet }}</h3>
       <h3 *ngIf="modalAction === 'reactiver'">Réactiver {{ modalUtilisateur?.nom_complet }}</h3>
       <h3 *ngIf="modalAction === 'desactiver'">Désactiver {{ modalUtilisateur?.nom_complet }}</h3>
@@ -419,7 +430,7 @@
     </div>
 
     <div class="modal-body">
-      <h3 *ngIf="modalAction === 'modifier'" class="modal-title-simple">Modifier {{ modalUtilisateur?.nom_complet }}</h3>
+      <h3 *ngIf="modalAction === 'modifier'" class="modal-title-simple">Modifier l'utilisateur</h3>
 
       <p class="modal-help" *ngIf="modalAction === 'suspendre' || modalAction === 'desactiver'">
         L'utilisateur <strong>{{ modalUtilisateur?.nom_complet }}</strong> sera bloqué et ne pourra plus se connecter.
@@ -477,7 +488,7 @@
       <button class="btn-secondary" (click)="closeModal()">Annuler</button>
       <button class="btn-primary" [class.btn-danger]="modalAction === 'supprimer' || modalAction === 'suspendre' || modalAction === 'desactiver'"
               (click)="confirmAction()" [disabled]="modalLoading">
-        <span *ngIf="!modalLoading">{{ modalAction === 'supprimer' ? 'Supprimer' : 'Confirmer' }}</span>
+        <span *ngIf="!modalLoading">{{ modalAction === 'supprimer' ? 'Supprimer' : modalAction === 'modifier' ? 'Enregistrer' : 'Confirmer' }}</span>
         <span *ngIf="modalLoading"><i class="bi bi-arrow-repeat spin"></i> Traitement...</span>
       </button>
     </div>
