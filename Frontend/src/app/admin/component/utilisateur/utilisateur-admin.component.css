@@ -32,7 +32,7 @@
 
 /* ───── PAGE LAYOUT ───── */
 .us-page {
-  padding: 28px 36px 48px;
+  padding: 28px 26px 48px;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -190,16 +190,16 @@
 .table-head, .table-row {
   display: grid;
   grid-template-columns:
-    minmax(230px, 1.6fr)
-    minmax(150px, 1.1fr)
-    minmax(130px, 0.9fr)
+    minmax(200px, 1.6fr)
+    minmax(140px, 1.1fr)
+    minmax(120px, 0.9fr)
+    minmax(95px, 0.7fr)
     minmax(100px, 0.7fr)
-    minmax(110px, 0.7fr)
-    minmax(150px, 1.1fr)
-    minmax(120px, 0.8fr)
-    160px;
-  gap: 26px; padding: 22px 32px; align-items: center;
-  min-width: 1180px;
+    minmax(140px, 1.1fr)
+    minmax(110px, 0.8fr)
+    150px;
+  gap: 18px; padding: 20px 24px; align-items: center;
+  min-width: 1120px;
   min-height: 84px;
 }
 
@@ -563,11 +563,11 @@ body.modal-open .admin-header {
 /* ───── RESPONSIVE ───── */
 @media (max-width: 1400px) {
   .us-stats-grid { grid-template-columns: repeat(3, 1fr); }
-  .table-head, .table-row { gap: 20px; padding: 18px 24px; }
+  .table-head, .table-row { gap: 16px; padding: 18px 20px; }
 }
 
 @media (max-width: 1200px) {
-  .table-head, .table-row { gap: 16px; padding: 16px 20px; }
+  .table-head, .table-row { gap: 14px; padding: 16px 18px; }
 }
 
 @media (max-width: 1024px) {
