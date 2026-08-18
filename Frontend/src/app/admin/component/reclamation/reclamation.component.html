@@ -1,337 +1,374 @@
-<div class="reclamation-page">
+<div class="rc-page">
 
-  <!-- HEADER -->
-  <div class="page-header">
-    <div>
-      <div class="page-tag"><i class="bi bi-shield-exclamation"></i> Administration</div>
-      <h2>Gestion des réclamations & litiges</h2>
-      <p>Médiation entre clients et fournisseurs</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-shield-exclamation"></i>
+        Administration
+      </div>
+      <h2>Gestion des réclamations</h2>
+      <p>Médiation des litiges entre clients et fournisseurs</p>
     </div>
+    <button class="btn-primary" (click)="loadData()">
+      <i class="bi bi-arrow-repeat"></i>
+      Actualiser
+    </button>
   </div>
 
   <!-- STATS -->
-  <div class="stats-grid" *ngIf="stats">
-    <mat-card class="stat-card">
-      <div class="stat-icon stat-blue"><i class="bi bi-inbox"></i></div>
-      <div class="stat-info"><span class="stat-value">{{ stats.total }}</span><span class="stat-label">Total</span></div>
-    </mat-card>
-    <mat-card class="stat-card">
-      <div class="stat-icon stat-orange"><i class="bi bi-folder2-open"></i></div>
-      <div class="stat-info"><span class="stat-value">{{ stats.ouverts }}</span><span class="stat-label">Ouverts</span></div>
-    </mat-card>
-    <mat-card class="stat-card">
-      <div class="stat-icon stat-red"><i class="bi bi-exclamation-diamond"></i></div>
-      <div class="stat-info"><span class="stat-value">{{ stats.litiges_ouverts }}</span><span class="stat-label">Litiges ouverts</span></div>
-    </mat-card>
-    <mat-card class="stat-card">
-      <div class="stat-icon stat-green"><i class="bi bi-check-circle"></i></div>
-      <div class="stat-info"><span class="stat-value">{{ stats.resolus }}</span><span class="stat-label">Résolus</span></div>
-    </mat-card>
-    <mat-card class="stat-card">
-      <div class="stat-icon stat-purple"><i class="bi bi-clock-history"></i></div>
-      <div class="stat-info"><span class="stat-value">{{ getTempsResolution(stats.temps_moyen_resolution_heures) }}</span><span class="stat-label">Temps moyen</span></div>
-    </mat-card>
-    <mat-card class="stat-card">
-      <div class="stat-icon stat-cyan"><i class="bi bi-graph-up-arrow"></i></div>
-      <div class="stat-info"><span class="stat-value">{{ stats.taux_resolution }}%</span><span class="stat-label">Taux de résolution</span></div>
-    </mat-card>
+  <div class="rc-stats-grid fade-up delay-1" *ngIf="stats">
+    <div class="rc-stat-card">
+      <div class="rc-stat-icon rc-stat-icon--blue"><i class="bi bi-inbox"></i></div>
+      <div class="rc-stat-info">
+        <span class="rc-stat-value">{{ stats.total }}</span>
+        <span class="rc-stat-label">Total</span>
+      </div>
+    </div>
+    <div class="rc-stat-card">
+      <div class="rc-stat-icon rc-stat-icon--amber"><i class="bi bi-folder2-open"></i></div>
+      <div class="rc-stat-info">
+        <span class="rc-stat-value">{{ stats.ouverts }}</span>
+        <span class="rc-stat-label">Ouverts</span>
+      </div>
+    </div>
+    <div class="rc-stat-card">
+      <div class="rc-stat-icon rc-stat-icon--red"><i class="bi bi-exclamation-diamond"></i></div>
+      <div class="rc-stat-info">
+        <span class="rc-stat-value">{{ stats.litiges_ouverts }}</span>
+        <span class="rc-stat-label">Litiges ouverts</span>
+      </div>
+    </div>
+    <div class="rc-stat-card">
+      <div class="rc-stat-icon rc-stat-icon--green"><i class="bi bi-check-circle"></i></div>
+      <div class="rc-stat-info">
+        <span class="rc-stat-value">{{ stats.resolus }}</span>
+        <span class="rc-stat-label">Résolus</span>
+      </div>
+    </div>
+    <div class="rc-stat-card">
+      <div class="rc-stat-icon rc-stat-icon--purple"><i class="bi bi-clock-history"></i></div>
+      <div class="rc-stat-info">
+        <span class="rc-stat-value">{{ getTempsResolution(stats.temps_moyen_resolution_heures) }}</span>
+        <span class="rc-stat-label">Temps moyen</span>
+      </div>
+    </div>
+    <div class="rc-stat-card">
+      <div class="rc-stat-icon rc-stat-icon--cyan"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="rc-stat-info">
+        <span class="rc-stat-value">{{ stats.taux_resolution }}%</span>
+        <span class="rc-stat-label">Taux de résolution</span>
+      </div>
+    </div>
   </div>
 
-  <!-- FILTERS -->
-  <mat-card class="filter-card">
-    <div class="filter-row">
-      <mat-form-field class="search-field" appearance="outline">
-        <mat-label>Rechercher</mat-label>
-        <input matInput [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" placeholder="N° dossier, commande, client, fournisseur, produit...">
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Statut</mat-label>
-        <mat-select [(ngModel)]="filters.statut" (selectionChange)="onFilterChange()">
-          <mat-option *ngFor="let opt of statutOptions" [value]="opt.value">{{ opt.label }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Priorité</mat-label>
-        <mat-select [(ngModel)]="filters.priorite" (selectionChange)="onFilterChange()">
-          <mat-option *ngFor="let opt of prioriteOptions" [value]="opt.value">{{ opt.label }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Motif</mat-label>
-        <mat-select [(ngModel)]="filters.motif" (selectionChange)="onFilterChange()">
-          <mat-option *ngFor="let opt of motifOptions" [value]="opt.value">{{ opt.label }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Période</mat-label>
-        <mat-select [(ngModel)]="filters.periode" (selectionChange)="onFilterChange()">
-          <mat-option *ngFor="let opt of periodeOptions" [value]="opt.value">{{ opt.label }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <button mat-stroked-button color="warn" (click)="resetFilters()" class="reset-btn">
-        <mat-icon>refresh</mat-icon> Réinitialiser
+  <!-- TOOLBAR -->
+  <div class="toolbar fade-up delay-2">
+    <div class="search-box">
+      <i class="bi bi-search search-ic"></i>
+      <input type="text" placeholder="N° dossier, commande, client, fournisseur, produit..."
+             [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" />
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; onSearch()">
+        <i class="bi bi-x"></i>
       </button>
     </div>
-  </mat-card>
+
+    <div class="filter-group">
+      <select [(ngModel)]="filters.statut" (ngModelChange)="onFilterChange()">
+        <option *ngFor="let opt of statutOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <select [(ngModel)]="filters.priorite" (ngModelChange)="onFilterChange()">
+        <option *ngFor="let opt of prioriteOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <select [(ngModel)]="filters.motif" (ngModelChange)="onFilterChange()">
+        <option *ngFor="let opt of motifOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <select [(ngModel)]="filters.periode" (ngModelChange)="onFilterChange()">
+        <option *ngFor="let opt of periodeOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <button class="btn-reset" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Réinitialiser
+      </button>
+    </div>
+  </div>
 
   <!-- TABLE -->
-  <mat-card class="table-card">
-    <div class="table-loading" *ngIf="loading">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>Chargement...</p>
-    </div>
+  <div class="panel fade-up delay-3">
+    <div class="table-wrapper">
+      <div class="table-head">
+        <span class="th">Dossier</span>
+        <span class="th">Client</span>
+        <span class="th">Fournisseur</span>
+        <span class="th">Produit</span>
+        <span class="th">Motif</span>
+        <span class="th">Date</span>
+        <span class="th">Priorité</span>
+        <span class="th">Statut</span>
+        <span class="th text-right">Actions</span>
+      </div>
 
-    <div class="table-empty" *ngIf="!loading && !reclamations.length">
-      <i class="bi bi-inbox"></i>
-      <h4>Aucune réclamation trouvée</h4>
-    </div>
+      <div class="skeleton-rows" *ngIf="loading">
+        <div class="sk-row" *ngFor="let i of [1,2,3,4,5,6]">
+          <div class="sk-lines"><div class="sk-line"></div><div class="sk-line sm"></div></div>
+          <div class="sk-line md"></div>
+          <div class="sk-line md"></div>
+          <div class="sk-line md"></div>
+          <div class="sk-line sm"></div>
+          <div class="sk-line sm"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-badge"></div>
+          <div class="sk-actions"></div>
+        </div>
+      </div>
 
-    <table mat-table [dataSource]="reclamations" matSort class="reclamation-table" *ngIf="!loading && reclamations.length">
+      <div class="error-state" *ngIf="!loading && error">
+        <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h4>{{ error }}</h4>
+        <button class="btn-retry" (click)="loadData()">Réessayer</button>
+      </div>
 
-      <ng-container matColumnDef="numero_dossier">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>N° dossier</th>
-        <td mat-cell *matCellDef="let r">{{ r.numero_dossier }}</td>
-      </ng-container>
+      <div class="empty-state" *ngIf="!loading && !error && !reclamations.length">
+        <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+        <h4>Aucune réclamation trouvée</h4>
+        <p>Essayez d'élargir vos filtres ou la recherche.</p>
+      </div>
 
-      <ng-container matColumnDef="commande">
-        <th mat-header-cell *matHeaderCellDef>Commande</th>
-        <td mat-cell *matCellDef="let r"><span class="commande-ref">{{ r.commande_reference || '—' }}</span></td>
-      </ng-container>
+      <div class="table-row" *ngFor="let r of reclamations; let i = index; trackBy: trackById"
+           [style.--i]="i" (click)="openDetail(r)">
 
-      <ng-container matColumnDef="client">
-        <th mat-header-cell *matHeaderCellDef>Client</th>
-        <td mat-cell *matCellDef="let r">
-          <div class="user-cell">
-            <img [src]="r.client_photo || 'assets/img/avatar-placeholder.png'" alt="" class="cell-avatar" (error)="$any($event.target).src='assets/img/avatar-placeholder.png'">
-            <div>
-              <span class="user-name">{{ r.client_nom }} {{ r.client_prenom }}</span>
-              <span class="user-meta">{{ r.client?.email }}</span>
-            </div>
+        <div class="td dossier-cell">
+          <span class="dossier-ref">{{ r.numero_dossier }}</span>
+          <span class="dossier-sub">
+            <i class="bi bi-cart-check"></i>
+            {{ r.commande_reference || 'Sans commande' }}
+          </span>
+          <span class="litige-flag" *ngIf="r.est_litige"><i class="bi bi-exclamation-diamond-fill"></i> Litige</span>
+        </div>
+
+        <div class="td user-cell">
+          <span class="user-avatar">{{ (r.client_nom || r.client?.nom_complet || '?').charAt(0) }}</span>
+          <div class="user-info">
+            <span class="user-name">{{ r.client_nom }} {{ r.client_prenom }}</span>
+            <span class="user-email">{{ r.client?.email || '—' }}</span>
           </div>
-        </td>
-      </ng-container>
+        </div>
 
-      <ng-container matColumnDef="fournisseur">
-        <th mat-header-cell *matHeaderCellDef>Fournisseur</th>
-        <td mat-cell *matCellDef="let r">
-          <div class="user-cell">
-            <span class="user-name">{{ r.fournisseur_nom || '—' }}</span>
-          </div>
-        </td>
-      </ng-container>
+        <div class="td">{{ r.fournisseur_nom || '—' }}</div>
 
-      <ng-container matColumnDef="produit">
-        <th mat-header-cell *matHeaderCellDef>Produit</th>
-        <td mat-cell *matCellDef="let r">
-          <div class="produit-cell" *ngIf="r.produit_nom">
-            <img [src]="r.produit_image || 'assets/img/placeholder.png'" alt="" (error)="$any($event.target).src='assets/img/placeholder.png'">
-            <span>{{ r.produit_nom }}</span>
-          </div>
-          <span *ngIf="!r.produit_nom">—</span>
-        </td>
-      </ng-container>
+        <div class="td produit-cell">
+          <img *ngIf="r.produit_image" [src]="r.produit_image" alt=""
+               (error)="$any($event.target).style.display='none'">
+          <span>{{ r.produit_nom || '—' }}</span>
+        </div>
 
-      <ng-container matColumnDef="motif">
-        <th mat-header-cell *matHeaderCellDef>Motif</th>
-        <td mat-cell *matCellDef="let r">{{ r.motif_label || r.motif || '—' }}</td>
-      </ng-container>
+        <div class="td">{{ r.motif_label || r.motif || '—' }}</div>
 
-      <ng-container matColumnDef="date">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
-        <td mat-cell *matCellDef="let r">{{ formatDateOnly(r.date_soumission) }}</td>
-      </ng-container>
+        <div class="td">
+          <span class="date-chip"><i class="bi bi-calendar3"></i> {{ formatDateOnly(r.date_soumission) }}</span>
+        </div>
 
-      <ng-container matColumnDef="priorite">
-        <th mat-header-cell *matHeaderCellDef>Priorité</th>
-        <td mat-cell *matCellDef="let r">
-          <span class="badge" [class]="'badge-' + getPrioriteConfig(r.priorite).color">
+        <div class="td">
+          <span class="rc-badge" [ngClass]="'badge-' + getPrioriteConfig(r.priorite).color">
             <i class="bi" [ngClass]="getPrioriteConfig(r.priorite).icon"></i>
             {{ getPrioriteConfig(r.priorite).label }}
           </span>
-        </td>
-      </ng-container>
+        </div>
 
-      <ng-container matColumnDef="statut">
-        <th mat-header-cell *matHeaderCellDef>Statut</th>
-        <td mat-cell *matCellDef="let r">
-          <span class="badge" [class]="'badge-' + getStatutConfig(r.statut).color">
+        <div class="td">
+          <span class="rc-badge" [ngClass]="'badge-' + getStatutConfig(r.statut).color">
             <i class="bi" [ngClass]="getStatutConfig(r.statut).icon"></i>
             {{ getStatutConfig(r.statut).label }}
           </span>
-        </td>
-      </ng-container>
+        </div>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef class="text-right">Actions</th>
-        <td mat-cell *matCellDef="let r" class="text-right" (click)="$event.stopPropagation()">
-          <button mat-icon-button (click)="openDetail(r); $event.stopPropagation()" matTooltip="Voir le dossier">
-            <mat-icon>visibility</mat-icon>
+        <div class="td text-right actions-cell" (click)="$event.stopPropagation()">
+          <button class="btn-icon" title="Voir le dossier" (click)="openDetail(r)">
+            <i class="bi bi-eye"></i>
           </button>
-          <button mat-icon-button [matMenuTriggerFor]="actionMenu" (click)="selectedReclamation = r; $event.stopPropagation()">
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #actionMenu="matMenu">
-            <button mat-menu-item (click)="ouvrirDossier(r)" *ngIf="r.statut === 'nouveau'">
-              <mat-icon>lock_open</mat-icon> Ouvrir
+          <div class="dropdown">
+            <button class="btn-icon" title="Actions" [class.active]="dropdownOpenId === r.id"
+                    (click)="toggleDropdown(r, $event)">
+              <i class="bi bi-three-dots-vertical"></i>
             </button>
-            <button mat-menu-item (click)="openActionModal('statut', r)">
-              <mat-icon>sync_alt</mat-icon> Changer statut
-            </button>
-            <button mat-menu-item (click)="openActionModal('priorite', r)">
-              <mat-icon>flag</mat-icon> Changer priorité
-            </button>
-            <button mat-menu-item (click)="openActionModal('assigner', r)">
-              <mat-icon>person</mat-icon> Assigner
-            </button>
-            <button mat-menu-item (click)="openActionModal('demande_infos', r)">
-              <mat-icon>question_mark</mat-icon> Demander infos
-            </button>
-            <button mat-menu-item (click)="openActionModal('note', r)">
-              <mat-icon>sticky_note_2</mat-icon> Note interne
-            </button>
-            <button mat-menu-item (click)="openActionModal('resoudre', r)" *ngIf="r.statut !== 'resolu'">
-              <mat-icon class="green-icon">check_circle</mat-icon> Marquer résolu
-            </button>
-            <button mat-menu-item (click)="openActionModal('rejeter', r)" *ngIf="r.statut !== 'rejete'">
-              <mat-icon class="red-icon">cancel</mat-icon> Rejeter
-            </button>
-            <button mat-menu-item (click)="openActionModal('fermer', r)" *ngIf="r.statut !== 'ferme'">
-              <mat-icon>block</mat-icon> Clôturer
-            </button>
-          </mat-menu>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="openDetail(row)" class="row-clickable"></tr>
-    </table>
-  </mat-card>
-
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- DETAIL PANEL -->
+<!-- MENU D'ACTIONS (unique, positionné dynamiquement) -->
+<div class="dropdown-menu"
+     #dropdownMenu
+     *ngIf="dropdownRec as r"
+     [class.dropdown-menu--up]="dropdownMenuUp"
+     [style.top.px]="dropdownTop"
+     [style.left.px]="dropdownLeft"
+     (click)="$event.stopPropagation()">
+  <div class="dropdown-section">
+    <span class="dropdown-section-label">Traitement</span>
+    <button *ngIf="r.statut === 'nouveau'" (click)="runDropdownAction(null, r); ouvrirDossier(r)">
+      <i class="bi bi-unlock"></i> Ouvrir le dossier
+    </button>
+    <button (click)="runDropdownAction('statut', r)"><i class="bi bi-arrow-left-right"></i> Changer le statut</button>
+    <button (click)="runDropdownAction('priorite', r)"><i class="bi bi-flag"></i> Changer la priorité</button>
+    <button (click)="runDropdownAction('assigner', r)"><i class="bi bi-person-check"></i> Assigner</button>
+  </div>
+  <div class="dropdown-separator"></div>
+  <div class="dropdown-section">
+    <span class="dropdown-section-label">Communication</span>
+    <button (click)="runDropdownAction('demande_infos', r)"><i class="bi bi-question-circle"></i> Demander des infos</button>
+    <button (click)="runDropdownAction('note', r)"><i class="bi bi-journal-text"></i> Note interne</button>
+  </div>
+  <div class="dropdown-separator"></div>
+  <div class="dropdown-section">
+    <span class="dropdown-section-label">Clôture</span>
+    <button class="success" *ngIf="r.statut !== 'resolu'" (click)="runDropdownAction('resoudre', r)">
+      <i class="bi bi-check-circle"></i> Marquer résolu
+    </button>
+    <button class="danger" *ngIf="r.statut !== 'rejete'" (click)="runDropdownAction('rejeter', r)">
+      <i class="bi bi-x-circle"></i> Rejeter
+    </button>
+    <button *ngIf="r.statut !== 'ferme'" (click)="runDropdownAction('fermer', r)">
+      <i class="bi bi-archive"></i> Clôturer
+    </button>
+  </div>
+</div>
+
+<!-- DRAWER DE DÉTAIL -->
 <div class="detail-overlay" *ngIf="showDetail" (click)="closeDetail()">
   <div class="detail-drawer" (click)="$event.stopPropagation()">
 
-    <div class="detail-header" *ngIf="selectedReclamation || detailLoading">
-      <div *ngIf="selectedReclamation" class="detail-identity">
-        <div>
-          <h3>Dossier {{ selectedReclamation.numero_dossier }}</h3>
-          <span class="detail-meta">{{ selectedReclamation.objet }}</span>
-        </div>
+    <div class="detail-header">
+      <div class="detail-identity" *ngIf="selectedReclamation as r">
+        <h3>Dossier {{ r.numero_dossier }}</h3>
+        <span class="detail-meta">{{ r.objet }}</span>
         <div class="detail-badges">
-          <span class="badge" [class]="'badge-' + getStatutConfig(selectedReclamation.statut).color">
-            {{ getStatutConfig(selectedReclamation.statut).label }}
+          <span class="rc-badge" [ngClass]="'badge-' + getStatutConfig(r.statut).color">
+            <i class="bi" [ngClass]="getStatutConfig(r.statut).icon"></i> {{ getStatutConfig(r.statut).label }}
           </span>
-          <span class="badge" [class]="'badge-' + getPrioriteConfig(selectedReclamation.priorite).color">
-            {{ getPrioriteConfig(selectedReclamation.priorite).label }}
+          <span class="rc-badge" [ngClass]="'badge-' + getPrioriteConfig(r.priorite).color">
+            <i class="bi" [ngClass]="getPrioriteConfig(r.priorite).icon"></i> {{ getPrioriteConfig(r.priorite).label }}
           </span>
+          <span class="rc-badge badge-red" *ngIf="r.est_litige"><i class="bi bi-exclamation-diamond-fill"></i> Litige</span>
         </div>
       </div>
-      <button mat-icon-button (click)="closeDetail()" class="close-btn"><mat-icon>close</mat-icon></button>
+      <button class="btn-icon" (click)="closeDetail()"><i class="bi bi-x-lg"></i></button>
     </div>
 
     <div class="detail-loading" *ngIf="detailLoading">
-      <mat-spinner diameter="40"></mat-spinner>
+      <div class="spinner"></div>
       <p>Chargement du dossier...</p>
     </div>
 
-    <mat-tab-group class="detail-tabs" [(selectedIndex)]="detailTab" *ngIf="!detailLoading && selectedReclamation">
+    <ng-container *ngIf="!detailLoading && selectedReclamation as r">
+      <div class="detail-tabs">
+        <button *ngFor="let t of tabs; let i = index" [class.active]="detailTab === i" (click)="detailTab = i">
+          <i class="bi" [ngClass]="t.icon"></i> {{ t.label }}
+          <span class="tab-count" *ngIf="t.key === 'conversation' && r.messages?.length">{{ r.messages?.length }}</span>
+          <span class="tab-count" *ngIf="t.key === 'documents' && r.pieces_jointes?.length">{{ r.pieces_jointes?.length }}</span>
+        </button>
+      </div>
 
-      <!-- INFOS -->
-      <mat-tab label="Informations">
-        <div class="tab-content">
-          <div class="info-sections">
-            <div class="info-section">
-              <h4><i class="bi bi-person"></i> Client</h4>
-              <div class="info-grid">
-                <div class="info-row"><span class="label">Nom</span><span class="value">{{ selectedReclamation.client?.nom_complet }}</span></div>
-                <div class="info-row"><span class="label">Email</span><span class="value">{{ selectedReclamation.client?.email }}</span></div>
-                <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ selectedReclamation.client?.telephone || '—' }}</span></div>
-                <div class="info-row"><span class="label">Adresse</span><span class="value">{{ selectedReclamation.client?.adresse || '—' }}</span></div>
+      <div class="detail-content">
+
+        <!-- INFOS -->
+        <div class="tab-pane" *ngIf="detailTab === 0">
+          <div class="info-section">
+            <h4><i class="bi bi-card-text"></i> Réclamation</h4>
+            <p class="description-text">{{ r.description }}</p>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Motif</span><span class="value">{{ r.motif_label || r.motif || '—' }}</span></div>
+              <div class="info-row"><span class="label">Soumission</span><span class="value">{{ formatDate(r.date_soumission) }}</span></div>
+              <div class="info-row"><span class="label">Dernière MAJ</span><span class="value">{{ formatDate(r.date_derniere_maj) }}</span></div>
+              <div class="info-row"><span class="label">Assigné à</span><span class="value">{{ r.assigne_a?.nom_complet || 'Personne' }}</span></div>
+            </div>
+          </div>
+
+          <div class="info-section" *ngIf="r.client">
+            <h4><i class="bi bi-person"></i> Client</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Nom</span><span class="value">{{ r.client.nom_complet }}</span></div>
+              <div class="info-row"><span class="label">Email</span><span class="value">{{ r.client.email }}</span></div>
+              <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ r.client.telephone || '—' }}</span></div>
+              <div class="info-row"><span class="label">Adresse</span><span class="value">{{ r.client.adresse || '—' }}</span></div>
+            </div>
+          </div>
+
+          <div class="info-section" *ngIf="r.fournisseur">
+            <h4><i class="bi bi-shop"></i> Fournisseur</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Entreprise</span><span class="value">{{ r.fournisseur.nom_entreprise || '—' }}</span></div>
+              <div class="info-row"><span class="label">Contact</span><span class="value">{{ r.fournisseur.nom_complet }}</span></div>
+              <div class="info-row"><span class="label">Email</span><span class="value">{{ r.fournisseur.email }}</span></div>
+              <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ r.fournisseur.telephone || '—' }}</span></div>
+            </div>
+          </div>
+
+          <div class="info-section" *ngIf="r.commande">
+            <h4><i class="bi bi-cart-check"></i> Commande</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Référence</span><span class="value">{{ r.commande.reference }}</span></div>
+              <div class="info-row"><span class="label">Date</span><span class="value">{{ formatDate(r.commande.date_commande) }}</span></div>
+              <div class="info-row"><span class="label">Statut</span><span class="value">{{ r.commande.statut }}</span></div>
+              <div class="info-row"><span class="label">Montant</span><span class="value">{{ r.commande.montant_total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span></div>
+            </div>
+          </div>
+
+          <div class="info-section" *ngIf="r.produit">
+            <h4><i class="bi bi-box-seam"></i> Produit concerné</h4>
+            <div class="produit-detail">
+              <img *ngIf="r.produit.image" [src]="r.produit.image" alt=""
+                   (error)="$any($event.target).style.display='none'">
+              <div>
+                <h5>{{ r.produit.nom }}</h5>
+                <span>Réf: {{ r.produit.reference || '—' }}</span>
+                <span *ngIf="r.produit.prix"> · {{ r.produit.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
               </div>
             </div>
+          </div>
 
-            <div class="info-section" *ngIf="selectedReclamation.fournisseur">
-              <h4><i class="bi bi-shop"></i> Fournisseur</h4>
-              <div class="info-grid">
-                <div class="info-row"><span class="label">Entreprise</span><span class="value">{{ selectedReclamation.fournisseur.nom_entreprise || '—' }}</span></div>
-                <div class="info-row"><span class="label">Contact</span><span class="value">{{ selectedReclamation.fournisseur.nom_complet }}</span></div>
-                <div class="info-row"><span class="label">Email</span><span class="value">{{ selectedReclamation.fournisseur.email }}</span></div>
-                <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ selectedReclamation.fournisseur.telephone || '—' }}</span></div>
-              </div>
-            </div>
+          <div class="info-section note" *ngIf="r.note_interne">
+            <h4><i class="bi bi-lock"></i> Note interne</h4>
+            <p class="description-text">{{ r.note_interne }}</p>
+          </div>
 
-            <div class="info-section" *ngIf="selectedReclamation.commande">
-              <h4><i class="bi bi-cart-check"></i> Commande</h4>
-              <div class="info-grid">
-                <div class="info-row"><span class="label">Référence</span><span class="value">{{ selectedReclamation.commande.reference }}</span></div>
-                <div class="info-row"><span class="label">Date</span><span class="value">{{ formatDate(selectedReclamation.commande.date_commande) }}</span></div>
-                <div class="info-row"><span class="label">Statut</span><span class="value">{{ selectedReclamation.commande.statut }}</span></div>
-                <div class="info-row"><span class="label">Montant</span><span class="value">{{ selectedReclamation.commande.montant_total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span></div>
-              </div>
-            </div>
-
-            <div class="info-section" *ngIf="selectedReclamation.produit">
-              <h4><i class="bi bi-box-seam"></i> Produit concerné</h4>
-              <div class="produit-detail">
-                <img [src]="selectedReclamation.produit.image || 'assets/img/placeholder.png'" alt="" (error)="$any($event.target).src='assets/img/placeholder.png'">
-                <div>
-                  <h5>{{ selectedReclamation.produit.nom }}</h5>
-                  <span>Réf: {{ selectedReclamation.produit.reference || '—' }}</span>
-                  <span *ngIf="selectedReclamation.produit.prix"> · {{ selectedReclamation.produit.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="info-section full">
-              <h4><i class="bi bi-card-text"></i> Description de la réclamation</h4>
-              <p class="description-text">{{ selectedReclamation.description }}</p>
-              <div class="info-grid mt-3">
-                <div class="info-row"><span class="label">Motif</span><span class="value">{{ selectedReclamation.motif_label || selectedReclamation.motif || '—' }}</span></div>
-                <div class="info-row"><span class="label">Date de soumission</span><span class="value">{{ formatDate(selectedReclamation.date_soumission) }}</span></div>
-                <div class="info-row"><span class="label">Dernière mise à jour</span><span class="value">{{ formatDate(selectedReclamation.date_derniere_maj) }}</span></div>
-              </div>
-            </div>
-
-            <div class="info-section full" *ngIf="selectedReclamation.note_interne">
-              <h4><i class="bi bi-lock"></i> Note interne</h4>
-              <p class="note-text">{{ selectedReclamation.note_interne }}</p>
-            </div>
+          <div class="info-section danger" *ngIf="r.raison_rejet">
+            <h4><i class="bi bi-x-octagon"></i> Raison du rejet</h4>
+            <p class="description-text">{{ r.raison_rejet }}</p>
           </div>
 
           <div class="detail-actions">
-            <button mat-raised-button color="primary" (click)="openActionModal('statut', selectedReclamation)">Statut</button>
-            <button mat-raised-button color="accent" (click)="openActionModal('priorite', selectedReclamation)">Priorité</button>
-            <button mat-raised-button (click)="openActionModal('demande_infos', selectedReclamation)">Demander infos</button>
-            <button mat-raised-button (click)="openActionModal('resoudre', selectedReclamation)" *ngIf="selectedReclamation.statut !== 'resolu'" class="green-btn">Résoudre</button>
-            <button mat-raised-button (click)="openActionModal('rejeter', selectedReclamation)" *ngIf="selectedReclamation.statut !== 'rejete'" class="red-btn">Rejeter</button>
-            <button mat-raised-button (click)="openActionModal('fermer', selectedReclamation)" *ngIf="selectedReclamation.statut !== 'ferme'">Clôturer</button>
+            <button class="btn-soft" (click)="openActionModal('statut', r)"><i class="bi bi-arrow-left-right"></i> Statut</button>
+            <button class="btn-soft" (click)="openActionModal('priorite', r)"><i class="bi bi-flag"></i> Priorité</button>
+            <button class="btn-soft" (click)="openActionModal('demande_infos', r)"><i class="bi bi-question-circle"></i> Demander infos</button>
+            <button class="btn-soft success" *ngIf="r.statut !== 'resolu'" (click)="openActionModal('resoudre', r)"><i class="bi bi-check-circle"></i> Résoudre</button>
+            <button class="btn-soft danger" *ngIf="r.statut !== 'rejete'" (click)="openActionModal('rejeter', r)"><i class="bi bi-x-circle"></i> Rejeter</button>
+            <button class="btn-soft" *ngIf="r.statut !== 'ferme'" (click)="openActionModal('fermer', r)"><i class="bi bi-archive"></i> Clôturer</button>
           </div>
         </div>
-      </mat-tab>
 
-      <!-- CONVERSATION -->
-      <mat-tab label="Conversation">
-        <div class="tab-content conversation-tab">
-          <div class="messages-list" *ngIf="selectedReclamation.messages?.length; else noMessage">
-            <div *ngFor="let m of selectedReclamation.messages" class="message" [class.note-interne]="m.est_note_interne" [class.message-admin]="m.auteur_type === 'admin'" [class.message-client]="m.auteur_type === 'client'" [class.message-fournisseur]="m.auteur_type === 'fournisseur'">
+        <!-- CONVERSATION -->
+        <div class="tab-pane conversation-pane" *ngIf="detailTab === 1">
+          <div class="messages-list" *ngIf="r.messages?.length; else noMessage">
+            <div *ngFor="let m of r.messages" class="message"
+                 [class.note-interne]="m.est_note_interne"
+                 [class.message-admin]="m.auteur_type === 'admin'"
+                 [class.message-client]="m.auteur_type === 'client'"
+                 [class.message-fournisseur]="m.auteur_type === 'fournisseur'">
               <div class="message-header">
-                <img [src]="m.auteur_photo || 'assets/img/avatar-placeholder.png'" alt="" class="msg-avatar" (error)="$any($event.target).src='assets/img/avatar-placeholder.png'">
+                <span class="msg-avatar">{{ (m.auteur_nom || '?').charAt(0) }}</span>
                 <div>
                   <span class="msg-author">{{ m.auteur_nom }}</span>
                   <span class="msg-role">{{ m.auteur_role }}</span>
                 </div>
                 <span class="msg-date">{{ formatDate(m.date) }}</span>
               </div>
-              <p class="message-content" *ngIf="!m.est_note_interne">{{ m.contenu }}</p>
-              <p class="note-content" *ngIf="m.est_note_interne"><i class="bi bi-lock"></i> {{ m.contenu }}</p>
+              <p class="message-content">
+                <i class="bi bi-lock" *ngIf="m.est_note_interne"></i>
+                {{ m.contenu }}
+              </p>
               <div class="message-attachments" *ngIf="m.pieces_jointes?.length">
                 <a *ngFor="let pj of m.pieces_jointes" [href]="pj.fichier_url" target="_blank" class="attachment-link">
                   <i class="bi" [ngClass]="getAttachmentIcon(pj.type)"></i> {{ pj.nom }}
@@ -339,149 +376,143 @@
               </div>
             </div>
           </div>
-          <ng-template #noMessage><p class="empty-hint">Aucun message pour le moment.</p></ng-template>
-
-          <div class="message-input">
-            <mat-form-field appearance="outline" class="msg-field">
-              <mat-label>Votre message</mat-label>
-              <textarea matInput [(ngModel)]="newMessage" rows="3" placeholder="Répondre au client/fournisseur..."></textarea>
-            </mat-form-field>
-
-            <div class="message-options">
-              <mat-checkbox color="primary" [(ngModel)]="noteInterne">Note interne</mat-checkbox>
-              <mat-checkbox color="primary" [(ngModel)]="visibleClient" [disabled]="noteInterne">Visible client</mat-checkbox>
-              <mat-checkbox color="primary" [(ngModel)]="visibleFournisseur" [disabled]="noteInterne">Visible fournisseur</mat-checkbox>
+          <ng-template #noMessage>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-chat-dots"></i></div>
+              <h4>Aucun message</h4>
+              <p>Démarrez la conversation avec le client ou le fournisseur.</p>
             </div>
+          </ng-template>
 
+          <div class="message-composer">
+            <textarea [(ngModel)]="newMessage" rows="3" placeholder="Répondre au client / fournisseur..."></textarea>
+            <div class="composer-options">
+              <label class="check"><input type="checkbox" [(ngModel)]="noteInterne"> Note interne</label>
+              <label class="check"><input type="checkbox" [(ngModel)]="visibleClient" [disabled]="noteInterne"> Visible client</label>
+              <label class="check"><input type="checkbox" [(ngModel)]="visibleFournisseur" [disabled]="noteInterne"> Visible fournisseur</label>
+            </div>
             <div class="message-files" *ngIf="selectedFiles.length">
               <span *ngFor="let f of selectedFiles; let i = index" class="file-chip">
                 <i class="bi bi-paperclip"></i> {{ f.name }}
-                <button mat-icon-button (click)="removeFile(i)"><mat-icon>close</mat-icon></button>
+                <button (click)="removeFile(i)"><i class="bi bi-x"></i></button>
               </span>
             </div>
-
-            <div class="message-actions">
-              <button mat-stroked-button (click)="selectedFiles = []" [disabled]="!selectedFiles.length">Effacer fichiers</button>
-              <input type="file" #fileInput multiple (change)="onFileSelect($event)" style="display: none;">
-              <button mat-stroked-button (click)="fileInput.click()">
-                <mat-icon>attach_file</mat-icon> Joindre
-              </button>
-              <button mat-raised-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || sendingMessage">
-                <mat-icon>send</mat-icon> Envoyer
+            <div class="composer-actions">
+              <input type="file" #fileInput multiple (change)="onFileSelect($event)" hidden>
+              <button class="btn-soft" (click)="fileInput.click()"><i class="bi bi-paperclip"></i> Joindre</button>
+              <button class="btn-primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || sendingMessage">
+                <i class="bi bi-send"></i> {{ sendingMessage ? 'Envoi...' : 'Envoyer' }}
               </button>
             </div>
           </div>
         </div>
-      </mat-tab>
 
-      <!-- DOCUMENTS -->
-      <mat-tab label="Documents">
-        <div class="tab-content">
-          <div class="documents-grid" *ngIf="selectedReclamation.pieces_jointes?.length; else noDoc">
-            <div class="document-card" *ngFor="let pj of selectedReclamation.pieces_jointes">
+        <!-- DOCUMENTS -->
+        <div class="tab-pane" *ngIf="detailTab === 2">
+          <div class="documents-grid" *ngIf="r.pieces_jointes?.length; else noDoc">
+            <div class="document-card" *ngFor="let pj of r.pieces_jointes">
               <i class="bi doc-icon" [ngClass]="getAttachmentIcon(pj.type)"></i>
               <span class="doc-name">{{ pj.nom }}</span>
               <span class="doc-date">{{ formatDate(pj.date) }}</span>
-              <a [href]="pj.fichier_url" target="_blank" mat-stroked-button>Télécharger</a>
+              <a [href]="pj.fichier_url" target="_blank" class="btn-soft">Télécharger</a>
             </div>
           </div>
-          <ng-template #noDoc><p class="empty-hint">Aucun document joint.</p></ng-template>
-
+          <ng-template #noDoc>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-folder2-open"></i></div>
+              <h4>Aucun document</h4>
+            </div>
+          </ng-template>
           <div class="upload-zone">
-            <input type="file" #docInput (change)="onAttachmentUpload($event)">
-            <button mat-raised-button color="primary" (click)="docInput.click()">
-              <mat-icon>cloud_upload</mat-icon> Ajouter un document
-            </button>
+            <input type="file" #docInput (change)="onAttachmentUpload($event)" hidden>
+            <button class="btn-primary" (click)="docInput.click()"><i class="bi bi-cloud-upload"></i> Ajouter un document</button>
           </div>
         </div>
-      </mat-tab>
 
-      <!-- HISTORIQUE -->
-      <mat-tab label="Historique">
-        <div class="tab-content">
-          <div class="timeline" *ngIf="selectedReclamation.historique?.length; else noHisto">
-            <div class="timeline-item" *ngFor="let h of selectedReclamation.historique" [class.completed]="h.action === 'resolution'">
-              <div class="timeline-icon"><i class="bi bi-journal-text"></i></div>
+        <!-- HISTORIQUE -->
+        <div class="tab-pane" *ngIf="detailTab === 3">
+          <div class="timeline" *ngIf="r.historique?.length; else noHisto">
+            <div class="timeline-item" *ngFor="let h of r.historique" [class.completed]="h.action === 'resolution'">
+              <div class="timeline-icon"><i class="bi" [ngClass]="getHistoriqueIcon(h.action)"></i></div>
               <div class="timeline-body">
                 <span class="timeline-title">{{ getActionLabel(h.action) }}</span>
-                <span class="timeline-meta" *ngIf="h.auteur_nom">par {{ h.auteur_nom }} · {{ formatDate(h.date) }}</span>
+                <span class="timeline-meta">{{ h.auteur_nom ? 'par ' + h.auteur_nom + ' · ' : '' }}{{ formatDate(h.date) }}</span>
                 <p class="timeline-comment" *ngIf="h.commentaire">{{ h.commentaire }}</p>
               </div>
             </div>
           </div>
-          <ng-template #noHisto><p class="empty-hint">Aucun historique.</p></ng-template>
+          <ng-template #noHisto>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-clock-history"></i></div>
+              <h4>Aucun historique</h4>
+            </div>
+          </ng-template>
         </div>
-      </mat-tab>
-    </mat-tab-group>
+
+      </div>
+    </ng-container>
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- MODALES D'ACTION -->
 <div class="modal-overlay" *ngIf="activeModal" (click)="closeActionModal()">
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3 *ngIf="activeModal === 'statut'">Changer le statut</h3>
-      <h3 *ngIf="activeModal === 'priorite'">Changer la priorité</h3>
-      <h3 *ngIf="activeModal === 'assigner'">Assigner le dossier</h3>
-      <h3 *ngIf="activeModal === 'note'">Ajouter une note interne</h3>
-      <h3 *ngIf="activeModal === 'resoudre'">Marquer comme résolu</h3>
-      <h3 *ngIf="activeModal === 'rejeter'">Rejeter la réclamation</h3>
-      <h3 *ngIf="activeModal === 'fermer'">Clôturer le dossier</h3>
-      <h3 *ngIf="activeModal === 'demande_infos'">Demander des informations</h3>
-      <button mat-icon-button (click)="closeActionModal()"><mat-icon>close</mat-icon></button>
+      <h3>{{ modalTitle() }}</h3>
+      <button class="btn-icon" (click)="closeActionModal()"><i class="bi bi-x-lg"></i></button>
     </div>
 
     <div class="modal-body">
-      <mat-form-field appearance="outline" *ngIf="activeModal === 'statut'" class="full-field">
-        <mat-label>Nouveau statut</mat-label>
-        <mat-select [(ngModel)]="modalData.statut">
-          <mat-option value="nouveau">Nouveau</mat-option>
-          <mat-option value="en_cours_analyse">En cours d'analyse</mat-option>
-          <mat-option value="en_attente_infos">En attente d'informations</mat-option>
-          <mat-option value="resolu">Résolu</mat-option>
-          <mat-option value="rejete">Rejeté</mat-option>
-          <mat-option value="ferme">Fermé</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <div class="field" *ngIf="activeModal === 'statut'">
+        <label>Nouveau statut</label>
+        <select [(ngModel)]="modalData.statut">
+          <option value="nouveau">Nouveau</option>
+          <option value="en_cours_analyse">En cours d'analyse</option>
+          <option value="en_attente_infos">En attente d'informations</option>
+          <option value="resolu">Résolu</option>
+          <option value="rejete">Rejeté</option>
+          <option value="ferme">Fermé</option>
+        </select>
+      </div>
 
-      <mat-form-field appearance="outline" *ngIf="activeModal === 'priorite'" class="full-field">
-        <mat-label>Nouvelle priorité</mat-label>
-        <mat-select [(ngModel)]="modalData.priorite">
-          <mat-option value="faible">Faible</mat-option>
-          <mat-option value="normale">Normale</mat-option>
-          <mat-option value="elevee">Élevée</mat-option>
-          <mat-option value="urgente">Urgente</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <div class="field" *ngIf="activeModal === 'priorite'">
+        <label>Nouvelle priorité</label>
+        <select [(ngModel)]="modalData.priorite">
+          <option value="faible">Faible</option>
+          <option value="normale">Normale</option>
+          <option value="elevee">Élevée</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
 
-      <mat-form-field appearance="outline" *ngIf="activeModal === 'assigner'" class="full-field">
-        <mat-label>ID de l'administrateur</mat-label>
-        <input matInput type="number" [(ngModel)]="modalData.assigne_a" placeholder="ID utilisateur">
-      </mat-form-field>
+      <div class="field" *ngIf="activeModal === 'assigner'">
+        <label>ID de l'administrateur</label>
+        <input type="number" [(ngModel)]="modalData.assigne_a" placeholder="ID utilisateur">
+      </div>
 
-      <mat-form-field appearance="outline" *ngIf="activeModal === 'note'" class="full-field">
-        <mat-label>Note interne</mat-label>
-        <textarea matInput [(ngModel)]="modalData.note" rows="4"></textarea>
-      </mat-form-field>
+      <div class="field" *ngIf="activeModal === 'note'">
+        <label>Note interne</label>
+        <textarea [(ngModel)]="modalData.note" rows="4" placeholder="Visible uniquement par l'équipe admin"></textarea>
+      </div>
 
-      <mat-form-field appearance="outline" *ngIf="activeModal === 'rejeter'" class="full-field">
-        <mat-label>Raison du rejet</mat-label>
-        <textarea matInput [(ngModel)]="modalData.raison_rejet" rows="4"></textarea>
-      </mat-form-field>
+      <div class="field" *ngIf="activeModal === 'rejeter'">
+        <label>Raison du rejet</label>
+        <textarea [(ngModel)]="modalData.raison_rejet" rows="4" placeholder="Expliquez la raison du rejet"></textarea>
+      </div>
 
-      <mat-form-field appearance="outline" *ngIf="activeModal === 'demande_infos'" class="full-field">
-        <mat-label>Message demandant des informations</mat-label>
-        <textarea matInput [(ngModel)]="modalData.message" rows="4"></textarea>
-      </mat-form-field>
+      <div class="field" *ngIf="activeModal === 'demande_infos'">
+        <label>Informations demandées</label>
+        <textarea [(ngModel)]="modalData.message" rows="4" placeholder="Précisez les informations nécessaires"></textarea>
+      </div>
 
-      <p *ngIf="activeModal === 'resoudre'" class="modal-help">Confirmez-vous que ce dossier est résolu ?</p>
-      <p *ngIf="activeModal === 'fermer'" class="modal-help">Confirmez-vous la clôture de ce dossier ?</p>
+      <p class="modal-help" *ngIf="activeModal === 'resoudre'">Confirmez-vous que ce dossier est résolu ?</p>
+      <p class="modal-help" *ngIf="activeModal === 'fermer'">Confirmez-vous la clôture de ce dossier ?</p>
     </div>
 
     <div class="modal-footer">
-      <button mat-stroked-button (click)="closeActionModal()">Annuler</button>
-      <button mat-raised-button color="primary" (click)="confirmAction()" [disabled]="modalLoading">
-        <mat-icon *ngIf="modalLoading" class="spin">refresh</mat-icon>
+      <button class="btn-soft" (click)="closeActionModal()">Annuler</button>
+      <button class="btn-primary" (click)="confirmAction()" [disabled]="modalLoading">
+        <span *ngIf="modalLoading" class="spinner sm"></span>
         <span *ngIf="!modalLoading">Confirmer</span>
       </button>
     </div>
@@ -490,9 +521,9 @@
 
 <!-- NOTIFICATIONS -->
 <div class="notif-stack">
-  <div *ngFor="let n of notifications" class="notif-toast" [class.success]="n.type === 'success'" [class.error]="n.type === 'error'" [class.info]="n.type === 'info'">
+  <div *ngFor="let n of notifications" class="notif-toast" [ngClass]="n.type">
     <i class="bi" [ngClass]="n.type === 'success' ? 'bi-check-circle-fill' : n.type === 'error' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill'"></i>
     <span>{{ n.message }}</span>
-    <button class="notif-close" (click)="removeNotification(n.id)"><mat-icon>close</mat-icon></button>
+    <button class="notif-close" (click)="removeNotification(n.id)"><i class="bi bi-x"></i></button>
   </div>
 </div>

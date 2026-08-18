@@ -1,23 +1,6 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
-import { MatSortModule, MatSort } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatCardModule } from '@angular/material/card';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Subscription } from 'rxjs';
 
 import { ReclamationService } from '../../../core/services/reclamation.service';
@@ -28,30 +11,21 @@ import {
   ReclamationActionPayload,
   MessagePayload,
   StatutConfig,
-  PrioriteConfig,
-  MessageReclamation
+  PrioriteConfig
 } from '../../../models/reclamation.model';
+
+type ModalAction = 'statut' | 'priorite' | 'assigner' | 'note' | 'resoudre' | 'rejeter' | 'fermer' | 'demande_infos' | null;
 
 @Component({
   selector: 'app-reclamation',
   standalone: true,
-  imports: [
-    CommonModule, FormsModule,
-    MatTableModule, MatPaginatorModule, MatSortModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatChipsModule, MatButtonModule, MatIconModule,
-    MatMenuModule, MatTabsModule,
-    MatCardModule, MatBadgeModule, MatProgressSpinnerModule,
-    MatTooltipModule, MatDividerModule, MatCheckboxModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './reclamation.component.html',
   styleUrls: ['./reclamation.component.css']
 })
 export class ReclamationComponent implements OnInit, OnDestroy {
 
-  displayedColumns: string[] = ['numero_dossier', 'commande', 'client', 'fournisseur', 'produit', 'motif', 'date', 'priorite', 'statut', 'actions'];
   reclamations: Reclamation[] = [];
-  filtered: Reclamation[] = [];
   stats: ReclamationStats | null = null;
   loading = true;
   error: string | null = null;
@@ -60,7 +34,7 @@ export class ReclamationComponent implements OnInit, OnDestroy {
   searchTerm = '';
 
   statutOptions = [
-    { value: 'tous', label: 'Tous' },
+    { value: 'tous', label: 'Tous les statuts' },
     { value: 'nouveau', label: 'Nouveau' },
     { value: 'en_cours_analyse', label: 'En cours d\'analyse' },
     { value: 'en_attente_infos', label: 'En attente d\'infos' },
@@ -72,7 +46,7 @@ export class ReclamationComponent implements OnInit, OnDestroy {
   ];
 
   prioriteOptions = [
-    { value: 'tous', label: 'Toutes' },
+    { value: 'tous', label: 'Toutes priorités' },
     { value: 'faible', label: 'Faible' },
     { value: 'normale', label: 'Normale' },
     { value: 'elevee', label: 'Élevée' },
@@ -80,7 +54,7 @@ export class ReclamationComponent implements OnInit, OnDestroy {
   ];
 
   motifOptions = [
-    { value: 'tous', label: 'Tous' },
+    { value: 'tous', label: 'Tous les motifs' },
     { value: 'produit_non_conforme', label: 'Produit non conforme' },
     { value: 'produit_defectueux', label: 'Produit défectueux' },
     { value: 'produit_manquant', label: 'Produit manquant' },
@@ -99,8 +73,12 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     { value: 'month', label: 'Ce mois' }
   ];
 
-  @ViewChild(MatPaginator) paginator?: MatPaginator;
-  @ViewChild(MatSort) sort?: MatSort;
+  tabs = [
+    { key: 'infos', label: 'Informations', icon: 'bi-info-circle' },
+    { key: 'conversation', label: 'Conversation', icon: 'bi-chat-dots' },
+    { key: 'documents', label: 'Documents', icon: 'bi-folder2-open' },
+    { key: 'historique', label: 'Historique', icon: 'bi-clock-history' }
+  ];
 
   selectedReclamation: Reclamation | null = null;
   detailLoading = false;
@@ -115,8 +93,9 @@ export class ReclamationComponent implements OnInit, OnDestroy {
   selectedFiles: File[] = [];
   sendingMessage = false;
 
-  // Modals
-  activeModal: 'statut' | 'priorite' | 'assigner' | 'note' | 'resoudre' | 'rejeter' | 'fermer' | 'demande_infos' | null = null;
+  // Modales
+  activeModal: ModalAction = null;
+  modalRec: Reclamation | null = null;
   modalData = {
     statut: '',
     priorite: '',
@@ -129,15 +108,30 @@ export class ReclamationComponent implements OnInit, OnDestroy {
 
   notifications: { id: number; message: string; type: 'success' | 'error' | 'info' }[] = [];
 
+  // Menu d'actions unique, positionné sur le bouton cliqué
+  @ViewChild('dropdownMenu') dropdownMenuRef?: ElementRef<HTMLElement>;
+  dropdownOpenId: number | null = null;
+  dropdownRec: Reclamation | null = null;
+  dropdownMenuUp = false;
+  dropdownTop = 0;
+  dropdownLeft = 0;
+
+  private dropdownAnchor: HTMLElement | null = null;
+  private readonly dropdownFallbackWidth = 250;
+  private readonly dropdownFallbackHeight = 340;
+  private readonly dropdownGap = 6;
+  private readonly viewportMargin = 12;
+
+  private searchTimer?: ReturnType<typeof setTimeout>;
   private polling?: Subscription;
 
   statutConfig: Record<string, StatutConfig> = {
     nouveau: { label: 'Nouveau', color: 'yellow', icon: 'bi-circle-fill', description: 'Dossier nouvellement créé' },
-    en_cours_analyse: { label: 'En cours d\'analyse', color: 'blue', icon: 'bi-search', description: 'Le dossier est en cours d\'analyse par l\'admin' },
-    en_attente_infos: { label: 'En attente d\'infos', color: 'orange', icon: 'bi-hourglass-split', description: 'En attente d\'informations complémentaires' },
-    resolu: { label: 'Résolu', color: 'green', icon: 'bi-check-circle-fill', description: 'Dossier résolu avec succès' },
+    en_cours_analyse: { label: 'En analyse', color: 'blue', icon: 'bi-search', description: 'Dossier en cours d\'analyse' },
+    en_attente_infos: { label: 'En attente', color: 'orange', icon: 'bi-hourglass-split', description: 'En attente d\'informations' },
+    resolu: { label: 'Résolu', color: 'green', icon: 'bi-check-circle-fill', description: 'Dossier résolu' },
     rejete: { label: 'Rejeté', color: 'red', icon: 'bi-x-circle-fill', description: 'Réclamation rejetée' },
-    ferme: { label: 'Fermé', color: 'gray', icon: 'bi-x-octagon-fill', description: 'Dossier clôturé' }
+    ferme: { label: 'Fermé', color: 'gray', icon: 'bi-archive-fill', description: 'Dossier clôturé' }
   };
 
   prioriteConfig: Record<string, PrioriteConfig> = {
@@ -147,16 +141,19 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     urgente: { label: 'Urgente', color: 'red', icon: 'bi-exclamation-triangle-fill' }
   };
 
-  constructor(
-    private reclamationService: ReclamationService
-  ) {}
+  constructor(private reclamationService: ReclamationService) {}
 
   ngOnInit(): void {
     this.loadData();
+    window.addEventListener('scroll', this.onViewportChange, true);
+    window.addEventListener('resize', this.onViewportChange);
   }
 
   ngOnDestroy(): void {
     this.polling?.unsubscribe();
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    window.removeEventListener('scroll', this.onViewportChange, true);
+    window.removeEventListener('resize', this.onViewportChange);
   }
 
   loadData(): void {
@@ -171,10 +168,9 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     this.reclamationService.getReclamations(f).subscribe({
       next: (list) => {
         this.reclamations = list;
-        this.filtered = list;
         this.loading = false;
       },
-      error: (err) => {
+      error: () => {
         this.error = 'Erreur lors du chargement des réclamations.';
         this.loading = false;
       }
@@ -189,7 +185,8 @@ export class ReclamationComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
-    this.loadReclamations();
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.loadReclamations(), 300);
   }
 
   onFilterChange(): void {
@@ -202,7 +199,12 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     this.loadReclamations();
   }
 
+  trackById(_: number, r: Reclamation): number {
+    return r.id;
+  }
+
   openDetail(r: Reclamation): void {
+    this.closeDropdown();
     this.showDetail = true;
     this.detailLoading = true;
     this.selectedReclamation = null;
@@ -236,9 +238,78 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     return new Date(d).toLocaleDateString('fr-FR');
   }
 
+  // ───── Menu d'actions ─────
+  toggleDropdown(r: Reclamation, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.dropdownOpenId === r.id) {
+      this.closeDropdown();
+      return;
+    }
+    this.dropdownOpenId = r.id;
+    this.dropdownRec = r;
+    this.dropdownAnchor = event.currentTarget as HTMLElement;
+    this.positionDropdown();
+    setTimeout(() => this.positionDropdown());
+  }
+
+  closeDropdown(): void {
+    this.dropdownOpenId = null;
+    this.dropdownRec = null;
+    this.dropdownAnchor = null;
+    this.dropdownMenuUp = false;
+  }
+
+  runDropdownAction(action: ModalAction, r: Reclamation): void {
+    this.closeDropdown();
+    if (action) this.openActionModal(action, r);
+  }
+
+  private positionDropdown(): void {
+    if (!this.dropdownAnchor) return;
+    const anchor = this.dropdownAnchor.getBoundingClientRect();
+    const menu = this.dropdownMenuRef?.nativeElement;
+    const height = menu?.offsetHeight || this.dropdownFallbackHeight;
+    const width = menu?.offsetWidth || this.dropdownFallbackWidth;
+
+    const spaceBelow = window.innerHeight - anchor.bottom - this.viewportMargin;
+    const spaceAbove = anchor.top - this.viewportMargin;
+    this.dropdownMenuUp = spaceBelow < height && spaceAbove > spaceBelow;
+
+    const top = this.dropdownMenuUp
+      ? anchor.top - height - this.dropdownGap
+      : anchor.bottom + this.dropdownGap;
+
+    this.dropdownTop = this.clamp(top, this.viewportMargin, window.innerHeight - height - this.viewportMargin);
+    this.dropdownLeft = this.clamp(anchor.right - width, this.viewportMargin, window.innerWidth - width - this.viewportMargin);
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(value, Math.max(min, max)));
+  }
+
+  private onViewportChange = (): void => {
+    if (this.dropdownOpenId !== null) this.closeDropdown();
+  };
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown') && !target.closest('.dropdown-menu')) {
+      this.closeDropdown();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.dropdownOpenId !== null) { this.closeDropdown(); return; }
+    if (this.activeModal) { this.closeActionModal(); return; }
+    if (this.showDetail) this.closeDetail();
+  }
+
   // ───── Actions ─────
-  openActionModal(action: typeof this.activeModal, r: Reclamation): void {
+  openActionModal(action: ModalAction, r: Reclamation): void {
     this.activeModal = action;
+    this.modalRec = r;
     this.modalData = {
       statut: r.statut,
       priorite: r.priorite,
@@ -251,13 +322,28 @@ export class ReclamationComponent implements OnInit, OnDestroy {
 
   closeActionModal(): void {
     this.activeModal = null;
+    this.modalRec = null;
     this.modalLoading = false;
   }
 
+  modalTitle(): string {
+    const titles: Record<string, string> = {
+      statut: 'Changer le statut',
+      priorite: 'Changer la priorité',
+      assigner: 'Assigner le dossier',
+      note: 'Ajouter une note interne',
+      resoudre: 'Marquer comme résolu',
+      rejeter: 'Rejeter la réclamation',
+      fermer: 'Clôturer le dossier',
+      demande_infos: 'Demander des informations'
+    };
+    return this.activeModal ? titles[this.activeModal] : '';
+  }
+
   confirmAction(): void {
-    if (!this.selectedReclamation || !this.activeModal) return;
+    const rec = this.modalRec || this.selectedReclamation;
+    if (!rec || !this.activeModal) return;
     this.modalLoading = true;
-    const rec = this.selectedReclamation;
     let payload: ReclamationActionPayload | null = null;
 
     switch (this.activeModal) {
@@ -291,7 +377,7 @@ export class ReclamationComponent implements OnInit, OnDestroy {
 
     this.reclamationService.action(rec.id, payload).subscribe({
       next: (res) => {
-        this.selectedReclamation = res.reclamation;
+        if (this.selectedReclamation?.id === rec.id) this.selectedReclamation = res.reclamation;
         this.showNotification(res.message, 'success');
         this.closeActionModal();
         this.loadReclamations();
@@ -306,14 +392,15 @@ export class ReclamationComponent implements OnInit, OnDestroy {
 
   ouvrirDossier(r: Reclamation): void {
     this.reclamationService.action(r.id, { action: 'ouvrir' }).subscribe({
-      next: (res) => { this.showNotification('Dossier ouvert', 'success'); this.loadReclamations(); this.loadStats(); },
+      next: () => { this.showNotification('Dossier ouvert', 'success'); this.loadReclamations(); this.loadStats(); },
       error: (err) => this.showNotification(err?.error?.error || 'Erreur', 'error')
     });
   }
 
   // ───── Conversation ─────
-  onFileSelect(event: any): void {
-    this.selectedFiles = Array.from(event.target.files || []);
+  onFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFiles = Array.from(input.files || []);
   }
 
   removeFile(i: number): void {
@@ -345,8 +432,9 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     });
   }
 
-  onAttachmentUpload(event: any): void {
-    const file = event.target.files[0];
+  onAttachmentUpload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file || !this.selectedReclamation) return;
     this.reclamationService.uploadAttachment(this.selectedReclamation.id, file).subscribe({
       next: (res) => {
@@ -385,6 +473,16 @@ export class ReclamationComponent implements OnInit, OnDestroy {
       note_interne: 'Note interne', resolution: 'Résolution', rejet: 'Rejet', fermeture: 'Fermeture', modification: 'Modification'
     };
     return map[action] || action;
+  }
+
+  getHistoriqueIcon(action: string): string {
+    const map: Record<string, string> = {
+      creation: 'bi-plus-circle', ouverture: 'bi-unlock', reponse: 'bi-chat-left-text',
+      demande_infos: 'bi-question-circle', changement_priorite: 'bi-flag', changement_statut: 'bi-arrow-left-right',
+      assignation: 'bi-person-check', note_interne: 'bi-journal-text', resolution: 'bi-check-circle',
+      rejet: 'bi-x-circle', fermeture: 'bi-archive', modification: 'bi-pencil'
+    };
+    return map[action] || 'bi-dot';
   }
 
   getTempsResolution(heures: number): string {
