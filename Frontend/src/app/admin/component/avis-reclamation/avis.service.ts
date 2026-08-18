@@ -1,72 +1,154 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
-export type AvisStatus = 'visible' | 'masque' | 'moderation_requise';
+export interface Signalement {
+  id: number;
+  avis: number;
+  client_nom: string | null;
+  fournisseur_nom: string | null;
+  motif: string;
+  motif_label: string;
+  commentaire: string;
+  date: string;
+  statut: string;
+  statut_label: string;
+}
 
-export interface Avis {
-  id: string;
-  buyer: string;
-  productName: string;
-  vendor: string;
-  rating: number; // 1 à 5
-  comment: string;
-  date: string; // jj/mm/aaaa
-  status: AvisStatus;
-  adminReply?: string;
-  signalReason?: string;
+export interface AvisList {
+  id: number;
+  note: number;
+  commentaire: string;
+  date: string;
+  approuve: boolean;
+  achat_verifie: boolean;
+  client_nom: string | null;
+  client_prenom: string | null;
+  client_email: string | null;
+  client_photo: string | null;
+  produit_nom: string | null;
+  produit_image: string | null;
+  magasin_nom: string | null;
+  commande_reference: string | null;
+  fournisseur_nom: string | null;
+  nb_signalements: number;
+  signale_en_attente: boolean;
+  note_qualite_produit: number | null;
+  note_delai: number | null;
+  note_communication: number | null;
+  note_livraison: number | null;
+  reponse_fournisseur: string | null;
+  date_reponse: string | null;
+}
+
+export interface AvisDetail {
+  id: number;
+  note: number;
+  commentaire: string;
+  date: string;
+  approuve: boolean;
+  achat_verifie: boolean;
+  client: {
+    id: number;
+    nom: string;
+    prenom: string;
+    nom_complet: string;
+    email: string;
+    telephone: string | null;
+    photo: string | null;
+  } | null;
+  produit: {
+    id: number;
+    nom: string;
+    reference: string;
+    image: string | null;
+    prix: number | null;
+  } | null;
+  magasin: {
+    id: number;
+    nom_magasin: string;
+  } | null;
+  commande: {
+    id: number;
+    reference: string;
+    date_commande: string;
+    statut: string;
+    montant_total: number;
+  } | null;
+  note_qualite_produit: number | null;
+  note_delai: number | null;
+  note_communication: number | null;
+  note_livraison: number | null;
+  reponse_fournisseur: string | null;
+  date_reponse: string | null;
+  reponse_fournisseur_nom: string | null;
+  photos: any;
+  signalements: Signalement[];
+}
+
+export interface AvisStats {
+  total: number;
+  visibles: number;
+  masques: number;
+  signales: number;
+  signalements_en_attente: number;
+  note_moyenne: number;
+  achats_verifies: number;
+  par_note: { note: number; count: number }[];
+}
+
+export interface AvisFilters {
+  note?: string;
+  statut?: string;
+  achat_verifie?: string;
+  signale?: string;
+  periode?: string;
+  q?: string;
+}
+
+export interface AvisActionPayload {
+  action: 'approuver' | 'masquer' | 'repondre' | 'supprimer' | 'signaler';
+  reponse_admin?: string;
+  motif?: string;
+  commentaire?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AvisService {
-  private readonly apiUrl = 'http://127.0.0.1:8000/api/admin/avis/';
+  private readonly baseUrl = 'http://127.0.0.1:8000/api/admin/avis';
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<Avis[]> {
-    return this.http.get<any[]>(this.apiUrl).pipe(
-      map(list => list.map(a => this.mapBackendToUi(a)))
-    );
+  getAvis(filters: AvisFilters): Observable<AvisList[]> {
+    let params = new HttpParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, value);
+      }
+    });
+    return this.http.get<AvisList[]>(`${this.baseUrl}/v2/`, { params });
   }
 
-  setStatus(id: string, status: AvisStatus, signalReason?: string): Observable<Avis> {
-    const backendStatus = status === 'visible' ? 'visible' : 'masque';
-    return this.http.patch<any>(`${this.apiUrl}${id}/toggle-approve/`, {
-      approuve: backendStatus === 'visible',
-      signalReason: status === 'moderation_requise' ? signalReason : undefined
-    }).pipe(
-      map(a => this.mapBackendToUi(a))
-    );
+  getAvisDetail(id: number): Observable<AvisDetail> {
+    return this.http.get<AvisDetail>(`${this.baseUrl}/${id}/detail/`);
   }
 
-  reply(id: string, adminReply: string): Observable<Avis> {
-    return this.http.patch<any>(`${this.apiUrl}${id}/`, { reponse_admin: adminReply }).pipe(
-      map(a => this.mapBackendToUi(a))
-    );
+  getStats(): Observable<AvisStats> {
+    return this.http.get<AvisStats>(`${this.baseUrl}/stats/`);
   }
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}${id}/`);
+  action(id: number, payload: AvisActionPayload): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/${id}/action/`, payload);
   }
 
-  private mapBackendToUi(a: any): Avis {
-    return {
-      id: a.id?.toString() || '',
-      buyer: a.client_email || a.client?.user?.email || '',
-      productName: a.produit_nom || a.produit?.nom || '',
-      vendor: a.vendor || 'AutoMecaStore',
-      rating: a.note || 0,
-      comment: a.commentaire || '',
-      date: a.date_creation ? new Date(a.date_creation).toLocaleDateString('fr-FR') : '',
-      status: this.toUiStatus(a.approuve, a.signalReason),
-      adminReply: a.reponse_admin,
-      signalReason: a.signalReason
-    };
+  getSignalements(id: number): Observable<Signalement[]> {
+    return this.http.get<Signalement[]>(`${this.baseUrl}/${id}/signalements/`);
   }
 
-  private toUiStatus(approuve: boolean, signalReason?: string): AvisStatus {
-    if (signalReason) return 'moderation_requise';
-    return approuve ? 'visible' : 'masque';
+  updateSignalement(avisId: number, signalementId: number, statut: string): Observable<Signalement> {
+    return this.http.patch<Signalement>(`${this.baseUrl}/${avisId}/signalements/`, {
+      signalement_id: signalementId,
+      statut,
+    });
   }
 }

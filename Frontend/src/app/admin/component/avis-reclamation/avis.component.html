@@ -1,188 +1,551 @@
 <div class="avis-page">
 
-        <!-- PAGE HEADER -->
-    <div class="page-header fade-up">
-      <div class="page-title">
-        <div class="page-tag">
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Catalogue
-        </div>
-        <h2>Gestion des Avis</h2>
-        <p>Gérez les avis et réclamations des clients</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-star-half"></i>
+        Modération
       </div>
-
-      <div class="header-stats">
-        <div class="hs-item">
-          <span class="hs-val text-amber">{{ satisfactionGlobale }} / 5 ★</span>
-          <span class="hs-lbl">Satisfaction</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-blue">{{ commentairesAudites }}</span>
-          <span class="hs-lbl">Avis reçus</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-red">{{ avisSignales }}</span>
-          <span class="hs-lbl">Signalés</span>
-        </div>
-      </div>
+      <h2>Gestion des Avis</h2>
+      <p>Modérez les avis clients, traitez les signalements et répondez aux commentaires</p>
     </div>
 
-  <!-- Barre de filtres -->
+    <div class="header-stats" *ngIf="stats">
+      <div class="hs-item">
+        <span class="hs-val text-amber">{{ stats.note_moyenne }} / 5 ★</span>
+        <span class="hs-lbl">Note moyenne</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-blue">{{ stats.total }}</span>
+        <span class="hs-lbl">Avis reçus</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-red">{{ stats.signalements_en_attente }}</span>
+        <span class="hs-lbl">Signalements en attente</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-green">{{ stats.achats_verifies }}</span>
+        <span class="hs-lbl">Achats vérifiés</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-card stat-card--blue">
+      <div class="stat-icon"><i class="bi bi-star-fill"></i></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ stats.total }}</span>
+        <span class="stat-lbl">Total avis</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--green">
+      <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ stats.visibles }}</span>
+        <span class="stat-lbl">Visibles</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--gray">
+      <div class="stat-icon"><i class="bi bi-eye-slash"></i></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ stats.masques }}</span>
+        <span class="stat-lbl">Masqués</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--red">
+      <div class="stat-icon"><i class="bi bi-flag-fill"></i></div>
+      <div class="stat-body">
+        <span class="stat-val">{{ stats.signales }}</span>
+        <span class="stat-lbl">Signalés</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
   <div class="toolbar">
     <div class="toolbar__search">
       <i class="bi bi-search"></i>
       <input
         type="text"
-        placeholder="Rechercher par produit, acheteur, commentaire..."
+        placeholder="Rechercher par client, produit, commentaire..."
         [(ngModel)]="searchTerm"
-        (ngModelChange)="applyFilters()"
+        (ngModelChange)="onSearch()"
       />
     </div>
 
-    <select class="toolbar__select" [(ngModel)]="ratingFilter" (ngModelChange)="applyFilters()">
-      <option *ngFor="let opt of ratingOptions" [value]="opt.value">{{ opt.label }}</option>
+    <select class="toolbar__select" [(ngModel)]="filters.note" (ngModelChange)="onFilterChange()">
+      <option *ngFor="let opt of noteOptions" [value]="opt.value">{{ opt.label }}</option>
     </select>
 
-    <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
-      <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+    <select class="toolbar__select" [(ngModel)]="filters.statut" (ngModelChange)="onFilterChange()">
+      <option *ngFor="let opt of statutOptions" [value]="opt.value">{{ opt.label }}</option>
     </select>
+
+    <select class="toolbar__select" [(ngModel)]="filters.periode" (ngModelChange)="onFilterChange()">
+      <option *ngFor="let opt of periodeOptions" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+
+    <label class="toolbar__check">
+      <input type="checkbox" [checked]="filters.achat_verifie === 'true'" (change)="filters.achat_verifie = $any($event.target).checked ? 'true' : undefined; onFilterChange()" />
+      Achat vérifié
+    </label>
+
+    <label class="toolbar__check">
+      <input type="checkbox" [checked]="filters.signale === 'true'" (change)="filters.signale = $any($event.target).checked ? 'true' : undefined; onFilterChange()" />
+      Signalés
+    </label>
+
+    <button class="btn-text" (click)="resetFilters()">
+      <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+    </button>
   </div>
 
-  <!-- Chargement -->
+  <!-- LOADING -->
   <div class="avis-loading" *ngIf="loading">
     <div class="spinner"></div>
     <span>Chargement des avis...</span>
   </div>
 
-  <!-- Liste des avis -->
-  <div class="avis-list" *ngIf="!loading">
-    <div
-      class="avis-card"
-      *ngFor="let a of filtered; let i = index; trackBy: trackById"
-      [style.--delay]="(i * 60) + 'ms'"
-    >
-      <div class="avis-card__top">
-        <span class="avis-card__id">AVIS_ID: {{ a.id }}</span>
-        <div class="avis-card__top-right">
-          <span class="stars">
-            <i class="bi" *ngFor="let filled of stars(a.rating)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
-          </span>
-          <span class="badge" [class]="'badge--' + a.status">{{ statusLabel(a.status) }}</span>
-        </div>
-      </div>
+  <!-- ERROR -->
+  <div class="avis-error" *ngIf="error && !loading">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span>{{ error }}</span>
+    <button class="btn-text" (click)="loadData()">Réessayer</button>
+  </div>
 
-      <p class="avis-card__meta">
-        <strong>{{ a.buyer }}</strong> pour
-        <span class="avis-card__product">{{ a.productName }}</span>
-        <span class="muted">({{ a.vendor }})</span>
-      </p>
+  <!-- TABLE -->
+  <div class="table-wrapper" *ngIf="!loading && !error">
+    <table class="avis-table">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Produit</th>
+          <th>Note</th>
+          <th>Commentaire</th>
+          <th>Date</th>
+          <th>Statut</th>
+          <th>Sign.</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let a of avisList; let i = index; trackBy: trackById"
+          [class.row-signale]="a.signale_en_attente"
+          (click)="openDetail(a)"
+          [style.--delay]="(i * 40) + 'ms'"
+        >
+          <td>
+            <div class="cell-client">
+              <img *ngIf="a.client_photo" [src]="a.client_photo" class="client-avatar" alt="" />
+              <div class="client-avatar client-avatar--placeholder" *ngIf="!a.client_photo">
+                {{ (a.client_prenom || '?')[0] }}{{ (a.client_nom || '')[0] }}
+              </div>
+              <div class="client-info">
+                <span class="client-name">{{ a.client_prenom }} {{ a.client_nom }}</span>
+                <span class="client-email">{{ a.client_email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="cell-product">
+              <img *ngIf="a.produit_image" [src]="a.produit_image" class="product-thumb" alt="" />
+              <div class="product-thumb product-thumb--placeholder" *ngIf="!a.produit_image">
+                <i class="bi bi-box"></i>
+              </div>
+              <div class="product-info">
+                <span class="product-name">{{ a.produit_nom || '—' }}</span>
+                <span class="product-vendor" *ngIf="a.fournisseur_nom">{{ a.fournisseur_nom }}</span>
+                <span class="product-vendor" *ngIf="a.magasin_nom && !a.fournisseur_nom">{{ a.magasin_nom }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="stars-cell">
+              <i class="bi" *ngFor="let filled of stars(a.note)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
+            </div>
+          </td>
+          <td>
+            <div class="comment-cell" [title]="a.commentaire">{{ a.commentaire }}</div>
+          </td>
+          <td>
+            <span class="date-cell">{{ formatDateOnly(a.date) }}</span>
+          </td>
+          <td>
+            <span class="badge" [class]="'badge--' + getStatutColor(a)">
+              <i class="bi" [class]="getStatutIcon(a)"></i>
+              {{ getStatutLabel(a) }}
+            </span>
+            <i class="bi bi-patch-check-fill text-success ms-1" *ngIf="a.achat_verifie" title="Achat vérifié"></i>
+          </td>
+          <td>
+            <span class="signalements-badge" *ngIf="a.nb_signalements > 0" [class.signalements-badge--pending]="a.signale_en_attente">
+              {{ a.nb_signalements }}
+            </span>
+            <span *ngIf="a.nb_signalements === 0" class="text-muted">—</span>
+          </td>
+          <td class="col-actions">
+            <div class="dropdown">
+              <button class="btn-icon" (click)="toggleDropdown(a, $event)" [class.active]="dropdownOpenId === a.id">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <div class="comment-box">
-        <p>&ldquo;{{ a.comment }}&rdquo;</p>
-      </div>
-
-      <div class="signal-banner" *ngIf="a.status === 'moderation_requise' && a.signalReason">
-        <i class="bi bi-flag-fill"></i>
-        <span>{{ a.signalReason }}</span>
-      </div>
-
-      <div class="reply-box" *ngIf="a.adminReply">
-        <span class="reply-box__label"><i class="bi bi-reply-fill"></i> Réponse de l'équipe AutoMecaStore</span>
-        <p>{{ a.adminReply }}</p>
-      </div>
-
-      <div class="avis-card__bottom">
-        <span class="muted">Soumis le {{ a.date }}</span>
-
-        <div class="avis-card__actions">
-          <button class="btn-outline" (click)="openReply(a)">
-            <i class="bi bi-reply"></i> {{ a.adminReply ? 'Modifier la réponse' : 'Répondre exceptionnellement' }}
-          </button>
-
-          <button class="btn-outline" *ngIf="a.status !== 'masque'" (click)="toggleVisibility(a)">
-            <i class="bi bi-eye-slash"></i> Masquer l'avis
-          </button>
-          <button class="btn-outline btn-outline--green" *ngIf="a.status === 'masque'" (click)="toggleVisibility(a)">
-            <i class="bi bi-eye"></i> Rétablir
-          </button>
-
-          <button class="btn-outline btn-outline--green" *ngIf="a.status === 'moderation_requise'" (click)="toggleVisibility(a)">
-            <i class="bi bi-check-lg"></i> Rétablir
-          </button>
-
-          <button class="btn-link btn-link--danger" *ngIf="a.status === 'visible'" (click)="askSignal(a)">
-            Signaler
-          </button>
-
-          <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(a)">
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="avis-empty" *ngIf="filtered.length === 0">
+    <div class="avis-empty" *ngIf="avisList.length === 0">
       <i class="bi bi-inboxes"></i>
       <p>Aucun avis ne correspond à ces filtres.</p>
     </div>
   </div>
 
-  <!-- ===================== MODALE GÉNÉRIQUE ===================== -->
-  <div class="modal-backdrop" *ngIf="activeModal" (click)="closeModal()">
+  <!-- DROPDOWN MENU -->
+  <div
+    class="dropdown-menu"
+    *ngIf="dropdownOpenId !== null && dropdownAvis"
+    [style.top.px]="dropdownTop"
+    [style.left.px]="dropdownLeft"
+    [class.dropdown-menu--up]="dropdownMenuUp"
+    #dropdownMenu
+  >
+    <button class="dropdown-item" (click)="openDetail(dropdownAvis!)">
+      <i class="bi bi-eye"></i> Voir détail
+    </button>
+    <button class="dropdown-item" (click)="toggleVisibility(dropdownAvis!)">
+      <i class="bi bi-eye" *ngIf="!dropdownAvis!.approuve"></i>
+      <i class="bi bi-eye-slash" *ngIf="dropdownAvis!.approuve"></i>
+      {{ dropdownAvis!.approuve ? 'Masquer' : 'Rendre visible' }}
+    </button>
+    <button class="dropdown-item" (click)="runDropdownAction('repondre', dropdownAvis!)">
+      <i class="bi bi-reply"></i> Répondre
+    </button>
+    <button class="dropdown-item" (click)="runDropdownAction('signaler', dropdownAvis!)">
+      <i class="bi bi-flag"></i> Signaler
+    </button>
+    <div class="dropdown-divider"></div>
+    <button class="dropdown-item dropdown-item--danger" (click)="runDropdownAction('supprimer', dropdownAvis!)">
+      <i class="bi bi-trash"></i> Supprimer
+    </button>
+  </div>
+
+  <!-- DETAIL DRAWER -->
+  <div class="drawer-backdrop" *ngIf="showDetail" (click)="closeDetail()"></div>
+  <div class="drawer" [class.drawer--open]="showDetail">
+    <div class="drawer-header" *ngIf="!detailLoading && selectedAvis">
+      <div class="drawer-header__info">
+        <h3>Avis #{{ selectedAvis.id }}</h3>
+        <div class="drawer-header__meta">
+          <div class="stars-cell">
+            <i class="bi" *ngFor="let filled of stars(selectedAvis.note)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
+          </div>
+          <span class="badge" [class]="'badge--' + getDetailStatutColor(selectedAvis)">
+            {{ getDetailStatutLabel(selectedAvis) }}
+          </span>
+          <i class="bi bi-patch-check-fill text-success" *ngIf="selectedAvis.achat_verifie" title="Achat vérifié"></i>
+        </div>
+      </div>
+      <button class="btn-icon" (click)="closeDetail()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="drawer-loading" *ngIf="detailLoading">
+      <div class="spinner"></div>
+      <span>Chargement du détail...</span>
+    </div>
+
+    <div class="drawer-body" *ngIf="!detailLoading && selectedAvis">
+      <!-- TABS -->
+      <div class="drawer-tabs">
+        <button
+          *ngFor="let tab of tabs; let i = index"
+          class="drawer-tab"
+          [class.active]="detailTab === i"
+          (click)="detailTab = i"
+        >
+          <i class="bi" [class]="tab.icon"></i>
+          {{ tab.label }}
+          <span class="tab-badge" *ngIf="tab.key === 'signalements' && selectedAvis.signalements && selectedAvis.signalements.length">{{ selectedAvis.signalements.length }}</span>
+          <span class="tab-badge" *ngIf="tab.key === 'photos' && getPhotos(selectedAvis).length">{{ getPhotos(selectedAvis).length }}</span>
+        </button>
+      </div>
+
+      <!-- TAB: INFOS -->
+      <div class="tab-content" *ngIf="detailTab === 0">
+        <div class="info-section">
+          <h4 class="info-title"><i class="bi bi-person"></i> Client</h4>
+          <div class="info-grid" *ngIf="selectedAvis.client">
+            <div class="info-item">
+              <span class="info-label">Nom</span>
+              <span class="info-value">{{ selectedAvis.client.nom_complet }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ selectedAvis.client.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Téléphone</span>
+              <span class="info-value">{{ selectedAvis.client.telephone || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h4 class="info-title"><i class="bi bi-box"></i> Produit</h4>
+          <div class="info-grid" *ngIf="selectedAvis.produit">
+            <div class="info-item">
+              <span class="info-label">Nom</span>
+              <span class="info-value">{{ selectedAvis.produit.nom }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Référence</span>
+              <span class="info-value">{{ selectedAvis.produit.reference || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Prix</span>
+              <span class="info-value">{{ selectedAvis.produit.prix ? selectedAvis.produit.prix + ' FCFA' : '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="selectedAvis.magasin">
+          <h4 class="info-title"><i class="bi bi-shop"></i> Magasin</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Nom</span>
+              <span class="info-value">{{ selectedAvis.magasin.nom_magasin }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="selectedAvis.commande">
+          <h4 class="info-title"><i class="bi bi-receipt"></i> Commande</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Référence</span>
+              <span class="info-value">{{ selectedAvis.commande.reference }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Date</span>
+              <span class="info-value">{{ formatDateOnly(selectedAvis.commande.date_commande) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Statut</span>
+              <span class="info-value">{{ selectedAvis.commande.statut }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Montant</span>
+              <span class="info-value">{{ selectedAvis.commande.montant_total }} FCFA</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h4 class="info-title"><i class="bi bi-star"></i> Évaluation</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Note globale</span>
+              <span class="info-value">
+                <span class="stars-cell">
+                  <i class="bi" *ngFor="let filled of stars(selectedAvis.note)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
+                </span>
+              </span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.note_qualite_produit">
+              <span class="info-label">Qualité produit</span>
+              <span class="info-value">{{ selectedAvis.note_qualite_produit }}/5</span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.note_delai">
+              <span class="info-label">Délai</span>
+              <span class="info-value">{{ selectedAvis.note_delai }}/5</span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.note_communication">
+              <span class="info-label">Communication</span>
+              <span class="info-value">{{ selectedAvis.note_communication }}/5</span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.note_livraison">
+              <span class="info-label">Livraison</span>
+              <span class="info-value">{{ selectedAvis.note_livraison }}/5</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Achat vérifié</span>
+              <span class="info-value">
+                <i class="bi" [class.bi-check-circle-fill]="selectedAvis.achat_verifie" [class.bi-x-circle]="!selectedAvis.achat_verifie" [class.text-success]="selectedAvis.achat_verifie" [class.text-muted]="!selectedAvis.achat_verifie"></i>
+                {{ selectedAvis.achat_verifie ? 'Oui' : 'Non' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h4 class="info-title"><i class="bi bi-chat-dots"></i> Commentaire</h4>
+          <div class="comment-box">
+            <p>{{ selectedAvis.commentaire }}</p>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="selectedAvis.reponse_fournisseur">
+          <h4 class="info-title"><i class="bi bi-reply-fill"></i> Réponse</h4>
+          <div class="reply-box">
+            <span class="reply-box__label">
+              {{ selectedAvis.reponse_fournisseur_nom || 'Vendeur' }} — {{ formatDate(selectedAvis.date_reponse) }}
+            </span>
+            <p>{{ selectedAvis.reponse_fournisseur }}</p>
+          </div>
+        </div>
+
+        <div class="drawer-actions">
+          <button class="btn-outline" (click)="openActionModal('repondre', selectedAvis)">
+            <i class="bi bi-reply"></i> Répondre
+          </button>
+          <button class="btn-outline" (click)="toggleVisibilityDetail(selectedAvis)">
+            <i class="bi bi-eye-slash" *ngIf="selectedAvis.approuve"></i>
+            <i class="bi bi-eye" *ngIf="!selectedAvis.approuve"></i>
+            {{ selectedAvis.approuve ? 'Masquer' : 'Rendre visible' }}
+          </button>
+          <button class="btn-outline btn-outline--danger" (click)="openActionModal('supprimer', selectedAvis)">
+            <i class="bi bi-trash"></i> Supprimer
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB: SIGNALEMENTS -->
+      <div class="tab-content" *ngIf="detailTab === 1">
+        <div *ngIf="!selectedAvis.signalements || selectedAvis.signalements.length === 0" class="empty-tab">
+          <i class="bi bi-flag"></i>
+          <p>Aucun signalement pour cet avis.</p>
+        </div>
+
+        <div class="signalement-list" *ngIf="selectedAvis.signalements?.length">
+          <div class="signalement-card" *ngFor="let s of selectedAvis.signalements">
+            <div class="signalement-card__header">
+              <span class="signalement-motif">
+                <i class="bi" [class]="getMotifIcon(s.motif)"></i>
+                {{ getMotifLabel(s.motif) }}
+              </span>
+              <span class="badge" [class]="'badge--' + (s.statut === 'en_attente' ? 'red' : s.statut === 'traite' ? 'green' : 'gray')">
+                {{ s.statut === 'en_attente' ? 'En attente' : s.statut === 'traite' ? 'Traité' : 'Rejeté' }}
+              </span>
+            </div>
+            <div class="signalement-card__meta">
+              <span *ngIf="s.client_nom"><i class="bi bi-person"></i> {{ s.client_nom }}</span>
+              <span *ngIf="s.fournisseur_nom"><i class="bi bi-shop"></i> {{ s.fournisseur_nom }}</span>
+              <span><i class="bi bi-clock"></i> {{ formatDate(s.date) }}</span>
+            </div>
+            <p class="signalement-card__comment" *ngIf="s.commentaire">{{ s.commentaire }}</p>
+            <div class="signalement-card__actions" *ngIf="s.statut === 'en_attente'">
+              <button class="btn-outline btn-outline--green" (click)="traiterSignalement(s, 'traite')">
+                <i class="bi bi-check-lg"></i> Marquer traité
+              </button>
+              <button class="btn-outline" (click)="traiterSignalement(s, 'rejete')">
+                <i class="bi bi-x-lg"></i> Rejeter
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: PHOTOS -->
+      <div class="tab-content" *ngIf="detailTab === 2">
+        <div *ngIf="getPhotos(selectedAvis).length === 0" class="empty-tab">
+          <i class="bi bi-images"></i>
+          <p>Aucune photo pour cet avis.</p>
+        </div>
+        <div class="photos-grid" *ngIf="getPhotos(selectedAvis).length > 0">
+          <div class="photo-item" *ngFor="let photo of getPhotos(selectedAvis)">
+            <img [src]="photo" alt="Photo avis" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION MODAL -->
+  <div class="modal-backdrop" *ngIf="activeModal" (click)="closeActionModal()">
     <div class="modal" (click)="$event.stopPropagation()">
+      <h3 class="modal__title">{{ modalTitle() }}</h3>
 
       <ng-container [ngSwitch]="activeModal">
-
-        <ng-container *ngSwitchCase="'reply'">
-          <h3 class="modal__title">Répondre à {{ targetAvis?.buyer }}</h3>
+        <!-- REPLY -->
+        <ng-container *ngSwitchCase="'repondre'">
+          <p class="modal__text">Votre réponse sera visible publiquement sous l'avis.</p>
           <div class="field">
-            <label>Réponse publique de l'équipe</label>
+            <label>Réponse</label>
             <textarea
               rows="4"
               placeholder="Merci pour votre retour, nous avons transmis l'information au vendeur..."
-              [(ngModel)]="textInput"
+              [(ngModel)]="modalData.reponse_admin"
               [ngModelOptions]="{ standalone: true }"
             ></textarea>
           </div>
         </ng-container>
 
-        <ng-container *ngSwitchCase="'signal'">
-          <h3 class="modal__title">Signaler cet avis pour modération</h3>
+        <!-- SIGNAL -->
+        <ng-container *ngSwitchCase="'signaler'">
+          <p class="modal__text">Signaler cet avis pour modération.</p>
           <div class="field">
-            <label>Motif du signalement</label>
+            <label>Motif</label>
+            <select [(ngModel)]="modalData.motif" [ngModelOptions]="{ standalone: true }">
+              <option value="inapproprie">Contenu inapproprié</option>
+              <option value="faux">Faux avis</option>
+              <option value="offensant">Langage offensant</option>
+              <option value="insulte">Insulte</option>
+              <option value="spam">Spam</option>
+              <option value="informations_fausses">Informations fausses</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Commentaire (optionnel)</label>
             <textarea
               rows="3"
-              placeholder="ex: Langage inapproprié, accusation non vérifiée..."
-              [(ngModel)]="textInput"
+              placeholder="Détails du signalement..."
+              [(ngModel)]="modalData.commentaire"
               [ngModelOptions]="{ standalone: true }"
             ></textarea>
           </div>
         </ng-container>
 
-        <ng-container *ngSwitchCase="'delete'">
-          <h3 class="modal__title">Supprimer cet avis ?</h3>
+        <!-- DELETE -->
+        <ng-container *ngSwitchCase="'supprimer'">
           <p class="modal__text">
-            L'avis de <strong>{{ targetAvis?.buyer }}</strong> sera définitivement supprimé. Cette action est irréversible.
+            L'avis sera définitivement supprimé. Cette action est irréversible.
           </p>
         </ng-container>
-
       </ng-container>
 
       <div class="modal__footer">
-        <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">Annuler</button>
+        <button type="button" class="btn-text" (click)="closeActionModal()" [disabled]="modalLoading">Annuler</button>
         <button
           type="button"
           class="btn-text"
-          [class.btn-text--danger]="activeModal === 'delete' || activeModal === 'signal'"
-          [disabled]="submitting"
-          (click)="confirmModal()"
+          [class.btn-text--danger]="activeModal === 'supprimer' || activeModal === 'signaler'"
+          [disabled]="modalLoading"
+          (click)="confirmAction()"
         >
-          <span *ngIf="!submitting">
-            {{ activeModal === 'reply' ? 'Envoyer' : activeModal === 'signal' ? 'Signaler' : 'Supprimer' }}
+          <span *ngIf="!modalLoading">
+            {{ activeModal === 'repondre' ? 'Envoyer' : activeModal === 'signaler' ? 'Signaler' : 'Supprimer' }}
           </span>
-          <span *ngIf="submitting">Traitement...</span>
+          <span *ngIf="modalLoading">Traitement...</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="notifications">
+    <div
+      *ngFor="let n of notifications"
+      class="notification"
+      [class]="'notification--' + n.type"
+      (click)="removeNotification(n.id)"
+    >
+      <i class="bi" [class.bi-check-circle-fill]="n.type === 'success'" [class.bi-exclamation-circle-fill]="n.type === 'error'" [class.bi-info-circle-fill]="n.type === 'info'"></i>
+      <span>{{ n.message }}</span>
     </div>
   </div>
 
