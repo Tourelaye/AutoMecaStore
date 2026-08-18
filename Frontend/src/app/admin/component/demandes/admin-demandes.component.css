@@ -1,0 +1,156 @@
+.admin-demandes-page {
+  padding: 24px;
+}
+
+h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-bar input {
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 260px;
+}
+
+.search-bar button {
+  padding: 10px 18px;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.loading, .empty {
+  padding: 24px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.demandes-table-wrap {
+  overflow-x: auto;
+}
+
+.demandes-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.demandes-table th,
+.demandes-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.demandes-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: #f9fafb;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.offres {
+  color: #f97316;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.statut-nouvelle, .statut-en_recherche { background: #eff6ff; color: #1e40af; }
+.statut-offres_recues { background: #fff7ed; color: #f97316; }
+.statut-acceptee, .statut-commande_creee { background: #f0fdf4; color: #15803d; }
+.statut-terminee { background: #f3f4f6; color: #374151; }
+.statut-annulee { background: #fef2f2; color: #b91c1c; }
+
+.detail-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.detail-content {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.detail-item .label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.actions {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actions select {
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.btn-close {
+  width: 100%;
+  padding: 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}

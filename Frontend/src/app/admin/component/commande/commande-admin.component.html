@@ -1,0 +1,428 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <app-header></app-header>
+
+  <main class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-cart-check-fill"></i>
+          Commandes
+        </div>
+        <h2>Gestion des commandes</h2>
+        <p>Suivez et supervisez toutes les commandes du marketplace en temps réel</p>
+      </div>
+      <div class="header-right">
+        <div class="header-stats" *ngIf="stats">
+          <div class="hs-item">
+            <span class="hs-val">{{ stats.total }}</span>
+            <span class="hs-lbl">Total</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-amber">{{ stats.aujourdhui }}</span>
+            <span class="hs-lbl">Aujourd'hui</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-green">{{ stats.terminees }}</span>
+            <span class="hs-lbl">Terminées</span>
+          </div>
+          <div class="hs-item">
+            <span class="hs-val text-red">{{ stats.annulees }}</span>
+            <span class="hs-lbl">Annulées</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-refresh" (click)="loadAll()" [disabled]="loading">
+            <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+            Actualiser
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTES -->
+    <div class="alerts-bar" *ngIf="alertes.length > 0">
+      <div class="alert-card" *ngFor="let a of alertes.slice(0, 4)" [class]="getAlertClass(a.type)" (click)="openDetailById(a.commande_id!)">
+        <i class="bi" [class]="getAlertIcon(a.type)"></i>
+        <div class="alert-body">
+          <span class="alert-label">{{ a.label }}</span>
+          <span class="alert-ref">{{ a.reference }}</span>
+        </div>
+      </div>
+      <div class="alert-count" *ngIf="alertes.length > 4">+{{ alertes.length - 4 }} alertes</div>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid" *ngIf="stats">
+      <div class="stat-card fade-up delay-1">
+        <i class="bi bi-cart stat-icon text-blue"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ stats.total }}</span>
+          <span class="stat-lbl">Commandes totales</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-1">
+        <i class="bi bi-calendar-check stat-icon text-green"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ stats.aujourdhui }}</span>
+          <span class="stat-lbl">Commandes aujourd'hui</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-2">
+        <i class="bi bi-check-circle stat-icon text-teal"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ stats.terminees }}</span>
+          <span class="stat-lbl">Commandes terminées</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-2">
+        <i class="bi bi-x-circle stat-icon text-red"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ stats.annulees }}</span>
+          <span class="stat-lbl">Commandes annulées</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-3">
+        <i class="bi bi-cash-stack stat-icon text-purple"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ formatMontant(stats.montant_total) }}</span>
+          <span class="stat-lbl">Montant total</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-3">
+        <i class="bi bi-basket stat-icon text-amber"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ formatMontant(stats.panier_moyen) }}</span>
+          <span class="stat-lbl">Panier moyen</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar fade-up delay-2">
+      <div class="search-box" [class.focused]="searchFocused">
+        <i class="bi bi-search search-ic"></i>
+        <input type="text" placeholder="Rechercher par référence, client, magasin, téléphone..."
+               [(ngModel)]="searchTerm" (input)="searchCommandes()"
+               (focus)="searchFocused = true" (blur)="searchFocused = false">
+        <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; searchCommandes()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="filter-group">
+        <select [(ngModel)]="filtres.periode" (change)="setPeriode($any($event.target).value)">
+          <option *ngFor="let p of periodes" [value]="p.value">{{ p.label }}</option>
+        </select>
+
+        <select [(ngModel)]="filtres.statut" (change)="onFiltreChange()">
+          <option value="">Tous les statuts</option>
+          <option *ngFor="let s of statutsPossibles" [value]="s.value">{{ s.label }}</option>
+        </select>
+
+        <select [(ngModel)]="filtres.mode_paiement" (change)="onFiltreChange()">
+          <option *ngFor="let m of modesPaiement" [value]="m.value">{{ m.label }}</option>
+        </select>
+
+        <select [(ngModel)]="filtres.mode_reception" (change)="onFiltreChange()">
+          <option *ngFor="let m of modesReception" [value]="m.value">{{ m.label }}</option>
+        </select>
+
+        <button class="btn-reset" (click)="resetFilters()">
+          <i class="bi bi-x-lg"></i>
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL TABLE -->
+    <div class="panel fade-up delay-3">
+
+      <div class="loading-state" *ngIf="loading && commandes.length === 0">
+        <div class="spinner"></div>
+        <p>Chargement des commandes...</p>
+      </div>
+
+      <div class="error-state" *ngIf="error && !loading">
+        <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h4>Erreur de chargement</h4>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="loadAll()">
+          <i class="bi bi-arrow-clockwise"></i> Réessayer
+        </button>
+      </div>
+
+      <div class="table-wrap" *ngIf="!error">
+        <div class="table-head">
+          <span class="th">Référence</span>
+          <span class="th">Date</span>
+          <span class="th">Client</span>
+          <span class="th">Magasin(s)</span>
+          <span class="th text-center">Produits</span>
+          <span class="th text-right">Montant</span>
+          <span class="th">Paiement</span>
+          <span class="th">Mode</span>
+          <span class="th">Statut</span>
+          <span class="th">Actions</span>
+        </div>
+
+        <div class="table-row" *ngFor="let c of commandesFiltrees; let i = index; trackBy: trackByCommandeId"
+             [style.--i]="i">
+
+          <div class="td">
+            <span class="ref-badge" (click)="openDetail(c)">{{ c.reference || '#' + c.id }}</span>
+          </div>
+
+          <div class="td">
+            <span class="date-chip">
+              <i class="bi bi-calendar3"></i>
+              {{ formatDate(c.date_commande) }}
+            </span>
+          </div>
+
+          <div class="td">
+            <div class="client-cell" *ngIf="c.client">
+              <div class="client-av">{{ getClientInitials(c.client) }}</div>
+              <div class="client-name">
+                <span>{{ getClientFullName(c.client) }}</span>
+                <small *ngIf="c.client.telephone">{{ c.client.telephone }}</small>
+              </div>
+            </div>
+            <span *ngIf="!c.client">-</span>
+          </div>
+
+          <div class="td">
+            <div class="magasins-list">
+              <span class="magasin-chip" *ngFor="let m of c.magasins.slice(0, 2)">{{ m }}</span>
+              <span class="more-chip" *ngIf="c.magasins.length > 2">+{{ c.magasins.length - 2 }}</span>
+            </div>
+          </div>
+
+          <div class="td text-center">
+            <span class="count-chip">{{ c.nombre_produits }}</span>
+          </div>
+
+          <div class="td text-right">
+            <span class="montant-chip">{{ formatMontant(c.montant_total) }}</span>
+          </div>
+
+          <div class="td">
+            <span class="mode-chip">{{ getPaiementLabel(c.mode_paiement) }}</span>
+          </div>
+
+          <div class="td">
+            <span class="mode-chip">{{ getReceptionLabel(c.mode_reception) }}</span>
+          </div>
+
+          <div class="td">
+            <span class="status-badge" [ngClass]="getStatutClass(c.statut)">
+              <i class="bi" [ngClass]="getStatutIcon(c.statut)"></i>
+              {{ getStatutLabel(c.statut) }}
+            </span>
+            <span class="alert-dot" *ngIf="c.alertes.length > 0" [title]="c.alertes[0].label"></span>
+          </div>
+
+          <div class="td actions-cell">
+            <button class="btn-icon" (click)="openDetail(c)" title="Consulter"><i class="bi bi-eye"></i></button>
+            <div class="dropdown">
+              <button class="btn-icon" (click)="openActionModal('note', c)" title="Note"><i class="bi bi-journal-text"></i></button>
+              <button class="btn-icon" (click)="openActionModal('intervention', c)" title="Intervention"><i class="bi bi-tools"></i></button>
+              <button class="btn-icon" (click)="openActionModal('contact_fournisseur', c)" title="Contacter fournisseur"><i class="bi bi-shop"></i></button>
+              <button class="btn-icon" (click)="openActionModal('contact_client', c)" title="Contacter client"><i class="bi bi-person-lines-fill"></i></button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="empty-state" *ngIf="!loading && commandesFiltrees.length === 0">
+          <div class="empty-icon"><i class="bi bi-cart-x"></i></div>
+          <h4>Aucune commande trouvée</h4>
+          <p *ngIf="searchTerm">Aucun résultat pour "{{ searchTerm }}"</p>
+          <p *ngIf="!searchTerm">Aucune commande avec ces filtres.</p>
+        </div>
+
+      </div>
+
+      <div class="table-footer" *ngIf="commandesFiltrees.length > 0">
+        <span>{{ commandesFiltrees.length }} commande(s) affichée(s)</span>
+        <div class="footer-actions">
+          <button class="btn-export" (click)="exportCSV()"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+          <button class="btn-export" (click)="exportPDF()"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+          <span class="tf-total">Total : {{ formatMontant(getTotalMontant()) }}</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- DETAIL SIDEBAR -->
+<div class="detail-overlay" *ngIf="showDetail" (click)="closeDetail()">
+  <div class="detail-drawer" *ngIf="selectedCommande" (click)="$event.stopPropagation()">
+
+    <div class="detail-header">
+      <div>
+        <h3>{{ selectedCommande.reference || '#' + selectedCommande.id }}</h3>
+        <span class="detail-date">{{ formatDate(selectedCommande.date_commande) }}</span>
+      </div>
+      <div class="detail-actions">
+        <button class="btn-icon" (click)="printDetail()" title="Imprimer"><i class="bi bi-printer"></i></button>
+        <button class="btn-icon" (click)="exportCSV()" title="Exporter Excel"><i class="bi bi-file-earmark-excel"></i></button>
+        <button class="btn-icon" (click)="closeDetail()" title="Fermer"><i class="bi bi-x-lg"></i></button>
+      </div>
+    </div>
+
+    <div class="detail-status">
+      <span class="status-badge" [ngClass]="getStatutClass(selectedCommande.statut)">
+        <i class="bi" [ngClass]="getStatutIcon(selectedCommande.statut)"></i>
+        {{ getStatutLabel(selectedCommande.statut) }}
+      </span>
+      <span class="detail-montant">{{ formatMontant(selectedCommande.montant_total) }}</span>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="detail-section">
+      <h4><i class="bi bi-clock-history"></i> Chronologie</h4>
+      <div class="timeline">
+        <div class="timeline-item" *ngFor="let t of getTimeline()"
+             [class.completed]="t.completed" [class.active]="t.active" [class.note]="t.isNote">
+          <div class="timeline-icon"><i class="bi" [class]="t.icon"></i></div>
+          <div class="timeline-body">
+            <span class="timeline-label">{{ t.label }}</span>
+            <span class="timeline-meta" *ngIf="t.date">{{ t.date }} — {{ t.utilisateur }}</span>
+            <span class="timeline-meta" *ngIf="!t.date && !t.isNote">En attente</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="detail-tabs">
+      <button [class.active]="activeTab === 'produits'" (click)="activeTab = 'produits'">Produits</button>
+      <button [class.active]="activeTab === 'client'" (click)="activeTab = 'client'">Client & Livraison</button>
+      <button [class.active]="activeTab === 'historique'" (click)="activeTab = 'historique'">Historique</button>
+    </div>
+
+    <div class="detail-body">
+
+      <div class="tab-panel" *ngIf="activeTab === 'produits'">
+        <div class="products-list">
+          <div class="product-row" *ngFor="let l of selectedCommande.lignes">
+            <img [src]="l.produit?.image || 'assets/img/placeholder.png'" alt="" class="product-thumb">
+            <div class="product-info">
+              <span class="product-name">{{ l.produit?.nom }}</span>
+              <span class="product-store" *ngIf="l.magasin"><i class="bi bi-shop"></i> {{ l.magasin.nom }}</span>
+            </div>
+            <div class="product-qty">x{{ l.quantite }}</div>
+            <div class="product-price">{{ formatMontant(l.prix_unitaire) }}</div>
+            <div class="product-total">{{ formatMontant(l.sous_total) }}</div>
+          </div>
+        </div>
+        <div class="pricing-summary">
+          <div class="price-line"><span>Sous-total</span><span>{{ formatMontant(selectedCommande.montant_total - selectedCommande.frais_livraison) }}</span></div>
+          <div class="price-line"><span>Frais de livraison</span><span>{{ formatMontant(selectedCommande.frais_livraison) }}</span></div>
+          <div class="price-line total"><span>Total</span><span>{{ formatMontant(selectedCommande.montant_total) }}</span></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" *ngIf="activeTab === 'client'">
+        <div class="info-block">
+          <h5>Client</h5>
+          <p><strong>{{ getClientFullName(selectedCommande.client) }}</strong></p>
+          <p *ngIf="selectedCommande.client?.email"><i class="bi bi-envelope"></i> {{ selectedCommande.client?.email }}</p>
+          <p *ngIf="selectedCommande.client?.telephone"><i class="bi bi-telephone"></i> {{ selectedCommande.client?.telephone }}</p>
+          <p *ngIf="selectedCommande.client?.adresse"><i class="bi bi-geo-alt"></i> {{ selectedCommande.client?.adresse }}</p>
+        </div>
+        <div class="info-block" *ngIf="selectedCommande.livraison">
+          <h5>Livraison</h5>
+          <p><span class="label">Statut</span><span class="value">{{ selectedCommande.livraison.statut }}</span></p>
+          <p *ngIf="selectedCommande.livraison.livreur"><span class="label">Livreur</span><span class="value">{{ selectedCommande.livraison.livreur }}</span></p>
+          <p *ngIf="selectedCommande.livraison.date_livraison"><span class="label">Date</span><span class="value">{{ formatDate(selectedCommande.livraison.date_livraison) }}</span></p>
+          <p *ngIf="selectedCommande.livraison.frais_livraison !== undefined"><span class="label">Frais</span><span class="value">{{ formatMontant(selectedCommande.livraison.frais_livraison) }}</span></p>
+          <p *ngIf="selectedCommande.livraison.remarque"><span class="label">Remarque</span><span class="value">{{ selectedCommande.livraison.remarque }}</span></p>
+        </div>
+        <div class="info-block" *ngIf="!selectedCommande.livraison">
+          <h5>Livraison</h5>
+          <p>Aucune information de livraison.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel" *ngIf="activeTab === 'historique'">
+        <div class="history-list">
+          <div class="history-item" *ngFor="let h of selectedCommande.historique">
+            <div class="history-icon"><i class="bi" [class]="h.statut ? getStatutIcon(h.statut) : 'bi-journal-text'"></i></div>
+            <div class="history-body">
+              <span class="history-title">{{ h.statut ? (h.statut_label || getStatutLabel(h.statut)) : h.commentaire }}</span>
+              <span class="history-meta" *ngIf="h.motif">Motif : {{ h.motif }}</span>
+              <span class="history-meta">{{ formatDate(h.date) }} — {{ h.utilisateur }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="detail-footer" *ngIf="selectedCommande">
+      <button class="btn-action" (click)="openActionModal('contact_fournisseur', selectedCommande!)"><i class="bi bi-shop"></i> Fournisseur</button>
+      <button class="btn-action" (click)="openActionModal('contact_client', selectedCommande!)"><i class="bi bi-person-lines-fill"></i> Client</button>
+      <button class="btn-action" (click)="openActionModal('intervention', selectedCommande!)"><i class="bi bi-tools"></i> Intervention</button>
+      <button class="btn-action" (click)="openActionModal('note', selectedCommande!)"><i class="bi bi-journal-text"></i> Note</button>
+      <button class="btn-action exceptional" (click)="openActionModal('exception_status', selectedCommande!)"><i class="bi bi-exclamation-triangle"></i> Statut exceptionnel</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ACTION MODAL -->
+<div class="modal-overlay" *ngIf="activeModal" (click)="closeActionModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ modalTitle }}</h3>
+      <button class="btn-icon" (click)="closeActionModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <p *ngIf="activeModal !== 'exception_status'" class="modal-help">
+        Commande <strong>{{ modalCommande?.reference || '#' + modalCommande?.id }}</strong>
+      </p>
+
+      <div class="field" *ngIf="activeModal === 'exception_status'">
+        <label>Nouveau statut</label>
+        <select [(ngModel)]="modalStatut">
+          <option *ngFor="let s of statutsPossibles" [value]="s.value">{{ s.label }}</option>
+        </select>
+      </div>
+
+      <div class="field" *ngIf="activeModal === 'exception_status'">
+        <label>Motif obligatoire</label>
+        <textarea [(ngModel)]="modalMotif" rows="4" placeholder="Expliquez la raison de cette mise à jour exceptionnelle..."></textarea>
+      </div>
+
+      <div class="field" *ngIf="activeModal !== 'exception_status'">
+        <label>Message / Commentaire</label>
+        <textarea [(ngModel)]="modalMessage" rows="5" placeholder="Saisissez votre message..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeActionModal()">Annuler</button>
+      <button class="btn-primary" (click)="submitAction()" [disabled]="activeModal === 'exception_status' && (!modalMotif || !modalStatut)">
+        Valider
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notif-stack">
+  <div class="notif-toast" *ngIf="notification" [class.success]="notification.type === 'success'" [class.error]="notification.type === 'error'" [class.info]="notification.type === 'info'">
+    <i class="bi" [class.bi-check-circle-fill]="notification.type === 'success'"
+       [class.bi-exclamation-circle-fill]="notification.type === 'error'"
+       [class.bi-info-circle-fill]="notification.type === 'info'"></i>
+    <span>{{ notification.message }}</span>
+    <button class="notif-close" (click)="notification = null"><i class="bi bi-x"></i></button>
+  </div>
+</div>

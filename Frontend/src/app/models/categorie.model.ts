@@ -4,7 +4,9 @@ export interface Categorie{
     description: string;
     datecreation: string;
     datemodification: string;
-    etat: string; 
+    etat: string;
     categorieid: number | null;
+    ordre: number;
+    icone?: string;
     nombre_produits?: number;
 }

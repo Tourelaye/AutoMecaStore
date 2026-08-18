@@ -134,16 +134,12 @@
           <!-- BOUTON PANIER -->
           <button
             class="button-r"
-            [class.added]="produitAjoute === produit.id"
             [disabled]="produit.stock === 0 || timers[i].expired"
-            (click)="ajouterAuPanier(produit, $event)"
+            (click)="goToProduit(produit.id); $event.stopPropagation()"
+            type="button"
           >
-            <i
-              class="bi"
-              [class.bi-cart-plus]="produitAjoute !== produit.id"
-              [class.bi-check-lg]="produitAjoute === produit.id"
-            ></i>
-            {{ produitAjoute === produit.id ? 'Ajouté !' : 'Ajouter au panier' }}
+            <i class="bi bi-shop-window"></i>
+            Choisir
           </button>
 
         </div>

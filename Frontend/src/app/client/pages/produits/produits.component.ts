@@ -1,12 +1,18 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { PanierService } from '../../../core/services/panier.service';
-import { ProduitService, Produit } from '../../../core/services/produit.service';
+import { ProduitService, Produit, Offre, AvisProduit } from '../../../core/services/produit.service';
+import { AvisClientService } from '../../../core/services/avis-client.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MonCompteService } from '../../../core/services/mon-compte.service';
 import { HomeService } from '../../../core/services/home.service';
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
+import { AuthService } from '../../../core/services/auth.service';
+import { Subscription } from 'rxjs';
 import {
   trigger,
   transition,
@@ -15,12 +21,11 @@ import {
   query,
   stagger
 } from '@angular/animations';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-produits',
   standalone: true,
-  imports: [CommonModule, DecimalPipe, TitleCasePipe, ScrollRevealDirective],
+  imports: [CommonModule, DecimalPipe, TitleCasePipe, RouterLink, ScrollRevealDirective, ReactiveFormsModule],
   templateUrl: './produits.component.html',
   styleUrls: ['./produits.component.css', '../../../shared/styles/scroll-reveal.css'],
   animations: [
@@ -74,27 +79,55 @@ export class ProduitsComponent implements OnInit, OnDestroy {
   isWishlisted: boolean = false;
   lightboxOpen: boolean = false;
 
+  /** Offres (magasins) */
+  offres: Offre[] = [];
+  selectedOffre: Offre | null = null;
+  modeReception: 'livraison' | 'retrait_magasin' = 'livraison';
+
+  /** Géolocalisation client */
+  clientPosition: { lat: number; lng: number } | null = null;
+  geoLoading = false;
+  geoError: string | null = null;
+
+  /** Formulaire avis */
+  reviewForm: FormGroup;
+  showReviewForm = false;
+  reviewLoading = false;
+  reviewError: string | null = null;
+  reviewSuccess = false;
+
   /** Onglets disponibles */
-  readonly tabs = ['description', 'caracteristiques', 'compatibilite', 'avis'] as const;
+  readonly tabs = ['description', 'caracteristiques', 'compatibilite', 'offres', 'avis'] as const;
 
   private routeSub: Subscription | null = null;
 
   constructor(
     private panierService: PanierService,
     private produitService: ProduitService,
+    private avisClientService: AvisClientService,
     private notificationService: NotificationService,
     private monCompteService: MonCompteService,
     private homeService: HomeService,
+    private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    private sanitizer: DomSanitizer,
+    private fb: FormBuilder
+  ) {
+    this.reviewForm = this.fb.group({
+      note: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
+      commentaire: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(2000)]]
+    });
+  }
 
   ngOnInit(): void {
     this.routeSub = this.route.queryParams.subscribe(params => {
       const produitId = params['id'];
       if (produitId) {
-        this.loadProduit(parseInt(produitId, 10));
-        this.loadAllProduits();       // charger aussi les similaires
+        const id = parseInt(produitId, 10);
+        this.loadProduit(id);
+        this.loadAllProduits();
+        this.requestClientLocation(id);
       } else {
         this.loadAllProduits();
       }
@@ -107,11 +140,11 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   // ── Chargements ───────────────────────────────────────────────────────────
 
-  private loadProduit(id: number): void {
+  private loadProduit(id: number, lat?: number, lng?: number): void {
     this.isLoading = true;
     this.erreur = false;
 
-    this.produitService.getProduit(id).subscribe({
+    this.produitService.getProduit(id, lat, lng).subscribe({
       next: (produit) => {
         this.produit = produit;
         
@@ -142,6 +175,19 @@ export class ProduitsComponent implements OnInit, OnDestroy {
           ];
         } else {
           this.images = allImages;
+        }
+
+        // Construire la liste des offres et etiqueter les meilleures
+        this.offres = this.tagOffres(this.buildOffres(produit));
+
+        // Selection automatique uniquement si une seule offre
+        this.selectedOffre = this.offres.length === 1 ? this.offres[0] : null;
+
+        // Mode de réception par défaut adapté à l'offre
+        if (this.selectedOffre) {
+          this.modeReception = this.selectedOffre.livraison_disponible
+            ? 'livraison'
+            : (this.selectedOffre.retrait_magasin ? 'retrait_magasin' : 'livraison');
         }
 
         // Si aucune image, utiliser une image par défaut
@@ -227,23 +273,46 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     if (this.quantity > 1) this.quantity--;
   }
 
-  addToCart(produit: Produit): void {
+  addToCart(produit: Produit, utiliserOffre: boolean = false): void {
     if (!produit || produit.stock === 0) {
       this.notificationService.warning('Ce produit est en rupture de stock', 'Stock indisponible');
       return;
     }
 
+    // Pour la fiche produit : quantité choisie / sinon 1
+    const qte = utiliserOffre ? Math.max(this.quantity, produit.quantite_min || 1) : 1;
+
+    const offre = utiliserOffre ? this.selectedOffre : null;
+
+    // Si plusieurs offres existent sur la fiche et qu'aucune n'est selectionnee
+    if (utiliserOffre && !offre && this.offres.length > 1) {
+      this.notificationService.warning('Veuillez sélectionner un magasin.', 'Magasin requis');
+      this.activeTab = 'offres';
+      return;
+    }
+
+    if (offre && this.modeReception === 'retrait_magasin' && !offre.retrait_magasin) {
+      this.notificationService.warning('Le retrait en magasin n\'est pas proposé par ce vendeur.', 'Option indisponible');
+      return;
+    }
+    if (offre && this.modeReception === 'livraison' && !offre.livraison_disponible) {
+      this.notificationService.warning('La livraison n\'est pas proposée par ce vendeur.', 'Option indisponible');
+      return;
+    }
+
     this.panierService.ajouterProduit({
       ...produit,
-      quantite: this.quantity,
+      quantite: qte,
       gestionnaire_stock: 0,
-      image: produit.image ?? null
+      image: produit.image ?? produit.image_url ?? null,
+      fournisseur_id: offre?.fournisseur?.id,
+      fournisseur_nom: offre?.fournisseur?.nom_entreprise,
+      magasin_id: offre?.magasin?.id,
+      magasin_nom: offre?.magasin?.nom_magasin,
+      prix: offre ? offre.prix : (produit.prix_promo ?? produit.prix),
+      mode_reception: utiliserOffre ? this.modeReception : 'livraison',
+      magasin: offre?.magasin
     });
-
-    this.notificationService.success(
-      `${produit.nom} ajouté au panier`,
-      'Succès'
-    );
 
     // Animation bouton
     this.produitAjoute = true;
@@ -276,6 +345,14 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     this.currentImageIndex = index;
   }
 
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.onerror = null;
+      img.src = 'https://via.placeholder.com/600x400/f8fafc/64748b?text=Image+indisponible';
+    }
+  }
+
   openLightbox(): void {
     this.lightboxOpen = true;
   }
@@ -299,6 +376,286 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   getNombreAvis(): number {
     return this.produit?.nombre_avis ?? 0;
+  }
+
+  // ── Géolocalisation ───────────────────────────────────────────────────────
+
+  requestClientLocation(id: number): void {
+    if (!('geolocation' in navigator)) {
+      this.geoError = 'Géolocalisation non supportée';
+      return;
+    }
+    this.geoLoading = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.clientPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        this.geoLoading = false;
+        // Recharger le produit avec les coordonnées pour obtenir les distances
+        if (this.produit) {
+          this.loadProduit(this.produit.id, this.clientPosition.lat, this.clientPosition.lng);
+        } else {
+          this.loadProduit(id, this.clientPosition.lat, this.clientPosition.lng);
+        }
+      },
+      (err) => {
+        this.geoLoading = false;
+        this.geoError = err.code === 1 ? 'Géolocalisation refusée' : 'Position indisponible';
+        console.warn('Geolocation error:', err.message);
+      }
+    );
+  }
+
+  // ── Offres & magasins ─────────────────────────────────────────────────────
+
+  buildOffres(produit: Produit): Offre[] {
+    if (produit.offres && produit.offres.length > 0) {
+      return produit.offres;
+    }
+    // Fallback : construire une offre à partir du fournisseur/magasin principal
+    const offre: Offre = {
+      fournisseur: produit.fournisseur_detail ?? { id: 0, nom_entreprise: 'AutoMecaStore' },
+      magasin: produit.magasin_detail,
+      prix: produit.prix_promo || produit.prix,
+      stock: produit.stock,
+      livraison_disponible: produit.livraison_disponible ?? false,
+      retrait_magasin: produit.retrait_magasin ?? false,
+      delai_livraison: produit.delai_livraison || '2_5j',
+      distance_km: null,
+      badge: 'principal'
+    };
+    return [offre];
+  }
+
+  tagOffres(offres: Offre[]): Offre[] {
+    if (offres.length <= 1) { return offres; }
+
+    const minPrix = Math.min(...offres.map(o => o.prix));
+    const prixWinners = offres.filter(o => o.prix === minPrix).length;
+
+    const withDistance = offres.filter(o => o.distance_km != null && o.distance_km >= 0);
+    const minDist = withDistance.length
+      ? Math.min(...withDistance.map(o => o.distance_km as number))
+      : null;
+    const distWinners = minDist != null
+      ? offres.filter(o => o.distance_km === minDist).length
+      : 0;
+
+    return offres.map(o => {
+      const badges: string[] = [];
+      if (o.prix === minPrix && prixWinners === 1) { badges.push('meilleur_prix'); }
+      if (minDist != null && o.distance_km === minDist && distWinners === 1) { badges.push('plus_proche'); }
+      if (o.livraison_disponible) { badges.push('livraison'); }
+      if (o.retrait_magasin) { badges.push('retrait'); }
+      return { ...o, badges };
+    });
+  }
+
+  selectBestOffre(offres: Offre[]): Offre | null {
+    // Ne plus selectionner automatiquement la meilleure offre
+    return null;
+  }
+
+  onSelectOffre(offre: Offre): void {
+    this.selectedOffre = offre;
+    // Adapter le mode de réception aux capacités du magasin
+    if (this.modeReception === 'retrait_magasin' && !offre.retrait_magasin) {
+      this.modeReception = offre.livraison_disponible ? 'livraison' : 'livraison';
+    } else if (this.modeReception === 'livraison' && !offre.livraison_disponible) {
+      this.modeReception = offre.retrait_magasin ? 'retrait_magasin' : 'livraison';
+    }
+  }
+
+  getPrixDisplay(offre?: Offre): number {
+    if (offre) { return offre.prix; }
+    if (this.produit?.est_en_promo && this.produit.prix_promo) { return this.produit.prix_promo; }
+    return this.produit?.prix ?? 0;
+  }
+
+  badgeLabel(badge: string): string {
+    const labels: { [k: string]: string } = {
+      meilleur_prix: 'Meilleur prix',
+      plus_proche: 'Plus proche',
+      mieux_note: 'Mieux noté',
+      principal: 'Principal',
+      partenaire: 'Partenaire',
+      recommande: 'Recommandé'
+    };
+    return labels[badge] || badge;
+  }
+
+  badgeClass(badge: string): string {
+    switch (badge) {
+      case 'meilleur_prix': return 'badge-prix';
+      case 'plus_proche': return 'badge-proche';
+      case 'mieux_note': return 'badge-note';
+      case 'principal': return 'badge-principal';
+      case 'partenaire': return 'badge-partenaire';
+      default: return 'badge-default';
+    }
+  }
+
+  isOffreRecommandee(offre: Offre): boolean {
+    if (!this.selectedOffre) { return false; }
+    if (offre === this.selectedOffre) { return true; }
+    // Tag "Offre recommandée" si c'est celle au meilleur prix parmi celles comparables
+    const minPrix = Math.min(...this.offres.map(o => o.prix));
+    return offre.prix === minPrix && this.offres.filter(o => o.prix === minPrix).length === 1;
+  }
+
+  getDistanceLabel(offre: Offre): string {
+    if (offre.distance_km !== null && offre.distance_km !== undefined) {
+      return `${offre.distance_km} km`;
+    }
+    if (offre.magasin?.ville) {
+      return offre.magasin.ville;
+    }
+    return 'Distance non calculée';
+  }
+
+  getMapUrl(offre: Offre): SafeResourceUrl | null {
+    const lat = offre.magasin?.latitude;
+    const lng = offre.magasin?.longitude;
+    if (!lat || !lng) { return null; }
+    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  getItineraireUrl(offre: Offre): SafeResourceUrl | null {
+    const destLat = offre.magasin?.latitude;
+    const destLng = offre.magasin?.longitude;
+    if (!destLat || !destLng) { return null; }
+
+    const client = this.clientPosition;
+    const url = client
+      ? `https://www.google.com/maps/dir/?api=1&origin=${client.lat},${client.lng}&destination=${destLat},${destLng}&travelmode=driving`
+      : `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  openItineraire(offre: Offre): void {
+    const url = this.getItineraireUrl(offre);
+    if (url) {
+      window.open(url as string, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  callMagasin(offre: Offre): void {
+    const tel = offre.magasin?.telephone;
+    if (tel) {
+      window.location.href = `tel:${tel}`;
+    }
+  }
+
+  isMagasinOuvert(offre: Offre): boolean {
+    const magasin = offre.magasin;
+    if (!magasin?.horaires_ouverture || !magasin?.jours_ouverture) {
+      return false;
+    }
+    const now = new Date();
+    const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const jour = jours[now.getDay()];
+    const ouverts = this.getHorairesJours(magasin.jours_ouverture).map(j => j.toLowerCase());
+    if (!ouverts.includes(jour)) {
+      return false;
+    }
+    const plages = magasin.horaires_ouverture?.[jour];
+    if (!plages) {
+      return false;
+    }
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    for (const plage of (Array.isArray(plages) ? plages : [plages])) {
+      const [ouv, fer] = plage.split('-');
+      if (ouv && fer) {
+        const [oh, om] = ouv.split(':').map((x: string) => parseInt(x, 10) || 0);
+        const [fh, fm] = fer.split(':').map((x: string) => parseInt(x, 10) || 0);
+        const debut = oh * 60 + om;
+        const fin = fh * 60 + fm;
+        if (minutes >= debut && minutes < fin) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  getHorairesJours(jours?: string): string[] {
+    if (!jours) { return []; }
+    return jours.split(',').map(j => j.trim()).filter(Boolean);
+  }
+
+  setModeReception(mode: 'livraison' | 'retrait_magasin'): void {
+    if (mode === 'retrait_magasin' && this.selectedOffre && !this.selectedOffre.retrait_magasin) {
+      this.notificationService.warning('Ce magasin ne propose pas le retrait.', 'Indisponible');
+      return;
+    }
+    if (mode === 'livraison' && this.selectedOffre && !this.selectedOffre.livraison_disponible) {
+      this.notificationService.warning('Ce magasin ne propose pas la livraison.', 'Indisponible');
+      return;
+    }
+    this.modeReception = mode;
+  }
+
+  // ── Avis ─────────────────────────────────────────────────────────────────
+
+  getAvisList(): AvisProduit[] {
+    return this.produit?.avis || [];
+  }
+
+  openReviewForm(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.notificationService.warning('Connectez-vous pour laisser un avis.', 'Connexion requise');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.showReviewForm = true;
+    this.reviewError = null;
+    this.reviewSuccess = false;
+  }
+
+  closeReviewForm(): void {
+    this.showReviewForm = false;
+    this.reviewForm.reset({ note: 5, commentaire: '' });
+  }
+
+  submitReview(): void {
+    if (this.reviewForm.invalid || !this.produit) {
+      return;
+    }
+    this.reviewLoading = true;
+    this.reviewError = null;
+    this.avisClientService.createAvis({
+      ...this.reviewForm.value,
+      produit: this.produit.id
+    }).subscribe({
+      next: (avis) => {
+        this.produit!.avis = [avis, ...(this.produit!.avis || [])];
+        this.produit!.nombre_avis = (this.produit!.nombre_avis || 0) + 1;
+        this.reviewSuccess = true;
+        this.reviewLoading = false;
+        this.notificationService.success('Avis enregistré. Merci pour votre retour !', 'Avis envoyé');
+        setTimeout(() => { this.closeReviewForm(); this.reviewSuccess = false; }, 1500);
+      },
+      error: (err) => {
+        this.reviewLoading = false;
+        this.reviewError = err.error?.error || err.error?.detail || 'Impossible d\'envoyer l\'avis.';
+      }
+    });
+  }
+
+  getDistribution(): { [note: string]: { count: number; pct: number } } {
+    return this.produit?.distribution_etoiles || {
+      '1': { count: 0, pct: 0 },
+      '2': { count: 0, pct: 0 },
+      '3': { count: 0, pct: 0 },
+      '4': { count: 0, pct: 0 },
+      '5': { count: 0, pct: 0 }
+    };
+  }
+
+  formatDate(d?: string): string {
+    if (!d) { return ''; }
+    const date = new Date(d);
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   getEtoiles(): number[] {

@@ -104,37 +104,37 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
 
     @transaction.atomic
     def post(self, request):
-        print(f"🔍 Créer commande depuis panier - User: {request.user}")
-        print(f"📦 Request data: {request.data}")
+        print(f" Créer commande depuis panier - User: {request.user}")
+        print(f" Request data: {request.data}")
 
         try:
             panier = Panier.objects.get(client=request.user.client)
-            print(f"✅ Panier trouvé: ID={panier.id}")
+            print(f" Panier trouvé: ID={panier.id}")
         except Panier.DoesNotExist:
-            print("❌ Panier introuvable")
+            print(" Panier introuvable")
             return Response(
                 {"error": "Panier introuvable"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         if not panier.items.exists():
-            print("❌ Panier vide")
+            print(" Panier vide")
             return Response(
                 {"error": "Panier vide"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        print(f"📦 Nombre d'items dans panier: {panier.items.count()}")
+        print(f" Nombre d'items dans panier: {panier.items.count()}")
 
         commande = Commande.objects.create(client=request.user.client)
-        print(f"✅ Commande créée: ID={commande.id}, Reference={commande.reference}")
+        print(f" Commande créée: ID={commande.id}, Reference={commande.reference}")
 
         for item in panier.items.all():
             produit = item.produit
-            print(f"🔍 Produit: {produit.nom}, Quantité demandée: {item.quantite}, Stock disponible: {produit.stock}")
+            print(f" Produit: {produit.nom}, Quantité demandée: {item.quantite}, Stock disponible: {produit.stock}")
 
             if produit.stock < item.quantite:
-                print(f"❌ Stock insuffisant pour {produit.nom}")
+                print(f" Stock insuffisant pour {produit.nom}")
                 return Response(
                     {"error": f"Stock insuffisant pour {produit.nom}"},
                     status=status.HTTP_400_BAD_REQUEST
@@ -149,7 +149,7 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
             # 🔻 Déduction stock
             produit.stock -= item.quantite
             produit.save()
-            print(f"✅ Stock déduit pour {produit.nom}: nouveau stock={produit.stock}")
+            print(f" Stock déduit pour {produit.nom}: nouveau stock={produit.stock}")
 
         # 🧹 Vider panier
         panier.items.all().delete()
@@ -167,12 +167,12 @@ class DashboardStatsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        print(f"🔍 Dashboard Stats - User: {request.user}, Role: {request.user.role}")
+        print(f" Dashboard Stats - User: {request.user}, Role: {request.user.role}")
         
         # Temporarily allow clients to access dashboard stats for testing
         # TODO: Revert to ['admin', 'administrateur'] in production
         if not request.user.is_authenticated:
-            print("❌ Non authentifié")
+            print(" Non authentifié")
             return Response(
                 {"error": "Accès non autorisé"},
                 status=status.HTTP_403_FORBIDDEN
@@ -186,7 +186,7 @@ class DashboardStatsView(views.APIView):
         )['total'] or 0
         stock_faible = Produit.objects.filter(stock__lte=5, is_active=True).count()
         
-        print(f"📊 Stats calculées:")
+        print(f" Stats calculées:")
         print(f"   - Total produits: {total_produits}")
         print(f"   - Total commandes: {total_commandes}")
         print(f"   - Total revenue: {total_revenue}")

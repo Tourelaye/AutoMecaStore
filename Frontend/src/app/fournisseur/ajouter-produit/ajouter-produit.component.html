@@ -2,18 +2,18 @@
 
   <!-- ========== EN-TÊTE ========== -->
   <div class="page-header">
-    <button class="btn-back" (click)="retour()">
+    <button class="btn-back" (click)="retour()" type="button">
       <i class="bi bi-arrow-left"></i>
     </button>
-    <div class="page-icon-wrap"><i class="bi bi-plus-lg"></i></div>
+    <div class="page-icon-wrap"><i class="bi" [class.bi-plus-lg]="mode === 'create'" [class.bi-pencil-square]="mode === 'edit'"></i></div>
     <div>
-      <h1 class="page-title">Ajouter un nouveau produit</h1>
+      <h1 class="page-title">{{ mode === 'create' ? 'Ajouter un nouveau produit' : 'Modifier le produit' }}</h1>
       <p class="page-sub">Renseignez les caractéristiques techniques, compatibilités et visuelles de votre pièce.</p>
     </div>
   </div>
 
   <!-- ========== GRID PRINCIPALE ========== -->
-  <form class="form-grid" (ngSubmit)="enregistrer()" #produitForm="ngForm">
+  <form class="form-grid" [formGroup]="produitForm" (ngSubmit)="enregistrer()" *ngIf="!isLoading">
 
     <!-- ===== COLONNE GAUCHE : FORMULAIRE ===== -->
     <div class="col-form">
@@ -34,32 +34,38 @@
             type="button"
             class="cat-btn"
             *ngFor="let cat of categoriesVehicule"
-            [class.active]="form.categorieVehicule === cat.value"
+            [class.active]="produitForm.get('categorieVehicule')?.value === cat.value"
             (click)="selectCategorie(cat.value)"
           >
             <i class="bi {{ cat.icon }}"></i>
             {{ cat.label }}
           </button>
         </div>
+        <p class="field-error" *ngIf="produitForm.get('categorieVehicule')?.touched && produitForm.get('categorieVehicule')?.invalid">
+          Veuillez choisir une catégorie.
+        </p>
 
-        <div class="callout-box" *ngIf="!form.categorieVehicule">
+        <div class="callout-box" *ngIf="!produitForm.get('categorieVehicule')?.value">
           <i class="bi bi-stars"></i>
           <span>Veuillez d'abord cliquer sur l'une des 4 catégories ci-dessus pour afficher la liste spécifique des types de pièces compatibles.</span>
         </div>
 
-        <div class="field-group" *ngIf="form.categorieVehicule">
+        <div class="field-group" *ngIf="produitForm.get('categorieVehicule')?.value">
           <label class="field-label">Type de pièce compatible *</label>
           <div class="type-grid">
             <button
               type="button"
               class="type-btn"
               *ngFor="let t of typesPieceDisponibles"
-              [class.active]="form.typePiece === t"
-              (click)="form.typePiece = t"
+              [class.active]="produitForm.get('typePiece')?.value === t"
+              (click)="produitForm.get('typePiece')?.setValue(t)"
             >
               {{ t }}
             </button>
           </div>
+          <p class="field-error" *ngIf="produitForm.get('typePiece')?.touched && produitForm.get('typePiece')?.invalid">
+            Veuillez sélectionner un type de pièce.
+          </p>
         </div>
       </div>
 
@@ -67,77 +73,134 @@
       <div class="section-card">
         <div class="section-head">
           <div class="step-row">
-            <span class="step-badge">2</span>
-            <h2>Informations générales</h2>
+            <span class="step-badge required">2</span>
+            <h2>Informations générales <span class="req-star">*</span></h2>
           </div>
         </div>
 
         <div class="field-row">
           <div class="field-group">
             <label class="field-label">Nom du produit *</label>
-            <input type="text" class="field-input" name="nom" [(ngModel)]="form.nom" required
-                   placeholder="ex: Plaquettes Brembo hautes perf">
+            <input type="text" class="field-input" formControlName="nom"
+                   placeholder="ex: Plaquettes Brembo hautes performances">
+            <p class="field-error" *ngIf="produitForm.get('nom')?.touched && produitForm.get('nom')?.invalid">
+              Le nom est obligatoire (3-100 caractères).
+            </p>
           </div>
           <div class="field-group">
-            <label class="field-label">Référence fabricant *</label>
-            <input type="text" class="field-input mono" name="reference" [(ngModel)]="form.reference" required
+            <label class="field-label">Référence / SKU *</label>
+            <input type="text" class="field-input mono" formControlName="reference"
                    [placeholder]="referencePlaceholder">
+            <p class="field-error" *ngIf="produitForm.get('reference')?.touched && produitForm.get('reference')?.invalid">
+              La référence est obligatoire.
+            </p>
           </div>
         </div>
 
         <div class="field-row">
           <div class="field-group">
-            <label class="field-label">Marque *</label>
-            <input type="text" class="field-input" name="marque" [(ngModel)]="form.marque" required
+            <label class="field-label">Marque de la pièce *</label>
+            <input type="text" class="field-input" formControlName="marque"
                    placeholder="ex: Brembo, Bosch, NGK...">
           </div>
           <div class="field-group">
-            <label class="field-label">Prix de vente (en FCFA) *</label>
-            <input type="number" class="field-input" name="prix" [(ngModel)]="form.prix" required min="1"
-                   placeholder="ex: 45000">
+            <label class="field-label">Fabricant</label>
+            <input type="text" class="field-input" formControlName="fabricant"
+                   placeholder="ex: Brembo S.p.A.">
           </div>
         </div>
 
         <div class="field-row">
           <div class="field-group">
-            <label class="field-label">Quantité en stock *</label>
-            <input type="number" class="field-input" name="stock" [(ngModel)]="form.stock" required min="0"
-                   (ngModelChange)="onStockChange()" placeholder="10">
+            <label class="field-label">Référence OEM / Constructeur</label>
+            <input type="text" class="field-input mono" formControlName="reference_oem"
+                   placeholder="ex: 04465-0K340">
           </div>
           <div class="field-group">
-            <label class="field-label">Disponibilité</label>
-            <select class="field-input" name="disponibilite" [(ngModel)]="form.disponibilite">
-              <option *ngFor="let d of disponibilites" [value]="d.value">{{ d.label }}</option>
+            <label class="field-label">Pays d'origine</label>
+            <select class="field-input" formControlName="pays_origine">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let p of pays" [value]="p.value">{{ p.label }}</option>
             </select>
           </div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Description détaillée *</label>
-          <textarea class="field-input field-textarea" name="description" [(ngModel)]="form.description" required
-                    rows="4" placeholder="Décrivez les compatibilités modèles, caractéristiques techniques et avantages."></textarea>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Prix de vente (FCFA) *</label>
+            <input type="number" class="field-input" formControlName="prix" min="1"
+                   placeholder="ex: 45000">
+            <p class="field-error" *ngIf="produitForm.get('prix')?.touched && produitForm.get('prix')?.invalid">
+              Le prix doit être supérieur à 0.
+            </p>
+          </div>
+          <div class="field-group">
+            <label class="field-label">État du produit</label>
+            <select class="field-input" formControlName="etat">
+              <option *ngFor="let e of etats" [value]="e.value">{{ e.label }}</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- ÉTAPE 3 : COMPATIBILITÉ VÉHICULE -->
+      <!-- ÉTAPE 3 : DESCRIPTION -->
       <div class="section-card">
         <div class="section-head">
           <div class="step-row">
             <span class="step-badge">3</span>
-            <h2>Compatibilité du véhicule</h2>
+            <h2>Description &amp; Contenu</h2>
           </div>
         </div>
 
         <div class="field-group">
-          <label class="field-label">Modèles compatibles</label>
-          <div class="tag-input-wrap">
-            <input type="text" class="field-input" name="modeleInput" [(ngModel)]="modeleInput"
-                   (keydown)="onModeleInputKeydown($event)" placeholder="Tapez un modèle et appuyez sur Entrée">
+          <label class="field-label">Description courte (accroche)</label>
+          <textarea class="field-input field-textarea" formControlName="description_courte" rows="2"
+                    placeholder="Phrase d'accroche visible dans les listes (max 500 caractères)"></textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Description détaillée *</label>
+          <textarea class="field-input field-textarea" formControlName="description" rows="5"
+                    placeholder="Décrivez en détail la pièce, ses avantages, les compatibilités et les points forts."></textarea>
+          <p class="field-error" *ngIf="produitForm.get('description')?.touched && produitForm.get('description')?.invalid">
+            La description détaillée est obligatoire (min 20 caractères).
+          </p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Description complète</label>
+          <textarea class="field-input field-textarea" formControlName="description_detaillee" rows="4"
+                    placeholder="Description complète, fiches techniques, informations supplémentaires..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Conseils d'installation</label>
+            <textarea class="field-input field-textarea" formControlName="conseils_installation" rows="3"
+                      placeholder="Outils nécessaires, étapes de montage, recommandations..."></textarea>
           </div>
-          <div class="suggestions">
-            <button type="button" class="suggestion-chip" *ngFor="let m of modelesSuggestions" (click)="ajouterModeleDepuisSuggestion(m)">
-              <i class="bi bi-plus"></i> {{ m }}
-            </button>
+          <div class="field-group">
+            <label class="field-label">Précautions d'usage</label>
+            <textarea class="field-input field-textarea" formControlName="precautions" rows="3"
+                      placeholder="Avertissements, contre-indications, sécurité..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 4 : COMPATIBILITÉ -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">4</span>
+            <h2>Compatibilité véhicule</h2>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Modèles compatibles (chips)</label>
+          <div class="tag-input-wrap">
+            <input type="text" class="field-input" [ngModel]="modeleInput" (ngModelChange)="modeleInput = $event" [ngModelOptions]="{standalone: true}"
+                   (keydown)="onModeleInputKeydown($event)" placeholder="ex: Toyota Hilux, BMW Série 3... puis Entrée">
           </div>
           <div class="tags-list" *ngIf="modelesCompatibles.length">
             <span class="tag-pill" *ngFor="let m of modelesCompatibles; let i = index">
@@ -149,110 +212,206 @@
 
         <div class="field-row">
           <div class="field-group">
-            <label class="field-label">Année de début</label>
-            <select class="field-input" name="anneeDebut" [(ngModel)]="form.anneeDebut">
+            <label class="field-label">Année globale de début</label>
+            <select class="field-input" formControlName="annee_debut">
               <option [ngValue]="null">--</option>
               <option *ngFor="let a of annees" [ngValue]="a">{{ a }}</option>
             </select>
           </div>
           <div class="field-group">
-            <label class="field-label">Année de fin</label>
-            <select class="field-input" name="anneeFin" [(ngModel)]="form.anneeFin">
+            <label class="field-label">Année globale de fin</label>
+            <select class="field-input" formControlName="annee_fin">
               <option [ngValue]="null">--</option>
               <option *ngFor="let a of annees" [ngValue]="a">{{ a }}</option>
             </select>
           </div>
         </div>
+        <p class="field-error" *ngIf="produitForm.hasError('anneesInvalides') && (produitForm.get('annee_debut')?.touched || produitForm.get('annee_fin')?.touched)">
+          L'année de fin doit être supérieure ou égale à l'année de début.
+        </p>
+
+        <label class="field-label">Compatibilités détaillées</label>
+        <div class="compatibilites-list" formArrayName="compatibilites">
+          <div class="compatibilite-row" *ngFor="let comp of compatibilitesArray.controls; let i = index" [formGroupName]="i">
+            <div class="compat-grid">
+              <input type="text" class="field-input" formControlName="marque" placeholder="Marque">
+              <input type="text" class="field-input" formControlName="modele" placeholder="Modèle">
+              <input type="text" class="field-input" formControlName="version" placeholder="Version">
+              <input type="text" class="field-input" formControlName="motorisation" placeholder="Motorisation">
+              <select class="field-input" formControlName="annee_debut">
+                <option [ngValue]="null">Début</option>
+                <option *ngFor="let a of annees" [ngValue]="a">{{ a }}</option>
+              </select>
+              <select class="field-input" formControlName="annee_fin">
+                <option [ngValue]="null">Fin</option>
+                <option *ngFor="let a of annees" [ngValue]="a">{{ a }}</option>
+              </select>
+            </div>
+            <button type="button" class="btn-remove" (click)="retirerCompatibilite(i)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="btn-add" (click)="ajouterCompatibilite()">
+          <i class="bi bi-plus-lg"></i> Ajouter une compatibilité
+        </button>
       </div>
 
-      <!-- ÉTAPE 4 : INFORMATIONS TECHNIQUES -->
+      <!-- ÉTAPE 5 : CARACTÉRISTIQUES TECHNIQUES -->
       <div class="section-card">
         <div class="section-head">
           <div class="step-row">
-            <span class="step-badge">4</span>
-            <h2>Informations techniques</h2>
+            <span class="step-badge">5</span>
+            <h2>Caractéristiques techniques</h2>
           </div>
         </div>
 
-        <div class="field-row">
+        <!-- Garantie -->
+        <div class="toggle-card">
+          <label class="toggle-row">
+            <input type="checkbox" formControlName="garantie_disponible">
+            <span class="toggle-label"><i class="bi bi-shield-check"></i> Produit sous garantie</span>
+          </label>
+        </div>
+
+        <div class="field-row" *ngIf="produitForm.get('garantie_disponible')?.value">
           <div class="field-group">
-            <label class="field-label">État du produit</label>
-            <select class="field-input" name="etat" [(ngModel)]="form.etat">
-              <option *ngFor="let e of etats" [value]="e.value">{{ e.label }}</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label class="field-label">Garantie</label>
-            <select class="field-input" name="garantieMois" [(ngModel)]="form.garantieMois">
+            <label class="field-label">Durée de la garantie *</label>
+            <select class="field-input" formControlName="garantie_mois">
               <option *ngFor="let g of garanties" [ngValue]="g.value">{{ g.label }}</option>
             </select>
           </div>
-        </div>
-
-        <div class="field-row">
           <div class="field-group">
-            <label class="field-label">Pays d'origine</label>
-            <select class="field-input" name="paysOrigine" [(ngModel)]="form.paysOrigine">
-              <option value="">-- Sélectionner --</option>
-              <option *ngFor="let p of pays" [value]="p.value">{{ p.label }}</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label class="field-label">Référence OEM / Constructeur</label>
-            <input type="text" class="field-input mono" name="referenceOem" [(ngModel)]="form.referenceOem"
-                   placeholder="ex: 04465-0K340">
+            <label class="field-label">Conditions de garantie *</label>
+            <input type="text" class="field-input" formControlName="conditions_garantie"
+                   placeholder="ex: Garantie constructeur 12 mois pièce et main-d'œuvre">
           </div>
         </div>
 
         <div class="field-row">
           <div class="field-group">
             <label class="field-label">Poids (kg)</label>
-            <input type="number" step="0.01" class="field-input" name="poids" [(ngModel)]="form.poids" min="0"
-                   placeholder="2.5">
+            <input type="number" step="0.01" class="field-input" formControlName="poids" min="0" placeholder="2.5">
           </div>
           <div class="field-group dimensions-group">
             <label class="field-label">Dimensions (L x l x H) cm</label>
             <div class="dimensions-row">
-              <input type="number" step="0.1" class="field-input" name="longueur" [(ngModel)]="form.longueur" min="0" placeholder="Long.">
+              <input type="number" step="0.1" class="field-input" formControlName="longueur" min="0" placeholder="Long.">
               <span>x</span>
-              <input type="number" step="0.1" class="field-input" name="largeur" [(ngModel)]="form.largeur" min="0" placeholder="Larg.">
+              <input type="number" step="0.1" class="field-input" formControlName="largeur" min="0" placeholder="Larg.">
               <span>x</span>
-              <input type="number" step="0.1" class="field-input" name="hauteur" [(ngModel)]="form.hauteur" min="0" placeholder="Haut.">
+              <input type="number" step="0.1" class="field-input" formControlName="hauteur" min="0" placeholder="Haut.">
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ÉTAPE 5 : GESTION DU STOCK -->
-      <div class="section-card">
-        <div class="section-head">
-          <div class="step-row">
-            <span class="step-badge">5</span>
-            <h2>Gestion du stock</h2>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Matière / Matériau</label>
+            <input type="text" class="field-input" formControlName="matiere" placeholder="ex: Acier, Aluminium, Composite">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Couleur</label>
+            <input type="text" class="field-input" formControlName="couleur" placeholder="ex: Noir, Gris métallisé">
           </div>
         </div>
-
-        <div class="field-group">
-          <label class="field-label">Délai de livraison</label>
-          <select class="field-input" name="delaiLivraison" [(ngModel)]="form.delaiLivraison">
-            <option *ngFor="let dl of delais" [value]="dl.value">{{ dl.label }}</option>
-          </select>
-        </div>
       </div>
 
-      <!-- ÉTAPE 6 : INFORMATIONS COMPLÉMENTAIRES -->
+      <!-- ÉTAPE 6 : STOCK -->
       <div class="section-card">
         <div class="section-head">
           <div class="step-row">
             <span class="step-badge">6</span>
+            <h2>Gestion du stock</h2>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Stock actuel *</label>
+            <input type="number" class="field-input" formControlName="stock" min="0" placeholder="10">
+            <p class="field-error" *ngIf="produitForm.get('stock')?.touched && produitForm.get('stock')?.invalid">
+              Le stock est obligatoire.
+            </p>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Seuil d'alerte stock faible</label>
+            <input type="number" class="field-input" formControlName="seuil_alerte" min="0" placeholder="10">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Quantité minimale de commande</label>
+            <input type="number" class="field-input" formControlName="quantite_min" min="0" placeholder="1">
+            <p class="field-error" *ngIf="produitForm.hasError('quantiteMinTropGrande') && produitForm.get('quantite_min')?.touched">
+              La quantité minimale ne peut pas dépasser le stock.
+            </p>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Disponibilité calculée</label>
+          <select class="field-input" formControlName="disponibilite">
+            <option *ngFor="let d of disponibilites" [value]="d.value">{{ d.label }}</option>
+          </select>
+          <p class="field-hint" *ngIf="!stockFaible && produitForm.get('stock')?.value > 0">
+            Calculée automatiquement en fonction du stock et du seuil d'alerte.
+          </p>
+        </div>
+
+        <div class="alert-banner alert-stock" *ngIf="stockFaible">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Le stock est faible ou proche du seuil d'alerte ({{ produitForm.get('stock')?.value }} restant(s)).</span>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 7 : LIVRAISON -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">7</span>
+            <h2>Livraison &amp; Retrait</h2>
+          </div>
+        </div>
+
+        <div class="toggle-row-group">
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="livraison_disponible">
+            <span class="toggle-label"><i class="bi bi-truck"></i> Livraison disponible</span>
+          </label>
+          <label class="toggle-card">
+            <input type="checkbox" formControlName="retrait_magasin">
+            <span class="toggle-label"><i class="bi bi-shop"></i> Retrait en magasin</span>
+          </label>
+        </div>
+
+        <div class="field-row" *ngIf="produitForm.get('livraison_disponible')?.value">
+          <div class="field-group">
+            <label class="field-label">Délai de livraison estimé *</label>
+            <select class="field-input" formControlName="delai_livraison">
+              <option *ngFor="let dl of delaisLivraison" [value]="dl.value">{{ dl.label }}</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Délai de préparation *</label>
+            <select class="field-input" formControlName="delai_preparation">
+              <option *ngFor="let dp of delaisPreparation" [value]="dp.value">{{ dp.label }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 8 : COMPLÉMENTS -->
+      <div class="section-card">
+        <div class="section-head">
+          <div class="step-row">
+            <span class="step-badge">8</span>
             <h2>Informations complémentaires</h2>
           </div>
         </div>
 
         <div class="field-group">
-          <label class="field-label">Mots-clés</label>
+          <label class="field-label">Mots-clés SEO</label>
           <div class="tag-input-wrap">
-            <input type="text" class="field-input" name="motCleInput" [(ngModel)]="motCleInput"
+            <input type="text" class="field-input" [ngModel]="motCleInput" (ngModelChange)="motCleInput = $event" [ngModelOptions]="{standalone: true}"
                    (keydown)="onMotCleInputKeydown($event)" placeholder="Frein, Plaquette, Toyota... puis Entrée">
           </div>
           <div class="tags-list" *ngIf="motsCles.length">
@@ -264,15 +423,9 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">Conseils d'installation</label>
-          <textarea class="field-input field-textarea" name="conseilsInstallation" [(ngModel)]="form.conseilsInstallation"
-                    rows="3" placeholder="Recommandations de montage, outils nécessaires, précautions..."></textarea>
-        </div>
-
-        <div class="field-group">
           <label class="field-label">Conditions de retour</label>
-          <textarea class="field-input field-textarea" name="conditionsRetour" [(ngModel)]="form.conditionsRetour"
-                    rows="2" placeholder="Conditions spécifiques de retour du produit."></textarea>
+          <textarea class="field-input field-textarea" formControlName="conditions_retour" rows="2"
+                    placeholder="Conditions spécifiques de retour du produit."></textarea>
         </div>
       </div>
 
@@ -291,7 +444,7 @@
         <label class="field-label">Images du produit (glissez-déposez pour réorganiser)</label>
         <div class="images-grid">
           <div class="upload-zone image-slot"
-               *ngFor="let img of images; let i = index"
+               *ngFor="let img of imageSlots; let i = index"
                [class.has-image]="img.preview"
                [class.is-main]="i === mainImageIndex"
                draggable="true"
@@ -316,6 +469,7 @@
             <input #fileInput type="file" accept="image/*" hidden (change)="onImageFileSelected($event, i)">
           </div>
         </div>
+        <p class="field-hint">La première image remplie est l'image principale par défaut. Cliquez sur l'étoile pour changer.</p>
 
         <button type="button" class="btn-preview" (click)="togglePreview()">
           <i class="bi bi-eye"></i> {{ showPreview ? 'Masquer l\'aperçu' : 'Aperçu avant publication' }}
@@ -328,12 +482,12 @@
             <div class="no-preview" *ngIf="!mainPreview"><i class="bi bi-image"></i></div>
           </div>
           <div class="preview-body">
-            <h3>{{ form.nom || 'Nom du produit' }}</h3>
-            <div class="preview-price" *ngIf="form.prix">{{ form.prix | number }} FCFA</div>
+            <h3>{{ produitForm.get('nom')?.value || 'Nom du produit' }}</h3>
+            <div class="preview-price" *ngIf="produitForm.get('prix')?.value">{{ produitForm.get('prix')?.value | number }} FCFA</div>
             <div class="preview-meta">
-              <span *ngIf="form.marque"><i class="bi bi-tag"></i> {{ form.marque }}</span>
-              <span *ngIf="form.reference"><i class="bi bi-upc"></i> {{ form.reference }}</span>
-              <span *ngIf="form.stock !== null"><i class="bi bi-box-seam"></i> Stock: {{ form.stock }}</span>
+              <span *ngIf="produitForm.get('marque')?.value"><i class="bi bi-tag"></i> {{ produitForm.get('marque')?.value }}</span>
+              <span *ngIf="produitForm.get('reference')?.value"><i class="bi bi-upc"></i> {{ produitForm.get('reference')?.value }}</span>
+              <span *ngIf="produitForm.get('stock')?.value !== null"><i class="bi bi-box-seam"></i> Stock: {{ produitForm.get('stock')?.value }}</span>
               <span *ngIf="dimensionsDisplay"><i class="bi bi-rulers"></i> {{ dimensionsDisplay }}</span>
             </div>
             <div class="preview-tags" *ngIf="modelesCompatibles.length">
@@ -344,7 +498,7 @@
 
         <!-- Actions -->
         <button type="submit" class="btn-save" [disabled]="produitForm.invalid || isSaving">
-          <span *ngIf="!isSaving"><i class="bi bi-save2-fill"></i> Enregistrer le produit</span>
+          <span *ngIf="!isSaving"><i class="bi bi-save2-fill"></i> {{ mode === 'create' ? 'Enregistrer le produit' : 'Mettre à jour le produit' }}</span>
           <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Enregistrement...</span>
         </button>
         <button type="button" class="btn-cancel" (click)="retour()">Annuler</button>
@@ -352,6 +506,12 @@
     </div>
 
   </form>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <span class="mini-spinner"></span>
+    <p>Chargement du produit...</p>
+  </div>
 </div>
 
 <!-- Toast -->

@@ -105,8 +105,9 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.attempts  = 0;
           this.isLoading = false;
           const role = this.authService.getCurrentUserRole();
+          const user = this.authService.getCurrentUser();
 
-          if (role !== 'admin') {
+          if (role !== 'admin' || !user?.is_staff) {
             this.authService.logout();
             this.errorMessage = 'Accès réservé aux administrateurs.';
             return;

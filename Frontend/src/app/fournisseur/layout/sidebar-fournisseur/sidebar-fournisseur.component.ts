@@ -36,6 +36,11 @@ export class SidebarFournisseurComponent {
       path: '/fournisseur/dashboard',
     },
     {
+      icon: 'bi-shop',
+      label: 'Mon magasin',
+      path: '/fournisseur/mon-magasin',
+    },
+    {
       icon: 'bi-box-seam',
       label: 'Mes Produits',
       path: '/fournisseur/produits/list-produit',
@@ -59,7 +64,6 @@ export class SidebarFournisseurComponent {
       icon: 'bi-archive',
       label: 'Stock',
       path: '/fournisseur/stocks',
-      badge: 3,
     },
     {
       icon: 'bi-tag',

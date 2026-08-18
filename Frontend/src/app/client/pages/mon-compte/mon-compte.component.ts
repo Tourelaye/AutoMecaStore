@@ -1,50 +1,82 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService, Utilisateur } from '../../../core/services/auth.service';
-import { MonCompteService, ClientInfo, CommandesResponse, FavorisResponse, Commande, Favori, PanierResponse, PanierItem } from '../../../core/services/mon-compte.service';
+import { MonCompteService, ClientInfo, CommandesResponse, FavorisResponse, Commande, LigneCommande, Favori, PanierResponse, PanierItem, AdresseClient } from '../../../core/services/mon-compte.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PanierService } from '../../../core/services/panier.service';
 
-type OngletType = 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris' | 'panier';
+type OngletType = 'accueil' | 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris' | 'panier' | 'adresses';
 
 @Component({
   selector: 'app-mon-compte',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './mon-compte.component.html',
   styleUrls: ['./mon-compte.component.css']
 })
 export class MonCompteComponent implements OnInit, OnDestroy {
 
   utilisateur: Utilisateur | null = null;
-  ongletActif: OngletType = 'profil';
+  ongletActif: OngletType = 'accueil';
 
   // Données dynamiques
   clientInfo: ClientInfo | null = null;
   commandesResponse: CommandesResponse | null = null;
   favorisResponse: FavorisResponse | null = null;
   panierResponse: PanierResponse | null = null;
-  
+  adresses: AdresseClient[] = [];
+  isLoadingAdresses = false;
+
   // États de chargement
   isLoadingClient = false;
   isLoadingCommandes = false;
   isLoadingFavoris = false;
   isLoadingPanier = false;
-  
+
   // Erreurs
   clientError: string | null = null;
   commandesError: string | null = null;
   favorisError: string | null = null;
   panierError: string | null = null;
+  adressesError: string | null = null;
+
+  // Commandes - suivi
+  recherche = '';
+  filtreStatut = '';
+  detailOvert = false;
+  commandeSelectionnee: Commande | null = null;
+  annulationMotif = '';
+  annulationEnCours = false;
+
+  statutsFiltres = [
+    { key: '', label: 'Toutes' },
+    { key: 'nouvelle_commande', label: 'Nouvelle' },
+    { key: 'en_attente_confirmation', label: 'En attente' },
+    { key: 'acceptee', label: 'Acceptée' },
+    { key: 'en_preparation', label: 'En préparation' },
+    { key: 'prete_a_retirer', label: 'Prête' },
+    { key: 'en_cours_livraison', label: 'En livraison' },
+    { key: 'livree', label: 'Livrée' },
+    { key: 'terminee', label: 'Terminée' },
+    { key: 'refusee', label: 'Refusée' },
+    { key: 'annulee', label: 'Annulée' }
+  ];
 
   // Formulaire profil
   profilForm!: FormGroup;
   profilSaving = false;
   profilSuccess = false;
   profilError = '';
+
+  // Formulaire adresse
+  adresseForm!: FormGroup;
+  adresseSaving = false;
+  adresseEditingId: number | null = null;
+  adresseError = '';
+  adresseSuccess = false;
 
   // Formulaire sécurité
   securiteForm!: FormGroup;
@@ -69,6 +101,7 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
+    private router: Router,
     private monCompteService: MonCompteService,
     private notificationService: NotificationService,
     private panierService: PanierService
@@ -81,13 +114,14 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       if (u) {
         console.log('👤 Utilisateur disponible:', u);
         this.initProfilForm(u);
+        this.initAdresseForm();
         this.loadClientData();
         // Also refresh all data from MonCompteService to ensure synchronization
         this.monCompteService.refreshAllData();
       }
     });
 
-    // Détection de l'onglet via l'URL (ex: /mon-compte/securite, /mes-favoris, /mes-commandes)
+    // Détection de l'onglet via l'URL (ex: /mon-compte/securite, /mon-compte/adresses)
     this.route.url.subscribe(segments => {
       const last = segments[segments.length - 1]?.path;
       if (last === 'securite')       this.ongletActif = 'securite';
@@ -95,7 +129,8 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       else if (last === 'commandes' || last === 'mes-commandes') this.ongletActif = 'commandes';
       else if (last === 'favoris' || last === 'mes-favoris') this.ongletActif = 'favoris';
       else if (last === 'panier') this.ongletActif = 'panier';
-      else                           this.ongletActif = 'profil';
+      else if (last === 'adresses' || last === 'mes-adresses') this.ongletActif = 'adresses';
+      else                           this.ongletActif = 'accueil';
     });
 
     this.initSecuriteForm();
@@ -115,6 +150,8 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     this.profilSuccess  = false;
     this.securiteSuccess = false;
     this.confidSuccess  = false;
+    this.adresseSuccess = false;
+    this.adresseError = '';
   }
 
   // -------------------------------------------------------
@@ -130,6 +167,83 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     });
   }
 
+  // -------------------------------------------------------
+  // FORMULAIRE ADRESSE
+  // -------------------------------------------------------
+  private initAdresseForm(): void {
+    this.adresseForm = this.fb.group({
+      nom: [''],
+      nom_destinataire: ['', Validators.required],
+      telephone: [''],
+      ville: ['', Validators.required],
+      quartier: [''],
+      adresse: ['', Validators.required],
+      point_de_repere: [''],
+      instructions: ['']
+    });
+  }
+
+  nouvelleAdresse(): void {
+    this.adresseEditingId = null;
+    this.adresseForm.reset();
+    this.adresseSuccess = false;
+    this.adresseError = '';
+  }
+
+  editAdresse(a: AdresseClient): void {
+    this.adresseEditingId = a.id ?? null;
+    this.adresseForm.patchValue({
+      nom: a.nom || '',
+      nom_destinataire: a.nom_destinataire || '',
+      telephone: a.telephone || '',
+      ville: a.ville || '',
+      quartier: a.quartier || '',
+      adresse: a.adresse || '',
+      point_de_repere: a.point_de_repere || '',
+      instructions: a.instructions || ''
+    });
+  }
+
+  saveAdresse(): void {
+    if (this.adresseForm.invalid) { this.adresseForm.markAllAsTouched(); return; }
+    this.adresseSaving = true;
+    this.adresseError = '';
+    const data = this.adresseForm.value;
+    const req = this.adresseEditingId
+      ? this.monCompteService.modifierAdresse(this.adresseEditingId, data)
+      : this.monCompteService.ajouterAdresse(data);
+
+    req.subscribe({
+      next: () => {
+        this.adresseSaving = false;
+        this.adresseSuccess = true;
+        this.adresseEditingId = null;
+        this.adresseForm.reset();
+        setTimeout(() => this.adresseSuccess = false, 3000);
+      },
+      error: (err) => {
+        this.adresseSaving = false;
+        this.adresseError = err?.error?.detail || 'Erreur lors de l\'enregistrement.';
+      }
+    });
+  }
+
+  deleteAdresse(id: number): void {
+    if (!confirm('Supprimer cette adresse ?')) return;
+    this.monCompteService.supprimerAdresse(id).subscribe({
+      error: () => this.notificationService.error('Impossible de supprimer l\'adresse', 'Erreur')
+    });
+  }
+
+  setAdressePrincipale(id: number): void {
+    this.monCompteService.definirAdressePrincipale(id).subscribe({
+      error: () => this.notificationService.error('Impossible de définir l\'adresse principale', 'Erreur')
+    });
+  }
+
+  // -------------------------------------------------------
+  // Formulaire profil - save
+  // -------------------------------------------------------
   saveProfil(): void {
     if (this.profilForm.invalid) { this.profilForm.markAllAsTouched(); return; }
     this.profilSaving = true;
@@ -229,21 +343,13 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   // ACTIONS FAVORIS
   // -------------------------------------------------------
+  goToProduit(id: number): void {
+    this.router.navigate(['/produits'], { queryParams: { id } });
+  }
+
   ajouterAuPanierDepuisFavori(favori: Favori): void {
-    this.panierService.ajouterProduit({
-      id: favori.produit_id,
-      nom: favori.produit_nom,
-      prix: favori.prix,
-      quantite: 1
-    } as any);
-    
-    this.notificationService.success(
-      `${favori.produit_nom} a été ajouté au panier`,
-      'Ajouté au panier'
-    );
-    
-    // Refresh cart data
-    this.refreshPanier();
+    // Les favoris ne stockent pas l'offre : redirige vers la fiche pour choisir le magasin
+    this.goToProduit(favori.produit_id);
   }
 
   retirerDesFavoris(favori: Favori): void {
@@ -363,6 +469,157 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     return this.panierResponse?.nombre_items || 0;
   }
 
+  // -------------------------------------------------------
+  // COMMANDES - FILTRES, RECHERCHE, DÉTAIL, ANNULATION
+  // -------------------------------------------------------
+  getCommandesFiltrees(): Commande[] {
+    const commandes = this.getCommandes();
+    return commandes.filter(c => {
+      const matchStatut = !this.filtreStatut || c.statut === this.filtreStatut;
+      const q = this.recherche.trim().toLowerCase();
+      const matchRecherche = !q ||
+        (c.reference && c.reference.toLowerCase().includes(q)) ||
+        (c.lignes || []).some(l =>
+          (l.produit?.nom || '').toLowerCase().includes(q) ||
+          (l.magasin?.nom_magasin || '').toLowerCase().includes(q) ||
+          (l.produit?.reference || '').toLowerCase().includes(q)
+        );
+      return matchStatut && matchRecherche;
+    });
+  }
+
+  getNombreResultats(): number {
+    return this.getCommandesFiltrees().length;
+  }
+
+  ouvrirDetail(commande: Commande): void {
+    this.commandeSelectionnee = commande;
+    this.detailOvert = true;
+    this.annulationMotif = '';
+  }
+
+  fermerDetail(): void {
+    this.detailOvert = false;
+    this.commandeSelectionnee = null;
+    this.annulationMotif = '';
+  }
+
+  estAnnulable(statut: string): boolean {
+    return ['nouvelle_commande', 'en_attente_confirmation', 'acceptee', 'en_preparation'].includes(statut);
+  }
+
+  annulerCommande(commande: Commande): void {
+    if (!commande || !this.estAnnulable(commande.statut)) return;
+    if (!confirm(`Annuler la commande ${commande.reference} ?`)) return;
+
+    this.annulationEnCours = true;
+    this.monCompteService.annulerCommande(commande.id, this.annulationMotif).subscribe({
+      next: (cmd) => {
+        this.annulationEnCours = false;
+        this.notificationService.success('Commande annulée', 'Votre commande a été annulée.');
+        this.detailOvert = false;
+        this.commandeSelectionnee = null;
+        this.refreshCommandes();
+      },
+      error: (err) => {
+        this.annulationEnCours = false;
+        this.notificationService.error(err?.error?.error || 'Impossible d\'annuler', 'Erreur');
+      }
+    });
+  }
+
+  refreshCommandes(): void {
+    this.isLoadingCommandes = true;
+    this.monCompteService.getMesCommandes().subscribe({
+      next: (commandes) => {
+        this.commandesResponse = commandes;
+        this.isLoadingCommandes = false;
+      },
+      error: () => {
+        this.isLoadingCommandes = false;
+      }
+    });
+  }
+
+  appelerMagasin(telephone: string | undefined): void {
+    if (!telephone) return;
+    window.location.href = `tel:${telephone}`;
+  }
+
+  voirItineraire(magasin: LigneCommande['magasin'] | undefined): void {
+    if (!magasin || (!magasin.latitude && !magasin.adresse_complete)) return;
+    if (magasin.latitude && magasin.longitude) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${magasin.latitude},${magasin.longitude}`, '_blank');
+    } else {
+      const adresse = encodeURIComponent(`${magasin.adresse_complete}, ${magasin.ville || ''}`);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${adresse}`, '_blank');
+    }
+  }
+
+  groupesLignesParMagasin(lignes: LigneCommande[] | undefined): { magasin: LigneCommande['magasin']; lignes: LigneCommande[] }[] {
+    const map = new Map<string, LigneCommande[]>();
+    for (const l of (lignes || [])) {
+      const key = l.magasin?.id ? String(l.magasin.id) : (l.magasin?.nom_magasin || 'auto');
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(l);
+    }
+    return Array.from(map.entries()).map(([_, group]) => ({
+      magasin: group[0].magasin,
+      lignes: group
+    }));
+  }
+
+  getEtapes(commande: Commande | null): { label: string; statut: string; atteint: boolean; actif: boolean }[] {
+    if (!commande) return [];
+    const statut = commande.statut;
+    const estRetrait = commande.mode_reception === 'retrait_magasin' ||
+      (commande.lignes || []).length > 0 && (commande.lignes || []).every(l => l.mode_reception === 'retrait_magasin');
+
+    const communes = [
+      { label: 'Commande confirmée', statut: 'nouvelle_commande' },
+      { label: 'Commande acceptée', statut: 'acceptee' },
+      { label: 'Commande préparée', statut: 'en_preparation' }
+    ];
+
+    const retrait = [
+      { label: 'Prête à retirer', statut: 'prete_a_retirer' },
+      { label: 'Retirée', statut: 'terminee' }
+    ];
+
+    const livraison = [
+      { label: 'Livraison attribuée', statut: 'livraison_attribuee' },
+      { label: 'Colis pris en charge', statut: 'prise_en_charge' },
+      { label: 'En cours de livraison', statut: 'en_cours_livraison' },
+      { label: 'Livrée', statut: 'livree' }
+    ];
+
+    const etapes = [...communes, ...(estRetrait ? retrait : livraison)];
+
+    const ordre = ['nouvelle_commande', 'en_attente_confirmation', 'acceptee', 'en_preparation', 'livraison_attribuee', 'prise_en_charge', 'en_cours_livraison', 'livree', 'prete_a_retirer', 'terminee', 'annulee', 'refusee'];
+
+    // Avancement de la livraison si des infos sont disponibles
+    const statutsLivraison = (commande.livraisons || []).map(l => l.statut).filter(Boolean) as string[];
+    let indexActuel = ordre.indexOf(statut);
+    for (const s of statutsLivraison) {
+      const i = ordre.indexOf(s);
+      if (i > indexActuel) indexActuel = i;
+    }
+
+    return etapes.map((e) => {
+      const indexEtape = ordre.indexOf(e.statut);
+      const atteint = indexActuel >= indexEtape && indexActuel !== -1;
+      const actif = statut === e.statut || statutsLivraison.includes(e.statut);
+      return { ...e, atteint, actif };
+    });
+  }
+
+  formatHoraires(horaires: any): string {
+    if (!horaires || typeof horaires !== 'object') return '';
+    return Object.entries(horaires)
+      .map(([jour, plage]) => `${jour}: ${plage}`)
+      .join(' — ');
+  }
+
   private loadClientData(): void {
     if (!this.utilisateur) return;
     
@@ -425,6 +682,21 @@ export class MonCompteComponent implements OnInit, OnDestroy {
         console.error('Erreur panier:', error);
       }
     });
+
+    // Charger les adresses
+    this.isLoadingAdresses = true;
+    this.monCompteService.getAdresses().subscribe({
+      next: (adresses) => {
+        this.adresses = adresses;
+        this.isLoadingAdresses = false;
+        this.adressesError = null;
+      },
+      error: (error) => {
+        this.adressesError = 'Impossible de charger vos adresses';
+        this.isLoadingAdresses = false;
+        console.error('Erreur adresses:', error);
+      }
+    });
   }
 
   private setupDataSubscriptions(): void {
@@ -451,7 +723,12 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       this.panierResponse = panier;
     });
 
-    this.monCompteSubscriptions = [clientSub, commandesSub, favorisSub, panierSub];
+    const adressesSub = this.monCompteService.adresses$.subscribe(adresses => {
+      console.log('📍 ADRESSES UPDATE:', adresses);
+      this.adresses = adresses;
+    });
+
+    this.monCompteSubscriptions = [clientSub, commandesSub, favorisSub, panierSub, adressesSub];
   }
 
   refreshData(): void {

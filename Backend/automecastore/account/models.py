@@ -92,6 +92,7 @@ class Client(models.Model):
     note_livreur = models.DecimalField(max_digits=2, decimal_places=1, blank=True, null=True)
     livreur_id = models.IntegerField(blank=True, null=True)
     administrateur_id = models.IntegerField(blank=True, null=True)
+    photo = models.ImageField(upload_to='clients/photos/', blank=True, null=True)
 
     # class Meta:
     #     managed = False
@@ -137,7 +138,12 @@ class Fournisseur(models.Model):
     date_inscription = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(
         max_length=20,
-        choices=[('attente', 'En attente de validation'), ('actif', 'Validé'), ('desactive', 'Refusé / Suspendu')],
+        choices=[
+            ('attente', 'En attente de validation'),
+            ('actif', 'Actif'),
+            ('suspendu', 'Suspendu'),
+            ('desactive', 'Désactivé'),
+        ],
         default='attente'
     )
     date_validation = models.DateTimeField(blank=True, null=True)
@@ -177,6 +183,37 @@ class FournisseurStatusHistory(models.Model):
 
     def __str__(self):
         return f"{self.fournisseur.nom_entreprise} -> {self.statut} ({self.created_at:%Y-%m-%d %H:%M})"
+
+# -----------------------------
+# Véhicule du client
+# -----------------------------
+class VehiculeClient(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='vehicules')
+    marque = models.CharField(max_length=50)
+    modele = models.CharField(max_length=50)
+    annee = models.PositiveIntegerField()
+    motorisation = models.CharField(max_length=100, blank=True, default='')
+    carburant = models.CharField(max_length=50, blank=True, default='')
+    version = models.CharField(max_length=100, blank=True, default='')
+    immatriculation = models.CharField(max_length=20, blank=True, default='')
+    actif = models.BooleanField(default=False, help_text="Véhicule utilisé par défaut")
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'client_vehicule'
+        ordering = ['-actif', '-date_ajout']
+        verbose_name = 'Véhicule client'
+        verbose_name_plural = 'Véhicules clients'
+
+    def save(self, *args, **kwargs):
+        # Un seul véhicule actif par client
+        if self.actif:
+            VehiculeClient.objects.filter(client=self.client, actif=True).update(actif=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.marque} {self.modele} {self.annee} — {self.client.user.email}"
+
 
 # -----------------------------
 # Favori

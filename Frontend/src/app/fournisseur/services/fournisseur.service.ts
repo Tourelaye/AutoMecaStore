@@ -74,6 +74,29 @@ export interface Promotion {
   active: boolean;
 }
 
+export interface Magasin {
+  id?: number;
+  nom_magasin: string;
+  logo?: string | null;
+  logo_url?: string | null;
+  photo_couverture?: string | null;
+  photo_couverture_url?: string | null;
+  description: string;
+  telephone: string;
+  whatsapp: string;
+  email: string;
+  adresse_complete: string;
+  ville: string;
+  region: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  horaires_ouverture: { [jour: string]: { ouvert: boolean; debut: string; fin: string } } | any;
+  jours_ouverture: string;
+  livraison_disponible: boolean;
+  retrait_magasin: boolean;
+  rayon_livraison_km?: number | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -92,6 +115,15 @@ export class FournisseurService {
 
   updateProfile(data: FormData | Partial<FournisseurProfile>): Observable<FournisseurProfile> {
     return this.http.patch<FournisseurProfile>(`${this.apiUrl}/profil/`, data);
+  }
+
+  // ===== MON MAGASIN =====
+  getMagasin(): Observable<Magasin> {
+    return this.http.get<Magasin>(`${this.apiUrl}/magasin/`);
+  }
+
+  updateMagasin(data: FormData): Observable<Magasin> {
+    return this.http.patch<Magasin>(`${this.apiUrl}/magasin/`, data);
   }
 
   // ===== STATISTIQUES =====

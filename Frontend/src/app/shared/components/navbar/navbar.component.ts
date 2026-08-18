@@ -8,11 +8,12 @@ import { PanierService } from '../../../core/services/panier.service';
 import { AuthService, Utilisateur } from '../../../core/services/auth.service';
 import { ProduitService, Produit } from '../../../core/services/produit.service';
 import { MonCompteService } from '../../../core/services/mon-compte.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, CommonModule, FormsModule],
+  imports: [RouterLink, RouterLinkActive, CommonModule, FormsModule, NotificationBellComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -111,7 +112,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   onSearchSubmit(): void {
     if (this.searchQuery.trim()) {
       this.showResults = false;
-      this.router.navigate(['/produits'], { queryParams: { search: this.searchQuery.trim() } });
+      this.router.navigate(['/recherche'], { queryParams: { search: this.searchQuery.trim() } });
     }
   }
 

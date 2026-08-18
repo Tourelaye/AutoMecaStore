@@ -1,0 +1,507 @@
+<div class="analyse-page">
+
+  <header class="page-header">
+    <div>
+      <span class="page-tag"><i class="bi bi-graph-up-arrow"></i> Centre d'analyse</span>
+      <h1>Tableau de bord analytique</h1>
+      <p class="page-subtitle">Vision globale de la performance de la marketplace</p>
+    </div>
+    <div class="header-actions">
+      <span class="updated-at" *ngIf="lastUpdated">Mis à jour {{ lastUpdated }}</span>
+      <button mat-stroked-button (click)="loadAnalytics()">
+        <i class="bi bi-arrow-clockwise"></i> Actualiser
+      </button>
+    </div>
+  </header>
+
+  <!-- Filtres -->
+  <mat-card class="filter-card">
+    <div class="filter-row">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Période</mat-label>
+        <mat-select [(ngModel)]="filters.period" (selectionChange)="onPeriodChange()">
+          <mat-option value="today">Aujourd'hui</mat-option>
+          <mat-option value="week">Cette semaine</mat-option>
+          <mat-option value="month">Ce mois</mat-option>
+          <mat-option value="year">Cette année</mat-option>
+          <mat-option value="all">Tout</mat-option>
+          <mat-option value="custom">Personnalisé</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <ng-container *ngIf="filters.period === 'custom'">
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Début</mat-label>
+          <input matInput type="date" [(ngModel)]="filters.start" (ngModelChange)="onFilterChange()">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Fin</mat-label>
+          <input matInput type="date" [(ngModel)]="filters.end" (ngModelChange)="onFilterChange()">
+        </mat-form-field>
+      </ng-container>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Magasin</mat-label>
+        <mat-select [(ngModel)]="filters.magasin_id" (selectionChange)="onFilterChange()">
+          <mat-option [value]="null">Tous</mat-option>
+          <mat-option *ngFor="let m of options.magasins" [value]="m.id">{{ m.nom }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Catégorie</mat-label>
+        <mat-select [(ngModel)]="filters.categorie_id" (selectionChange)="onFilterChange()">
+          <mat-option [value]="null">Toutes</mat-option>
+          <mat-option *ngFor="let c of options.categories" [value]="c.id">{{ c.nom }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Ville</mat-label>
+        <mat-select [(ngModel)]="filters.ville" (selectionChange)="onFilterChange()">
+          <mat-option [value]="null">Toutes</mat-option>
+          <mat-option *ngFor="let v of options.villes" [value]="v">{{ v }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="export-actions">
+        <button mat-stroked-button (click)="exportFile('csv')" matTooltip="Exporter CSV">
+          <i class="bi bi-filetype-csv"></i>
+        </button>
+        <button mat-stroked-button (click)="exportFile('excel')" matTooltip="Exporter Excel">
+          <i class="bi bi-file-earmark-excel"></i>
+        </button>
+        <button mat-stroked-button (click)="exportFile('pdf')" matTooltip="Exporter PDF">
+          <i class="bi bi-file-earmark-pdf"></i>
+        </button>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Erreur / Loading -->
+  <div *ngIf="error" class="error-message">
+    <i class="bi bi-exclamation-triangle"></i> {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des analyses…</span>
+  </div>
+
+  <!-- KPIs -->
+  <section class="kpi-grid" *ngIf="data && !loading">
+    <mat-card class="kpi-card" [class.up]="data.kpis.chiffre_affaires_jour > 0">
+      <div class="kpi-icon blue"><i class="bi bi-cash-coin"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatMoney(data.kpis.chiffre_affaires_jour) }}</span>
+        <span class="kpi-label">CA du jour</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon cyan"><i class="bi bi-calendar-month"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatMoney(data.kpis.chiffre_affaires_mois) }}</span>
+        <span class="kpi-label">CA du mois</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon green"><i class="bi bi-graph-up"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatMoney(data.kpis.chiffre_affaires_annee) }}</span>
+        <span class="kpi-label">CA annuel</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon purple"><i class="bi bi-cart-check"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatNumber(data.kpis.total_commandes) }}</span>
+        <span class="kpi-label">Commandes</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon green-soft"><i class="bi bi-check2-circle"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatNumber(data.kpis.commandes_terminees) }}</span>
+        <span class="kpi-label">Terminées</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon red"><i class="bi bi-x-circle"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatNumber(data.kpis.commandes_annulees) }}</span>
+        <span class="kpi-label">Annulées</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon blue-soft"><i class="bi bi-people"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatNumber(data.kpis.total_clients) }}</span>
+        <span class="kpi-label">Clients</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon orange"><i class="bi bi-shop"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatNumber(data.kpis.total_fournisseurs) }}</span>
+        <span class="kpi-label">Magasins</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon pink"><i class="bi bi-box-seam"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatNumber(data.kpis.total_produits) }}</span>
+        <span class="kpi-label">Produits</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon yellow"><i class="bi bi-star-half"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ data.kpis.taux_satisfaction }} / 5</span>
+        <span class="kpi-label">Satisfaction</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card">
+      <div class="kpi-icon teal"><i class="bi bi-basket"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatMoney(data.kpis.panier_moyen) }}</span>
+        <span class="kpi-label">Panier moyen</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="kpi-card" [class.negative]="data.kpis.taux_annulation > 15">
+      <div class="kpi-icon red-soft"><i class="bi bi-percent"></i></div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ formatPercent(data.kpis.taux_annulation) }}</span>
+        <span class="kpi-label">Taux d'annulation</span>
+      </div>
+    </mat-card>
+  </section>
+
+  <!-- Graphique évolution -->
+  <mat-card class="chart-card" *ngIf="data && !loading">
+    <div class="chart-header">
+      <div>
+        <h2>Évolution</h2>
+        <p class="chart-subtitle">{{ data.periode_label }}</p>
+      </div>
+      <div class="metric-selector">
+        <button
+          *ngFor="let opt of chartOptions"
+          mat-stroked-button
+          [class.active]="chartMetric === opt.key"
+          (click)="selectMetric(opt.key)"
+          [style.--accent-color]="opt.color"
+        >
+          <i class="bi {{ opt.icon }}"></i> {{ opt.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="chart-wrap" *ngIf="chart">
+      <svg [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" class="line-chart">
+        <defs>
+          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" [attr.stop-color]="metricColor()" stop-opacity="0.35"/>
+            <stop offset="100%" [attr.stop-color]="metricColor()" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+
+        <g class="grid">
+          <line *ngFor="let _ of [0,1,2,3,4,5]"
+                [attr.x1]="pad.left"
+                [attr.x2]="svgWidth - pad.right"
+                [attr.y1]="pad.top + (svgHeight - pad.top - pad.bottom) * (_ / 5)"
+                [attr.y2]="pad.top + (svgHeight - pad.top - pad.bottom) * (_ / 5)"
+          />
+        </g>
+
+        <g class="y-axis">
+          <text *ngFor="let t of yAxisTicks(); let i = index"
+                [attr.x]="pad.left - 10"
+                [attr.y]="pad.top + (svgHeight - pad.top - pad.bottom) * (i / 5) + 4"
+                class="axis-label">
+            {{ yTickValue(t) }}
+          </text>
+        </g>
+
+        <g class="x-axis">
+          <text *ngFor="let l of chart.labels; let i = index"
+                [attr.x]="pad.left + (svgWidth - pad.left - pad.right) * (chart.labels.length > 1 ? i / (chart.labels.length - 1) : 0.5)"
+                [attr.y]="svgHeight - 10"
+                class="axis-label x-label">
+            {{ l }}
+          </text>
+        </g>
+
+        <path [attr.d]="chart.area" fill="url(#chartGradient)" />
+        <path [attr.d]="chart.path" fill="none" [attr.stroke]="metricColor()" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+        <circle *ngFor="let p of chart.points"
+                [attr.cx]="p.x"
+                [attr.cy]="p.y"
+                r="5"
+                [attr.fill]="metricColor()"
+                stroke="#0f172a"
+                stroke-width="2"
+                class="chart-point"
+                (mouseenter)="onPointHover($event, p)"
+                (mouseleave)="onPointLeave()"
+        />
+      </svg>
+
+      <div class="chart-tooltip" *ngIf="hoveredPoint" [style.left.px]="tooltipX" [style.top.px]="tooltipY">
+        <strong>{{ hoveredPoint.label }}</strong>
+        <span>{{ metricLabel() }}: {{ chartMetric === 'ca' ? formatMoney(hoveredPoint.value) : formatNumber(hoveredPoint.value) }}</span>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Onglets d'analyses -->
+  <mat-tab-group [(selectedIndex)]="activeTab" class="analyse-tabs" *ngIf="data && !loading" animationDuration="0ms">
+
+    <mat-tab label="Alertes">
+      <div class="tab-content">
+        <div class="alerts-grid">
+          <mat-card class="alert-card" *ngFor="let a of data.alertes" [class]="'alert-' + a.severity">
+            <i class="bi {{ alertIcon(a.severity) }} alert-icon"></i>
+            <div class="alert-body">
+              <span class="alert-type">{{ a.type }}</span>
+              <span class="alert-message">{{ a.message }}</span>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Produits">
+      <div class="tab-content">
+        <div class="two-col">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-trophy"></i> Top 10 vendus</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Produit</th><th>Qté</th><th>Prix</th></tr>
+              <tr *ngFor="let p of data.produits.top_10_vendus; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ p.nom }}</td>
+                <td>{{ p.quantite }}</td>
+                <td>{{ formatMoney(p.prix) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card">
+            <h3><i class="bi bi-eye"></i> Top 10 consultés</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Produit</th><th>Vues</th><th>Prix</th></tr>
+              <tr *ngFor="let p of data.produits.top_10_vus; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ p.nom }}</td>
+                <td>{{ p.nombre_vues }}</td>
+                <td>{{ formatMoney(p.prix) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+        </div>
+
+        <div class="two-col">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-cash-stack"></i> Top revenus</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Produit</th><th>CA</th><th>Prix</th></tr>
+              <tr *ngFor="let p of data.produits.top_10_revenus; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ p.nom }}</td>
+                <td>{{ formatMoney(p.ca) }}</td>
+                <td>{{ formatMoney(p.prix) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card">
+            <h3><i class="bi bi-box-seam"></i> Produits en rupture</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Produit</th><th>Stock</th><th>Prix</th></tr>
+              <tr *ngFor="let p of data.produits.produits_rupture; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ p.nom }}</td>
+                <td [class.out]="p.stock === 0">{{ p.stock }}</td>
+                <td>{{ formatMoney(p.prix) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Magasins">
+      <div class="tab-content">
+        <div class="two-col">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-shop"></i> Top magasins par CA</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Magasin</th><th>CA</th><th>Cmd</th></tr>
+              <tr *ngFor="let m of data.magasins.top_ca; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ m.nom }}</td>
+                <td>{{ formatMoney(m.ca) }}</td>
+                <td>{{ m.commandes }}</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card">
+            <h3><i class="bi bi-cart-check"></i> Top magasins par commandes</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Magasin</th><th>Cmd</th><th>CA</th></tr>
+              <tr *ngFor="let m of data.magasins.top_commandes; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ m.nom }}</td>
+                <td>{{ m.commandes }}</td>
+                <td>{{ formatMoney(m.ca) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+        </div>
+
+        <div class="two-col">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-star"></i> Top satisfaction client</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Magasin</th><th>Note</th></tr>
+              <tr *ngFor="let m of data.magasins.top_satisfaction; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ m.nom }}</td>
+                <td>{{ m.note_moyenne }} / 5</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card">
+            <h3><i class="bi bi-exclamation-triangle"></i> Nécessitant attention</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Magasin</th><th>Motif</th><th>CA</th></tr>
+              <tr *ngFor="let m of data.magasins.attention; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ m.nom }}</td>
+                <td>{{ m.motif }}</td>
+                <td>{{ formatMoney(m.ca) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Clients">
+      <div class="tab-content">
+        <div class="client-kpis">
+          <mat-card class="kpi-card small">
+            <span class="kpi-value">{{ data.clients.frequence_achat_jours }} j</span>
+            <span class="kpi-label">Fréquence moyenne</span>
+          </mat-card>
+          <mat-card class="kpi-card small">
+            <span class="kpi-value">{{ formatMoney(data.clients.panier_moyen_par_client) }}</span>
+            <span class="kpi-label">Panier moyen / client</span>
+          </mat-card>
+        </div>
+
+        <div class="two-col">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-heart"></i> Clients fidèles</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Client</th><th>CA</th><th>Cmd</th></tr>
+              <tr *ngFor="let c of data.clients.fideles; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ c.nom }}</td>
+                <td>{{ formatMoney(c.ca) }}</td>
+                <td>{{ c.commandes }}</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card">
+            <h3><i class="bi bi-person-plus"></i> Nouveaux clients</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Client</th><th>Inscription</th></tr>
+              <tr *ngFor="let c of data.clients.nouveaux; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ c.user__prenom }} {{ c.user__nom }}</td>
+                <td>{{ c.date_inscription | date:'shortDate' }}</td>
+              </tr>
+            </table>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Géographie">
+      <div class="tab-content">
+        <div class="two-col">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-geo-alt"></i> Commandes par ville</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Ville</th><th>Cmd</th><th>CA</th></tr>
+              <tr *ngFor="let g of data.geographie.commandes_par_ville; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ g.ville }}</td>
+                <td>{{ g.commandes }}</td>
+                <td>{{ formatMoney(g.ca) }}</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card">
+            <h3><i class="bi bi-shop"></i> Magasins par ville</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Ville</th><th>Magasins</th></tr>
+              <tr *ngFor="let g of data.geographie.magasins_par_ville; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ g.ville }}</td>
+                <td>{{ g.total }}</td>
+              </tr>
+            </table>
+          </mat-card>
+        </div>
+
+        <div class="two-col geo-wrap">
+          <mat-card class="top-card">
+            <h3><i class="bi bi-people"></i> Clients par ville</h3>
+            <table class="data-table">
+              <tr><th>#</th><th>Ville</th><th>Clients</th></tr>
+              <tr *ngFor="let g of data.geographie.clients_par_ville; let i = index">
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ g.ville }}</td>
+                <td>{{ g.clients }}</td>
+              </tr>
+            </table>
+          </mat-card>
+
+          <mat-card class="top-card donut-card">
+            <h3>Répartition des commandes</h3>
+            <div class="donut-wrap" *ngIf="geoItems().length">
+              <div class="donut" [style.background]="donutGradient(geoItems())"></div>
+              <div class="donut-legend">
+                <div class="legend-item" *ngFor="let item of geoItems()">
+                  <span class="dot" [style.background-color]="item.color"></span>
+                  <span>{{ item.label }} ({{ item.value }})</span>
+                </div>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

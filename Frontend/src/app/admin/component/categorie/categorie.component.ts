@@ -32,7 +32,8 @@ export class CategorieComponent implements OnInit {
     nom: '',
     description: '',
     icone: 'bi-folder',
-    etat: 'actif'
+    etat: 'actif',
+    ordre: 0
   };
   
   searchTerm = '';
@@ -90,7 +91,8 @@ export class CategorieComponent implements OnInit {
       nom: '',
       description: '',
       icone: 'bi-folder',
-      etat: 'actif'
+      etat: 'actif',
+      ordre: this.categories.length
     };
     this.showModal = true;
   }
@@ -101,7 +103,8 @@ export class CategorieComponent implements OnInit {
       nom: categorie.nom,
       description: categorie.description,
       icone: categorie.icone || 'bi-folder',
-      etat: categorie.etat
+      etat: categorie.etat,
+      ordre: categorie.ordre ?? this.categories.indexOf(categorie)
     };
     this.showModal = true;
   }
@@ -116,6 +119,7 @@ export class CategorieComponent implements OnInit {
       nom: this.categorieForm.nom || '',
       description: this.categorieForm.description || '',
       etat: this.categorieForm.etat || 'actif',
+      ordre: this.categorieForm.ordre ?? this.categories.length,
       datecreation: new Date().toISOString(),
       datemodification: new Date().toISOString(),
       categorieid: null
@@ -194,9 +198,56 @@ export class CategorieComponent implements OnInit {
     return this.categories.filter(c => c.etat === 'inactif').length;
   }
 
+  // 🔀 Normalise les ordres si duplication détectée
+  normalizeOrdre(): void {
+    const sorted = [...this.categories].sort((a, b) => (a.ordre - b.ordre) || a.nom.localeCompare(b.nom));
+    const items = sorted.map((c, i) => ({ id: c.id, ordre: i }));
+    this.categorieService.reorderCategories(items).subscribe(() => this.loadCategories());
+  }
+
+  // ⬆️ Déplacer vers le haut
+  moveUp(index: number): void {
+    const list = this.filteredCategories;
+    if (index <= 0 || list.length < 2) return;
+    const uniqueOrdres = new Set(this.categories.map(c => c.ordre)).size === this.categories.length;
+    if (!uniqueOrdres) {
+      this.normalizeOrdre();
+      return;
+    }
+    const a = list[index];
+    const b = list[index - 1];
+    const temp = a.ordre;
+    a.ordre = b.ordre;
+    b.ordre = temp;
+    this.categorieService.reorderCategories([
+      { id: a.id, ordre: a.ordre },
+      { id: b.id, ordre: b.ordre }
+    ]).subscribe(() => this.loadCategories());
+  }
+
+  // ⬇️ Déplacer vers le bas
+  moveDown(index: number): void {
+    const list = this.filteredCategories;
+    if (index >= list.length - 1 || list.length < 2) return;
+    const uniqueOrdres = new Set(this.categories.map(c => c.ordre)).size === this.categories.length;
+    if (!uniqueOrdres) {
+      this.normalizeOrdre();
+      return;
+    }
+    const a = list[index];
+    const b = list[index + 1];
+    const temp = a.ordre;
+    a.ordre = b.ordre;
+    b.ordre = temp;
+    this.categorieService.reorderCategories([
+      { id: a.id, ordre: a.ordre },
+      { id: b.id, ordre: b.ordre }
+    ]).subscribe(() => this.loadCategories());
+  }
+
   // 🔍 Obtenir les catégories filtrées
   get filteredCategories(): CategorieDisplay[] {
-    let filtered = this.categories;
+    let filtered = [...this.categories].sort((a, b) => (a.ordre - b.ordre) || a.nom.localeCompare(b.nom));
 
     // Appliquer le filtre de statut
     if (this.activeFilter !== 'all') {

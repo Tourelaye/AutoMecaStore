@@ -23,9 +23,9 @@ class IsClientOrAdmin(permissions.BasePermission):
         is_authenticated = request.user.is_authenticated
         is_active = getattr(request.user, 'is_active', False)
         role = getattr(request.user, 'role', 'N/A')
-        print(f"🔍 IsClientOrAdmin check - Authenticated: {is_authenticated}, Active: {is_active}, Role: {role}")
+        print(f" IsClientOrAdmin check - Authenticated: {is_authenticated}, Active: {is_active}, Role: {role}")
         result = is_authenticated and is_active and role in ['client', 'admin', 'administrateur']
-        print(f"🔍 IsClientOrAdmin result: {result}")
+        print(f" IsClientOrAdmin result: {result}")
         return result
 
 class IsLivreur(permissions.BasePermission):

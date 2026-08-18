@@ -16,6 +16,7 @@ export interface Utilisateur {
   date_joined?: string;
   avatar?: string;
   is_active?: boolean;
+  is_staff?: boolean;
 }
 
 export interface LoginResponse {
@@ -72,7 +73,8 @@ export class AuthService {
           role: payload.role ?? 'client',
           statut: payload.fournisseur_status ?? '',
           raisonRefus: payload.fournisseur_raison_refus ?? '',
-          is_active: payload.is_active ?? true
+          is_active: payload.is_active ?? true,
+          is_staff: payload.is_staff ?? false
         };
         this.utilisateurSubject.next(userFromToken);
         this.isLoggedInSubject.next(true);

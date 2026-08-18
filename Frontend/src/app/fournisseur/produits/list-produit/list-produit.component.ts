@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import {
   trigger, transition, style, animate, keyframes
 } from '@angular/animations';
@@ -128,7 +128,10 @@ export class ProduitComponent implements OnInit, OnDestroy {
     return this.filteredProduits.slice(start, start + this.pageSize);
   }
 
-  constructor(private produitService: ProduitService) {}
+  constructor(
+    private produitService: ProduitService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadProduits();
@@ -233,6 +236,13 @@ export class ProduitComponent implements OnInit, OnDestroy {
 
   openModal2(mode: 'create' | 'edit' | 'view', produit?: Produit): void {
     this.openModal(mode, produit);
+  }
+
+  // ── Navigation vers le formulaire d'édition ──
+  editProduit(produit: Produit): void {
+    if (produit?.id) {
+      this.router.navigate(['/fournisseur/modifier-produit', produit.id]);
+    }
   }
 
   // ── CRUD ──────────────────────────────────────────────────────────────

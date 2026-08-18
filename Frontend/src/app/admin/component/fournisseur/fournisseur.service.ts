@@ -2,7 +2,26 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export type FournisseurStatus = 'actif' | 'desactive' | 'attente';
+export type FournisseurStatus = 'attente' | 'actif' | 'suspendu' | 'desactive';
+
+export interface MagasinData {
+  nom_magasin: string;
+  logo: string | null;
+  photo_couverture?: string | null;
+  telephone: string;
+  whatsapp?: string;
+  email: string;
+  ville: string;
+  region: string;
+  adresse_complete: string;
+  horaires_ouverture?: any;
+  jours_ouverture?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
+  rayon_livraison_km?: number | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+}
 
 export interface Fournisseur {
   user: {
@@ -16,6 +35,7 @@ export interface Fournisseur {
     is_active: boolean;
     date_joined: string;
   };
+  magasin?: MagasinData;
   nom_entreprise: string;
   description: string;
   siret: string;
@@ -27,8 +47,11 @@ export interface Fournisseur {
   nombre_avis: number;
   nombre_produits: number;
   nombre_ventes: number;
+  nombre_commandes: number;
   chiffre_affaires: number;
   nom_complet: string;
+  raison_refus?: string;
+  date_validation?: string | null;
 }
 
 export interface FournisseurPayload {
@@ -55,11 +78,19 @@ export class FournisseurService {
     return this.http.get<Fournisseur>(`${this.apiUrl}/${userId}/`);
   }
 
-  valider(userId: number, action: 'valider' | 'suspendre' | 'reactiver', commentaire?: string): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/${userId}/validation/`,
-      { action, commentaire: commentaire || '' }
-    );
+  updateMagasin(userId: number, data: FormData | Partial<MagasinData>): Observable<MagasinData> {
+    return this.http.put<MagasinData>(`${this.apiUrl}/${userId}/magasin/`, data);
+  }
+
+  valider(
+    userId: number,
+    action: 'valider' | 'refuser' | 'suspendre' | 'reactiver',
+    motif?: string
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${userId}/validation/`, {
+      action,
+      motif: motif || '',
+    });
   }
 
   delete(userId: number): Observable<any> {

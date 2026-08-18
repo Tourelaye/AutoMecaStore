@@ -18,8 +18,8 @@ try:
     admin.is_staff = True
     admin.is_superuser = True
     admin.save()
-    print('✅ Admin user created successfully')
-    print('📧 Email: admin@automeca.com')
-    print('🔑 Password: Admin123@')
+    print(' Admin user created successfully')
+    print(' Email: admin@automeca.com')
+    print(' Password: Admin123@')
 except Exception as e:
-    print(f'❌ Error creating admin user: {e}')
+    print(f' Error creating admin user: {e}')

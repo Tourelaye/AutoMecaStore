@@ -1,4 +1,6 @@
 from django.urls import path
+from .analytics import AdminAnalyticsView, AdminAnalyticsFiltersView
+from .analytics_export import AdminAnalyticsExportView
 from .views import (
     AdminDashboardStatsView,
     LogEntryListView,
@@ -17,13 +19,29 @@ from .views import (
     AdminProduitDeleteView,
     AdminProduitEnAttenteListView,
     AdminProduitApprobationView,
+    AdminCategorieReorderView,
+    AdminMarqueReorderView,
+    AdminCommandeListView,
+    AdminCommandeDetailView,
+    AdminCommandeStatsView,
+    AdminCommandeAlertsView,
+    AdminCommandeActionView,
+    AdminCommandeExportView,
+    AdminProduitValidationView,
     AdminFournisseurListView,
     AdminFournisseurDetailView,
+    AdminFournisseurMagasinView,
     AdminFournisseurValidationView,
     AdminFournisseurDeleteView,
     AdminFournisseurCommandesView,
     AdminFournisseurProduitsView,
     AdminFournisseurStatsView,
+    AdminUtilisateurListView,
+    AdminUtilisateurDetailView,
+    AdminUtilisateurStatsView,
+    AdminUtilisateurActionView,
+    AdminUtilisateurActiviteView,
+    AdminUtilisateurNotificationView,
 )
 
 urlpatterns = [
@@ -58,14 +76,41 @@ urlpatterns = [
     path('produits/<int:pk>/signal/', AdminProduitSignalView.as_view(), name='admin-produit-signal'),
     path('produits/<int:pk>/sections/', AdminProduitSectionsView.as_view(), name='admin-produit-sections'),
     path('produits/<int:pk>/approbation/', AdminProduitApprobationView.as_view(), name='admin-produit-approbation'),
+    path('produits/<int:pk>/validation/', AdminProduitValidationView.as_view(), name='admin-produit-validation'),
     path('produits/<int:pk>/', AdminProduitDeleteView.as_view(), name='admin-produit-delete'),
+
+    # Catégories et marques admin
+    path('categories/reorder/', AdminCategorieReorderView.as_view(), name='admin-categories-reorder'),
+    path('marques/reorder/', AdminMarqueReorderView.as_view(), name='admin-marques-reorder'),
+
+    # Commandes admin
+    path('commandes/', AdminCommandeListView.as_view(), name='admin-commandes'),
+    path('commandes/export/', AdminCommandeExportView.as_view(), name='admin-commandes-export'),
+    path('commandes/stats/', AdminCommandeStatsView.as_view(), name='admin-commandes-stats'),
+    path('commandes/alerts/', AdminCommandeAlertsView.as_view(), name='admin-commandes-alerts'),
+    path('commandes/<int:pk>/', AdminCommandeDetailView.as_view(), name='admin-commande-detail'),
+    path('commandes/<int:pk>/action/', AdminCommandeActionView.as_view(), name='admin-commande-action'),
 
     # Fournisseurs admin
     path('fournisseurs/', AdminFournisseurListView.as_view(), name='admin-fournisseurs'),
     path('fournisseurs/<int:user_id>/', AdminFournisseurDetailView.as_view(), name='admin-fournisseur-detail'),
+    path('fournisseurs/<int:user_id>/magasin/', AdminFournisseurMagasinView.as_view(), name='admin-fournisseur-magasin'),
     path('fournisseurs/<int:user_id>/validation/', AdminFournisseurValidationView.as_view(), name='admin-fournisseur-validation'),
     path('fournisseurs/<int:user_id>/delete/', AdminFournisseurDeleteView.as_view(), name='admin-fournisseur-delete'),
     path('fournisseurs/<int:user_id>/commandes/', AdminFournisseurCommandesView.as_view(), name='admin-fournisseur-commandes'),
     path('fournisseurs/<int:user_id>/produits/', AdminFournisseurProduitsView.as_view(), name='admin-fournisseur-produits'),
     path('fournisseurs/<int:user_id>/stats/', AdminFournisseurStatsView.as_view(), name='admin-fournisseur-stats'),
+
+    # Utilisateurs admin
+    path('utilisateurs/', AdminUtilisateurListView.as_view(), name='admin-utilisateurs'),
+    path('utilisateurs/stats/', AdminUtilisateurStatsView.as_view(), name='admin-utilisateurs-stats'),
+    path('utilisateurs/notifications/', AdminUtilisateurNotificationView.as_view(), name='admin-utilisateurs-notifications'),
+    path('utilisateurs/<int:pk>/', AdminUtilisateurDetailView.as_view(), name='admin-utilisateur-detail'),
+    path('utilisateurs/<int:pk>/action/', AdminUtilisateurActionView.as_view(), name='admin-utilisateur-action'),
+    path('utilisateurs/<int:pk>/activite/', AdminUtilisateurActiviteView.as_view(), name='admin-utilisateur-activite'),
+
+    # Centre d'analyse
+    path('analytics/', AdminAnalyticsView.as_view(), name='admin-analytics'),
+    path('analytics/filters/', AdminAnalyticsFiltersView.as_view(), name='admin-analytics-filters'),
+    path('analytics/export/', AdminAnalyticsExportView.as_view(), name='admin-analytics-export'),
 ]

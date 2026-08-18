@@ -261,12 +261,12 @@
 
           <button
             class="btn-cart"
-            [class.added]="produitAjoute === p.id"
             [disabled]="p.stock === 0"
-            (click)="ajouterAuPanier(p, $event)"
+            (click)="goToProduit(p.id); $event.stopPropagation()"
+            type="button"
           >
-            <i class="bi" [class.bi-cart-plus]="produitAjoute !== p.id" [class.bi-check-lg]="produitAjoute === p.id"></i>
-            {{ produitAjoute === p.id ? 'Ajouté !' : 'Ajouter au panier' }}
+            <i class="bi bi-shop-window"></i>
+            Choisir
           </button>
 
         </div>
@@ -332,12 +332,12 @@
             <div class="btnns">
               <button
                 class="btn-cart"
-                [class.added]="produitAjoute === p.id"
                 [disabled]="p.stock === 0"
-                (click)="ajouterAuPanier(p, $event)"
+                (click)="goToProduit(p.id); $event.stopPropagation()"
+                type="button"
               >
-                <i class="bi" [class.bi-cart-plus]="produitAjoute !== p.id" [class.bi-check-lg]="produitAjoute === p.id"></i>
-                {{ produitAjoute === p.id ? 'Ajouté !' : 'Ajouter' }}
+                <i class="bi bi-shop-window"></i>
+                Choisir
               </button>
 
               <div class="btn-row">

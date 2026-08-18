@@ -1,0 +1,86 @@
+<section class="magasin-detail-page" *ngIf="!loading && !error">
+  <header class="magasin-hero" *ngIf="magasin">
+    <div class="hero-logo">
+      <img *ngIf="magasin.logo_url" [src]="magasin.logo_url" alt="logo magasin">
+      <i *ngIf="!magasin.logo_url" class="bi bi-shop"></i>
+    </div>
+    <div class="hero-info">
+      <h1>{{ magasin.nom_magasin }}</h1>
+      <p *ngIf="adresseComplete" class="adresse"><i class="bi bi-geo-alt"></i> {{ adresseComplete }}</p>
+      <p *ngIf="magasin.telephone" class="telephone"><i class="bi bi-telephone"></i> {{ magasin.telephone }}</p>
+      <div class="tags">
+        <span *ngIf="magasin.note" class="tag-note"><i class="bi bi-star-fill"></i> {{ magasin.note | number:'1.1-1' }}</span>
+        <span *ngIf="magasin.distance_km != null" class="tag-distance"><i class="bi bi-geo"></i> {{ magasin.distance_km }} km</span>
+        <span *ngIf="magasin.livraison_disponible" class="tag-livraison"><i class="bi bi-truck"></i> Livraison</span>
+        <span *ngIf="magasin.retrait_magasin" class="tag-retrait"><i class="bi bi-shop"></i> Retrait</span>
+        <span class="tag-ouverture" [class.ouvert]="isOpen">{{ isOpen ? 'Ouvert' : 'Fermé' }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="magasin-actions" *ngIf="magasin">
+    <button class="btn-primary" (click)="openItineraire()">
+      <i class="bi bi-signpost-split"></i> Itinéraire
+    </button>
+    <button class="btn-secondary" *ngIf="magasin.telephone" (click)="callMagasin()">
+      <i class="bi bi-telephone"></i> Appeler
+    </button>
+    <button class="btn-link" [routerLink]="['/produits']" [queryParams]="{ magasin: magasin.nom_magasin }">
+      <i class="bi bi-search"></i> Voir les produits
+    </button>
+  </div>
+
+  <div class="magasin-grid" *ngIf="magasin">
+    <div class="carte-bloc">
+      <h2><i class="bi bi-map"></i> Localisation</h2>
+      <iframe
+        *ngIf="getMapUrl() as url"
+        [src]="url"
+        width="100%"
+        height="320"
+        style="border:0; border-radius: 16px;"
+        loading="lazy"
+        allowfullscreen
+      ></iframe>
+      <div *ngIf="!getMapUrl()" class="carte-placeholder">
+        <p><i class="bi bi-geo-alt"></i> Aucune coordonnée GPS disponible.</p>
+      </div>
+    </div>
+
+    <div class="infos-bloc">
+      <div class="info-card" *ngIf="magasin.horaires_ouverture || magasin.jours_ouverture">
+        <h3><i class="bi bi-clock"></i> Horaires</h3>
+        <p *ngIf="magasin.jours_ouverture"><strong>Jours :</strong> {{ magasin.jours_ouverture }}</p>
+        <p *ngIf="magasin.horaires_ouverture as h">
+          <strong>Horaires :</strong> {{ h.ouverture || h.debut }} – {{ h.fermeture || h.fin }}
+        </p>
+      </div>
+      <div class="info-card" *ngIf="magasin.email || magasin.whatsapp">
+        <h3><i class="bi bi-envelope"></i> Contact</h3>
+        <p *ngIf="magasin.email"><strong>Email :</strong> {{ magasin.email }}</p>
+        <p *ngIf="magasin.whatsapp"><strong>WhatsApp :</strong> {{ magasin.whatsapp }}</p>
+      </div>
+      <div class="info-card" *ngIf="magasin.rayon_livraison_km != null">
+        <h3><i class="bi bi-bullseye"></i> Zone de livraison</h3>
+        <p>{{ magasin.rayon_livraison_km }} km autour du magasin</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="magasin-retour">
+    <button class="btn-link" (click)="router.navigateByUrl('/produits')">
+      <i class="bi bi-arrow-left"></i> Retour aux produits
+    </button>
+  </div>
+</section>
+
+<div class="loading-state" *ngIf="loading">
+  <i class="bi bi-arrow-repeat spin"></i>
+  <p>Chargement du magasin…</p>
+</div>
+
+<div class="error-state" *ngIf="error">
+  <i class="bi bi-exclamation-triangle"></i>
+  <p>{{ error }}</p>
+  <button class="btn-link" (click)="router.navigateByUrl('/produits')">Retour</button>
+</div>

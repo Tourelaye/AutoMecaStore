@@ -338,12 +338,6 @@ export class PoidLourdsListComponent implements OnInit {
       image: produit.image ?? undefined
     });
   
-    // Notification de succès
-    this.notificationService.success(
-      `${produit.nom} a été ajouté au panier`,
-      'Produit ajouté'
-    );
-  
     // Animation feedback
     this.produitAjoute = produit.id;
     setTimeout(() => {

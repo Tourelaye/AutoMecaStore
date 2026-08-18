@@ -1,0 +1,353 @@
+<div class="dashboard-layout">
+  <div class="dashboard-main">
+
+    <!-- Header -->
+    <section class="dash-header">
+      <div>
+        <div class="dash-header__status">
+          <span class="status-pill">
+            <span class="status-pill__dot"></span> Système opérationnel
+          </span>
+          <span class="live-badge"><span class="live-dot"></span> LIVE</span>
+        </div>
+        <h1 class="dash-header__title">Bonjour, <span>{{ adminName }}</span></h1>
+        <p class="dash-header__subtitle">{{ todayLabel }} — Vue d'ensemble du tableau de bord administrateur</p>
+        <p class="dash-header__updated" *ngIf="lastUpdated">{{ lastUpdated }}</p>
+      </div>
+      <div class="dash-header__actions">
+        <button mat-stroked-button class="btn-refresh" (click)="refreshDashboard()" [disabled]="loading">
+          <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+          Actualiser
+        </button>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="section-kpis">
+      <div class="kpi-grid" *ngIf="kpis?.length || !loading">
+        <mat-card class="kpi-card" *ngFor="let kpi of kpis; let i = index; trackBy: trackByKey" [class.kpi-card--alert]="kpi.alert" [style.--delay]="(i * 60) + 'ms'">
+          <mat-card-content class="kpi-card__content">
+            <div class="kpi-card__top">
+              <span class="kpi-card__label">{{ kpi.label }}</span>
+              <div class="kpi-card__icon">
+                <i class="bi" [class]="kpi.icon"></i>
+              </div>
+            </div>
+            <div class="kpi-card__value">{{ kpi.displayValue }}</div>
+            <div class="kpi-card__meta" [class]="'kpi-card__meta--' + kpi.variationClass">
+              <i class="bi" [class]="kpi.variationClass === 'positive' ? 'bi-arrow-up-short' : kpi.variationClass === 'negative' ? 'bi-arrow-down-short' : 'bi-dash'"></i>
+              {{ kpi.meta }}
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- SKELETON KPI (premier chargement) -->
+      <div class="kpi-grid" *ngIf="loading && !kpis?.length">
+        <div class="kpi-skeleton" *ngFor="let i of [1,2,3,4]">
+          <div class="sk-row">
+            <div class="sk-line sk-w40"></div>
+            <div class="sk-circle"></div>
+          </div>
+          <div class="sk-line sk-h28 sk-w60"></div>
+          <div class="sk-line sk-w30"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Graphiques -->
+    <section class="section-graphs">
+      <div class="graph-grid">
+        <mat-card class="graph-card graph-card--main">
+          <mat-card-header>
+            <mat-card-title>Évolutions</mat-card-title>
+            <mat-card-subtitle>Suivi mensuel des ventes, commandes et inscriptions</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="graph-tabs">
+              <button *ngFor="let opt of graphOptions" (click)="selectGraph(opt.key)" [class.active]="selectedGraph === opt.key">
+                <i class="bi" [class]="opt.icon"></i>
+                {{ opt.label }}
+              </button>
+            </div>
+
+            <div class="chart-wrap">
+              <svg class="chart-svg" [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
+                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+
+                <line *ngFor="let g of [0,1,2,3,4]" x1="0" [attr.x2]="chartWidth" [attr.y1]="(chartHeight / 4) * g" [attr.y2]="(chartHeight / 4) * g" class="chart-grid" />
+
+                <path class="chart-area" [attr.d]="chartAreaD" fill="url(#lineGradient)" [class.chart-area--visible]="chartReady" />
+
+                <path class="chart-line" [attr.d]="chartPathD" [attr.stroke-dasharray]="chartDashLength" [attr.stroke-dashoffset]="chartReady ? 0 : chartDashLength" />
+
+                <g *ngFor="let p of chartCoords; let i = index">
+                  <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4.5" class="chart-dot" [class.chart-dot--last]="i === chartCoords.length - 1" [class.chart-dot--visible]="chartReady" [style.--delay]="(i * 80) + 'ms'" />
+                  <title>{{ selectedGraph === 'ventes' ? (formatCurrency(p.value) + ' FCFA') : p.value }}</title>
+                </g>
+              </svg>
+
+              <div class="chart-labels">
+                <span *ngFor="let l of chartLabels">{{ l }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="graph-card">
+          <mat-card-header>
+            <mat-card-title>Répartition par catégorie</mat-card-title>
+            <mat-card-subtitle>Chiffre d'affaires par catégorie</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="bar-list">
+              <div class="bar-row" *ngFor="let cat of data.repartition_categories; let i = index" [style.--delay]="(i * 80) + 'ms'">
+                <div class="bar-row__header">
+                  <span class="bar-row__label">{{ cat.nom }}</span>
+                  <span class="bar-row__value">{{ formatCurrency(cat.ca) }} FCFA ({{ cat.pct }}%)</span>
+                </div>
+                <div class="bar-row__track">
+                  <div class="bar-row__fill" [style.width.%]="cat.pct"></div>
+                </div>
+              </div>
+              <p class="empty-state" *ngIf="!data.repartition_categories?.length">Aucune donnée disponible.</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="graph-subgrid">
+        <mat-card class="graph-card">
+          <mat-card-header>
+            <mat-card-title>Top catégories</mat-card-title>
+            <mat-card-subtitle>Catégories les plus performantes</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="rank-list">
+              <div class="rank-item" *ngFor="let cat of data.top_categories; let i = index" [style.--delay]="(i * 70) + 'ms'">
+                <span class="rank-item__rank" [class]="'rank-item__rank--' + (i + 1)">#{{ i + 1 }}</span>
+                <div class="rank-item__main">
+                  <span class="rank-item__title">{{ cat.nom }}</span>
+                  <span class="rank-item__sub">{{ cat.ventes }} ventes</span>
+                </div>
+                <span class="rank-item__amount">{{ formatCurrency(cat.ca) }} FCFA</span>
+              </div>
+              <p class="empty-state" *ngIf="!data.top_categories?.length">Aucune donnée disponible.</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="graph-card">
+          <mat-card-header>
+            <mat-card-title>Ventes par région</mat-card-title>
+            <mat-card-subtitle>Répartition géographique du CA</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="bar-list">
+              <div class="bar-row" *ngFor="let r of data.ventes_par_region; let i = index" [style.--delay]="(i * 80) + 'ms'">
+                <div class="bar-row__header">
+                  <span class="bar-row__label">{{ r.region }}</span>
+                  <span class="bar-row__value">{{ r.pct }}%</span>
+                </div>
+                <div class="bar-row__track">
+                  <div class="bar-row__fill bar-row__fill--alt" [style.width.%]="r.pct"></div>
+                </div>
+              </div>
+              <p class="empty-state" *ngIf="!data.ventes_par_region?.length">Aucune donnée disponible.</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
+
+    <!-- Activité, Alertes, Raccourcis -->
+    <section class="section-monitoring">
+      <div class="monitoring-grid">
+        <mat-card class="monitor-card">
+          <mat-card-header>
+            <mat-card-title><i class="bi bi-lightning-charge"></i> Activité récente</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="scroll-fade-wrap">
+              <ul class="activity-list">
+                <li *ngFor="let act of data.activites_recentes; let i = index" [style.--delay]="(i * 60) + 'ms'">
+                  <div class="activity__icon"><i class="bi" [class]="act.icon"></i></div>
+                  <div class="activity__body">
+                    <p class="activity__text" [innerHTML]="act.texte"></p>
+                    <span class="activity__time">{{ timeAgo(act.date) }}</span>
+                  </div>
+                </li>
+              </ul>
+              <div class="scroll-fade" *ngIf="data.activites_recentes && data.activites_recentes.length > 4"></div>
+            </div>
+            <p class="empty-state" *ngIf="!data.activites_recentes?.length">Aucune activité récente.</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="monitor-card">
+          <mat-card-header>
+            <mat-card-title><i class="bi bi-bell"></i> Alertes critiques</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="scroll-fade-wrap">
+              <div class="alert-list">
+                <div class="alert-item" *ngFor="let alert of data.alertes; let i = index" [class]="'alert-item--' + alert.severity" [style.--delay]="(i * 60) + 'ms'">
+                  <div class="alert__icon"><i class="bi" [class]="severityIcon(alert.severity)"></i></div>
+                  <div class="alert__body">
+                    <p class="alert__message">{{ alert.message }}</p>
+                    <a class="alert__link" [routerLink]="alert.lien" *ngIf="alert.lien">Voir détails <i class="bi bi-arrow-right-short"></i></a>
+                  </div>
+                </div>
+              </div>
+              <div class="scroll-fade" *ngIf="data.alertes && data.alertes.length > 4"></div>
+            </div>
+            <p class="empty-state" *ngIf="!data.alertes?.length">
+              <i class="bi bi-check-circle empty-state__icon"></i><br>
+              Aucune alerte, tout va bien !
+            </p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="monitor-card monitor-card--shortcuts">
+          <mat-card-header>
+            <mat-card-title><i class="bi bi-grid"></i> Raccourcis</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <ul class="shortcut-list">
+              <li *ngFor="let s of raccourcis">
+                <a [routerLink]="s.route">
+                  <i class="bi" [class]="s.icon"></i>
+                  <span>{{ s.label }}</span>
+                </a>
+              </li>
+            </ul>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
+
+    <!-- Tableaux -->
+    <section class="section-tables">
+      <div class="tables-grid">
+        <mat-card class="table-card">
+          <mat-card-header class="table-card__header">
+            <mat-card-title>Derniers magasins</mat-card-title>
+            <a class="view-all-link" routerLink="/admin/fournisseurs">Voir tout <i class="bi bi-arrow-right-short"></i></a>
+          </mat-card-header>
+          <mat-card-content>
+            <table class="admin-table" *ngIf="data.derniers_magasins?.length">
+              <thead>
+                <tr><th>Magasin</th><th>Ville</th><th>Statut</th><th>Date</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of data.derniers_magasins">
+                  <td>
+                    <div class="table-cell--name">
+                      <img *ngIf="m.logo" [src]="m.logo" alt="" class="table-avatar">
+                      <span *ngIf="!m.logo" class="table-avatar table-avatar--fallback">{{ m.nom.charAt(0) }}</span>
+                      <div>
+                        <span class="name">{{ m.nom }}</span>
+                        <span class="sub">{{ m.fournisseur }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ m.ville || '-' }}</td>
+                  <td><span class="status-badge" [class]="storeStatus(m.statut).class">{{ storeStatus(m.statut).label }}</span></td>
+                  <td>{{ formatDate(m.date) }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="empty-state" *ngIf="!data.derniers_magasins?.length">Aucun magasin récent.</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card">
+          <mat-card-header class="table-card__header">
+            <mat-card-title>Derniers produits</mat-card-title>
+            <a class="view-all-link" routerLink="/admin/produits">Voir tout <i class="bi bi-arrow-right-short"></i></a>
+          </mat-card-header>
+          <mat-card-content>
+            <table class="admin-table" *ngIf="data.derniers_produits?.length">
+              <thead>
+                <tr><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Statut</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of data.derniers_produits">
+                  <td>
+                    <div class="table-cell--name">
+                      <img *ngIf="p.image" [src]="p.image" alt="" class="table-avatar">
+                      <span *ngIf="!p.image" class="table-avatar table-avatar--fallback">{{ p.nom.charAt(0) }}</span>
+                      <div>
+                        <span class="name">{{ p.nom }}</span>
+                        <span class="sub">{{ p.fournisseur }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ p.categorie || '-' }}</td>
+                  <td>{{ formatCurrency(p.prix) }} FCFA</td>
+                  <td><span class="status-badge" [class]="productStatus(p.statut).class">{{ productStatus(p.statut).label }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="empty-state" *ngIf="!data.derniers_produits?.length">Aucun produit récent.</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card">
+          <mat-card-header class="table-card__header">
+            <mat-card-title>Dernières commandes</mat-card-title>
+            <a class="view-all-link" routerLink="/admin/commandes">Voir tout <i class="bi bi-arrow-right-short"></i></a>
+          </mat-card-header>
+          <mat-card-content>
+            <table class="admin-table" *ngIf="data.dernieres_commandes?.length">
+              <thead>
+                <tr><th>Référence</th><th>Client</th><th>Montant</th><th>Statut</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of data.dernieres_commandes">
+                  <td><span class="ref">{{ c.reference }}</span></td>
+                  <td>{{ c.client }}</td>
+                  <td>{{ formatCurrency(c.montant) }} FCFA</td>
+                  <td><span class="status-badge" [class]="orderStatus(c.statut).class">{{ orderStatus(c.statut).label }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="empty-state" *ngIf="!data.dernieres_commandes?.length">Aucune commande récente.</p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card">
+          <mat-card-header class="table-card__header">
+            <mat-card-title>Derniers utilisateurs</mat-card-title>
+            <a class="view-all-link" routerLink="/admin/clients">Voir tout <i class="bi bi-arrow-right-short"></i></a>
+          </mat-card-header>
+          <mat-card-content>
+            <table class="admin-table" *ngIf="data.derniers_utilisateurs?.length">
+              <thead>
+                <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Inscription</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let u of data.derniers_utilisateurs">
+                  <td>{{ u.nom }}</td>
+                  <td>{{ u.email }}</td>
+                  <td><span class="role-badge role-badge--{{ u.role }}">{{ u.role }}</span></td>
+                  <td>{{ formatDate(u.date) }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="empty-state" *ngIf="!data.derniers_utilisateurs?.length">Aucun utilisateur récent.</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
+
+    <p *ngIf="error" class="error-message">{{ error }}</p>
+    <mat-progress-bar *ngIf="loading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
+
+  </div>
+</div>

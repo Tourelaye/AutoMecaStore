@@ -209,7 +209,7 @@
                 <button class="action-btn btn-view"  (click)="openModal('view', p)"   title="Voir détails">
                   <i class="bi bi-eye"></i>
                 </button>
-                <button class="action-btn btn-edit"  (click)="openModal('edit', p)"   title="Modifier">
+                <button class="action-btn btn-edit"  (click)="editProduit(p)"   title="Modifier">
                   <i class="bi bi-pencil-square"></i>
                 </button>
                 <button class="action-btn btn-delete" (click)="confirmDelete(p)"      title="Supprimer">
@@ -423,7 +423,7 @@
       <!-- Footer mode view -->
       <div class="modal-footer" *ngIf="modalMode === 'view'">
         <button class="btn-cancel" (click)="closeModal()">Fermer</button>
-        <button class="btn-edit-from-view" (click)="openModal('edit', selectedProduit!)">
+        <button class="btn-edit-from-view" (click)="editProduit(selectedProduit!)">
           <i class="bi bi-pencil-square"></i> Modifier
         </button>
       </div>

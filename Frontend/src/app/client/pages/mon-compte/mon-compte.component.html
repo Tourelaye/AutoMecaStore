@@ -25,11 +25,23 @@
       <aside class="compte-sidebar">
         <nav class="sidebar-nav">
 
+          <button class="nav-item" [class.active]="ongletActif === 'accueil'" (click)="setOnglet('accueil')">
+            <div class="nav-icon icon-blue"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+            <div class="nav-text"><span>Mon compte</span><small>Tableau de bord</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
           <button class="nav-item" [class.active]="ongletActif === 'profil'" (click)="setOnglet('profil')">
             <div class="nav-icon icon-orange"><i class="bi bi-person-fill"></i></div>
             <div class="nav-text"><span>Mon profil</span><small>Informations personnelles</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
+
+          <a class="nav-item" routerLink="/mes-vehicules" (click)="setOnglet('accueil')">
+            <div class="nav-icon icon-green"><i class="bi bi-car-front-fill"></i></div>
+            <div class="nav-text"><span>Mes véhicules</span><small>Véhicules enregistrés</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </a>
 
           <button class="nav-item" [class.active]="ongletActif === 'commandes'" (click)="setOnglet('commandes')">
             <div class="nav-icon icon-blue"><i class="bi bi-box-seam-fill"></i></div>
@@ -37,9 +49,21 @@
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
+          <a class="nav-item" routerLink="/mes-demandes" (click)="setOnglet('accueil')">
+            <div class="nav-icon icon-cyan"><i class="bi bi-chat-left-text-fill"></i></div>
+            <div class="nav-text"><span>Mes demandes</span><small>Demandes de pièces</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </a>
+
           <button class="nav-item" [class.active]="ongletActif === 'favoris'" (click)="setOnglet('favoris')">
             <div class="nav-icon icon-red"><i class="bi bi-heart-fill"></i></div>
             <div class="nav-text"><span>Mes favoris</span><small>Pièces sauvegardées</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </button>
+
+          <button class="nav-item" [class.active]="ongletActif === 'adresses'" (click)="setOnglet('adresses')">
+            <div class="nav-icon icon-violet"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="nav-text"><span>Mes adresses</span><small>Livraison & résidence</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
@@ -48,6 +72,12 @@
             <div class="nav-text"><span>Mon panier</span><small>Articles en cours</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
+
+          <a class="nav-item" routerLink="/notifications" (click)="setOnglet('accueil')">
+            <div class="nav-icon icon-pink"><i class="bi bi-bell-fill"></i></div>
+            <div class="nav-text"><span>Notifications</span><small>Centre de notifications</small></div>
+            <i class="bi bi-chevron-right nav-arrow"></i>
+          </a>
 
           <div class="nav-separator"></div>
 
@@ -59,15 +89,15 @@
 
           <button class="nav-item" [class.active]="ongletActif === 'confidentialite'" (click)="setOnglet('confidentialite')">
             <div class="nav-icon icon-purple"><i class="bi bi-eye-slash-fill"></i></div>
-            <div class="nav-text"><span>Confidentialité</span><small>Données & notifications</small></div>
+            <div class="nav-text"><span>Paramètres</span><small>Confidentialité & notifications</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
           <div class="nav-separator"></div>
 
-          <a class="nav-item logout-item" routerLink="/login" (click)="setOnglet('profil')">
+          <a class="nav-item logout-item" routerLink="/login" (click)="deconnexion()">
             <div class="nav-icon icon-gray"><i class="bi bi-box-arrow-right"></i></div>
-            <div class="nav-text"><span>Déconnexion</span></div>
+            <div class="nav-text"><span>Se déconnecter</span></div>
           </a>
 
         </nav>
@@ -75,6 +105,61 @@
 
       <!-- CONTENU PRINCIPAL -->
       <main class="compte-content">
+
+        <!-- ====== ACCUEIL ====== -->
+        <div class="panel dashboard-panel" *ngIf="ongletActif === 'accueil'">
+          <div class="panel-header">
+            <h2>Bonjour, {{ utilisateur?.prenom }}</h2>
+            <p>Retrouvez l'ensemble de votre espace client</p>
+          </div>
+
+          <div class="dashboard-grid">
+            <button class="dashboard-card" (click)="setOnglet('commandes')">
+              <div class="dash-icon icon-blue"><i class="bi bi-box-seam-fill"></i></div>
+              <div class="dash-text"><span>Mes commandes</span><strong>{{ getCommandes().length }}</strong></div>
+            </button>
+
+            <a class="dashboard-card" routerLink="/mes-vehicules">
+              <div class="dash-icon icon-green"><i class="bi bi-car-front-fill"></i></div>
+              <div class="dash-text"><span>Mes véhicules</span><strong>—</strong></div>
+            </a>
+
+            <a class="dashboard-card" routerLink="/mes-demandes">
+              <div class="dash-icon icon-cyan"><i class="bi bi-chat-left-text-fill"></i></div>
+              <div class="dash-text"><span>Mes demandes</span><strong>—</strong></div>
+            </a>
+
+            <button class="dashboard-card" (click)="setOnglet('favoris')">
+              <div class="dash-icon icon-red"><i class="bi bi-heart-fill"></i></div>
+              <div class="dash-text"><span>Mes favoris</span><strong>{{ getFavoris().length }}</strong></div>
+            </button>
+
+            <button class="dashboard-card" (click)="setOnglet('adresses')">
+              <div class="dash-icon icon-violet"><i class="bi bi-geo-alt-fill"></i></div>
+              <div class="dash-text"><span>Mes adresses</span><strong>{{ adresses.length }}</strong></div>
+            </button>
+
+            <a class="dashboard-card" routerLink="/notifications">
+              <div class="dash-icon icon-pink"><i class="bi bi-bell-fill"></i></div>
+              <div class="dash-text"><span>Notifications</span><strong>—</strong></div>
+            </a>
+
+            <button class="dashboard-card" (click)="setOnglet('profil')">
+              <div class="dash-icon icon-orange"><i class="bi bi-person-fill"></i></div>
+              <div class="dash-text"><span>Mon profil</span><small>Modifier</small></div>
+            </button>
+
+            <button class="dashboard-card" (click)="setOnglet('securite')">
+              <div class="dash-icon icon-green"><i class="bi bi-shield-lock-fill"></i></div>
+              <div class="dash-text"><span>Sécurité</span><small>Mot de passe</small></div>
+            </button>
+
+            <button class="dashboard-card" (click)="setOnglet('confidentialite')">
+              <div class="dash-icon icon-purple"><i class="bi bi-gear-fill"></i></div>
+              <div class="dash-text"><span>Paramètres</span><small>Préférences</small></div>
+            </button>
+          </div>
+        </div>
 
         <!-- ====== PROFIL ====== -->
         <div class="panel" *ngIf="ongletActif === 'profil'">
@@ -322,10 +407,10 @@
         </div>
 
         <!-- ====== COMMANDES ====== -->
-        <div class="panel" *ngIf="ongletActif === 'commandes'">
+        <div class="panel panel-commandes" *ngIf="ongletActif === 'commandes'">
           <div class="panel-header">
             <h2><i class="bi bi-box-seam-fill"></i> Mes commandes</h2>
-            <p>Retrouvez l'historique de toutes vos commandes</p>
+            <p>Suivez l'évolution de chacune de vos commandes en temps réel</p>
           </div>
 
           <!-- État de chargement -->
@@ -335,54 +420,187 @@
           </div>
 
           <!-- Erreur -->
-          <div class="error-banner" *ngIf="commandesError">
+          <div class="error-banner" *ngIf="commandesError && !isLoadingCommandes">
             <i class="bi bi-exclamation-triangle-fill"></i> {{ commandesError }}
+            <button class="btn-retry" (click)="refreshCommandes()">Réessayer</button>
           </div>
 
-          <!-- Liste des commandes -->
-          <div class="commandes-list" *ngIf="hasCommandes()">
-            <div class="commande-card" *ngFor="let commande of getCommandes()">
-              <div class="commande-header">
-                <div class="commande-info">
-                  <h4>Commande #{{ commande.id }}</h4>
-                  <p class="commande-date">{{ formatDate(commande.date_commande) }}</p>
-                </div>
-                <span class="commande-statut" [class]="getStatutClass(commande.statut)">
-                  {{ getStatutLabel(commande.statut) }}
-                </span>
+          <div *ngIf="!isLoadingCommandes && !commandesError">
+            <!-- BARRE DE FILTRES -->
+            <div class="commandes-toolbar" *ngIf="hasCommandes()">
+              <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input
+                  type="text"
+                  [(ngModel)]="recherche"
+                  (input)="getCommandesFiltrees()"
+                  placeholder="Référence, produit ou magasin..."
+                />
               </div>
-              
-              <div class="commande-details">
-                <div class="commande-produits">
-                  <div class="produit-item" *ngFor="let ligne of commande.lignes">
-                    <span class="produit-nom">{{ ligne.produit_nom }}</span>
-                    <span class="produit-quantite">{{ ligne.quantite }}x</span>
-                    <span class="produit-prix">{{ formatPrix(ligne.prix_unitaire) }}</span>
+              <div class="filter-box">
+                <select [(ngModel)]="filtreStatut" (change)="getCommandesFiltrees()">
+                  <option *ngFor="let s of statutsFiltres" [value]="s.key">{{ s.label }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="commandes-count" *ngIf="hasCommandes()">
+              {{ getNombreResultats() }} résultat(s)
+            </div>
+
+            <!-- LISTE DES COMMANDES -->
+            <div class="commandes-list" *ngIf="getNombreResultats() > 0">
+              <div class="commande-card" *ngFor="let commande of getCommandesFiltrees()">
+                <div class="commande-header">
+                  <div class="commande-info">
+                    <h4>{{ commande.reference }}</h4>
+                    <p class="commande-date">{{ formatDate(commande.date_commande) }}</p>
+                  </div>
+                  <span class="commande-statut" [class]="getStatutClass(commande.statut)">
+                    {{ getStatutLabel(commande.statut) }}
+                  </span>
+                </div>
+
+                <div class="commande-body">
+                  <div class="commande-products">
+                    <div class="produit-chip" *ngFor="let ligne of commande.lignes">
+                      <img *ngIf="ligne.produit.image" [src]="ligne.produit.image" [alt]="ligne.produit.nom" />
+                      <span class="produit-nom">{{ ligne.produit.nom }}</span>
+                      <small>× {{ ligne.quantite }}</small>
+                    </div>
+                  </div>
+                  <div class="commande-meta">
+                    <span *ngIf="commande.mode_reception === 'retrait_magasin'"><i class="bi bi-shop"></i> Retrait</span>
+                    <span *ngIf="commande.mode_reception !== 'retrait_magasin'"><i class="bi bi-truck"></i> Livraison</span>
+                    <span class="meta-total"><i class="bi bi-cash"></i> {{ formatPrix(commande.montant_total) }}</span>
                   </div>
                 </div>
-                
-                <div class="commande-total">
-                  <strong>Total: {{ formatPrix(commande.montant_total) }}</strong>
+
+                <div class="commande-actions">
+                  <button class="btn-primary btn-sm" (click)="ouvrirDetail(commande)">
+                    <i class="bi bi-eye"></i> Voir les détails
+                  </button>
                 </div>
               </div>
             </div>
+
+            <div class="empty-state" *ngIf="!hasCommandes()">
+              <i class="bi bi-box-seam"></i>
+              <h3>Aucune commande pour le moment</h3>
+              <p>Vous n'avez pas encore passé de commande sur AutoMecaStore.</p>
+              <a routerLink="/" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                <i class="bi bi-shop"></i> Parcourir le catalogue
+              </a>
+            </div>
           </div>
 
-          <div class="empty-state" *ngIf="!isLoadingCommandes && !hasCommandes()">
-            <!-- DEBUG OUTPUT -->
-            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-                <strong>DEBUG - Commandes:</strong>
-                <pre>{{ commandesResponse | json }}</pre>
-                <strong>hasCommandes():</strong> {{ hasCommandes() }}
-                <strong>getCommandes().length:</strong> {{ getCommandes().length }}
-            </div>
+          <!-- DÉTAIL DE LA COMMANDE -->
+          <div class="detail-overlay" *ngIf="detailOvert" (click)="fermerDetail()">
+            <div class="detail-card" (click)="$event.stopPropagation()">
+              <button class="detail-close" (click)="fermerDetail()" [disabled]="annulationEnCours">
+                <i class="bi bi-x-lg"></i>
+              </button>
 
-            <i class="bi bi-box-seam"></i>
-            <h3>Aucune commande pour le moment</h3>
-            <p>Vous n'avez pas encore passé de commande sur AutoMecaStore.</p>
-            <a routerLink="/" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
-              <i class="bi bi-shop"></i> Parcourir le catalogue
-            </a>
+              <div class="detail-header">
+                <h3>{{ commandeSelectionnee?.reference }}</h3>
+                <span class="commande-statut" [class]="getStatutClass(commandeSelectionnee?.statut || '')">
+                  {{ getStatutLabel(commandeSelectionnee?.statut || '') }}
+                </span>
+                <p class="detail-date">{{ formatDate(commandeSelectionnee?.date_commande || '') }}</p>
+              </div>
+
+              <!-- TIMELINE -->
+              <div class="detail-section">
+                <h4 class="section-title"><i class="bi bi-clock-history"></i> Suivi de la commande</h4>
+                <div class="timeline" [class.timeline-retrait]="commandeSelectionnee?.mode_reception === 'retrait_magasin'">
+                  <div class="timeline-item" *ngFor="let etape of getEtapes(commandeSelectionnee)" [class.atteint]="etape.atteint" [class.actif]="etape.actif">
+                    <div class="timeline-dot">
+                      <i class="bi" [class.bi-check-circle-fill]="etape.atteint" [class.bi-circle]="!etape.atteint"></i>
+                    </div>
+                    <div class="timeline-content">
+                      <strong>{{ etape.label }}</strong>
+                      <span *ngIf="etape.actif" class="actif-badge">En cours</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DÉTAIL PAR MAGASIN -->
+              <div class="detail-section" *ngFor="let groupe of groupesLignesParMagasin(commandeSelectionnee?.lignes || [])">
+                <div class="store-block">
+                  <h4 class="store-name">
+                    <i class="bi" [class.bi-shop]="groupe.lignes[0].mode_reception === 'retrait_magasin'" [class.bi-truck]="groupe.lignes[0].mode_reception !== 'retrait_magasin'"></i>
+                    {{ groupe.magasin?.nom_magasin || 'AutoMecaStore' }} — {{ (groupe.lignes[0].mode_reception || 'livraison') === 'retrait_magasin' ? 'Retrait' : 'Livraison' }}
+                  </h4>
+                  <p class="store-detail" *ngIf="groupe.magasin?.adresse_complete">
+                    <i class="bi bi-geo-alt"></i> {{ groupe.magasin?.adresse_complete }}{{ groupe.magasin?.ville ? ', ' + groupe.magasin?.ville : '' }}
+                  </p>
+                  <p class="store-detail" *ngIf="groupe.magasin?.telephone">
+                    <i class="bi bi-telephone"></i> {{ groupe.magasin?.telephone }}
+                  </p>
+                  <p class="store-detail" *ngIf="groupe.magasin?.horaires_ouverture">
+                    <i class="bi bi-clock"></i> {{ formatHoraires(groupe.magasin?.horaires_ouverture) }}
+                  </p>
+                  <div class="store-actions" *ngIf="groupe.magasin?.telephone || groupe.magasin?.adresse_complete">
+                    <button *ngIf="groupe.magasin?.telephone" class="btn-secondary btn-sm" (click)="appelerMagasin(groupe.magasin?.telephone)">
+                      <i class="bi bi-telephone"></i> Appeler le magasin
+                    </button>
+                    <button *ngIf="groupe.magasin?.adresse_complete" class="btn-secondary btn-sm" (click)="voirItineraire(groupe.magasin)">
+                      <i class="bi bi-map"></i> Voir l'itinéraire
+                    </button>
+                  </div>
+                </div>
+
+                <div class="detail-lines">
+                  <div class="line-item" *ngFor="let ligne of groupe.lignes">
+                    <img *ngIf="ligne.produit.image" [src]="ligne.produit.image" [alt]="ligne.produit.nom" class="line-img" />
+                    <div class="line-info">
+                      <strong>{{ ligne.produit.nom }}</strong>
+                      <small *ngIf="ligne.produit.reference" class="line-ref">Réf. {{ ligne.produit.reference }}</small>
+                      <p class="line-qty-price">{{ ligne.quantite }} × {{ formatPrix(ligne.prix_unitaire) }} = <strong>{{ formatPrix(ligne.sous_total) }}</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ADRESSE DE LIVRAISON -->
+              <div class="detail-section" *ngIf="commandeSelectionnee?.adresse_livraison || commandeSelectionnee?.telephone_client">
+                <h4 class="section-title"><i class="bi bi-geo"></i> Informations de livraison</h4>
+                <p *ngIf="commandeSelectionnee?.adresse_livraison"><strong>Adresse :</strong> {{ commandeSelectionnee?.adresse_livraison }}</p>
+                <p *ngIf="commandeSelectionnee?.telephone_client"><strong>Téléphone :</strong> {{ commandeSelectionnee?.telephone_client }}</p>
+              </div>
+
+              <!-- TOTAUX -->
+              <div class="detail-total">
+                <div class="total-row"><span>Sous-total</span> <span>{{ formatPrix((commandeSelectionnee?.montant_total || 0) - (commandeSelectionnee?.frais_livraison || 0)) }}</span></div>
+                <div class="total-row"><span>Frais de livraison</span> <span>{{ formatPrix(commandeSelectionnee?.frais_livraison || 0) }}</span></div>
+                <div class="total-row grand-total"><span>Total TTC</span> <span>{{ formatPrix(commandeSelectionnee?.montant_total || 0) }}</span></div>
+              </div>
+
+              <!-- HISTORIQUE -->
+              <div class="detail-section" *ngIf="commandeSelectionnee?.historique?.length">
+                <h4 class="section-title"><i class="bi bi-journal-text"></i> Historique des statuts</h4>
+                <div class="hist-list">
+                  <div class="hist-item" *ngFor="let h of commandeSelectionnee?.historique">
+                    <div class="hist-date">{{ h.date | date:'dd/MM/yyyy HH:mm' }}</div>
+                    <div class="hist-statut">{{ getStatutLabel(h.statut) }}</div>
+                    <div class="hist-comment" *ngIf="h.commentaire">{{ h.commentaire }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ACTIONS -->
+              <div class="detail-actions" *ngIf="commandeSelectionnee && estAnnulable(commandeSelectionnee.statut)">
+                <div class="annulation-box">
+                  <label>Motif d'annulation (optionnel)</label>
+                  <textarea [(ngModel)]="annulationMotif" rows="2" placeholder="Précisez pourquoi vous annulez..."></textarea>
+                </div>
+                <button class="btn-danger" (click)="annulerCommande(commandeSelectionnee)" [disabled]="annulationEnCours">
+                  <span *ngIf="!annulationEnCours"><i class="bi bi-x-circle"></i> Annuler la commande</span>
+                  <span *ngIf="annulationEnCours" class="spinner"></span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -416,8 +634,8 @@
                 <p class="favori-date">Ajouté le {{ formatDate(favori.date_ajout) }}</p>
                 
                 <div class="favori-actions">
-                  <button class="btn-primary" (click)="ajouterAuPanierDepuisFavori(favori)">
-                    <i class="bi bi-cart-plus"></i> Ajouter au panier
+                  <button class="btn-primary" (click)="goToProduit(favori.produit_id)">
+                    <i class="bi bi-shop-window"></i> Choisir un magasin
                   </button>
                   <button class="btn-danger" (click)="retirerDesFavoris(favori)">
                     <i class="bi bi-heart-break"></i> Retirer
@@ -444,6 +662,97 @@
               <i class="bi bi-grid"></i> Voir le catalogue
             </a>
           </div>
+        </div>
+
+        <!-- ====== ADRESSES ====== -->
+        <div class="panel" *ngIf="ongletActif === 'adresses'">
+          <div class="panel-header">
+            <h2><i class="bi bi-geo-alt-fill"></i> Mes adresses</h2>
+            <p>Gérez vos adresses de livraison et de résidence</p>
+          </div>
+
+          <div class="success-banner" *ngIf="adresseSuccess">
+            <i class="bi bi-check-circle-fill"></i> Adresse enregistrée avec succès !
+          </div>
+          <div class="error-banner" *ngIf="adresseError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ adresseError }}
+          </div>
+
+          <div class="address-list" *ngIf="!isLoadingAdresses">
+            <div class="adresse-card" *ngFor="let a of adresses">
+              <div class="adresse-main">
+                <strong>{{ a.nom || a.nom_destinataire }}</strong>
+                <span class="badge-principal" *ngIf="a.est_principale">Principale</span>
+                <p>{{ a.adresse }}</p>
+                <small *ngIf="a.quartier">{{ a.quartier }} — {{ a.ville }}</small>
+                <small *ngIf="!a.quartier">{{ a.ville }}</small>
+                <small *ngIf="a.telephone">{{ a.telephone }}</small>
+              </div>
+              <div class="adresse-actions">
+                <button class="btn-secondary btn-sm" (click)="editAdresse(a)">Modifier</button>
+                <button class="btn-secondary btn-sm" (click)="setAdressePrincipale(a.id!)" *ngIf="!a.est_principale">Définir principale</button>
+                <button class="btn-danger btn-sm" (click)="deleteAdresse(a.id!)">Supprimer</button>
+              </div>
+            </div>
+
+            <div class="empty-state" *ngIf="adresses.length === 0">
+              <i class="bi bi-geo-alt"></i>
+              <h3>Aucune adresse enregistrée</h3>
+              <p>Ajoutez une adresse pour la prochaine commande.</p>
+            </div>
+          </div>
+
+          <h4 class="subsection-title" style="margin-top: 24px;">{{ adresseEditingId ? 'Modifier' : 'Ajouter' }} une adresse</h4>
+
+          <form [formGroup]="adresseForm" (ngSubmit)="saveAdresse()" *ngIf="adresseForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nom de l'adresse</label>
+                <input type="text" formControlName="nom" placeholder="Domicile, bureau...">
+              </div>
+              <div class="form-group">
+                <label>Nom du destinataire <span class="req">*</span></label>
+                <input type="text" formControlName="nom_destinataire" placeholder="Prénom et nom">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Téléphone</label>
+                <input type="tel" formControlName="telephone" placeholder="+221 7X XXX XX XX">
+              </div>
+              <div class="form-group">
+                <label>Ville <span class="req">*</span></label>
+                <input type="text" formControlName="ville" placeholder="Ville">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quartier</label>
+                <input type="text" formControlName="quartier" placeholder="Quartier">
+              </div>
+              <div class="form-group">
+                <label>Adresse <span class="req">*</span></label>
+                <input type="text" formControlName="adresse" placeholder="Rue, lotissement...">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Point de repère</label>
+                <input type="text" formControlName="point_de_repere" placeholder="Point de repère">
+              </div>
+              <div class="form-group">
+                <label>Instructions</label>
+                <input type="text" formControlName="instructions" placeholder="Instructions au livreur">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="nouvelleAdresse()" *ngIf="adresseEditingId">Annuler</button>
+              <button type="submit" class="btn-save" [disabled]="adresseSaving">
+                <span *ngIf="!adresseSaving"><i class="bi bi-check-lg"></i> {{ adresseEditingId ? 'Mettre à jour' : 'Ajouter' }}</span>
+                <span *ngIf="adresseSaving"><i class="bi bi-hourglass-split spin"></i> Enregistrement...</span>
+              </button>
+            </div>
+          </form>
         </div>
 
         <!-- ====== PANIER ====== -->

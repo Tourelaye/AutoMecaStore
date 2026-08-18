@@ -1,0 +1,49 @@
+<div class="notification-bell" [class.open]="open">
+  <button class="bell-btn" (click)="toggle()" aria-label="Notifications">
+    <i class="bi bi-bell-fill"></i>
+    <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+  </button>
+
+  <div class="dropdown" *ngIf="open" (click)="$event.stopPropagation()">
+    <div class="dropdown-header">
+      <span class="title">Notifications</span>
+      <button class="mark-all" (click)="markAllRead($event)" *ngIf="unreadCount > 0">
+        Tout marquer comme lu
+      </button>
+    </div>
+
+    <div class="dropdown-body">
+      <div class="empty" *ngIf="!loading && notifications.length === 0">
+        Aucune notification
+      </div>
+      <div class="loading" *ngIf="loading">
+        Chargement…
+      </div>
+
+      <div
+        class="notif-item"
+        *ngFor="let notif of notifications"
+        [class.unread]="!notif.lu"
+        [class.important-danger]="notif.importance === 'danger'"
+        [class.important-warning]="notif.importance === 'warning'"
+        (click)="onNotificationClick(notif)"
+      >
+        <i class="bi icon" [ngClass]="getIconClass(notif.importance)"></i>
+        <div class="notif-content">
+          <strong class="notif-title">{{ notif.titre || notif.type }}</strong>
+          <p class="notif-message">{{ notif.message }}</p>
+          <time class="notif-time">{{ notif.created_at }}</time>
+        </div>
+        <button class="delete-btn" (click)="delete($event, notif)" aria-label="Supprimer">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="dropdown-footer">
+      <a class="view-all" [routerLink]="['/notifications']" (click)="close()">
+        Voir toutes les notifications
+      </a>
+    </div>
+  </div>
+</div>

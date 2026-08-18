@@ -10,3 +10,10 @@
   background: linear-gradient(180deg, #080e1a 0%, #0d1526 100%);
   color: #f1f5f9;
 }
+
+@media (max-width: 768px) {
+  .admin-main {
+    margin-left: 68px;
+    width: calc(100% - 68px);
+  }
+}

@@ -1,54 +1,83 @@
 <div class="livraisons-container">
   <div class="page-header">
     <h1>Mes Livraisons</h1>
-    <p class="page-subtitle">Suivez les livraisons de vos commandes</p>
+    <p class="page-subtitle">Commandes à livrer pour votre magasin</p>
   </div>
 
-  <!-- Actions Bar -->
-  <div class="actions-bar">
+  <div class="actions-bar" *ngIf="!loading">
     <div class="search-filters">
       <div class="search-box">
         <i class="bi bi-search"></i>
-        <input type="text" placeholder="Rechercher une livraison..." [(ngModel)]="searchTerm">
+        <input type="text" placeholder="Rechercher une livraison..." [(ngModel)]="searchTerm" (input)="applyFilters()">
       </div>
       <select class="filter-select" [(ngModel)]="selectedStatut" (change)="onStatutChange(selectedStatut)">
         <option value="">Tous les statuts</option>
-        <option *ngFor="let statut of statuts" [value]="statut">{{statut}}</option>
+        <option *ngFor="let statut of statuts" [value]="statut">{{livraisonService.getStatutLabel(statut)}}</option>
       </select>
     </div>
+    <button class="btn-refresh" (click)="load()" title="Rafraîchir"><i class="bi bi-arrow-clockwise"></i></button>
   </div>
 
-  <!-- Deliveries Table -->
-  <div class="table-card">
+  <div class="error-message" *ngIf="error">{{ error }}</div>
+
+  <div class="table-card" *ngIf="!loading">
     <div class="table-responsive">
       <table class="table">
         <thead>
           <tr>
-            <th>ID Livraison</th>
             <th>Commande</th>
             <th>Client</th>
-            <th>Date</th>
             <th>Adresse</th>
-            <th>Transporteur</th>
+            <th>Téléphone</th>
+            <th>Frais</th>
             <th>Statut</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let livraison of filteredLivraisons">
-            <td>{{livraison.id}}</td>
-            <td>{{livraison.commande}}</td>
-            <td>{{livraison.client}}</td>
-            <td>{{livraison.date | date:'dd/MM/yyyy'}}</td>
-            <td>{{livraison.adresse}}</td>
-            <td>{{livraison.transporteur}}</td>
-            <td><span class="badge {{getStatutClass(livraison.statut)}}">{{livraison.statut}}</span></td>
+          <tr *ngFor="let l of filteredLivraisons">
+            <td><strong>{{ l.commande?.reference }}</strong></td>
+            <td>{{ l.client?.prenom }} {{ l.client?.nom }}<br><small>{{ l.client?.email }}</small></td>
+            <td>
+              <span *ngIf="l.adresse">
+                {{ l.adresse.adresse }}, {{ l.adresse.quartier }}, {{ l.adresse.ville }}
+                <br *ngIf="l.adresse.point_de_repere">
+                <small *ngIf="l.adresse.point_de_repere">Repère : {{ l.adresse.point_de_repere }}</small>
+              </span>
+              <span *ngIf="!l.adresse">—</span>
+            </td>
+            <td>{{ l.adresse?.telephone || '—' }}</td>
+            <td>{{ l.frais_livraison | number:'1.2-2' }} FCFA</td>
+            <td><span class="badge {{getStatutClass(l.statut)}}">{{ getStatutLabel(l.statut) }}</span></td>
+            <td>
+              <button
+                class="btn-action btn-primary"
+                *ngIf="l.statut === 'en_attente_attribution'"
+                [disabled]="actionEnCours === l.id"
+                (click)="prendreEnCharge(l.id)">
+                <span *ngIf="actionEnCours !== l.id">Je prends en charge</span>
+                <span *ngIf="actionEnCours === l.id" class="spinner"></span>
+              </button>
+              <button
+                class="btn-action"
+                *ngIf="prochainStatut(l.statut)"
+                [disabled]="actionEnCours === l.id"
+                (click)="avancerStatut(l.id, prochainStatut(l.statut)!)">
+                {{ getStatutLabel(prochainStatut(l.statut)!) }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredLivraisons.length === 0">
+            <td colspan="7" class="empty">Aucune livraison trouvée.</td>
           </tr>
         </tbody>
       </table>
     </div>
-    
+
     <div class="table-footer">
-      <p>Affichage de {{filteredLivraisons.length}} livraison(s)</p>
+      <p>Affichage de {{ filteredLivraisons.length }} livraison(s)</p>
     </div>
   </div>
+
+  <div class="loading" *ngIf="loading"><span class="spinner"></span> Chargement...</div>
 </div>

@@ -25,45 +25,7 @@
     <div class="navbar-right">
 
       <!-- Notifications -->
-      <div class="icon-wrapper" (click)="toggleNotifications()" [class.active]="showNotifications">
-        <button class="icon-btn" [class.has-notif]="notificationCount > 0" title="Notifications">
-          <i class="bi bi-bell"></i>
-          <span class="notif-dot" *ngIf="notificationCount > 0"></span>
-        </button>
-
-        <!-- Dropdown notifications -->
-        <div class="dropdown-panel notif-panel" *ngIf="showNotifications">
-          <div class="dropdown-panel-header">
-            <span>Notifications</span>
-            <div class="notif-actions">
-              <button class="btn-mark-all" (click)="markAllRead($event)" *ngIf="notificationCount > 0">
-                Tout marquer comme lu
-              </button>
-              <span class="notif-count-badge">{{ notificationCount }}</span>
-            </div>
-          </div>
-          <div class="notif-list">
-            <div class="notif-item" *ngFor="let n of notifications" (click)="onNotificationClick(n)" [class.unread]="!n.lu">
-              <div class="notif-icon" [ngClass]="n.type">
-                <i class="bi {{ n.icon }}"></i>
-              </div>
-              <div class="notif-content">
-                <p class="notif-title">{{ n.titre }}</p>
-                <p class="notif-text">{{ n.message }}</p>
-                <span class="notif-time">{{ n.time }}</span>
-              </div>
-              <span class="unread-dot" *ngIf="!n.lu"></span>
-            </div>
-            <div class="notif-empty" *ngIf="!notifications.length">
-              <i class="bi bi-bell-slash"></i>
-              <span>Aucune notification</span>
-            </div>
-          </div>
-          <div class="dropdown-panel-footer">
-            <a routerLink="/fournisseur/notifications" (click)="showNotifications = false">Voir toutes les notifications</a>
-          </div>
-        </div>
-      </div>
+      <app-notification-bell></app-notification-bell>
 
       <!-- Rafraîchir -->
       <button class="icon-btn" (click)="refresh()" title="Actualiser" [class.spinning]="isRefreshing">

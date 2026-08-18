@@ -21,9 +21,32 @@ export interface LigneCommandeClient {
   sous_total: number;
 }
 
+export interface CheckoutItem {
+  panier_item_id: number;
+  mode_reception: 'livraison' | 'retrait_magasin';
+}
+
+export interface AdresseLivraison {
+  nom_destinataire?: string;
+  telephone?: string;
+  ville?: string;
+  quartier?: string;
+  adresse?: string;
+  point_de_repere?: string;
+  instructions?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
 export interface CommandeCreateRequest {
-  lignes: LigneCommandeClient[];
-  montant_total: number;
+  lignes?: LigneCommandeClient[];
+  montant_total?: number;
+  mode_reception?: 'livraison' | 'retrait_magasin';
+  frais_livraison?: number;
+  adresse_livraison?: string;
+  telephone_client?: string;
+  adresse?: AdresseLivraison;
+  items?: CheckoutItem[];
 }
 
 @Injectable({
@@ -45,20 +68,23 @@ export class CommandeClientService {
     });
   }
 
-  // Créer une commande depuis le panier
-  creerCommandeDepuisPanier(items: PanierItem[]): Observable<CommandeClient> {
-    const lignes: LigneCommandeClient[] = items.map(item => ({
-      produit: item.produit.id,
-      quantite: item.quantite,
-      prix_unitaire: item.prix,
-      sous_total: item.prix * item.quantite
-    }));
-
-    const montant_total = items.reduce((total, item) => total + (item.prix * item.quantite), 0);
+  // Créer une commande depuis le panier (le backend recalcule tout)
+  creerCommandeDepuisPanier(
+    items: PanierItem[],
+    options?: { adresse?: AdresseLivraison; adresse_livraison?: string; telephone_client?: string }
+  ): Observable<CommandeClient> {
+    const checkoutItems: CheckoutItem[] = items
+      .filter(item => item.id !== undefined)
+      .map(item => ({
+        panier_item_id: item.id as number,
+        mode_reception: item.mode_reception === 'retrait_magasin' ? 'retrait_magasin' : 'livraison'
+      }));
 
     const commandeRequest: CommandeCreateRequest = {
-      lignes,
-      montant_total
+      items: checkoutItems,
+      adresse: options?.adresse,
+      adresse_livraison: options?.adresse_livraison,
+      telephone_client: options?.telephone_client
     };
 
     return this.http.post<CommandeClient>(
@@ -88,16 +114,7 @@ export class CommandeClientService {
   // Obtenir les détails d'une commande
   getCommande(id: number): Observable<CommandeClient> {
     return this.http.get<CommandeClient>(
-      `${this.apiUrl}/commandes/${id}/`,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  // Mettre à jour le statut d'une commande (si besoin)
-  updateStatutCommande(id: number, statut: string): Observable<CommandeClient> {
-    return this.http.put<CommandeClient>(
-      `${this.apiUrl}/commandes/${id}/`,
-      { statut },
+      `${this.apiUrl}/mes-commandes/${id}/`,
       { headers: this.getHeaders() }
     );
   }

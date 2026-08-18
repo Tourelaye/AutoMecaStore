@@ -1,55 +1,26 @@
-﻿import { Component, ViewChildren, QueryList, ElementRef } from '@angular/core';
+﻿import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { ProduitService } from '../services/produit.service';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ProduitService, Produit, ProduitCompatibilite } from '../services/produit.service';
 import { ProduitService as CoreProduitService } from '../../core/services/produit.service';
 
 type CategorieVehicule = 'automobile' | 'moto' | 'poids-lourd' | 'velo';
 
-interface ProduitForm {
-  categorieVehicule: CategorieVehicule | null;
-  typePiece: string | null;
-  nom: string;
-  reference: string;
-  marque: string;
-  prix: number | null;
-  stock: number | null;
-  description: string;
-  // Compatibilité
-  anneeDebut: number | null;
-  anneeFin: number | null;
-  // Technique
-  etat: 'neuf' | 'occasion' | 'reconditionne';
-  garantieMois: number;
-  paysOrigine: string;
-  referenceOem: string;
-  poids: number | null;
-  longueur: number | null;
-  largeur: number | null;
-  hauteur: number | null;
-  // Stock
-  disponibilite: 'en_stock' | 'faible_stock' | 'rupture' | 'precommande';
-  delaiLivraison: 'same_day' | '24h' | '48h' | '2_5j' | '5_7j' | '7j_plus';
-  // Complémentaires
-  conseilsInstallation: string;
-  conditionsRetour: string;
-}
-
 interface ImageSlot {
-  id: number;
   file: File | null;
   preview: string | null;
+  changed: boolean;
 }
 
 @Component({
   selector: 'app-ajouter-produit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './ajouter-produit.component.html',
   styleUrls: ['./ajouter-produit.component.css']
 })
-export class AjouterProduitComponent {
+export class AjouterProduitComponent implements OnInit {
 
   @ViewChildren('fileInput') fileInputRefs!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -57,11 +28,16 @@ export class AjouterProduitComponent {
     return this.fileInputRefs.toArray().map(ref => ref.nativeElement);
   }
 
+  mode: 'create' | 'edit' = 'create';
+  productId?: number;
+  isLoading = false;
   isSaving = false;
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
   private toastTimeout: any;
   showPreview = false;
+
+  produitForm!: FormGroup;
 
   categoriesVehicule: { value: CategorieVehicule; label: string; icon: string }[] = [
     { value: 'automobile', label: 'Automobile', icon: 'bi-car-front-fill' },
@@ -84,13 +60,11 @@ export class AjouterProduitComponent {
     velo: 'REF-VEL'
   };
 
-  // Suggestions de modèles courants
-  modelesSuggestions: string[] = [ ];
-  modelesCompatibles: string[] = [];
+  // Entrées chips
   modeleInput = '';
-
-  motsCles: string[] = [];
+  modelesCompatibles: string[] = [];
   motCleInput = '';
+  motsCles: string[] = [];
 
   anneeCourante = new Date().getFullYear();
   annees: number[] = Array.from({ length: 36 }, (_, i) => this.anneeCourante - 30 + i);
@@ -130,7 +104,7 @@ export class AjouterProduitComponent {
     { value: 'precommande', label: 'Précommande' }
   ];
 
-  delais = [
+  delaisLivraison = [
     { value: 'same_day', label: 'Livraison le jour même' },
     { value: '24h', label: '24 heures' },
     { value: '48h', label: '48 heures' },
@@ -139,65 +113,66 @@ export class AjouterProduitComponent {
     { value: '7j_plus', label: 'Plus de 7 jours' }
   ];
 
-  form: ProduitForm = {
-    categorieVehicule: null,
-    typePiece: null,
-    nom: '',
-    reference: '',
-    marque: '',
-    prix: null,
-    stock: null,
-    description: '',
-    anneeDebut: null,
-    anneeFin: null,
-    etat: 'neuf',
-    garantieMois: 0,
-    paysOrigine: '',
-    referenceOem: '',
-    poids: null,
-    longueur: null,
-    largeur: null,
-    hauteur: null,
-    disponibilite: 'en_stock',
-    delaiLivraison: '2_5j',
-    conseilsInstallation: '',
-    conditionsRetour: ''
-  };
+  delaisPreparation = [
+    { value: '24h', label: '24 heures' },
+    { value: '48h', label: '48 heures' },
+    { value: '72h', label: '72 heures' },
+    { value: '4_5j', label: '4 à 5 jours' },
+    { value: '6_7j', label: '6 à 7 jours' },
+    { value: '7j_plus', label: 'Plus de 7 jours' }
+  ];
 
-  // Jusqu'à 4 images (index 0 = principale par défaut)
-  images: ImageSlot[] = Array.from({ length: 4 }, (_, i) => ({ id: i + 1, file: null, preview: null }));
+  // 4 slots images (index 1 dans le backend)
+  imageSlots: ImageSlot[] = Array.from({ length: 4 }, () => ({ file: null, preview: null, changed: false }));
   mainImageIndex = 0;
   dragIndex: number | null = null;
 
-  // Données chargées depuis l'API pour mapping id <-> nom
   availableCategories: { id: number; nom: string }[] = [];
   typePiecesMap: { [key: string]: number } = {};
+  idToTypePieceName: { [id: number]: string } = {};
   availableTypePieces: any[] = [];
 
   get typesPieceDisponibles(): string[] {
-    return this.form.categorieVehicule ? this.typesPieceParCategorie[this.form.categorieVehicule] : [];
+    const cat = this.produitForm?.get('categorieVehicule')?.value as CategorieVehicule | null;
+    return cat ? this.typesPieceParCategorie[cat] : [];
   }
 
   get referencePlaceholder(): string {
-    const prefix = this.form.categorieVehicule
-      ? this.refPrefixParCategorie[this.form.categorieVehicule]
-      : 'REF-AMS';
+    const cat = this.produitForm?.get('categorieVehicule')?.value as CategorieVehicule | null;
+    const prefix = cat ? this.refPrefixParCategorie[cat] : 'REF-AMS';
     const suffix = Math.floor(100000 + Math.random() * 899999);
     return prefix + '-' + suffix;
   }
 
   get mainPreview(): string | null {
-    return this.images[this.mainImageIndex]?.preview || null;
+    return this.imageSlots[this.mainImageIndex]?.preview || null;
   }
 
   get hasImages(): boolean {
-    return this.images.some(img => img.file !== null);
+    return this.imageSlots.some(img => img.preview !== null);
+  }
+
+  get compatibilitesArray(): FormArray {
+    return this.produitForm.get('compatibilites') as FormArray;
+  }
+
+  get stockFaible(): boolean {
+    const stock = Number(this.produitForm?.get('stock')?.value ?? 0);
+    const seuil = Number(this.produitForm?.get('seuil_alerte')?.value ?? 10);
+    return stock > 0 && stock <= seuil;
+  }
+
+  get quantiteMinInvalid(): boolean {
+    const stock = Number(this.produitForm?.get('stock')?.value ?? 0);
+    const qmin = this.produitForm?.get('quantite_min')?.value;
+    return qmin !== null && qmin !== undefined && qmin !== '' && Number(qmin) > stock;
   }
 
   get dimensionsDisplay(): string {
-    const l = this.form.longueur;
-    const la = this.form.largeur;
-    const h = this.form.hauteur;
+    const vals = this.produitForm?.value ?? {};
+    const l = vals.longueur;
+    const la = vals.largeur;
+    const h = vals.hauteur;
     if (l && la && h) {
       return l + ' x ' + la + ' x ' + h + ' cm';
     }
@@ -205,35 +180,139 @@ export class AjouterProduitComponent {
   }
 
   constructor(
+    private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private produitService: ProduitService,
     private coreProduitService: CoreProduitService
   ) {}
 
   ngOnInit(): void {
-    this.loadCategories();
+    this.buildForm();
+    this.setupListeners();
+
+    const id = this.route.snapshot.params['id'];
+    if (id) {
+      this.mode = 'edit';
+      this.productId = +id;
+      this.loadCategories(() => this.loadProduit(+id));
+    } else {
+      this.mode = 'create';
+      this.loadCategories();
+    }
   }
 
-  private loadCategories(): void {
+  private buildForm(): void {
+    this.produitForm = this.fb.group({
+      categorieVehicule: [null as CategorieVehicule | null, Validators.required],
+      typePiece: [null as string | null, Validators.required],
+      nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      reference: ['', [Validators.required, Validators.maxLength(50)]],
+      marque: ['', [Validators.required, Validators.maxLength(100)]],
+      fabricant: ['', Validators.maxLength(100)],
+      prix: [null as number | null, [Validators.required, Validators.min(1)]],
+      stock: [null as number | null, [Validators.required, Validators.min(0)]],
+      seuil_alerte: [10, [Validators.min(0)]],
+      quantite_min: [null as number | null, [Validators.min(0)]],
+      description_courte: ['', Validators.maxLength(500)],
+      description: ['', [Validators.required, Validators.minLength(20)]],
+      description_detaillee: [''],
+      precautions: [''],
+      annee_debut: [null as number | null],
+      annee_fin: [null as number | null],
+      compatibilites: this.fb.array([]),
+      etat: ['neuf'],
+      garantie_disponible: [false],
+      garantie_mois: [0],
+      conditions_garantie: [''],
+      pays_origine: [''],
+      reference_oem: ['', Validators.maxLength(100)],
+      poids: [null as number | null, [Validators.min(0)]],
+      longueur: [null as number | null, [Validators.min(0)]],
+      largeur: [null as number | null, [Validators.min(0)]],
+      hauteur: [null as number | null, [Validators.min(0)]],
+      matiere: ['', Validators.maxLength(100)],
+      couleur: ['', Validators.maxLength(100)],
+      disponibilite: [{ value: 'en_stock', disabled: true }],
+      delai_livraison: ['2_5j'],
+      livraison_disponible: [false],
+      retrait_magasin: [false],
+      delai_preparation: ['24h'],
+      conseils_installation: [''],
+      conditions_retour: [''],
+      mots_cles: [[] as string[]],
+      modeles_compatibles: [[] as string[]]
+    }, { validators: [anneesValidator, quantiteValidator] });
+  }
+
+  private setupListeners(): void {
+    this.produitForm.get('garantie_disponible')?.valueChanges.subscribe(v => this.onGarantieChange(v));
+    this.produitForm.get('livraison_disponible')?.valueChanges.subscribe(v => this.onLivraisonChange(v));
+    this.produitForm.get('stock')?.valueChanges.subscribe(() => this.updateDisponibilite());
+    this.produitForm.get('seuil_alerte')?.valueChanges.subscribe(() => this.updateDisponibilite());
+  }
+
+  private onGarantieChange(disponible: boolean): void {
+    const garantie = this.produitForm.get('garantie_mois');
+    const conditions = this.produitForm.get('conditions_garantie');
+    if (disponible) {
+      garantie?.setValidators([Validators.required, Validators.min(1)]);
+      conditions?.setValidators([Validators.required, Validators.minLength(3)]);
+    } else {
+      garantie?.clearValidators();
+      conditions?.clearValidators();
+      garantie?.setValue(0);
+      conditions?.setValue('');
+    }
+    garantie?.updateValueAndValidity();
+    conditions?.updateValueAndValidity();
+  }
+
+  private onLivraisonChange(disponible: boolean): void {
+    const delai = this.produitForm.get('delai_livraison');
+    const prep = this.produitForm.get('delai_preparation');
+    if (disponible) {
+      delai?.setValidators(Validators.required);
+      prep?.setValidators(Validators.required);
+    } else {
+      delai?.clearValidators();
+      prep?.clearValidators();
+    }
+    delai?.updateValueAndValidity();
+    prep?.updateValueAndValidity();
+  }
+
+  private updateDisponibilite(): void {
+    const stock = Number(this.produitForm.get('stock')?.value ?? 0);
+    const seuil = Number(this.produitForm.get('seuil_alerte')?.value ?? 10);
+    let val: string = stock === 0 ? 'rupture' : (stock <= seuil ? 'faible_stock' : 'en_stock');
+    this.produitForm.get('disponibilite')?.setValue(val, { emitEvent: false });
+  }
+
+  private loadCategories(then?: () => void): void {
     this.coreProduitService.getCategories().subscribe({
       next: (cats) => {
         this.availableCategories = cats.map(c => ({ id: (c as any).id, nom: (c as any).nom }));
+        then?.();
       },
       error: () => {
-        // fallback: keep UI categories
+        then?.();
       }
     });
   }
 
   selectCategorie(cat: CategorieVehicule): void {
-    this.form.categorieVehicule = cat;
-    this.form.typePiece = null;
+    this.produitForm.get('categorieVehicule')?.setValue(cat);
+    this.produitForm.get('typePiece')?.setValue(null);
+    this.typePiecesMap = {};
+    this.idToTypePieceName = {};
+    this.availableTypePieces = [];
     const catId = this.getCategorieIdForVehicule(cat);
     if (catId) this.loadTypePiecesForCategorie(catId);
   }
 
   private getCategorieIdForVehicule(cat: CategorieVehicule): number | null {
-    const key = cat.toString().toLowerCase();
+    const key = String(cat).toLowerCase();
     const heuristics: { [k: string]: string[] } = {
       automobile: ['auto', 'automobile', 'voiture'],
       moto: ['moto', 'motorcycle', 'motor'],
@@ -248,33 +327,63 @@ export class AjouterProduitComponent {
     return null;
   }
 
-  private loadTypePiecesForCategorie(categorieId: number): void {
+  private getCategorieVehiculeForId(id: number | null): CategorieVehicule | null {
+    if (!id || !this.availableCategories) return null;
+    const cat = this.availableCategories.find(c => c.id === id);
+    if (!cat) return null;
+    const nom = cat.nom.toLowerCase();
+    if (nom.includes('auto') || nom.includes('voiture')) return 'automobile';
+    if (nom.includes('moto')) return 'moto';
+    if (nom.includes('poids') || nom.includes('lourd')) return 'poids-lourd';
+    if (nom.includes('vélo') || nom.includes('velo') || nom.includes('bike')) return 'velo';
+    return null;
+  }
+
+  private loadTypePiecesForCategorie(categorieId: number, thenSet?: string): void {
     this.coreProduitService.getTypesPieces(categorieId).subscribe({
       next: (types) => {
         this.availableTypePieces = types;
+        this.typePiecesMap = {};
+        this.idToTypePieceName = {};
         types.forEach((tp: any) => {
           const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
           this.typePiecesMap[normalized] = tp.id;
           this.typePiecesMap[tp.nom] = tp.id;
+          this.idToTypePieceName[tp.id] = tp.nom;
         });
+        if (thenSet) {
+          this.produitForm.get('typePiece')?.setValue(thenSet, { emitEvent: false });
+        }
       },
-      error: (err) => {
-        console.warn('Impossible de charger types de pièces', err);
-      }
+      error: (err) => console.warn('Impossible de charger types de pièces', err)
     });
   }
 
-  // ── MODÈLES COMPATIBLES ──
+  // ── COMPATIBILITÉS ──
+  private createCompatibiliteGroup(comp?: ProduitCompatibilite): FormGroup {
+    return this.fb.group({
+      marque: [comp?.marque ?? '', Validators.required],
+      modele: [comp?.modele ?? '', Validators.required],
+      version: [comp?.version ?? ''],
+      motorisation: [comp?.motorisation ?? ''],
+      annee_debut: [comp?.annee_debut ?? null],
+      annee_fin: [comp?.annee_fin ?? null]
+    }, { validators: anneesCompatValidator });
+  }
+
+  ajouterCompatibilite(comp?: ProduitCompatibilite): void {
+    this.compatibilitesArray.push(this.createCompatibiliteGroup(comp));
+  }
+
+  retirerCompatibilite(index: number): void {
+    this.compatibilitesArray.removeAt(index);
+  }
+
+  // ── MODÈLES COMPATIBLES (chips) ──
   onModeleInputKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter' || event.key === ',') {
       event.preventDefault();
       this.ajouterModele(this.modeleInput.trim());
-    }
-  }
-
-  ajouterModeleDepuisSuggestion(modele: string): void {
-    if (!this.modelesCompatibles.includes(modele)) {
-      this.modelesCompatibles.push(modele);
     }
   }
 
@@ -310,22 +419,9 @@ export class AjouterProduitComponent {
     this.motsCles.splice(index, 1);
   }
 
-  // ── GESTION DU STOCK ──
-  onStockChange(): void {
-    const stock = this.form.stock ?? 0;
-    if (stock === 0) {
-      this.form.disponibilite = 'rupture';
-    } else if (stock < 10) {
-      this.form.disponibilite = 'faible_stock';
-    } else {
-      this.form.disponibilite = 'en_stock';
-    }
-  }
-
   // ── IMAGES ──
   ouvrirFileInput(index: number): void {
-    const input = this.fileInputs[index];
-    input?.click();
+    this.fileInputs[index]?.click();
   }
 
   onImageFileSelected(event: Event, index: number): void {
@@ -334,13 +430,15 @@ export class AjouterProduitComponent {
     if (!file) return;
     if (!this.validerFichierImage(file)) return;
 
-    this.images[index].file = file;
-    this.lireApercu(file, (dataUrl) => (this.images[index].preview = dataUrl));
+    this.imageSlots[index].file = file;
+    this.imageSlots[index].changed = true;
+    this.lireApercu(file, (dataUrl) => (this.imageSlots[index].preview = dataUrl));
   }
 
   retirerImage(index: number): void {
-    this.images[index].file = null;
-    this.images[index].preview = null;
+    this.imageSlots[index].file = null;
+    this.imageSlots[index].preview = null;
+    this.imageSlots[index].changed = true;
     if (this.mainImageIndex === index) {
       this.mainImageIndex = 0;
     }
@@ -349,7 +447,7 @@ export class AjouterProduitComponent {
   }
 
   definirImagePrincipale(index: number): void {
-    if (this.images[index].file) {
+    if (this.imageSlots[index].preview) {
       this.mainImageIndex = index;
     }
   }
@@ -370,15 +468,14 @@ export class AjouterProduitComponent {
   }
 
   private swapImages(from: number, to: number): void {
-    const temp = this.images[from];
-    this.images[from] = this.images[to];
-    this.images[to] = temp;
+    const temp = this.imageSlots[from];
+    this.imageSlots[from] = this.imageSlots[to];
+    this.imageSlots[to] = temp;
     if (this.mainImageIndex === from) {
       this.mainImageIndex = to;
     } else if (this.mainImageIndex === to) {
       this.mainImageIndex = from;
     }
-    // repositionne les inputs file pour garder la correspondance
     this.fileInputRefs.forEach(ref => ref.nativeElement.value = '');
   }
 
@@ -407,86 +504,50 @@ export class AjouterProduitComponent {
     reader.readAsDataURL(file);
   }
 
+  // ── SOUMISSION ──
   enregistrer(): void {
-    if (!this.form.categorieVehicule || !this.form.typePiece) {
-      this.showToast('Merci de choisir une catégorie et un type de pièce.', 'error');
+    if (this.produitForm.invalid) {
+      this.produitForm.markAllAsTouched();
+      this.showToast('Veuillez corriger les erreurs du formulaire.', 'error');
       return;
     }
-    if (!this.images[0].file) {
+    if (!this.imageSlots[this.mainImageIndex]?.preview) {
       this.showToast("L'image principale est obligatoire.", 'error');
       return;
     }
 
-    this.isSaving = true;
-
-    const formData = new FormData();
-    const categorieId = this.getCategorieIdForVehicule(this.form.categorieVehicule!);
+    const categorieId = this.getCategorieIdForVehicule(this.produitForm.get('categorieVehicule')?.value);
+    const typePieceName: string | null = this.produitForm.get('typePiece')?.value;
     let typePieceId: number | null = null;
-    if (this.form.typePiece) {
-      const normalized = this.form.typePiece.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
-      typePieceId = this.typePiecesMap[this.form.typePiece] || this.typePiecesMap[normalized] || null;
+    if (typePieceName) {
+      const normalized = typePieceName.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
+      typePieceId = this.typePiecesMap[typePieceName] || this.typePiecesMap[normalized] || null;
     }
     if (!categorieId || !typePieceId) {
       this.showToast('Impossible de déterminer la catégorie ou le type (IDs manquants).', 'error');
-      this.isSaving = false;
       return;
     }
 
-    formData.append('categorie', String(categorieId));
-    formData.append('type_piece', String(typePieceId));
-    formData.append('nom', this.form.nom);
-    formData.append('reference', this.form.reference);
-    formData.append('marque', this.form.marque);
-    formData.append('prix', String(this.form.prix));
-    formData.append('stock', String(this.form.stock));
-    formData.append('description', this.form.description);
+    this.isSaving = true;
+    const formData = this.buildFormData(categorieId, typePieceId);
 
-    // Compatibilité
-    formData.append('modeles_compatibles', JSON.stringify(this.modelesCompatibles));
-    if (this.form.anneeDebut !== null && this.form.anneeDebut !== undefined) {
-      formData.append('annee_debut', String(this.form.anneeDebut));
-    }
-    if (this.form.anneeFin !== null && this.form.anneeFin !== undefined) {
-      formData.append('annee_fin', String(this.form.anneeFin));
-    }
+    const req = this.mode === 'create'
+      ? this.produitService.createProduit(formData)
+      : this.produitService.updateProduit(this.productId!, formData);
 
-    // Technique
-    formData.append('etat', this.form.etat);
-    formData.append('garantie_mois', String(this.form.garantieMois));
-    formData.append('pays_origine', this.form.paysOrigine);
-    formData.append('reference_oem', this.form.referenceOem);
-    if (this.form.poids !== null && this.form.poids !== undefined) formData.append('poids', String(this.form.poids));
-    if (this.form.longueur !== null && this.form.longueur !== undefined) formData.append('longueur', String(this.form.longueur));
-    if (this.form.largeur !== null && this.form.largeur !== undefined) formData.append('largeur', String(this.form.largeur));
-    if (this.form.hauteur !== null && this.form.hauteur !== undefined) formData.append('hauteur', String(this.form.hauteur));
-
-    // Stock
-    formData.append('disponibilite', this.form.disponibilite);
-    formData.append('delai_livraison', this.form.delaiLivraison);
-
-    // Complémentaires
-    formData.append('mots_cles', JSON.stringify(this.motsCles));
-    formData.append('conseils_installation', this.form.conseilsInstallation);
-    formData.append('conditions_retour', this.form.conditionsRetour);
-
-    // Images (image principale = index mainImageIndex + 1)
-    this.images.forEach((img, i) => {
-      if (img.file) {
-        const key = i === 0 ? 'image' : 'image_' + (i + 1);
-        formData.append(key, img.file);
-      }
-    });
-    formData.append('image_principale_index', String(this.mainImageIndex + 1));
-
-    this.produitService.createProduit(formData).subscribe({
+    req.subscribe({
       next: () => {
         this.isSaving = false;
-        this.showToast('"' + this.form.nom + '" a été ajouté au catalogue.', 'success');
+        const nom = this.produitForm.get('nom')?.value;
+        const msg = this.mode === 'create'
+          ? '"' + nom + '" a été ajouté au catalogue.'
+          : '"' + nom + '" a été mis à jour.';
+        this.showToast(msg, 'success');
         setTimeout(() => this.router.navigate(['/fournisseur/produits/list-produit']), 900);
       },
       error: (err) => {
         this.isSaving = false;
-        let msg = "Erreur lors de l'ajout du produit";
+        let msg = this.mode === 'create' ? "Erreur lors de l'ajout du produit" : "Erreur lors de la modification du produit";
         if (err?.error?.detail) {
           msg = String(err.error.detail);
         } else if (err?.error && typeof err.error === 'object') {
@@ -496,9 +557,178 @@ export class AjouterProduitComponent {
           msg = err.message;
         }
         this.showToast(msg, 'error');
-        console.error('Erreur création produit:', err);
+        console.error('Erreur produit:', err);
       }
     });
+  }
+
+  private buildFormData(categorieId: number, typePieceId: number): FormData {
+    const v = this.produitForm.getRawValue();
+    const fd = new FormData();
+
+    fd.append('categorie', String(categorieId));
+    fd.append('type_piece', String(typePieceId));
+    fd.append('nom', v.nom);
+    fd.append('reference', v.reference || '');
+    fd.append('marque', v.marque || '');
+    fd.append('fabricant', v.fabricant || '');
+    fd.append('prix', String(v.prix));
+    fd.append('stock', String(v.stock));
+    fd.append('seuil_alerte', String(v.seuil_alerte ?? 10));
+    if (v.quantite_min !== null && v.quantite_min !== undefined && v.quantite_min !== '') {
+      fd.append('quantite_min', String(v.quantite_min));
+    }
+
+    fd.append('description_courte', v.description_courte || '');
+    fd.append('description', v.description || '');
+    fd.append('description_detaillee', v.description_detaillee || '');
+    fd.append('precautions', v.precautions || '');
+
+    fd.append('modeles_compatibles', JSON.stringify(this.modelesCompatibles));
+    fd.append('mots_cles', JSON.stringify(this.motsCles));
+
+    if (v.annee_debut !== null && v.annee_debut !== undefined && v.annee_debut !== '') {
+      fd.append('annee_debut', String(v.annee_debut));
+    }
+    if (v.annee_fin !== null && v.annee_fin !== undefined && v.annee_fin !== '') {
+      fd.append('annee_fin', String(v.annee_fin));
+    }
+    fd.append('compatibilites', JSON.stringify(this.compatibilitesArray.value || []));
+
+    fd.append('etat', v.etat || 'neuf');
+    fd.append('garantie_disponible', v.garantie_disponible ? 'true' : 'false');
+    fd.append('garantie_mois', String(v.garantie_mois ?? 0));
+    fd.append('conditions_garantie', v.conditions_garantie || '');
+
+    fd.append('pays_origine', v.pays_origine || '');
+    fd.append('reference_oem', v.reference_oem || '');
+    if (v.poids !== null && v.poids !== undefined && v.poids !== '') fd.append('poids', String(v.poids));
+    if (v.longueur !== null && v.longueur !== undefined && v.longueur !== '') fd.append('longueur', String(v.longueur));
+    if (v.largeur !== null && v.largeur !== undefined && v.largeur !== '') fd.append('largeur', String(v.largeur));
+    if (v.hauteur !== null && v.hauteur !== undefined && v.hauteur !== '') fd.append('hauteur', String(v.hauteur));
+    fd.append('matiere', v.matiere || '');
+    fd.append('couleur', v.couleur || '');
+
+    fd.append('disponibilite', v.disponibilite || 'en_stock');
+    fd.append('delai_livraison', v.delai_livraison || '2_5j');
+    fd.append('livraison_disponible', v.livraison_disponible ? 'true' : 'false');
+    fd.append('retrait_magasin', v.retrait_magasin ? 'true' : 'false');
+    fd.append('delai_preparation', v.delai_preparation || '');
+
+    fd.append('conseils_installation', v.conseils_installation || '');
+    fd.append('conditions_retour', v.conditions_retour || '');
+
+    this.imageSlots.forEach((slot, i) => {
+      if (slot.file) {
+        const key = i === 0 ? 'image' : 'image_' + (i + 1);
+        fd.append(key, slot.file);
+      }
+    });
+    fd.append('image_principale_index', String(this.mainImageIndex + 1));
+
+    return fd;
+  }
+
+  // ── CHARGEMENT EN MODE ÉDITION ──
+  private loadProduit(id: number): void {
+    this.isLoading = true;
+    this.produitService.getProduit(id).subscribe({
+      next: (p) => {
+        this.isLoading = false;
+        this.patchFormFromProduit(p);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.showToast('Impossible de charger le produit.', 'error');
+        this.retour();
+      }
+    });
+  }
+
+  private patchFormFromProduit(p: Produit): void {
+    // Catégorie et type de pièce
+    const catVeh = this.getCategorieVehiculeForId(p.categorie);
+    if (catVeh) {
+      this.produitForm.get('categorieVehicule')?.setValue(catVeh, { emitEvent: false });
+      const catId = this.getCategorieIdForVehicule(catVeh);
+      if (catId) {
+        // Charger les types de pièces puis patcher le type
+        this.coreProduitService.getTypesPieces(catId).subscribe({
+          next: (types) => {
+            this.availableTypePieces = types;
+            this.typePiecesMap = {};
+            this.idToTypePieceName = {};
+            types.forEach((tp: any) => {
+              const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
+              this.typePiecesMap[normalized] = tp.id;
+              this.typePiecesMap[tp.nom] = tp.id;
+              this.idToTypePieceName[tp.id] = tp.nom;
+            });
+            const typeName = p.type_piece_nom || (p.type_piece ? this.idToTypePieceName[p.type_piece] : null);
+            if (typeName) this.produitForm.get('typePiece')?.setValue(typeName, { emitEvent: false });
+          },
+          error: () => {}
+        });
+      }
+    }
+
+    // Pré-remplir le reste
+    this.produitForm.patchValue({
+      nom: p.nom,
+      reference: p.reference ?? '',
+      marque: p.marque ?? '',
+      fabricant: p.fabricant ?? '',
+      prix: p.prix,
+      stock: p.stock,
+      seuil_alerte: p.seuil_alerte ?? 10,
+      quantite_min: p.quantite_min ?? null,
+      description_courte: p.description_courte ?? '',
+      description: p.description ?? '',
+      description_detaillee: p.description_detaillee ?? '',
+      precautions: p.precautions ?? '',
+      annee_debut: p.annee_debut ?? null,
+      annee_fin: p.annee_fin ?? null,
+      etat: p.etat ?? 'neuf',
+      garantie_disponible: p.garantie_disponible ?? false,
+      garantie_mois: p.garantie_mois ?? 0,
+      conditions_garantie: p.conditions_garantie ?? '',
+      pays_origine: p.pays_origine ?? '',
+      reference_oem: p.reference_oem ?? '',
+      poids: p.poids ?? null,
+      longueur: p.longueur ?? null,
+      largeur: p.largeur ?? null,
+      hauteur: p.hauteur ?? null,
+      matiere: p.matiere ?? '',
+      couleur: p.couleur ?? '',
+      disponibilite: p.disponibilite ?? 'en_stock',
+      delai_livraison: p.delai_livraison ?? '2_5j',
+      livraison_disponible: p.livraison_disponible ?? false,
+      retrait_magasin: p.retrait_magasin ?? false,
+      delai_preparation: p.delai_preparation ?? '24h',
+      conseils_installation: p.conseils_installation ?? '',
+      conditions_retour: p.conditions_retour ?? '',
+    }, { emitEvent: false });
+
+    this.modelesCompatibles = Array.isArray(p.modeles_compatibles) ? [...p.modeles_compatibles] : [];
+    this.motsCles = Array.isArray(p.mots_cles) ? [...p.mots_cles] : [];
+
+    // Compatibilités
+    this.compatibilitesArray.clear();
+    (p.compatibilites ?? []).forEach(c => this.ajouterCompatibilite(c));
+
+    // Images
+    this.mainImageIndex = Math.max(0, (p.image_principale_index ?? 1) - 1);
+    const urls = [p.image_url, p.image_2_url, p.image_3_url, p.image_4_url];
+    this.imageSlots = Array.from({ length: 4 }, (_, i) => ({
+      file: null,
+      preview: urls[i] || null,
+      changed: false
+    }));
+
+    // Réappliquer validators dynamiques
+    this.onGarantieChange(this.produitForm.get('garantie_disponible')?.value ?? false);
+    this.onLivraisonChange(this.produitForm.get('livraison_disponible')?.value ?? false);
+    this.updateDisponibilite();
   }
 
   retour(): void {
@@ -509,6 +739,37 @@ export class AjouterProduitComponent {
     this.toastMsg = msg;
     this.toastType = type;
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
-    this.toastTimeout = setTimeout(() => (this.toastMsg = ''), 3000);
+    this.toastTimeout = setTimeout(() => (this.toastMsg = ''), 3500);
   }
+}
+
+// ── VALIDATEURS CROSS-FIELD ──
+function anneesValidator(control: AbstractControl): ValidationErrors | null {
+  const group = control as FormGroup;
+  const debut = group.get('annee_debut')?.value;
+  const fin = group.get('annee_fin')?.value;
+  if (debut && fin && Number(fin) < Number(debut)) {
+    return { anneesInvalides: true };
+  }
+  return null;
+}
+
+function anneesCompatValidator(control: AbstractControl): ValidationErrors | null {
+  const group = control as FormGroup;
+  const debut = group.get('annee_debut')?.value;
+  const fin = group.get('annee_fin')?.value;
+  if (debut && fin && Number(fin) < Number(debut)) {
+    return { anneesInvalides: true };
+  }
+  return null;
+}
+
+function quantiteValidator(control: AbstractControl): ValidationErrors | null {
+  const group = control as FormGroup;
+  const stock = Number(group.get('stock')?.value ?? 0);
+  const qmin = group.get('quantite_min')?.value;
+  if (qmin !== null && qmin !== undefined && qmin !== '' && Number(qmin) > stock) {
+    return { quantiteMinTropGrande: true };
+  }
+  return null;
 }

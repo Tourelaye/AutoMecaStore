@@ -1,24 +1,69 @@
 from rest_framework import generics, permissions, status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db import IntegrityError
 from django.db.models import Q
 from django.utils import timezone
 import logging
 
-from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison
-from .serializers import CategorieSerializer, ProduitSerializer, ProduitFavorisSerializer, TypePieceSerializer, LivraisonSerializer
+from .models import Categorie, Marque, Produit, ProduitFavoris, TypePiece, Livraison, DemandePiece, FournisseurProduit
+from .serializers import CategorieSerializer, MarqueSerializer, ProduitSerializer, ProduitDetailSerializer, ProduitFavorisSerializer, TypePieceSerializer, LivraisonSerializer, DemandePieceSerializer, MagasinSimpleSerializer
+from fournisseur.models import Magasin
 from account.permissions import IsAdmin
+from account.models import VehiculeClient
 from orders.models import LigneCommande, PanierItem
 from rest_framework import parsers
 # Configuration du logger
 logger = logging.getLogger(__name__)
 
 
+def _vehicule_from_request(request):
+    """Construit un dict véhicule depuis vehicule_id ou les paramètres veh_*."""
+    vehicule_id = request.query_params.get('vehicule_id')
+    if vehicule_id and request.user.is_authenticated:
+        try:
+            v = VehiculeClient.objects.get(pk=vehicule_id, client__user=request.user)
+            return {
+                'marque': v.marque,
+                'modele': v.modele,
+                'annee': v.annee,
+                'motorisation': v.motorisation,
+                'version': v.version,
+            }
+        except (VehiculeClient.DoesNotExist, ValueError, TypeError):
+            pass
+
+    veh = {}
+    for k in ('marque', 'modele', 'version', 'motorisation'):
+        val = request.query_params.get(f'veh_{k}')
+        if val:
+            veh[k] = val
+    annee = request.query_params.get('veh_annee')
+    if annee:
+        try:
+            veh['annee'] = int(annee)
+        except (ValueError, TypeError):
+            pass
+    return veh if (veh.get('marque') or veh.get('modele')) else None
+
+
+def _haversine_distance(lat1, lon1, lat2, lon2):
+    """Distance en km entre deux points GPS (coord. décimales)."""
+    from math import radians, cos, sin, asin, sqrt
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * asin(sqrt(a))
+    return round(6371 * c, 1)
+
+
 # -----------------------------
 # Categorie
 # -----------------------------
 class CategorieListCreateView(generics.ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
     queryset = Categorie.objects.all()
     serializer_class = CategorieSerializer
 
@@ -29,8 +74,34 @@ class CategorieListCreateView(generics.ListCreateAPIView):
 
 
 class CategorieDetailView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes = [JWTAuthentication]
     queryset = Categorie.objects.all()
     serializer_class = CategorieSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAdmin()]
+        return [permissions.AllowAny()]
+
+
+# -----------------------------
+# Marque
+# -----------------------------
+class MarqueListCreateView(generics.ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    queryset = Marque.objects.all()
+    serializer_class = MarqueSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdmin()]
+        return [permissions.AllowAny()]
+
+
+class MarqueDetailView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes = [JWTAuthentication]
+    queryset = Marque.objects.all()
+    serializer_class = MarqueSerializer
 
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE']:
@@ -93,6 +164,12 @@ class ProduitListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.AllowAny]  # Temporairement ouvert
     parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
 
+    def get_serializer_class(self):
+        """GET utilise le détail (offres, compatibilité) ; POST conserve ProduitSerializer"""
+        if self.request.method == 'GET':
+            return ProduitDetailSerializer
+        return ProduitSerializer
+
     def get_serializer(self, *args, **kwargs):
         """Passer le contexte de la requête au serializer pour générer les URLs absolues"""
         serializer = super().get_serializer(*args, **kwargs)
@@ -101,35 +178,261 @@ class ProduitListCreateView(generics.ListCreateAPIView):
         return serializer
 
     def get_queryset(self):
-        """Retourne uniquement les produits actifs et approuvés"""
-        from django.db.models import Q
+        """Retourne uniquement les produits actifs et approuvés, avec recherche avancée et filtres serveur."""
+        from django.db.models import Q, Avg, Count
+        from support.models import Avis
+        import json
+
         queryset = Produit.objects.filter(
             Q(is_active=True) | Q(is_active__isnull=True),
             statut='actif',
             statut_approbation='approuve'
         )
 
-        # Filtrer par catégorie si le paramètre est fourni
-        categorie_id = self.request.query_params.get('categorie')
+        params = self.request.query_params
+
+        # --- Filtre par catégorie ---
+        categorie_id = params.get('categorie')
         if categorie_id:
             queryset = queryset.filter(categorie_id=categorie_id)
 
-        # Filtrer par type de pièce si le paramètre est fourni
-        type_piece_id = self.request.query_params.get('type_piece')
+        # --- Filtre par type de pièce ---
+        type_piece_id = params.get('type_piece')
         if type_piece_id:
             queryset = queryset.filter(type_piece_id=type_piece_id)
 
-        # Filtrer par recherche si le paramètre est fourni
-        search = self.request.query_params.get('search')
+        # --- Recherche textuelle multi-token ---
+        search = params.get('search')
         if search:
-            queryset = queryset.filter(
-                Q(nom__icontains=search) |
-                Q(description__icontains=search) |
-                Q(reference__icontains=search) |
-                Q(marque__icontains=search)
+            tokens = [t for t in search.strip().lower().split() if t]
+            for token in tokens:
+                queryset = queryset.filter(
+                    Q(nom__icontains=token) |
+                    Q(description__icontains=token) |
+                    Q(reference__icontains=token) |
+                    Q(reference_oem__icontains=token) |
+                    Q(marque__icontains=token) |
+                    Q(fabricant__icontains=token) |
+                    Q(mots_cles__icontains=token) |
+                    Q(modeles_compatibles__icontains=token) |
+                    Q(categorie__nom__icontains=token) |
+                    Q(type_piece__nom__icontains=token)
+                )
+
+            # Boost des correspondances exactes / OEM si pertinence demandée
+            if params.get('sort', 'pertinence') == 'pertinence':
+                from django.db.models import Case, When, Value, IntegerField
+                score = Value(0, output_field=IntegerField())
+                for token in tokens:
+                    score = Case(
+                        When(reference_oem__iexact=token, then=Value(100)),
+                        When(reference__iexact=token, then=Value(90)),
+                        When(nom__iexact=token, then=Value(80)),
+                        When(nom__icontains=token, then=Value(40)),
+                        default=score,
+                        output_field=IntegerField()
+                    )
+                queryset = queryset.annotate(relevance=score).order_by('-relevance', '-nombre_ventes')
+
+        # --- Recherche par véhicule (params ou véhicule actif) ---
+        vehicule = _vehicule_from_request(self.request)
+        if vehicule:
+            veh_marque = vehicule.get('marque') or params.get('veh_marque')
+            veh_modele = vehicule.get('modele') or params.get('veh_modele')
+            veh_version = vehicule.get('version') or params.get('veh_version')
+            veh_motorisation = vehicule.get('motorisation') or params.get('veh_motorisation')
+            veh_annee = vehicule.get('annee') or params.get('veh_annee')
+        else:
+            veh_marque = params.get('veh_marque')
+            veh_modele = params.get('veh_modele')
+            veh_version = params.get('veh_version')
+            veh_motorisation = params.get('veh_motorisation')
+            veh_annee = params.get('veh_annee')
+
+        if veh_marque or veh_modele:
+            # Filtrer sur le champ JSON compatibilites
+            # On utilise contains sur JSONField pour chercher des paires clé/valeur
+            compat_q = Q()
+            if veh_marque:
+                compat_q &= Q(compatibilites__contains=[{"marque": veh_marque}])
+            if veh_modele:
+                compat_q &= Q(compatibilites__contains=[{"modele": veh_modele}])
+            if veh_version:
+                compat_q &= Q(compatibilites__contains=[{"version": veh_version}])
+            if veh_motorisation:
+                compat_q &= Q(compatibilites__contains=[{"motorisation": veh_motorisation}])
+            if veh_annee:
+                try:
+                    annee = int(veh_annee)
+                    # Filtrer les produits dont l'année est dans la plage de compatibilité
+                    compat_q &= (
+                        Q(compatibilites__contains=[{"annee_debut": annee}]) |
+                        Q(compatibilites__contains=[{"annee_fin": annee}]) |
+                        (Q(annee_debut__lte=annee) & (Q(annee_fin__gte=annee) | Q(annee_fin__isnull=True)))
+                    )
+                except (ValueError, TypeError):
+                    pass
+            queryset = queryset.filter(compat_q)
+
+        # --- Filtre par marque ---
+        marque = params.get('marque')
+        if marque:
+            queryset = queryset.filter(marque__icontains=marque)
+
+        # --- Filtre par état (neuf, occasion, reconditionne) ---
+        etat = params.get('etat')
+        if etat:
+            queryset = queryset.filter(etat=etat)
+
+        # --- Filtre par prix min / max ---
+        prix_min = params.get('prix_min')
+        prix_max = params.get('prix_max')
+        if prix_min:
+            try:
+                queryset = queryset.filter(prix__gte=float(prix_min))
+            except ValueError:
+                pass
+        if prix_max:
+            try:
+                queryset = queryset.filter(prix__lte=float(prix_max))
+            except ValueError:
+                pass
+
+        # --- Filtre par disponibilité ---
+        disponibilite = params.get('disponibilite')
+        if disponibilite == 'en_stock':
+            queryset = queryset.filter(disponibilite='en_stock')
+        elif disponibilite == 'faible_stock':
+            queryset = queryset.filter(disponibilite='faible_stock')
+        elif disponibilite == 'rupture':
+            queryset = queryset.filter(disponibilite='rupture')
+
+        # --- Filtre livraison disponible ---
+        if params.get('livraison') == 'true':
+            queryset = queryset.filter(livraison_disponible=True)
+
+        # --- Filtre retrait en magasin ---
+        if params.get('retrait') == 'true':
+            queryset = queryset.filter(retrait_magasin=True)
+
+        # --- Filtre note minimale ---
+        note_min = params.get('note_min')
+        if note_min:
+            try:
+                note_val = float(note_min)
+                queryset = queryset.filter(note_moyenne__gte=note_val)
+            except (ValueError, TypeError):
+                pass
+
+        # --- Filtre par magasin (nom ou ville) ---
+        magasin = params.get('magasin')
+        if magasin:
+            magasin_q = Q(fournisseur__administrateur__magasin__nom_magasin__icontains=magasin) | \
+                        Q(fournisseur__administrateur__magasin__ville__icontains=magasin) | \
+                        Q(fournisseurproduit__fournisseur__administrateur__magasin__nom_magasin__icontains=magasin) | \
+                        Q(fournisseurproduit__fournisseur__administrateur__magasin__ville__icontains=magasin)
+            queryset = queryset.filter(magasin_q).distinct()
+
+        # --- Filtre par note minimale du magasin ---
+        note_magasin_min = params.get('note_magasin_min')
+        if note_magasin_min:
+            try:
+                note_mag_val = float(note_magasin_min)
+                note_mag_q = Q(fournisseur__administrateur__magasin__note_moyenne__gte=note_mag_val) | \
+                             Q(fournisseurproduit__fournisseur__administrateur__magasin__note_moyenne__gte=note_mag_val)
+                queryset = queryset.filter(note_mag_q).distinct()
+            except (ValueError, TypeError):
+                pass
+
+        # --- Tri ---
+        sort = params.get('sort', 'pertinence')
+        if sort == 'prix_asc':
+            queryset = queryset.order_by('prix')
+        elif sort == 'prix_desc':
+            queryset = queryset.order_by('-prix')
+        elif sort == 'note':
+            # Tri par note moyenne (calculée)
+            produit_ids = list(queryset.values_list('id', flat=True))
+            notes = {}
+            for pid in produit_ids:
+                avg = Avis.objects.filter(produit_id=pid).aggregate(avg=Avg('note'))['avg']
+                notes[pid] = float(avg) if avg else 0
+            produit_ids.sort(key=lambda pid: notes[pid], reverse=True)
+            # Préserver l'ordre avec Case/When
+            from django.db.models import Case, When, IntegerField
+            ordering = Case(
+                *[When(id=pid, then=pos) for pos, pid in enumerate(produit_ids)],
+                output_field=IntegerField()
             )
-        
+            queryset = queryset.order_by(ordering)
+        elif sort == 'distance':
+            # Tri par distance la plus proche (besoin de lat/lng client)
+            lat = params.get('lat')
+            lng = params.get('lng')
+            if lat and lng:
+                try:
+                    lat_val = float(lat)
+                    lng_val = float(lng)
+                    produit_ids = list(queryset.values_list('id', flat=True))
+                    distances = {}
+                    fps = FournisseurProduit.objects.filter(
+                        produit_id__in=produit_ids
+                    ).select_related('fournisseur__administrateur__magasin')
+                    for fp in fps:
+                        m = getattr(fp.fournisseur.administrateur, 'magasin', None) if fp.fournisseur.administrateur else None
+                        if m and m.latitude is not None and m.longitude is not None:
+                            d = _haversine_distance(lat_val, lng_val, float(m.latitude), float(m.longitude))
+                            if d < distances.get(fp.produit_id, float('inf')):
+                                distances[fp.produit_id] = d
+                    produit_ids.sort(key=lambda pid: distances.get(pid, float('inf')))
+                    from django.db.models import Case, When, IntegerField
+                    ordering = Case(
+                        *[When(id=pid, then=pos) for pos, pid in enumerate(produit_ids)],
+                        output_field=IntegerField()
+                    )
+                    queryset = queryset.order_by(ordering)
+                except (ValueError, TypeError):
+                    pass
+        elif sort == 'nouveaute':
+            queryset = queryset.order_by('-date_ajout')
+        elif sort == 'ventes':
+            queryset = queryset.order_by('-nombre_ventes')
+
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        """Liste les produits avec pagination optionnelle côté serveur."""
+        queryset = self.filter_queryset(self.get_queryset())
+        vehicule = _vehicule_from_request(request)
+
+        # Pagination côté serveur si page ou page_size est fourni
+        page = request.query_params.get('page')
+        page_size = request.query_params.get('page_size', '12')
+
+        if page is not None:
+            try:
+                page_num = int(page)
+                page_size_num = int(page_size)
+            except (ValueError, TypeError):
+                page_num = 1
+                page_size_num = 12
+
+            total = queryset.count()
+            start = (page_num - 1) * page_size_num
+            end = start + page_size_num
+            page_queryset = queryset[start:end]
+
+            serializer = self.get_serializer(page_queryset, many=True, context={'request': request, 'vehicule': vehicule})
+            return Response({
+                'count': total,
+                'next': f'?page={page_num + 1}&page_size={page_size_num}' if end < total else None,
+                'previous': f'?page={page_num - 1}&page_size={page_size_num}' if page_num > 1 else None,
+                'results': serializer.data
+            })
+
+        # Sans pagination : retourner la liste complète
+        serializer = self.get_serializer(queryset, many=True, context={'request': request, 'vehicule': vehicule})
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         """Création d'un produit avec gestion d'erreurs"""
@@ -195,7 +498,8 @@ class ProduitDetailView(APIView):
                     'message': 'Ce produit a été supprimé'
                 }, status=status.HTTP_404_NOT_FOUND)
 
-            serializer = ProduitSerializer(produit, context={'request': request})
+            vehicule = _vehicule_from_request(request)
+            serializer = ProduitDetailSerializer(produit, context={'request': request, 'vehicule': vehicule})
             return Response({
                 'success': True,
                 'data': serializer.data
@@ -782,6 +1086,41 @@ class IncrementProductViewsView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class ProduitAutocompleteView(APIView):
+    """
+    Autocomplétion de recherche de produits
+    GET /api/produits/autocomplete/?q=pla
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        q = request.query_params.get('q', '').strip().lower()
+        if not q or len(q) < 2:
+            return Response({'suggestions': []}, status=status.HTTP_200_OK)
+
+        # Rechercher des noms, mots-clés et modèles compatibles
+        from django.db.models import Q
+        qs = Produit.objects.filter(
+            Q(is_active=True) | Q(is_active__isnull=True),
+            statut='actif',
+            statut_approbation='approuve'
+        ).filter(
+            Q(nom__icontains=q) |
+            Q(mots_cles__icontains=q) |
+            Q(marque__icontains=q)
+        ).distinct()[:10]
+
+        suggestions = []
+        for p in qs:
+            suggestions.append(p.nom)
+            if p.marque:
+                suggestions.append(f"{p.marque} {p.nom}")
+
+        # Supprimer les doublons et limiter à 10
+        suggestions = sorted(set(suggestions), key=lambda x: (not x.startswith(q), x.lower()))[:10]
+        return Response({'suggestions': suggestions}, status=status.HTTP_200_OK)
+
+
 class HomePopularSearchesView(APIView):
     """
     Retourne les recherches populaires basées sur les produits les plus vus
@@ -889,3 +1228,115 @@ class HomePopularSearchesView(APIView):
                 'success': False,
                 'message': 'Erreur lors de la récupération des recherches populaires'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# -----------------------------
+# DemandePiece (demande client pour pièce introuvable)
+# -----------------------------
+class DemandePieceCreateView(APIView):
+    """
+    Permet à un client (connecté ou anonyme) de demander une pièce introuvable.
+    POST /api/demandes-pieces/
+    """
+    permission_classes = [permissions.AllowAny]
+    parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
+
+    def post(self, request):
+        try:
+            data = request.data.copy()
+
+            # Si l'utilisateur est connecté, associer automatiquement le client
+            if request.user.is_authenticated:
+                try:
+                    client = request.user.client
+                    data['client'] = client.id
+                    if not data.get('nom_client'):
+                        data['nom_client'] = f"{request.user.prenom or ''} {request.user.nom or ''}".strip()
+                    if not data.get('email_client'):
+                        data['email_client'] = request.user.email
+                except AttributeError:
+                    pass
+
+            serializer = DemandePieceSerializer(data=data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'success': True,
+                    'message': 'Votre demande a été enregistrée. Les magasins partenaires seront notifiés.',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            return Response({
+                'success': False,
+                'message': 'Données invalides',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            logger.error(f"Erreur lors de la création de demande de pièce: {str(e)}")
+            return Response({
+                'success': False,
+                'message': 'Erreur interne lors de la création de la demande'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DemandePieceListView(APIView):
+    """
+    Liste les demandes de pièces (admin uniquement).
+    GET /api/demandes-pieces/
+    """
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        demandes = DemandePiece.objects.all().order_by('-date_creation')
+        serializer = DemandePieceSerializer(demandes, many=True, context={'request': request})
+        return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
+
+
+class DemandePieceDetailView(APIView):
+    """
+    Détail et mise à jour du statut d'une demande (admin uniquement).
+    GET/PUT /api/demandes-pieces/<id>/
+    """
+    permission_classes = [IsAdmin]
+
+    def get_object(self, pk):
+        try:
+            return DemandePiece.objects.get(pk=pk)
+        except DemandePiece.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        demande = self.get_object(pk)
+        if not demande:
+            return Response({'success': False, 'message': 'Demande introuvable'}, status=404)
+        serializer = DemandePieceSerializer(demande, context={'request': request})
+        return Response({'success': True, 'data': serializer.data}, status=200)
+
+    def patch(self, request, pk):
+        demande = self.get_object(pk)
+        if not demande:
+            return Response({'success': False, 'message': 'Demande introuvable'}, status=404)
+        serializer = DemandePieceSerializer(demande, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            new_statut = serializer.validated_data.get('statut')
+            if new_statut and new_statut != demande.statut:
+                from django.utils import timezone as tz
+                demande.date_traitement = tz.now()
+            serializer.save()
+            return Response({'success': True, 'message': 'Demande mise à jour', 'data': serializer.data}, status=200)
+        return Response({'success': False, 'errors': serializer.errors}, status=400)
+
+
+# -----------------------------
+# Magasin
+# -----------------------------
+class MagasinDetailView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        try:
+            magasin = Magasin.objects.get(pk=pk)
+            serializer = MagasinSimpleSerializer(magasin, context={'request': request})
+            return Response(serializer.data)
+        except Magasin.DoesNotExist:
+            return Response({'error': 'Magasin introuvable'}, status=404)

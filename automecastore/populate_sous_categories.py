@@ -76,7 +76,7 @@ def populate_sous_categories():
             )
             
             if created:
-                print(f"  ✅ Créé: {sc_nom}")
+                print(f"   Créé: {sc_nom}")
                 total_created += 1
             else:
                 print(f"  ℹ️ Existe déjà: {sc_nom}")

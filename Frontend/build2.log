@@ -1,0 +1,134 @@
+﻿[33mÔØ»[39m Building...
+[32mÔ£ö[39m Building...
+Application bundle generation failed. [40.876 seconds]
+
+[1m[33m[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:261:124:
+[37m      261 Ôöé ...lectedUtilisateur.profil?.[32mnom_entreprise[37m || 'ÔÇö' }}</span></div>
+          ÔòÁ                              [32m~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:262:119:
+[37m      262 Ôöé ...ue">{{ selectedUtilisateur.profil?.[32msiret[37m || 'ÔÇö' }}</span></div>
+          ÔòÁ                                       [32m~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:263:120:
+[37m      263 Ôöé ...edUtilisateur.profil?.[32mstatut_fournisseur[37m || 'ÔÇö' }}</span></div>
+          ÔòÁ                          [32m~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:264:121:
+[37m      264 Ôöé ...selectedUtilisateur.profil?.[32mmagasin[37m?.nom_magasin || 'ÔÇö' }}</...
+          ÔòÁ                                [32m~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:265:119:
+[37m      265 Ôöé ...selectedUtilisateur.profil?.[32mmagasin[37m?.ville || 'ÔÇö' }}</span><...
+          ÔòÁ                                [32m~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.html:312:47:
+[37m      312 Ôöé             [src]="item.image || item.produit?.[32mimage[37m"
+          ÔòÁ                                                [32m~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component PanierComponent.
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.ts:20:15:
+[37m      20 Ôöé   templateUrl: [32m'./panier.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG9: Property 'onImageError' does not exist on type 'PanierComponent'.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.html:315:21:
+[37m      315 Ôöé             (error)="[32monImageError[37m($event)"
+          ÔòÁ                      [32m~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component PanierComponent.
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.ts:20:15:
+[37m      20 Ôöé   templateUrl: [32m'./panier.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG7: This comparison appears to be unintentional because the types 'ModeLivraison' and '"livraison"' have no overlap.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.html:341:88:
+[37m      341 Ôöé ... 'retrait'" [class.bi-truck]="[32mmodeLivraison === 'livraison'[37m"></i>
+          ÔòÁ                                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component PanierComponent.
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.ts:20:15:
+[37m      20 Ôöé   templateUrl: [32m'./panier.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG7: This comparison appears to be unintentional because the types 'ModeLivraison' and '"livraison"' have no overlap.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.html:345:18:
+[37m      345 Ôöé         <p *ngIf="[32mmodeLivraison === 'livraison'[37m">Livraison ├á dom...
+          ÔòÁ                   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component PanierComponent.
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.ts:20:15:
+[37m      20 Ôöé   templateUrl: [32m'./panier.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG7: This comparison appears to be unintentional because the types 'ModeLivraison' and '"livraison"' have no overlap.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.html:346:38:
+[37m      346 Ôöé ...esseLivraison && [32mmodeLivraison === 'livraison'[37m"><strong>Adress...
+          ÔòÁ                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component PanierComponent.
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.ts:20:15:
+[37m      20 Ôöé   templateUrl: [32m'./panier.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+[39m[22m

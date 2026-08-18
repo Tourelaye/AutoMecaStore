@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from django.db.models import Avg, Count
 from django.apps import apps
-from .models import Utilisateur, Client, Fournisseur 
+from .models import Utilisateur, Client, Fournisseur, VehiculeClient 
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from orders.models import Commande
@@ -246,6 +246,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['prenom'] = user.prenom
         token['user_id'] = user.id
         token['is_active'] = user.is_active
+        token['is_staff'] = user.is_staff
         if user.role == 'fournisseur' and hasattr(user, 'fournisseur'):
             token['fournisseur_status'] = user.fournisseur.statut
             token['fournisseur_raison_refus'] = user.fournisseur.raison_refus or ''
@@ -287,7 +288,7 @@ class ClientDetailSerializer(serializers.ModelSerializer):
     nom_complet = serializers.SerializerMethodField()
     nombre_commandes = serializers.SerializerMethodField()
     statut = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Client
         fields = [
@@ -302,12 +303,31 @@ class ClientDetailSerializer(serializers.ModelSerializer):
             'nombre_commandes',
             'statut'
         ]
-    
+
     def get_nom_complet(self, obj):
         return f"{obj.user.nom} {obj.user.prenom}"
-    
+
     def get_nombre_commandes(self, obj):
         return Commande.objects.filter(client=obj).count()
-    
+
     def get_statut(self, obj):
         return 'actif' if obj.user.is_active else 'inactif'
+
+
+class VehiculeClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VehiculeClient
+        fields = [
+            'id', 'marque', 'modele', 'annee', 'motorisation', 'carburant',
+            'version', 'immatriculation', 'actif', 'date_ajout'
+        ]
+        read_only_fields = ['id', 'date_ajout']
+
+    def validate(self, data):
+        if not data.get('marque'):
+            raise serializers.ValidationError({'marque': 'La marque est obligatoire.'})
+        if not data.get('modele'):
+            raise serializers.ValidationError({'modele': 'Le modèle est obligatoire.'})
+        if not data.get('annee'):
+            raise serializers.ValidationError({'annee': 'L\'année est obligatoire.'})
+        return data

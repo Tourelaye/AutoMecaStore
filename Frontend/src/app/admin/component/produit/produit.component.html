@@ -8,7 +8,7 @@
         Catalogue
       </div>
       <h2>Gestion des Produits</h2>
-      <p>Produits approuvés : activez, désactivez ou supprimez du catalogue.</p>
+      <p>Tableau de bord produit : statuts, validation, contrôle qualité et actions administrateur.</p>
     </div>
   </div>
 
@@ -22,24 +22,45 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon stat-icon--green"><i class="bi bi-broadcast"></i></div>
+      <div class="stat-icon stat-icon--green"><i class="bi bi-check-circle"></i></div>
       <div class="stat-info">
-        <span class="stat-value">{{ onlineCount }}</span>
-        <span class="stat-label">En ligne</span>
+        <span class="stat-value">{{ publieCount }}</span>
+        <span class="stat-label">Publiés</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon stat-icon--amber"><i class="bi bi-lock-fill"></i></div>
+      <div class="stat-icon stat-icon--amber"><i class="bi bi-clock"></i></div>
       <div class="stat-info">
-        <span class="stat-value">{{ offlineCount }}</span>
-        <span class="stat-label">Désactivés</span>
+        <span class="stat-value">{{ attenteCount }}</span>
+        <span class="stat-label">En attente</span>
       </div>
     </div>
-    <div class="stat-card" [class.stat-card--pulse]="signaledCount > 0">
-      <div class="stat-icon stat-icon--red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--red"><i class="bi bi-x-circle"></i></div>
       <div class="stat-info">
-        <span class="stat-value">{{ signaledCount }}</span>
-        <span class="stat-label">Signalés</span>
+        <span class="stat-value">{{ refuseCount }}</span>
+        <span class="stat-label">Refusés</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--slate"><i class="bi bi-eye-slash"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ masqueCount }}</span>
+        <span class="stat-label">Masqués</span>
+      </div>
+    </div>
+    <div class="stat-card" [class.stat-card--pulse]="aCorrigerCount > 0">
+      <div class="stat-icon stat-icon--orange"><i class="bi bi-exclamation-octagon"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ aCorrigerCount }}</span>
+        <span class="stat-label">À corriger</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--blue"><i class="bi bi-pencil-square"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ brouillonCount }}</span>
+        <span class="stat-label">Brouillons</span>
       </div>
     </div>
   </div>
@@ -50,33 +71,45 @@
       <i class="bi bi-search search-ic"></i>
       <input
         type="text"
-        placeholder="Rechercher une pièce, OEM, marque..."
+        placeholder="Rechercher une pièce, OEM, marque, magasin..."
         [(ngModel)]="searchTerm"
         (input)="applyFilters()"
         (focus)="searchFocused = true"
         (blur)="searchFocused = false"
+        (keyup.enter)="onSearch()"
       />
-      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; onSearch()">
         <i class="bi bi-x"></i>
       </button>
     </div>
 
     <div class="toolbar-actions">
+      <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="onSearch()">
+        <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
       <select class="toolbar__select" [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
         <option *ngFor="let c of categories" [value]="c">{{ c === 'toutes' ? 'Toutes catégories' : c }}</option>
       </select>
-
-      <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
-        <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+      <select class="toolbar__select" [(ngModel)]="brandFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let b of brands" [value]="b">{{ b === 'toutes' ? 'Toutes marques' : b }}</option>
       </select>
-
+      <select class="toolbar__select" [(ngModel)]="vendorFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let v of vendors" [value]="v">{{ v === 'toutes' ? 'Tous fournisseurs' : v }}</option>
+      </select>
       <select class="toolbar__select" [(ngModel)]="stockFilter" (ngModelChange)="applyFilters()">
         <option *ngFor="let opt of stockOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
+      <div class="date-filters">
+        <input type="date" class="toolbar__select" [(ngModel)]="dateFrom" (ngModelChange)="applyFilters()" title="Depuis" />
+        <input type="date" class="toolbar__select" [(ngModel)]="dateTo" (ngModelChange)="applyFilters()" title="Jusqu'à" />
+      </div>
+      <button class="btn-action" (click)="resetFilters()" title="Réinitialiser les filtres">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </button>
 
       <!-- SWITCH DE VUE — pur CSS -->
-      <input type="radio" name="viewmode" id="viewTable" class="view-radio" checked>
-      <input type="radio" name="viewmode" id="viewGrid" class="view-radio">
+      <input type="radio" name="viewmode" id="viewTable" class="view-radio" [checked]="viewMode === 'table'" (change)="viewMode = 'table'">
+      <input type="radio" name="viewmode" id="viewGrid" class="view-radio" [checked]="viewMode === 'grid'" (change)="viewMode = 'grid'">
       <div class="view-switch">
         <label for="viewTable" class="view-switch__btn" title="Vue tableau">
           <i class="bi bi-list-ul"></i>
@@ -119,10 +152,10 @@
 
         <div class="table-head">
           <span class="th">Produit</span>
-          <span class="th">Fournisseur</span>
+          <span class="th">Magasin</span>
           <span class="th text-right">Prix</span>
           <span class="th text-center">Stock</span>
-          <span class="th text-center">Ventes</span>
+          <span class="th text-center">Création</span>
           <span class="th">Statut</span>
           <span class="th text-right">Actions</span>
         </div>
@@ -135,23 +168,31 @@
         >
 
           <div class="td" data-label="Produit">
-            <div class="product-cell">
+            <div class="product-cell" (click)="openDetail(p)" style="cursor: pointer">
               <div class="product-img">
                 <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
                 <i class="bi bi-box-seam" *ngIf="!p.image"></i>
               </div>
               <div class="product-meta">
                 <span class="product-name">{{ p.name }}</span>
-                <span class="product-ref">Réf: {{ p.ref }}</span>
-                <span class="product-cat">{{ p.category }}</span>
+                <span class="product-ref">Réf: {{ p.ref || p.reference_oem || '-' }}</span>
+                <span class="product-cat">{{ p.category }} <span *ngIf="p.brand">· {{ p.brand }}</span></span>
+                <div class="alerts-inline" *ngIf="p.alerts?.length">
+                  <span class="alert-pill" [class]="'alert-pill--' + a.severity" *ngFor="let a of p.alerts" title="{{ a.label }}">
+                    <i class="bi" [class]="getAlertIcon(a.type)"></i>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="td" data-label="Fournisseur">
+          <div class="td" data-label="Magasin">
             <div class="vendor-cell">
-              <div class="vendor-av">{{ getInitials(p.vendor) }}</div>
-              <span>{{ p.vendor }}</span>
+              <div class="vendor-av">{{ getInitials(p.vendor_store) }}</div>
+              <div class="vendor-info">
+                <span>{{ p.vendor_store || p.vendor }}</span>
+                <small>{{ p.vendor }}</small>
+              </div>
             </div>
           </div>
 
@@ -165,14 +206,14 @@
             </span>
           </div>
 
-          <div class="td text-center" data-label="Ventes">
-            <span class="sales-chip">{{ p.sales }}</span>
+          <div class="td text-center" data-label="Création">
+            <span class="date-chip">{{ formatDate(p.created_at) }}</span>
           </div>
 
           <div class="td" data-label="Statut">
-            <span class="status-badge" [class]="'status-badge--' + p.state">
-              <span class="badge-dot"></span>
-              {{ p.state === 'en_ligne' ? 'En ligne' : 'Désactivé' }}
+            <span class="status-badge" [style.--status-color]="getStatusColor(p.admin_status)" [style.border-color]="getStatusColor(p.admin_status) + '40'" [style.background]="getStatusColor(p.admin_status) + '15'" [style.color]="getStatusColor(p.admin_status)">
+              <i class="bi" [class]="getStatusIcon(p.admin_status)"></i>
+              {{ p.admin_status_label }}
             </span>
             <div class="signal-tag" *ngIf="p.signale">
               <i class="bi bi-exclamation-triangle-fill"></i>
@@ -189,21 +230,32 @@
 
           <div class="td text-right" data-label="Actions">
             <div class="card-actions">
-              <button class="btn-action btn-toggle" (click)="toggleActivation(p)" [disabled]="submitting" [title]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'" [attr.aria-label]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'">
-                <i class="bi" [class.bi-lock]="p.state === 'en_ligne'" [class.bi-unlock]="p.state === 'desactive'"></i>
+              <button class="btn-action btn-primary" (click)="openDetail(p)" [disabled]="submitting" title="Fiche produit">
+                <i class="bi bi-eye"></i>
               </button>
-              <button class="btn-action btn-sections" (click)="askSections(p)" [disabled]="submitting" title="Sections" aria-label="Sections">
-                <i class="bi bi-tags"></i>
+              <button class="btn-action" [matMenuTriggerFor]="actionsMenu" title="Actions validation">
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
-              <button class="btn-action btn-signal" *ngIf="!p.signale" (click)="askSignal(p)" [disabled]="submitting" title="Signaler" aria-label="Signaler">
-                <i class="bi bi-bell"></i>
-              </button>
-              <button class="btn-action btn-remove-signal" *ngIf="p.signale" (click)="removeSignal(p)" [disabled]="submitting" title="Retirer le signalement" aria-label="Retirer le signalement">
-                <i class="bi bi-bell-slash"></i>
-              </button>
-              <button class="btn-action btn-delete" (click)="askDelete(p)" [disabled]="submitting" title="Supprimer">
-                <i class="bi bi-trash"></i>
-              </button>
+              <mat-menu #actionsMenu="matMenu" xPosition="before">
+                <button mat-menu-item (click)="openValidation(p, 'publier')" [disabled]="p.admin_status === 'publie'">
+                  <i class="bi bi-check-circle me-2 text-success"></i> Publier
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'demander_correction')" [disabled]="p.admin_status === 'a_corriger'">
+                  <i class="bi bi-exclamation-octagon me-2 text-warning"></i> Demander corrections
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'masquer')" [disabled]="p.admin_status === 'masque'">
+                  <i class="bi bi-eye-slash me-2 text-muted"></i> Masquer
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'refuser')" [disabled]="p.admin_status === 'refuse'">
+                  <i class="bi bi-x-circle me-2 text-danger"></i> Refuser
+                </button>
+                <button mat-menu-item (click)="askSections(p)">
+                  <i class="bi bi-tags me-2 text-info"></i> Sections
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'supprimer')">
+                  <i class="bi bi-trash me-2 text-danger"></i> Supprimer
+                </button>
+              </mat-menu>
             </div>
           </div>
 
@@ -225,12 +277,12 @@
             [style.--i]="i"
             [class.is-signaled]="p.signale"
           >
-            <div class="product-card__img">
+            <div class="product-card__img" (click)="openDetail(p)" style="cursor: pointer">
               <img *ngIf="p.image" [src]="p.image" [alt]="p.name" />
               <i class="bi bi-box-seam" *ngIf="!p.image"></i>
-              <span class="status-badge status-badge--floating" [class]="'status-badge--' + p.state">
-                <span class="badge-dot"></span>
-                {{ p.state === 'en_ligne' ? 'En ligne' : 'Désactivé' }}
+              <span class="status-badge status-badge--floating" [style.--status-color]="getStatusColor(p.admin_status)" [style.border-color]="getStatusColor(p.admin_status) + '40'" [style.background]="getStatusColor(p.admin_status) + '15'" [style.color]="getStatusColor(p.admin_status)">
+                <i class="bi" [class]="getStatusIcon(p.admin_status)"></i>
+                {{ p.admin_status_label }}
               </span>
               <div class="signal-ribbon" *ngIf="p.signale">
                 <i class="bi bi-exclamation-triangle-fill"></i> Signalé
@@ -238,12 +290,15 @@
             </div>
 
             <div class="product-card__body">
-              <span class="product-name">{{ p.name }}</span>
-              <span class="product-ref">Réf: {{ p.ref }} · {{ p.category }}</span>
+              <span class="product-name" (click)="openDetail(p)" style="cursor: pointer">{{ p.name }}</span>
+              <span class="product-ref">Réf: {{ p.ref || p.reference_oem || '-' }} · {{ p.category }}</span>
 
               <div class="vendor-cell">
-                <div class="vendor-av">{{ getInitials(p.vendor) }}</div>
-                <span>{{ p.vendor }}</span>
+                <div class="vendor-av">{{ getInitials(p.vendor_store) }}</div>
+                <div class="vendor-info">
+                  <span>{{ p.vendor_store || p.vendor }}</span>
+                  <small>{{ p.vendor }}</small>
+                </div>
               </div>
 
               <div class="product-card__meta">
@@ -253,24 +308,41 @@
                 </span>
                 <span class="sales-chip">{{ p.sales }} ventes</span>
               </div>
+
+              <div class="alerts-inline" *ngIf="p.alerts?.length">
+                <span class="alert-pill" [class]="'alert-pill--' + a.severity" *ngFor="let a of p.alerts" title="{{ a.label }}">
+                  <i class="bi" [class]="getAlertIcon(a.type)"></i>
+                </span>
+              </div>
             </div>
 
             <div class="product-card__actions">
-              <button class="btn-action btn-toggle" (click)="toggleActivation(p)" [disabled]="submitting" [title]="p.state === 'en_ligne' ? 'Désactiver' : 'Réactiver'">
-                <i class="bi" [class.bi-lock]="p.state === 'en_ligne'" [class.bi-unlock]="p.state === 'desactive'"></i>
+              <button class="btn-action btn-primary" (click)="openDetail(p)" [disabled]="submitting" title="Fiche produit">
+                <i class="bi bi-eye"></i>
               </button>
-              <button class="btn-action btn-sections" (click)="askSections(p)" [disabled]="submitting" title="Sections">
-                <i class="bi bi-tags"></i>
+              <button class="btn-action" [matMenuTriggerFor]="actionsMenu2" title="Actions validation">
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
-              <button class="btn-action btn-signal" *ngIf="!p.signale" (click)="askSignal(p)" [disabled]="submitting" title="Signaler">
-                <i class="bi bi-bell"></i>
-              </button>
-              <button class="btn-action btn-remove-signal" *ngIf="p.signale" (click)="removeSignal(p)" [disabled]="submitting" title="Retirer le signalement">
-                <i class="bi bi-bell-slash"></i>
-              </button>
-              <button class="btn-action btn-delete" (click)="askDelete(p)" [disabled]="submitting" title="Supprimer">
-                <i class="bi bi-trash"></i>
-              </button>
+              <mat-menu #actionsMenu2="matMenu" xPosition="before">
+                <button mat-menu-item (click)="openValidation(p, 'publier')" [disabled]="p.admin_status === 'publie'">
+                  <i class="bi bi-check-circle me-2 text-success"></i> Publier
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'demander_correction')" [disabled]="p.admin_status === 'a_corriger'">
+                  <i class="bi bi-exclamation-octagon me-2 text-warning"></i> Demander corrections
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'masquer')" [disabled]="p.admin_status === 'masque'">
+                  <i class="bi bi-eye-slash me-2 text-muted"></i> Masquer
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'refuser')" [disabled]="p.admin_status === 'refuse'">
+                  <i class="bi bi-x-circle me-2 text-danger"></i> Refuser
+                </button>
+                <button mat-menu-item (click)="askSections(p)">
+                  <i class="bi bi-tags me-2 text-info"></i> Sections
+                </button>
+                <button mat-menu-item (click)="openValidation(p, 'supprimer')">
+                  <i class="bi bi-trash me-2 text-danger"></i> Supprimer
+                </button>
+              </mat-menu>
             </div>
           </div>
         </div>
@@ -286,84 +358,80 @@
 
     <!-- FOOTER -->
     <div class="table-footer" *ngIf="filtered.length > 0">
-      <span>{{ filtered.length }} produit(s) affiché(s)</span>
+      <span>{{ filtered.length }} produit(s) affiché(s) sur {{ totalCount }}</span>
     </div>
 
   </div>
 
-  <!-- MODAL -->
-  <div class="modal-backdrop" *ngIf="activeModal" (click)="closeModal()">
+  <!-- MODAL VALIDATION / SECTIONS -->
+  <div class="modal-backdrop" *ngIf="activeModal === 'validation' || activeModal === 'sections'" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
 
-      <ng-container [ngSwitch]="activeModal">
+      <ng-container *ngIf="activeModal === 'validation' && targetProduit && validationConfig">
+        <div class="modal__icon" [style.background]="validationConfig.color + '15'" [style.color]="validationConfig.color">
+          <i class="bi" [class]="validationConfig.icon"></i>
+        </div>
+        <h3 class="modal__title">{{ validationConfig.label }}</h3>
+        <p class="modal__text">
+          Produit : <strong>{{ targetProduit.name }}</strong>
+        </p>
 
-        <ng-container *ngSwitchCase="'delete'">
-          <div class="modal__icon modal__icon--danger"><i class="bi bi-trash3-fill"></i></div>
-          <h3 class="modal__title">Supprimer ce produit ?</h3>
-          <p class="modal__text">
-            <strong>{{ targetProduit?.name }}</strong> sera définitivement retiré du catalogue. Cette action est irréversible.
-          </p>
-        </ng-container>
+        <div class="quick-reasons" *ngIf="validationConfig.value === 'demander_correction' || validationConfig.value === 'refuser'">
+          <button type="button" class="reason-chip" (click)="validationMotif = 'Images manquantes ou de mauvaise qualité.'">Images insuffisantes</button>
+          <button type="button" class="reason-chip" (click)="validationMotif = 'Description trop courte ou trompeuse.'">Description à améliorer</button>
+          <button type="button" class="reason-chip" (click)="validationMotif = 'Prix ou stock incohérent.'">Prix / stock</button>
+          <button type="button" class="reason-chip" (click)="validationMotif = 'Compatibilité véhicule non renseignée.'">Compatibilité</button>
+          <button type="button" class="reason-chip" (click)="validationMotif = 'Doublon détecté dans le catalogue.'">Doublon</button>
+        </div>
 
-        <ng-container *ngSwitchCase="'signal'">
-          <div class="modal__icon modal__icon--amber"><i class="bi bi-bell-fill"></i></div>
-          <h3 class="modal__title">Signaler ce produit</h3>
-          <p class="modal__text">
-            Signaler <strong>{{ targetProduit?.name }}</strong> le marquera comme nécessitant une vérification.
-          </p>
+        <div class="field" *ngIf="validationConfig.requiresMotif">
+          <label>
+            Motif
+            <span class="char-count">{{ validationMotif.length || 0 }}/500</span>
+          </label>
+          <textarea
+            rows="4"
+            maxlength="500"
+            placeholder="Précisez le motif..."
+            [(ngModel)]="validationMotif"
+            [ngModelOptions]="{ standalone: true }"
+          ></textarea>
+        </div>
 
-          <div class="quick-reasons">
-            <button type="button" class="reason-chip" (click)="reasonInput = 'Incompatibilité avec le code OEM annoncé.'">Incompatibilité OEM</button>
-            <button type="button" class="reason-chip" (click)="reasonInput = 'Description ou photos trompeuses.'">Description trompeuse</button>
-            <button type="button" class="reason-chip" (click)="reasonInput = 'Signalé par plusieurs clients pour non-conformité.'">Signalements clients</button>
-          </div>
+        <p class="modal__note" *ngIf="!validationConfig.requiresMotif">
+          Cette action n'impose pas de commentaire. Elle notifiera le fournisseur.
+        </p>
+      </ng-container>
 
-          <div class="field">
-            <label>
-              Motif du signalement
-              <span class="char-count">{{ reasonInput.length || 0 }}/300</span>
-            </label>
-            <textarea
-              rows="3"
-              maxlength="300"
-              placeholder="ex: Incompatibilité avec le code OEM, description trompeuse..."
-              [(ngModel)]="reasonInput"
-              [ngModelOptions]="{ standalone: true }"
-            ></textarea>
-          </div>
-        </ng-container>
+      <ng-container *ngIf="activeModal === 'sections' && targetProduit">
+        <div class="modal__icon modal__icon--info"><i class="bi bi-tags-fill"></i></div>
+        <h3 class="modal__title">Sections du produit</h3>
+        <p class="modal__text">
+          Choisissez les sections d'accueil auxquelles <strong>{{ targetProduit.name }}</strong> appartient.
+        </p>
 
-        <ng-container *ngSwitchCase="'sections'">
-          <div class="modal__icon modal__icon--info"><i class="bi bi-tags-fill"></i></div>
-          <h3 class="modal__title">Sections du produit</h3>
-          <p class="modal__text">
-            Choisissez les sections d'accueil auxquelles <strong>{{ targetProduit?.name }}</strong> appartient.
-          </p>
-
-          <div class="section-list">
-            <label class="section-row">
-              <input type="checkbox" [(ngModel)]="sectionsForm.bestOffer" />
-              <span><i class="bi bi-award"></i> Meilleures offres</span>
-            </label>
-            <label class="section-row">
-              <input type="checkbox" [(ngModel)]="sectionsForm.flashSale" />
-              <span><i class="bi bi-lightning"></i> Ventes flash</span>
-            </label>
-            <label class="section-row">
-              <input type="checkbox" [(ngModel)]="sectionsForm.bestSeller" />
-              <span><i class="bi bi-trophy"></i> Les plus vendus</span>
-            </label>
-            <label class="section-row">
-              <input type="checkbox" [(ngModel)]="sectionsForm.trending" />
-              <span><i class="bi bi-fire"></i> En vogue</span>
-            </label>
-            <label class="section-row">
-              <input type="checkbox" [(ngModel)]="sectionsForm.lightningSale" />
-              <span><i class="bi bi-stopwatch"></i> Vente éclair</span>
-            </label>
-          </div>
-        </ng-container>
-
+        <div class="section-list">
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.bestOffer" />
+            <span><i class="bi bi-award"></i> Meilleures offres</span>
+          </label>
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.flashSale" />
+            <span><i class="bi bi-lightning"></i> Ventes flash</span>
+          </label>
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.bestSeller" />
+            <span><i class="bi bi-trophy"></i> Les plus vendus</span>
+          </label>
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.trending" />
+            <span><i class="bi bi-fire"></i> En vogue</span>
+          </label>
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.lightningSale" />
+            <span><i class="bi bi-stopwatch"></i> Vente éclair</span>
+          </label>
+        </div>
       </ng-container>
 
       <div class="modal__footer">
@@ -371,16 +439,210 @@
         <button
           type="button"
           class="btn-text"
-          [class.btn-text--danger]="activeModal === 'delete' || activeModal === 'signal'"
-          [class.btn-text--primary]="activeModal === 'sections'"
+          [class.btn-text--primary]="activeModal === 'validation'"
           [disabled]="submitting"
-          (click)="confirmModal()"
+          (click)="activeModal === 'validation' ? confirmValidation() : saveSections()"
         >
           <i class="bi bi-arrow-repeat spin" *ngIf="submitting"></i>
-          <span *ngIf="!submitting">
-            {{ activeModal === 'delete' ? 'Supprimer' : activeModal === 'signal' ? 'Signaler' : 'Enregistrer' }}
-          </span>
+          <span *ngIf="!submitting">{{ activeModal === 'validation' ? 'Confirmer' : 'Enregistrer' }}</span>
           <span *ngIf="submitting">Traitement...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FICHE PRODUIT -->
+  <div class="modal-backdrop detail-backdrop" *ngIf="selectedProduit" (click)="closeDetail()">
+    <div class="modal modal--detail" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <div class="detail-img">
+          <img *ngIf="selectedProduit.image" [src]="selectedProduit.image" [alt]="selectedProduit.name" />
+          <i class="bi bi-box-seam" *ngIf="!selectedProduit.image"></i>
+        </div>
+        <div class="detail-title">
+          <h2>{{ selectedProduit.name }}</h2>
+          <p class="detail-meta">
+            <span class="status-badge" [style.--status-color]="getStatusColor(selectedProduit.admin_status)" [style.border-color]="getStatusColor(selectedProduit.admin_status) + '40'" [style.background]="getStatusColor(selectedProduit.admin_status) + '15'" [style.color]="getStatusColor(selectedProduit.admin_status)">
+              <i class="bi" [class]="getStatusIcon(selectedProduit.admin_status)"></i>
+              {{ selectedProduit.admin_status_label }}
+            </span>
+            <span class="price-chip">{{ selectedProduit.price | number:'1.0-0':'fr' }} FCFA</span>
+            <span class="stock-chip" [class.low]="stockLevel(selectedProduit) === 'faible'" [class.out]="stockLevel(selectedProduit) === 'rupture'">
+              {{ selectedProduit.stock === 0 ? 'Rupture' : selectedProduit.stock + ' p.' }}
+            </span>
+          </p>
+          <p class="detail-sub">
+            <span><i class="bi bi-upc-scan"></i> {{ selectedProduit.ref || selectedProduit.reference_oem || 'Sans référence' }}</span>
+            <span *ngIf="selectedProduit.brand"><i class="bi bi-tag"></i> {{ selectedProduit.brand }}</span>
+            <span><i class="bi bi-calendar"></i> {{ formatDate(selectedProduit.created_at) }}</span>
+          </p>
+        </div>
+        <button class="btn-action" (click)="closeDetail()" title="Fermer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <mat-tab-group [(selectedIndex)]="selectedTab" class="detail-tabs">
+        <mat-tab label="Informations">
+          <div class="detail-body">
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-info-circle"></i> Description</h4>
+                <p class="desc-short" *ngIf="selectedProduit.description_courte">{{ selectedProduit.description_courte }}</p>
+                <p class="desc-detail">{{ selectedProduit.description_detaillee || 'Aucune description détaillée.' }}</p>
+                <p class="desc-precautions" *ngIf="selectedProduit.precautions"><strong>Précautions :</strong> {{ selectedProduit.precautions }}</p>
+              </div>
+            </mat-card>
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-shop"></i> Magasin / Fournisseur</h4>
+                <div class="store-card">
+                  <div class="vendor-av large">{{ getInitials(selectedProduit.vendor_store) }}</div>
+                  <div>
+                    <div class="store-name">{{ selectedProduit.vendor_store || selectedProduit.vendor }}</div>
+                    <div class="store-vendor">{{ selectedProduit.vendor }}</div>
+                  </div>
+                </div>
+              </div>
+            </mat-card>
+            <mat-card class="detail-card" *ngIf="selectedProduit.mots_cles.length">
+              <div class="detail-section">
+                <h4><i class="bi bi-key"></i> Mots-clés</h4>
+                <div class="tags-list">
+                  <span class="tag-pill" *ngFor="let k of selectedProduit.mots_cles">{{ k }}</span>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Images ({{ selectedProduit.images.length || 0 }})">
+          <div class="detail-body">
+            <div class="gallery" *ngIf="selectedProduit.images.length; else noImages">
+              <div class="gallery-item" *ngFor="let img of selectedProduit.images">
+                <img [src]="img" [alt]="selectedProduit.name" />
+              </div>
+            </div>
+            <ng-template #noImages>
+              <div class="pr-empty compact">
+                <i class="bi bi-image"></i>
+                <p>Aucune image pour ce produit.</p>
+              </div>
+            </ng-template>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Compatibilité">
+          <div class="detail-body">
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-car-front"></i> Véhicules compatibles</h4>
+                <ul class="compat-list" *ngIf="selectedProduit.compatibility.compatibilites?.length; else noCompat">
+                  <li *ngFor="let c of selectedProduit.compatibility.compatibilites">
+                    <i class="bi bi-check2-circle"></i> {{ c }}
+                  </li>
+                </ul>
+                <ng-template #noCompat>
+                  <p class="empty-text">Aucune compatibilité renseignée.</p>
+                </ng-template>
+              </div>
+            </mat-card>
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-calendar-range"></i> Années</h4>
+                <p class="empty-text" *ngIf="!selectedProduit.compatibility.annee_debut && !selectedProduit.compatibility.annee_fin">Années non renseignées.</p>
+                <p *ngIf="selectedProduit.compatibility.annee_debut || selectedProduit.compatibility.annee_fin">
+                  De <strong>{{ selectedProduit.compatibility.annee_debut || '?' }}</strong> à <strong>{{ selectedProduit.compatibility.annee_fin || '?' }}</strong>
+                </p>
+              </div>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Caractéristiques">
+          <div class="detail-body">
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-tools"></i> Fiche technique</h4>
+                <div class="tech-grid">
+                  <div class="tech-item"><span>État</span><strong>{{ selectedProduit.technical.etat || '-' }}</strong></div>
+                  <div class="tech-item"><span>Fabricant</span><strong>{{ selectedProduit.technical.fabricant || '-' }}</strong></div>
+                  <div class="tech-item"><span>Pays d'origine</span><strong>{{ selectedProduit.technical.pays_origine || '-' }}</strong></div>
+                  <div class="tech-item"><span>Matière</span><strong>{{ selectedProduit.technical.matiere || '-' }}</strong></div>
+                  <div class="tech-item"><span>Couleur</span><strong>{{ selectedProduit.technical.couleur || '-' }}</strong></div>
+                  <div class="tech-item"><span>Garantie</span><strong>{{ selectedProduit.technical.garantie_disponible ? (selectedProduit.technical.garantie_mois + ' mois') : 'Non' }}</strong></div>
+                  <div class="tech-item"><span>Poids</span><strong>{{ selectedProduit.technical.poids ? selectedProduit.technical.poids + ' kg' : '-' }}</strong></div>
+                  <div class="tech-item"><span>Dimensions</span><strong>{{ selectedProduit.technical.longueur || '-' }} x {{ selectedProduit.technical.largeur || '-' }} x {{ selectedProduit.technical.hauteur || '-' }}</strong></div>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Alertes qualité">
+          <div class="detail-body">
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-shield-exclamation"></i> Contrôle qualité automatique</h4>
+                <div class="alerts-list" *ngIf="selectedProduit.alerts.length; else noAlerts">
+                  <div class="alert-row" *ngFor="let a of selectedProduit.alerts" [class]="'alert-row--' + a.severity">
+                    <i class="bi" [class]="getAlertIcon(a.type)"></i>
+                    <div>
+                      <strong>{{ a.label }}</strong>
+                      <small>{{ a.type }}</small>
+                    </div>
+                  </div>
+                </div>
+                <ng-template #noAlerts>
+                  <p class="empty-text text-success"><i class="bi bi-check-circle"></i> Aucune alerte qualité détectée.</p>
+                </ng-template>
+              </div>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Historique">
+          <div class="detail-body">
+            <mat-card class="detail-card">
+              <div class="detail-section">
+                <h4><i class="bi bi-clock-history"></i> Historique des modifications</h4>
+                <ul class="history-list">
+                  <li>
+                    <i class="bi bi-plus-circle"></i>
+                    <div>
+                      <strong>Création</strong>
+                      <small>{{ formatDate(selectedProduit.created_at) }}</small>
+                    </div>
+                  </li>
+                  <li *ngIf="selectedProduit.updated_at">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <div>
+                      <strong>Dernière mise à jour stock</strong>
+                      <small>{{ formatDate(selectedProduit.updated_at) }}</small>
+                    </div>
+                  </li>
+                  <li *ngIf="selectedProduit.motif_rejet">
+                    <i class="bi bi-pencil-square"></i>
+                    <div>
+                      <strong>Motif de rejet / correction</strong>
+                      <small>{{ selectedProduit.motif_rejet }}</small>
+                    </div>
+                  </li>
+                </ul>
+                <p class="empty-text">L'historique complet des modifications sera disponible prochainement.</p>
+              </div>
+            </mat-card>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+
+      <div class="detail-actions">
+        <button mat-stroked-button (click)="closeDetail()">Fermer</button>
+        <button mat-raised-button color="primary" (click)="openValidation(selectedProduit, 'publier')" [disabled]="selectedProduit.admin_status === 'publie'">
+          <i class="bi bi-check-circle"></i> Publier
+        </button>
+        <button mat-raised-button color="warn" (click)="openValidation(selectedProduit, 'demander_correction')" [disabled]="selectedProduit.admin_status === 'a_corriger'">
+          <i class="bi bi-exclamation-octagon"></i> Demander corrections
         </button>
       </div>
     </div>

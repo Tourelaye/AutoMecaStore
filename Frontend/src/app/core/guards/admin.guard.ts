@@ -11,7 +11,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
   }
 
   const user = auth.getCurrentUser();
-  if (!user || user.role !== 'admin' || user.is_active === false) {
+  if (!user || user.role !== 'admin' || user.is_active === false || user.is_staff === false) {
     auth.logout();
     return router.parseUrl('/admin/login');
   }

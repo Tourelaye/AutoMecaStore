@@ -1,0 +1,56 @@
+/* Styles complémentaires pour le composant marque */
+
+.marque-icon {
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marque-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+  background: #fff;
+}
+
+.preview-icon.marque-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+input[type="file"] {
+  padding: 8px 0;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+}
+
+input[type="file"]::file-selector-button {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: #1e293b;
+}
+
+.ca-btn.order {
+  color: #38bdf8;
+}
+
+.ca-btn.order:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

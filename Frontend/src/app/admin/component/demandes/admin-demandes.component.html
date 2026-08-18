@@ -1,0 +1,94 @@
+<div class="admin-demandes-page">
+  <h2><i class="bi bi-inbox"></i> Demandes de pièces</h2>
+
+  <div class="search-bar">
+    <input type="text" [(ngModel)]="search" placeholder="Rechercher par référence, pièce ou client" (keyup.enter)="load()">
+    <button (click)="load()">Rechercher</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Chargement...</div>
+
+  <div *ngIf="!loading && demandes.length === 0" class="empty">
+    <p>Aucune demande trouvée.</p>
+  </div>
+
+  <div *ngIf="!loading" class="demandes-table-wrap">
+    <table class="demandes-table">
+      <thead>
+        <tr>
+          <th>Référence</th>
+          <th>Pièce</th>
+          <th>Client</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of demandes" (click)="openDetail(d)" class="clickable">
+          <td>{{ d.reference }}</td>
+          <td>{{ d.piece_recherchee }}</td>
+          <td>{{ d.nom_contact }}</td>
+          <td>
+            <span class="badge statut-{{ d.statut }}">{{ libelleStatut(d.statut) }}</span>
+          </td>
+          <td>{{ d.date_creation | date:'short' }}</td>
+          <td>
+            <span class="offres" *ngIf="d.offres_count">{{ d.offres_count }} offre(s)</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="detail-modal" *ngIf="selectedDemande" (click)="closeDetail()">
+  <div class="detail-content" (click)="$event.stopPropagation()">
+    <h3>Détail de {{ selectedDemande.reference }}</h3>
+
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="label">Pièce</span>
+        <span>{{ selectedDemande.piece_recherchee }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Quantité</span>
+        <span>{{ selectedDemande.quantite }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Client</span>
+        <span>{{ selectedDemande.nom_contact }}<br>{{ selectedDemande.email_contact }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Téléphone</span>
+        <span>{{ selectedDemande.telephone_contact }}</span>
+      </div>
+      <div class="detail-item" *ngIf="selectedDemande.ville">
+        <span class="label">Localisation</span>
+        <span>{{ selectedDemande.quartier }}{{ selectedDemande.quartier && selectedDemande.ville ? ', ' : '' }}{{ selectedDemande.ville }}</span>
+      </div>
+    </div>
+
+    <p *ngIf="selectedDemande.description"><strong>Description :</strong> {{ selectedDemande.description }}</p>
+
+    <div class="offres-list" *ngIf="selectedDemande.offres?.length">
+      <h4>Offres</h4>
+      <div class="offre-row" *ngFor="let o of selectedDemande.offres">
+        <strong>{{ o.fournisseur_detail?.nom_entreprise }}</strong>
+        <span>{{ o.prix | number:'1.0-0' }} FCFA</span>
+        <span class="badge">{{ o.etat }}</span>
+        <span class="badge">{{ o.statut }}</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <label for="statut-select">Changer le statut</label>
+      <select id="statut-select" #select (change)="changerStatut(select.value)">
+        <option value="" disabled selected>Sélectionner</option>
+        <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
+      </select>
+    </div>
+
+    <button class="btn-close" (click)="closeDetail()">Fermer</button>
+  </div>
+</div>

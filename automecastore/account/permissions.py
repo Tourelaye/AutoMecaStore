@@ -35,9 +35,9 @@ class IsClientOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         is_authenticated = request.user.is_authenticated
         role = getattr(request.user, 'role', 'N/A')
-        print(f"🔍 IsClientOrAdmin check - Authenticated: {is_authenticated}, Role: {role}")
+        print(f" IsClientOrAdmin check - Authenticated: {is_authenticated}, Role: {role}")
         result = is_authenticated and role in ['client', 'admin', 'administrateur']
-        print(f"🔍 IsClientOrAdmin result: {result}")
+        print(f" IsClientOrAdmin result: {result}")
         return result
 
 class IsAdminOrFournisseur(permissions.BasePermission):

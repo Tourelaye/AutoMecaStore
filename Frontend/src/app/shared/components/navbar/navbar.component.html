@@ -92,6 +92,10 @@
 
       <!-- CONNECTÉ -->
       <ng-container *ngIf="isLoggedIn && utilisateur">
+
+        <!-- NOTIFICATIONS CLIENT -->
+        <app-notification-bell *ngIf="isLoggedIn"></app-notification-bell>
+
         <div class="user-menu-wrapper">
 
           <button class="btn-avatar" (click)="toggleUserMenu()">

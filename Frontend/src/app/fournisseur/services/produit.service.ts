@@ -7,6 +7,9 @@ export interface Produit {
   id: number;
   nom: string;
   description: string;
+  description_courte?: string;
+  description_detaillee?: string;
+  precautions?: string;
   prix: number;
   stock: number;
   categorie: number | null;
@@ -16,10 +19,14 @@ export interface Produit {
   image?: string;
   image_url?: string;
   image_2?: string;
+  image_2_url?: string;
   image_3?: string;
+  image_3_url?: string;
   image_4?: string;
+  image_4_url?: string;
   reference?: string;
   marque?: string;
+  fabricant?: string;
   est_en_promo?: boolean;
   prix_promo?: number;
   pourcentage_reduction?: number;
@@ -30,18 +37,29 @@ export interface Produit {
   modeles_compatibles?: string[];
   annee_debut?: number;
   annee_fin?: number;
+  compatibilites?: ProduitCompatibilite[];
   // Technique
   etat?: 'neuf' | 'occasion' | 'reconditionne';
   garantie_mois?: number;
+  garantie_disponible?: boolean;
+  conditions_garantie?: string;
   pays_origine?: string;
   reference_oem?: string;
   poids?: number;
   longueur?: number;
   largeur?: number;
   hauteur?: number;
+  matiere?: string;
+  couleur?: string;
   // Stock
   disponibilite?: 'en_stock' | 'faible_stock' | 'rupture' | 'precommande';
   delai_livraison?: 'same_day' | '24h' | '48h' | '2_5j' | '5_7j' | '7j_plus';
+  seuil_alerte?: number;
+  quantite_min?: number;
+  // Livraison
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
+  delai_preparation?: '24h' | '48h' | '72h' | '4_5j' | '6_7j' | '7j_plus';
   // Complémentaires
   mots_cles?: string[];
   conseils_installation?: string;
@@ -49,8 +67,25 @@ export interface Produit {
   // Avis clients
   note_moyenne?: number;
   nombre_avis?: number;
+  // Statistiques
+  nombre_vues?: number;
+  nombre_favoris?: number;
+  nombre_ventes?: number;
   // Images
   image_principale_index?: number;
+  // Stock avancé
+  date_ajout?: string;
+  date_derniere_maj_stock?: string;
+  statut_stock?: 'en_stock' | 'faible' | 'rupture';
+}
+
+export interface ProduitCompatibilite {
+  marque: string;
+  modele: string;
+  version?: string;
+  motorisation?: string;
+  annee_debut?: number | null;
+  annee_fin?: number | null;
 }
 
 @Injectable({

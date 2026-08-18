@@ -62,6 +62,7 @@ export interface Produit {
   // Avis clients
   note_moyenne?: number;
   nombre_avis?: number;
+  nombre_magasins?: number;
   deleting?: boolean;
   // Compatibilité
   modeles_compatibles?: string[];
@@ -76,9 +77,30 @@ export interface Produit {
   longueur?: number;
   largeur?: number;
   hauteur?: number;
+  matiere?: string;
+  couleur?: string;
+  fabricant?: string;
   // Stock
   disponibilite?: 'en_stock' | 'faible_stock' | 'rupture' | 'precommande';
   delai_livraison?: 'same_day' | '24h' | '48h' | '2_5j' | '5_7j' | '7j_plus';
+  // Compatibilité avancée
+  compatibilites?: ProduitCompatibilite[];
+  // Compatibilité dynamique avec le véhicule actif
+  compatibilite_vehicule?: { statut: 'compatible' | 'non_compatible' | 'a_verifier'; motif?: string };
+  // Garantie
+  garantie_disponible?: boolean;
+  conditions_garantie?: string;
+  // Stock avancé
+  seuil_alerte?: number;
+  quantite_min?: number;
+  // Livraison
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
+  delai_preparation?: '24h' | '48h' | '72h' | '4_5j' | '6_7j' | '7j_plus';
+  // Descriptions
+  description_courte?: string;
+  description_detaillee?: string;
+  precautions?: string;
   // Complémentaires
   mots_cles?: string[];
   conseils_installation?: string;
@@ -88,6 +110,81 @@ export interface Produit {
   // Nouveauté
   date_ajout?: string;
   is_new?: boolean;
+  // Fournisseur / magasin
+  fournisseur?: number;
+  fournisseur_detail?: FournisseurDetail;
+  magasin_detail?: MagasinDetail;
+  offres?: Offre[];
+  avis?: AvisProduit[];
+  distribution_etoiles?: DistributionEtoiles;
+}
+
+export interface ProduitCompatibilite {
+  marque: string;
+  modele: string;
+  version?: string;
+  motorisation?: string;
+  annee_debut?: number | null;
+  annee_fin?: number | null;
+}
+
+export interface FournisseurDetail {
+  id: number;
+  nom_entreprise: string;
+  note?: number;
+}
+
+export interface MagasinDetail {
+  id: number;
+  nom_magasin?: string;
+  logo_url?: string;
+  adresse?: string;
+  ville?: string;
+  region?: string;
+  telephone?: string;
+  whatsapp?: string;
+  email?: string;
+  latitude?: number;
+  longitude?: number;
+  horaires_ouverture?: any;
+  jours_ouverture?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
+  rayon_livraison_km?: number;
+  distance_km?: number | null;
+  note?: number | null;
+}
+
+export interface Offre {
+  fournisseur: FournisseurDetail;
+  magasin?: MagasinDetail;
+  prix: number;
+  stock: number;
+  livraison_disponible: boolean;
+  retrait_magasin: boolean;
+  delai_livraison: string;
+  distance_km?: number | null;
+  badge?: string | null;
+  badges?: string[];
+}
+
+export interface AvisProduit {
+  id: number;
+  note: number;
+  commentaire: string;
+  date: string;
+  client_nom: string;
+  client_prenom?: string;
+  client_photo?: string | null;
+  achat_verifie: boolean;
+  reponse_fournisseur?: string;
+  date_reponse?: string;
+  reponse_fournisseur_nom?: string;
+  photos?: string[];
+}
+
+export interface DistributionEtoiles {
+  [note: string]: { count: number; pct: number };
 }
 
 export interface ProduitListResponse {
@@ -107,10 +204,37 @@ export class ProduitService {
   constructor(private http: HttpClient) {}
 
   // ---------------------------------
+  // Magasin
+  // ---------------------------------
+  getMagasin(id: number, lat?: number | null, lng?: number | null): Observable<MagasinDetail> {
+    let params = new HttpParams();
+    if (lat != null) params = params.set('lat', lat.toString());
+    if (lng != null) params = params.set('lng', lng.toString());
+    return this.http.get<MagasinDetail>(`${this.apiUrl}/magasins/${id}/`, { params });
+  }
+
+  // ---------------------------------
+  // Autocomplétion de recherche
+  // ---------------------------------
+  getSuggestions(q: string): Observable<string[]> {
+    return this.http.get<{ suggestions: string[] }>(
+      `${this.apiUrl}/produits/autocomplete/`,
+      { params: new HttpParams().set('q', q) }
+    ).pipe(map(res => res.suggestions || []));
+  }
+
+  // ---------------------------------
   // Récupérer un produit spécifique
   // ---------------------------------
-  getProduit(id: number): Observable<Produit> {
-    return this.http.get<any>(`${this.apiUrl}/produits/${id}/`).pipe(
+  getProduit(id: number, lat?: number, lng?: number): Observable<Produit> {
+    let params = new HttpParams();
+    if (lat != null) {
+      params = params.set('lat', lat.toString());
+    }
+    if (lng != null) {
+      params = params.set('lng', lng.toString());
+    }
+    return this.http.get<any>(`${this.apiUrl}/produits/${id}/`, { params }).pipe(
       map((res: any) => res?.data || res)
     ) as Observable<Produit>;
   }
@@ -123,6 +247,25 @@ export class ProduitService {
     categorie?: number;
     type_piece?: number;
     page?: number;
+    page_size?: number;
+    marque?: string;
+    etat?: string;
+    prix_min?: number;
+    prix_max?: number;
+    disponibilite?: string;
+    livraison?: boolean;
+    retrait?: boolean;
+    note_min?: number;
+    sort?: string;
+    magasin?: string;
+    note_magasin_min?: number;
+    lat?: number | null;
+    lng?: number | null;
+    veh_marque?: string;
+    veh_modele?: string;
+    veh_version?: string;
+    veh_motorisation?: string;
+    veh_annee?: string;
   }): Observable<ProduitListResponse | Produit[]> {
 
     let httpParams = new HttpParams();
@@ -138,6 +281,63 @@ export class ProduitService {
     }
     if (params?.page) {
       httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params?.page_size) {
+      httpParams = httpParams.set('page_size', params.page_size.toString());
+    }
+    if (params?.marque) {
+      httpParams = httpParams.set('marque', params.marque);
+    }
+    if (params?.etat) {
+      httpParams = httpParams.set('etat', params.etat);
+    }
+    if (params?.prix_min != null) {
+      httpParams = httpParams.set('prix_min', params.prix_min.toString());
+    }
+    if (params?.prix_max != null) {
+      httpParams = httpParams.set('prix_max', params.prix_max.toString());
+    }
+    if (params?.disponibilite) {
+      httpParams = httpParams.set('disponibilite', params.disponibilite);
+    }
+    if (params?.livraison) {
+      httpParams = httpParams.set('livraison', 'true');
+    }
+    if (params?.retrait) {
+      httpParams = httpParams.set('retrait', 'true');
+    }
+    if (params?.note_min != null) {
+      httpParams = httpParams.set('note_min', params.note_min.toString());
+    }
+    if (params?.magasin) {
+      httpParams = httpParams.set('magasin', params.magasin);
+    }
+    if (params?.note_magasin_min != null) {
+      httpParams = httpParams.set('note_magasin_min', params.note_magasin_min.toString());
+    }
+    if (params?.lat != null) {
+      httpParams = httpParams.set('lat', params.lat.toString());
+    }
+    if (params?.lng != null) {
+      httpParams = httpParams.set('lng', params.lng.toString());
+    }
+    if (params?.sort) {
+      httpParams = httpParams.set('sort', params.sort);
+    }
+    if (params?.veh_marque) {
+      httpParams = httpParams.set('veh_marque', params.veh_marque);
+    }
+    if (params?.veh_modele) {
+      httpParams = httpParams.set('veh_modele', params.veh_modele);
+    }
+    if (params?.veh_version) {
+      httpParams = httpParams.set('veh_version', params.veh_version);
+    }
+    if (params?.veh_motorisation) {
+      httpParams = httpParams.set('veh_motorisation', params.veh_motorisation);
+    }
+    if (params?.veh_annee) {
+      httpParams = httpParams.set('veh_annee', params.veh_annee);
     }
 
     return this.http.get<ProduitListResponse | Produit[]>(
@@ -224,5 +424,12 @@ export class ProduitService {
   // ---------------------------------
   deleteProduit(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/produits/${id}/`);
+  }
+
+  // ---------------------------------
+  // Demande de pièce (pièce introuvable)
+  // ---------------------------------
+  createDemandePiece(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/demandes/`, formData);
   }
 }

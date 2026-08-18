@@ -31,4 +31,8 @@ export class CategorieService {
   deleteCategorie(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}${id}/`);
   }
+
+  reorderCategories(items: { id: number; ordre: number }[]): Observable<{ updated: number }> {
+    return this.http.post<{ updated: number }>('http://127.0.0.1:8000/api/admin/categories/reorder/', { items });
+  }
 }

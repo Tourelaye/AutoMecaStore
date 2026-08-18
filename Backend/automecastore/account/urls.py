@@ -5,13 +5,19 @@ from .views import (
     ClientListView, ClientDetailView, ClientToggleActiveView, ClientDeleteView, ClientStatsView,
     AdminNotificationsView, CreateAdminView
 )
-from .mon_compte_views import MeView, MesCommandesView, FavorisView, PanierView
+from .mon_compte_views import (
+    MeView, MesCommandesView, MaCommandeDetailView, MaCommandeAnnulerView,
+    MesNotificationsListView, MesNotificationCountView, MesNotificationDetailView,
+    MesNotificationMarkAllReadView,
+    FavorisView, PanierView
+)
 from .security_views import (
     SecurityOverviewView, ChangePasswordView, TwoFactorView,
     SecurityActivityView, SessionsListView, RegisterSessionView,
     RevokeSessionView, RevokeOtherSessionsView, APITokenListCreateView,
     APITokenRevokeView, LogoutAllDevicesView, DeactivateAccountView
 )
+from .vehicule_views import VehiculeClientListCreateView, VehiculeClientDetailView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -31,19 +37,28 @@ urlpatterns = [
     path('clients/<int:user_id>/delete/', ClientDeleteView.as_view(), name='client_delete'),
     path('clients/stats/', ClientStatsView.as_view(), name='client_stats'),
     
-    # URLs pour les notifications admin
-    path('notifications/', AdminNotificationsView.as_view(), name='admin_notifications'),
-    
     # URL pour la création d'administrateurs (sécurisée)
     path('create-admin/', CreateAdminView.as_view(), name='create_admin'),
     
-    # URLs pour la page "Mon Compte" (client)
+    # URLs pour la page "Mon Compte"
     path('me/', MeView.as_view(), name='me'),
     path('mes-commandes/', MesCommandesView.as_view(), name='mes_commandes'),
+    path('mes-commandes/<int:pk>/', MaCommandeDetailView.as_view(), name='ma_commande_detail'),
+    path('mes-commandes/<int:pk>/annuler/', MaCommandeAnnulerView.as_view(), name='ma_commande_annuler'),
+    
+    # Notifications unifiées (client, fournisseur, admin)
+    path('notifications/', MesNotificationsListView.as_view(), name='mes_notifications'),
+    path('notifications/count/', MesNotificationCountView.as_view(), name='mes_notification_count'),
+    path('notifications/mark-all-read/', MesNotificationMarkAllReadView.as_view(), name='mes_notification_mark_all_read'),
+    path('notifications/<int:pk>/', MesNotificationDetailView.as_view(), name='mes_notification_detail'),
     path('favoris/', FavorisView.as_view(), name='favoris'),
     path('panier/', PanierView.as_view(), name='panier'),
     path('panier/add/', PanierView.as_view(), name='panier_add'),
     path('panier/<int:item_id>/', PanierView.as_view(), name='panier_item'),
+
+    # URLs pour les véhicules du client
+    path('vehicules/', VehiculeClientListCreateView.as_view(), name='vehicules_list_create'),
+    path('vehicules/<int:pk>/', VehiculeClientDetailView.as_view(), name='vehicules_detail'),
 
     # URLs pour la sécurité du compte
     path('security/overview/', SecurityOverviewView.as_view(), name='security_overview'),

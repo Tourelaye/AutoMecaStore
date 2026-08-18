@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
 
@@ -52,7 +52,8 @@ export class VogueComponent implements OnInit, OnDestroy {
 
   constructor(
     private panierService: PanierService,
-    private homeService: HomeService
+    private homeService: HomeService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -148,29 +149,17 @@ export class VogueComponent implements OnInit, OnDestroy {
   }
 
   // -------------------------------------------------------
-  // Panier
+  // Navigation & Panier
   // -------------------------------------------------------
+  goToProduit(id: number): void {
+    this.router.navigate(['/produits'], { queryParams: { id } });
+  }
+
   ajouterAuPanier(produit: VogueProduit, event: Event): void {
     event.stopPropagation();
     if (produit.stock === 0) return;
-
-    const p = {
-      id: produit.id,
-      nom: produit.nom,
-      description: '',
-      prix: produit.prixNouveau,
-      stock: produit.stock,
-      image: produit.image,
-      categorie: null,
-      gestionnaire_stock: null,
-      quantite: 1
-    };
-    this.panierService.ajouterProduit(p as any);
-
-    this.produitAjoute = produit.id;
-    setTimeout(() => {
-      if (this.produitAjoute === produit.id) this.produitAjoute = null;
-    }, 1500);
+    // Redirige vers la fiche produit pour laisser le client choisir l'offre/magasin
+    this.goToProduit(produit.id);
   }
 
   isStockFaible(p: VogueProduit): boolean {

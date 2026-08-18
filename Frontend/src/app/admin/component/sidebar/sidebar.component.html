@@ -1,19 +1,5 @@
 <aside class="sidebar" [class.collapsed]="isCollapsed">
 
-  <!-- ══ LOGO ══ -->
-  <!-- <div class="sidebar-logo">
-    <div class="logo-icon">
-      <i class="bi bi-shield-fill-check"></i>
-    </div>
-    <div class="logo-text" *ngIf="!isCollapsed">
-      <span class="logo-name">AutoMeca</span>
-      <span class="logo-env">Admin Panel</span>
-    </div>
-    <button class="collapse-btn" (click)="toggleSidebar()" [title]="isCollapsed ? 'Ouvrir' : 'Réduire'">
-      <i class="bi" [class.bi-chevron-left]="!isCollapsed" [class.bi-chevron-right]="isCollapsed"></i>
-    </button>
-  </div> -->
-
   <!-- ══ PROFIL ══ -->
   <div class="sidebar-profile" [class.profile-collapsed]="isCollapsed">
     <div class="profile-av">{{ adminInfo.initiales }}</div>
@@ -30,35 +16,79 @@
 
   <!-- ══ NAVIGATION ══ -->
   <nav class="sidebar-nav">
-    <p class="nav-section-label" *ngIf="!isCollapsed">Navigation</p>
 
-    <a
-      *ngFor="let item of navItems"
-      class="nav-link"
-      [routerLink]="item.route"
-      routerLinkActive="active"
-      [title]="isCollapsed ? item.label : ''"
-    >
-      <i class="bi {{ item.icon }}"></i>
-      <span *ngIf="!isCollapsed">{{ item.label }}</span>
+    <!-- GESTION -->
+    <p class="nav-section-label" *ngIf="!isCollapsed">Gestion</p>
+    <ul class="nav-list">
+      <li *ngFor="let item of gestionMenuItems" class="nav-item">
+        <a
+          class="nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [title]="isCollapsed ? item.label : ''"
+        >
+          <span class="nav-icon-wrap">
+            <i class="bi {{ item.icon }}"></i>
+            <span class="nav-badge" *ngIf="item.badge && item.badge > 0 && isCollapsed">{{ item.badge }}</span>
+          </span>
+          <span class="nav-text" *ngIf="!isCollapsed">{{ item.label }}</span>
+          <span
+            class="badge"
+            *ngIf="item.badge && item.badge > 0 && !isCollapsed"
+            [class.pulse]="item.badge > 0"
+            [class.high-count]="item.badge >= 10"
+          >{{ item.badge }}</span>
+        </a>
+      </li>
+    </ul>
 
-      <!-- Badge visible -->
-      <span
-        class="badge"
-        *ngIf="item.badge && item.badge > 0 && !isCollapsed"
-        [class.pulse]="item.badge > 0"
-        [class.high-count]="item.badge >= 10"
-      >{{ item.badge }}</span>
+    <!-- ANALYSE & OUTILS -->
+    <p class="nav-section-label" *ngIf="!isCollapsed">Analyse & Outils</p>
+    <ul class="nav-list">
+      <li *ngFor="let item of analyseMenuItems" class="nav-item">
+        <a
+          class="nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [title]="isCollapsed ? item.label : ''"
+        >
+          <span class="nav-icon-wrap">
+            <i class="bi {{ item.icon }}"></i>
+          </span>
+          <span class="nav-text" *ngIf="!isCollapsed">{{ item.label }}</span>
+          <span
+            class="badge"
+            *ngIf="item.badge && item.badge > 0 && !isCollapsed"
+            [class.pulse]="item.badge > 0"
+            [class.high-count]="item.badge >= 10"
+          >{{ item.badge }}</span>
+        </a>
+      </li>
+    </ul>
 
-      <!-- Badge dot quand collapsed -->
-      <span class="badge-dot" *ngIf="item.badge && item.badge > 0 && isCollapsed"></span>
-    </a>
+    <!-- COMPTE -->
+    <p class="nav-section-label" *ngIf="!isCollapsed">Compte</p>
+    <ul class="nav-list">
+      <li *ngFor="let item of compteMenuItems" class="nav-item">
+        <a
+          class="nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [title]="isCollapsed ? item.label : ''"
+        >
+          <span class="nav-icon-wrap">
+            <i class="bi {{ item.icon }}"></i>
+          </span>
+          <span class="nav-text" *ngIf="!isCollapsed">{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+
   </nav>
 
   <!-- ══ FOOTER ══ -->
   <div class="sidebar-footer">
 
-    <!-- VERSION -->
     <div class="sidebar-version" *ngIf="!isCollapsed">
       <i class="bi bi-cpu"></i>
       <span>AutoMecaStore v2.0</span>

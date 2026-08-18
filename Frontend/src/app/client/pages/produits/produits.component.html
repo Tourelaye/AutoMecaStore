@@ -41,6 +41,7 @@
               [src]="images[currentImageIndex]"
               [alt]="produit.nom"
               class="main-img"
+              (error)="onImageError($event)"
             >
             <div class="img-placeholder" *ngIf="!images[currentImageIndex]">
               <i class="bi bi-image"></i>
@@ -75,7 +76,7 @@
             [class.active]="i === currentImageIndex"
             (click)="setImage(i)"
           >
-            <img *ngIf="img" [src]="img" [alt]="'Vue ' + (i+1)">
+            <img *ngIf="img" [src]="img" [alt]="'Vue ' + (i+1)" (error)="onImageError($event)">
             <div class="thumb-placeholder" *ngIf="!img"><i class="bi bi-image"></i></div>
           </div>
           <!-- Thumbs vides pour l'UI -->
@@ -154,6 +155,55 @@
           </div>
         </div>
 
+        <!-- GÉOLOCALISATION -->
+        <div class="geo-status" *ngIf="geoLoading || geoError">
+          <span *ngIf="geoLoading"><i class="bi bi-geo-alt"></i> Recherche de votre position...</span>
+          <span *ngIf="geoError && !geoLoading" class="geo-error">
+            <i class="bi bi-geo-alt-fill"></i> {{ geoError }} — la distance n'est pas calculée
+          </span>
+        </div>
+
+        <!-- OFFRES / VENDEURS -->
+        <div class="offres-box" *ngIf="offres.length" (click)="setTab('offres')">
+          <div class="offre-selected" *ngIf="selectedOffre">
+            <div class="offre-magasin">
+              <img *ngIf="selectedOffre.magasin?.logo_url" [src]="selectedOffre.magasin?.logo_url" alt="logo" class="offre-logo">
+              <i *ngIf="!selectedOffre.magasin?.logo_url" class="bi bi-shop offre-logo-placeholder"></i>
+              <div>
+                <strong>{{ selectedOffre.magasin?.nom_magasin || selectedOffre.fournisseur.nom_entreprise }}</strong>
+                <span class="offre-status" [class.ouvert]="isMagasinOuvert(selectedOffre)" [class.ferme]="!isMagasinOuvert(selectedOffre)">
+                  {{ isMagasinOuvert(selectedOffre) ? 'Ouvert' : 'Fermé' }}
+                </span>
+                <span class="offre-distance" *ngIf="selectedOffre.distance_km !== null && selectedOffre.distance_km !== undefined">
+                  <i class="bi bi-geo-alt"></i> {{ selectedOffre.distance_km }} km
+                </span>
+                <span class="offre-distance" *ngIf="selectedOffre.distance_km === null || selectedOffre.distance_km === undefined">
+                  <i class="bi bi-geo-alt"></i> {{ selectedOffre.magasin?.ville || 'Distance indisponible' }}
+                </span>
+              </div>
+            </div>
+            <span class="offre-dispo" [class.ok]="selectedOffre.stock > 0" [class.out]="selectedOffre.stock === 0">
+              <i class="bi" [class.bi-check-circle-fill]="selectedOffre.stock > 0" [class.bi-x-circle-fill]="selectedOffre.stock === 0"></i>
+              {{ selectedOffre.stock > 0 ? 'Disponible' : 'Rupture' }}
+            </span>
+          </div>
+
+          <div class="offre-selected offre-not-selected" *ngIf="!selectedOffre && offres.length > 1" (click)="setTab('offres'); $event.stopPropagation()">
+            <i class="bi bi-shop offre-logo-placeholder"></i>
+            <div>
+              <strong>Veuillez choisir un magasin</strong>
+              <span>{{ offres.length }} offres disponibles</span>
+            </div>
+            <i class="bi bi-chevron-right"></i>
+          </div>
+
+          <div class="offre-toggle">
+            <span *ngIf="offres.length === 1"><i class="bi bi-shop-window"></i> Disponible chez 1 magasin</span>
+            <span *ngIf="offres.length > 1"><i class="bi bi-shop-window"></i> Disponible chez {{ offres.length }} magasins</span>
+            <i class="bi bi-chevron-right"></i>
+          </div>
+        </div>
+
         <!-- STOCK -->
         <div class="stock-info" [class.out-of-stock]="produit.stock === 0">
           <i class="bi" [class.bi-check-circle-fill]="produit.stock > 0" [class.bi-x-circle-fill]="produit.stock === 0"></i>
@@ -194,6 +244,32 @@
         <!-- DIVIDER -->
         <div class="divider"></div>
 
+        <!-- MODE DE RÉCEPTION -->
+        <div class="reception-toggle" *ngIf="selectedOffre">
+          <button
+            class="reception-btn"
+            [class.active]="modeReception === 'livraison'"
+            (click)="setModeReception('livraison')"
+            [disabled]="!selectedOffre.livraison_disponible"
+            type="button"
+          >
+            <i class="bi bi-truck"></i>
+            <span>Livraison</span>
+            <small *ngIf="selectedOffre.delai_livraison">{{ getDelaiLivraisonLabel(selectedOffre.delai_livraison) }}</small>
+          </button>
+          <button
+            class="reception-btn"
+            [class.active]="modeReception === 'retrait_magasin'"
+            (click)="setModeReception('retrait_magasin')"
+            [disabled]="!selectedOffre.retrait_magasin"
+            type="button"
+          >
+            <i class="bi bi-shop"></i>
+            <span>Retrait</span>
+            <small *ngIf="selectedOffre.magasin?.ville">{{ selectedOffre.magasin?.ville }}</small>
+          </button>
+        </div>
+
         <!-- QUANTITÉ -->
         <div class="qty-row">
           <span class="qty-label">Quantité</span>
@@ -206,6 +282,7 @@
               <i class="bi bi-plus"></i>
             </button>
           </div>
+          <span class="qty-min" *ngIf="produit.quantite_min">min. {{ produit.quantite_min }}</span>
         </div>
 
         <!-- ACTIONS -->
@@ -213,16 +290,21 @@
           <button
             class="btn-cart"
             [class.added]="produitAjoute"
-            [disabled]="produit.stock === 0"
-            (click)="addToCart(produit)"
+            [disabled]="produit.stock === 0 || (!selectedOffre && offres.length > 1)"
+            (click)="addToCart(produit, true)"
+            type="button"
           >
-            <i class="bi" [class.bi-cart-plus-fill]="!produitAjoute" [class.bi-check-lg]="produitAjoute"></i>
-            {{ produitAjoute ? 'Ajouté au panier !' : 'Ajouter au panier' }}
+            <i class="bi" [class.bi-truck]="!produitAjoute && selectedOffre && modeReception === 'livraison'" [class.bi-shop]="!produitAjoute && selectedOffre && modeReception === 'retrait_magasin'" [class.bi-shop-window]="!produitAjoute && !selectedOffre && offres.length > 1" [class.bi-check-lg]="produitAjoute"></i>
+            {{ produitAjoute ? 'Ajouté au panier !' : (!selectedOffre && offres.length > 1 ? 'Choisir un magasin' : (modeReception === 'retrait_magasin' ? 'Retirer en magasin' : 'Commander en ligne')) }}
           </button>
 
-          <button class="btn-wishlist" (click)="toggleWishlist()" [class.wishlisted]="isWishlisted">
+          <button class="btn-wishlist" (click)="toggleWishlist()" [class.wishlisted]="isWishlisted" type="button">
             <i class="bi" [class.bi-heart-fill]="isWishlisted" [class.bi-heart]="!isWishlisted"></i>
           </button>
+        </div>
+
+        <div class="select-offer-hint" *ngIf="!selectedOffre && offres.length > 1">
+          <i class="bi bi-info-circle"></i> Veuillez sélectionner un magasin dans l'onglet "Offres" avant d'ajouter au panier.
         </div>
 
         <!-- INFOS RAPIDES -->
@@ -262,6 +344,7 @@
           <i class="bi" [class.bi-file-text]="tab==='description'"
              [class.bi-list-check]="tab==='caracteristiques'"
              [class.bi-car-front]="tab==='compatibilite'"
+             [class.bi-shop]="tab==='offres'"
              [class.bi-star-half]="tab==='avis'"></i>
           {{ tab | titlecase }}
         </button>
@@ -351,43 +434,294 @@
       <!-- COMPATIBILITÉ -->
       <div class="tab-panel" *ngIf="activeTab === 'compatibilite'" @fadeSlide>
         <h5><i class="bi bi-car-front-fill"></i> Véhicules compatibles</h5>
-        <div *ngIf="!produit.modeles_compatibles?.length && !produit.annee_debut && !produit.annee_fin">
-          <p>Les informations de compatibilité seront bientôt disponibles.</p>
-        </div>
-        <div class="compat-grid" *ngIf="produit.modeles_compatibles?.length">
-          <div class="compat-item" *ngFor="let modele of produit.modeles_compatibles">
-            <i class="bi bi-car-front"></i>
-            <span>{{ modele }}</span>
+
+        <div *ngIf="produit.compatibilites?.length">
+          <p class="tab-intro">Ce produit est compatible avec les véhicules suivants. Vérifiez la motorisation et les années avant d'acheter.</p>
+          <div class="compat-table-wrap">
+            <table class="compat-table">
+              <thead>
+                <tr>
+                  <th>Marque</th>
+                  <th>Modèle</th>
+                  <th>Version</th>
+                  <th>Motorisation</th>
+                  <th>Années</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of produit.compatibilites">
+                  <td><strong>{{ c.marque }}</strong></td>
+                  <td>{{ c.modele }}</td>
+                  <td>{{ c.version || '—' }}</td>
+                  <td>{{ c.motorisation || '—' }}</td>
+                  <td>{{ (c.annee_debut || '—') + ' - ' + (c.annee_fin || '—') }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class="compat-years" *ngIf="produit.annee_debut || produit.annee_fin">
-          <p><i class="bi bi-calendar"></i> Années de compatibilité : <strong>{{ (produit.annee_debut || '—') + ' - ' + (produit.annee_fin || '—') }}</strong></p>
+
+        <div *ngIf="!produit.compatibilites?.length">
+          <div *ngIf="!produit.modeles_compatibles?.length && !produit.annee_debut && !produit.annee_fin">
+            <p>Les informations de compatibilité seront bientôt disponibles.</p>
+          </div>
+          <div class="compat-grid" *ngIf="produit.modeles_compatibles?.length">
+            <div class="compat-item" *ngFor="let modele of produit.modeles_compatibles">
+              <i class="bi bi-car-front"></i>
+              <span>{{ modele }}</span>
+            </div>
+          </div>
+          <div class="compat-years" *ngIf="produit.annee_debut || produit.annee_fin">
+            <p><i class="bi bi-calendar"></i> Années de compatibilité : <strong>{{ (produit.annee_debut || '—') + ' - ' + (produit.annee_fin || '—') }}</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- OFFRES & MAGASINS -->
+      <div class="tab-panel" *ngIf="activeTab === 'offres'" @fadeSlide>
+        <h5><i class="bi bi-shop-window"></i> Où acheter cette pièce</h5>
+
+        <p class="tab-intro" *ngIf="offres.length > 1">Comparez les vendeurs : prix, disponibilité, délai, distance et options de retrait/livraison.</p>
+
+        <div class="offres-list">
+          <div
+            class="offre-card"
+            *ngFor="let offre of offres; let i = index"
+            [class.selected]="offre === selectedOffre"
+            [class.recommanded]="isOffreRecommandee(offre)"
+          >
+            <div class="offre-card-header">
+              <div class="offre-card-logo">
+                <img *ngIf="offre.magasin?.logo_url" [src]="offre.magasin?.logo_url" alt="logo">
+                <i *ngIf="!offre.magasin?.logo_url" class="bi bi-shop"></i>
+              </div>
+              <div class="offre-card-title">
+                <strong [routerLink]="['/magasins', offre.magasin?.id]" class="store-link">{{ offre.magasin?.nom_magasin || offre.fournisseur.nom_entreprise }}</strong>
+                <span *ngIf="offre.fournisseur.note" class="offre-note">
+                  <i class="bi bi-star-fill"></i> {{ offre.fournisseur.note | number:'1.1-1' }}
+                </span>
+                <span
+                  *ngFor="let b of (offre.badges || [offre.badge || 'principal'])"
+                  class="offre-badge"
+                  [ngClass]="badgeClass(b)"
+                >{{ badgeLabel(b) }}</span>
+              </div>
+              <div class="offre-card-price">
+                <strong>{{ offre.prix | number:'1.2-2' }} FCFA</strong>
+                <span *ngIf="offre.prix < (produit?.prix ?? offre.prix)" class="offre-economie">-</span>
+              </div>
+            </div>
+
+            <div class="offre-card-body">
+              <div class="offre-info-line" *ngIf="offre.magasin?.adresse || offre.magasin?.ville">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ offre.magasin?.adresse || offre.magasin?.ville }}{{ offre.magasin?.region ? ', ' + offre.magasin?.region : '' }}</span>
+              </div>
+              <div class="offre-info-line" *ngIf="offre.magasin?.telephone">
+                <i class="bi bi-telephone"></i>
+                <span>{{ offre.magasin?.telephone }}</span>
+              </div>
+              <div class="offre-info-line" *ngIf="offre.magasin?.horaires_ouverture || offre.magasin?.jours_ouverture">
+                <i class="bi bi-clock"></i>
+                <span [class.ok]="isMagasinOuvert(offre)" [class.out]="!isMagasinOuvert(offre)">
+                  {{ isMagasinOuvert(offre) ? 'Ouvert' : 'Fermé' }}
+                </span>
+              </div>
+              <div class="offre-info-line">
+                <i class="bi bi-box-seam"></i>
+                <span [class.ok]="offre.stock > 0" [class.out]="offre.stock === 0">
+                  {{ offre.stock > 0 ? 'En stock (' + offre.stock + ')' : 'Rupture' }}
+                </span>
+              </div>
+              <div class="offre-info-line" *ngIf="offre.livraison_disponible">
+                <i class="bi bi-truck"></i>
+                <span>Livraison {{ getDelaiLivraisonLabel(offre.delai_livraison) }}</span>
+              </div>
+              <div class="offre-info-line" *ngIf="offre.retrait_magasin">
+                <i class="bi bi-shop"></i>
+                <span>Retrait en magasin</span>
+              </div>
+              <div class="offre-info-line">
+                <i class="bi bi-signpost-2"></i>
+                <span *ngIf="offre.distance_km !== null && offre.distance_km !== undefined">à {{ offre.distance_km }} km</span>
+                <span *ngIf="offre.distance_km === null || offre.distance_km === undefined" class="muted">Distance indisponible</span>
+              </div>
+            </div>
+
+            <div class="offre-card-actions">
+              <button
+                class="btn-select-offre"
+                [class.selected]="offre === selectedOffre"
+                (click)="onSelectOffre(offre)"
+                type="button"
+              >
+                <i class="bi" [class.bi-check-circle-fill]="offre === selectedOffre" [class.bi-circle]="offre !== selectedOffre"></i>
+                {{ offre === selectedOffre ? 'Sélectionné' : 'Choisir ce vendeur' }}
+              </button>
+              <button
+                class="btn-select-offre"
+                (click)="openItineraire(offre)"
+                [disabled]="!offre.magasin?.latitude || !offre.magasin?.longitude"
+                type="button"
+              >
+                <i class="bi bi-signpost-split"></i> Itinéraire
+              </button>
+              <a
+                *ngIf="offre.magasin?.telephone"
+                class="btn-select-offre"
+                [href]="'tel:' + offre.magasin?.telephone"
+              >
+                <i class="bi bi-telephone"></i> Appeler
+              </a>
+            </div>
+
+            <!-- Localisation du magasin -->
+            <div class="offre-localisation" *ngIf="offre.magasin?.latitude && offre.magasin?.longitude">
+              <h6><i class="bi bi-map"></i> Localisation</h6>
+              <div class="map-embed">
+                <iframe
+                  *ngIf="getMapUrl(offre)"
+                  [src]="getMapUrl(offre)"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  title="Carte du magasin">
+                </iframe>
+                <div *ngIf="!getMapUrl(offre)" class="map-placeholder">
+                  <i class="bi bi-map"></i> Carte indisponible
+                </div>
+              </div>
+            </div>
+
+            <!-- Horaires d'ouverture -->
+            <div class="offre-horaires" *ngIf="offre.magasin?.horaires_ouverture || offre.magasin?.jours_ouverture">
+              <h6><i class="bi bi-clock"></i> Horaires</h6>
+              <div class="horaires-list" *ngIf="offre.magasin?.horaires_ouverture as horaires">
+                <div class="horaire-row" *ngFor="let jour of getHorairesJours(offre.magasin?.jours_ouverture)">
+                  <span>{{ jour }}</span>
+                  <span>{{ horaires[jour] || 'Fermé' }}</span>
+                </div>
+              </div>
+              <p *ngIf="!offre.magasin?.horaires_ouverture && offre.magasin?.jours_ouverture" class="horaires-jours">
+                <i class="bi bi-calendar-check"></i> {{ offre.magasin?.jours_ouverture }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- AVIS -->
-      <div class="tab-panel" *ngIf="activeTab === 'avis'" @fadeSlide>
+      <div class="tab-panel avis-panel" *ngIf="activeTab === 'avis'" @fadeSlide>
         <h5><i class="bi bi-star-half"></i> Avis clients</h5>
-        <div class="avis-summary">
-          <div class="avis-rating" *ngIf="getNombreAvis() > 0">
-            <div class="big-stars">
-              <i *ngFor="let s of getEtoiles()"
-                 [class]="isPleine(s, getNoteMoyenne()) ? 'bi bi-star-fill'
-                         : isDemi(s, getNoteMoyenne()) ? 'bi bi-star-half'
-                         : 'bi bi-star'"></i>
+        <button class="btn-write-review" (click)="openReviewForm()">
+          <i class="bi bi-pencil-fill"></i> Écrire un avis
+        </button>
+
+        <div class="avis-layout" *ngIf="getNombreAvis() > 0">
+          <!-- Résumé + distribution -->
+          <div class="avis-summary-col">
+            <div class="avis-rating">
+              <div class="big-rating">
+                <strong>{{ getNoteMoyenne() | number:'1.1-1' }}</strong>
+                <span>sur 5</span>
+              </div>
+              <div class="big-stars">
+                <i *ngFor="let s of getEtoiles()"
+                   [class]="isPleine(s, getNoteMoyenne()) ? 'bi bi-star-fill'
+                           : isDemi(s, getNoteMoyenne()) ? 'bi bi-star-half'
+                           : 'bi bi-star'"></i>
+              </div>
+              <div class="avis-count">Basé sur {{ getNombreAvis() }} avis</div>
             </div>
-            <div class="big-rating">
-              <strong>{{ getNoteMoyenne() | number:'1.1-1' }}</strong>
-              <span>sur 5 — {{ getNombreAvis() }} avis</span>
+
+            <div class="avis-distribution">
+              <div class="dist-row" *ngFor="let note of [5,4,3,2,1]">
+                <span class="dist-note">{{ note }} <i class="bi bi-star-fill"></i></span>
+                <div class="dist-bar-wrap">
+                  <div class="dist-bar" [style.width.%]="getDistribution()[note].pct || 0"></div>
+                </div>
+                <span class="dist-count">{{ getDistribution()[note].count || 0 }}</span>
+              </div>
             </div>
           </div>
-          <div class="avis-empty-note" *ngIf="getNombreAvis() === 0">
-            <i class="bi bi-chat-left-text"></i>
-            <p>Soyez le premier à partager votre expérience sur ce produit !</p>
-            <button class="btn-write-review">
-              <i class="bi bi-pencil-fill"></i>
-              Écrire un avis
-            </button>
+
+          <!-- Liste des avis -->
+          <div class="avis-list-col">
+            <div class="avis-list" *ngIf="getAvisList().length">
+              <div class="avis-card" *ngFor="let avis of getAvisList()">
+                <div class="avis-header">
+                  <div class="avis-author">
+                    <i class="bi bi-person-circle"></i>
+                    <img *ngIf="avis.client_photo" [src]="avis.client_photo" alt="" class="avis-client-photo">
+                    <strong>{{ avis.client_prenom }} {{ avis.client_nom }}</strong>
+                    <span *ngIf="avis.achat_verifie" class="avis-verified"><i class="bi bi-patch-check-fill"></i> Achat vérifié</span>
+                  </div>
+                  <span class="avis-date">{{ formatDate(avis.date) }}</span>
+                </div>
+                <div class="avis-stars">
+                  <i *ngFor="let s of getEtoiles()" [class]="isPleine(s, avis.note) ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                </div>
+                <p class="avis-comment">{{ avis.commentaire }}</p>
+                <div class="avis-photos" *ngIf="avis.photos?.length">
+                  <img *ngFor="let photo of avis.photos" [src]="photo" alt="Photo avis">
+                </div>
+                <div class="avis-reponse" *ngIf="avis.reponse_fournisseur">
+                  <div class="avis-reponse-header">
+                    <i class="bi bi-reply-fill"></i>
+                    <strong>Réponse du vendeur</strong>
+                    <span *ngIf="avis.reponse_fournisseur_nom">— {{ avis.reponse_fournisseur_nom }}</span>
+                    <span *ngIf="avis.date_reponse" class="avis-reponse-date">{{ formatDate(avis.date_reponse) }}</span>
+                  </div>
+                  <p>{{ avis.reponse_fournisseur }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="avis-empty" *ngIf="!getAvisList().length">
+              <p>Aucun avis détaillé pour le moment.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="avis-empty-note" *ngIf="getNombreAvis() === 0">
+          <i class="bi bi-chat-left-text"></i>
+          <p>Soyez le premier à partager votre expérience sur ce produit !</p>
+          <button class="btn-write-review" (click)="openReviewForm()">
+            <i class="bi bi-pencil-fill"></i>
+            Écrire un avis
+          </button>
+        </div>
+
+        <!-- MODAL AVIS -->
+        <div class="review-modal-backdrop" *ngIf="showReviewForm" (click)="closeReviewForm()">
+          <div class="review-modal" (click)="$event.stopPropagation()">
+            <h5>Laisser un avis</h5>
+            <button class="review-modal-close" (click)="closeReviewForm()">&times;</button>
+
+            <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" *ngIf="!reviewSuccess">
+              <label class="review-label">Votre note</label>
+              <div class="review-stars-input">
+                <i *ngFor="let s of getEtoiles()"
+                   [class]="isPleine(s, reviewForm.get('note')?.value) ? 'bi bi-star-fill' : 'bi bi-star'"
+                   (click)="reviewForm.get('note')?.setValue(s)"></i>
+              </div>
+
+              <label class="review-label" for="commentaire">Votre commentaire</label>
+              <textarea id="commentaire" formControlName="commentaire" rows="4" placeholder="Décrivez votre expérience..."></textarea>
+              <div class="review-hint" *ngIf="reviewForm.get('commentaire')?.invalid && reviewForm.get('commentaire')?.touched">
+                Le commentaire doit faire entre 5 et 2000 caractères.
+              </div>
+
+              <div *ngIf="reviewError" class="review-error">{{ reviewError }}</div>
+
+              <button type="submit" class="btn-submit-review" [disabled]="reviewForm.invalid || reviewLoading">
+                <span *ngIf="!reviewLoading">Envoyer l'avis</span>
+                <span *ngIf="reviewLoading">Envoi...</span>
+              </button>
+            </form>
+
+            <div class="review-success" *ngIf="reviewSuccess">
+              <i class="bi bi-check-circle-fill"></i>
+              <p>Votre avis a bien été enregistré.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -414,13 +748,13 @@
         >
           <!-- IMAGE -->
           <div class="sim-img">
-            <img *ngIf="p.image_url" [src]="p.image_url" [alt]="p.nom">
-            <img *ngIf="!p.image_url && p.image" [src]="p.image" [alt]="p.nom">
+            <img *ngIf="p.image_url" [src]="p.image_url" [alt]="p.nom" (error)="onImageError($event)">
+            <img *ngIf="!p.image_url && p.image" [src]="p.image" [alt]="p.nom" (error)="onImageError($event)">
             <div class="sim-placeholder" *ngIf="!p.image_url && !p.image">
               <i class="bi bi-gear-wide-connected"></i>
             </div>
             <div class="sim-overlay">
-              <button class="sim-quick-add" (click)="addToCart(p); $event.stopPropagation()" [disabled]="p.stock === 0">
+              <button class="sim-quick-add" (click)="addToCart(p, false); $event.stopPropagation()" [disabled]="p.stock === 0">
                 <i class="bi bi-cart-plus-fill"></i>
               </button>
             </div>
@@ -453,6 +787,26 @@
     </div>
 
   </div>
+</div>
+
+<!-- ============ STICKY MOBILE ACTIONS ============ -->
+<div class="mobile-sticky-bar" *ngIf="produit">
+  <div class="mobile-sticky-info">
+    <span class="mobile-sticky-price">{{ getPrixDisplay(selectedOffre || undefined) | number:'1.2-2' }} FCFA</span>
+    <span class="mobile-sticky-store" *ngIf="selectedOffre?.magasin?.nom_magasin || selectedOffre?.fournisseur?.nom_entreprise">
+      {{ selectedOffre?.magasin?.nom_magasin || selectedOffre?.fournisseur?.nom_entreprise }}
+    </span>
+  </div>
+  <button
+    class="btn-cart btn-mobile-cart"
+    [class.added]="produitAjoute"
+    [disabled]="produit.stock === 0"
+    (click)="addToCart(produit, true)"
+    type="button"
+  >
+    <i class="bi" [class.bi-truck]="!produitAjoute && modeReception === 'livraison'" [class.bi-shop]="!produitAjoute && modeReception === 'retrait_magasin'" [class.bi-check-lg]="produitAjoute"></i>
+    {{ produitAjoute ? 'Ajouté' : (modeReception === 'retrait_magasin' ? 'Retirer' : 'Commander') }}
+  </button>
 </div>
 
 <!-- ============ LIGHTBOX ============ -->

@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { FournisseurService, FournisseurStats, Vente } from '../../services/fournisseur.service';
-import { CommandeService, Commande } from '../../services/commande.service';
+import { FournisseurService, FournisseurStats, FournisseurProfile, Vente } from '../../services/fournisseur.service';
+import { CommandeService, Commande, StatutCommande } from '../../services/commande.service';
+import { ProduitService, Produit } from '../../services/produit.service';
 
 interface Stats {
   totalProduits: number;
@@ -19,7 +20,8 @@ interface CommandeItem {
   numero: string;
   client: string;
   produit: string;
-  statut: 'Confirmée' | 'Expédiée' | 'Livrée' | 'En attente' | 'Annulée';
+  statut: string;
+  rawStatut: StatutCommande;
   prix: number;
 }
 
@@ -107,11 +109,16 @@ export class DashboardFournisseurComponent implements OnInit {
 
   // ---- Satisfaction ----
   totalAvis = 0;
+  noteMoyenne: number | null = null;
   satisfaction: SatisfactionRow[] = [];
+
+  // ---- Alertes stock ----
+  produitsAlertes: Produit[] = [];
 
   constructor(
     private fournisseurService: FournisseurService,
-    private commandeService: CommandeService
+    private commandeService: CommandeService,
+    private produitService: ProduitService
   ) {}
 
   ngOnInit(): void {
@@ -153,6 +160,7 @@ export class DashboardFournisseurComponent implements OnInit {
           client: c.client ? `${c.client.prenom} ${c.client.nom}` : 'Client',
           produit: c.lignes?.[0]?.produit_nom || 'Produit',
           statut: this.mapStatut(c.statut),
+          rawStatut: c.statut,
           prix: c.montant_total
         }));
       },
@@ -165,20 +173,46 @@ export class DashboardFournisseurComponent implements OnInit {
         // Grouper par mois pour le graphique
         const ventesParMois = this.groupVentesByMonth(ventes);
         this.ventesParMois = ventesParMois;
-        
+
         // Top produits
         this.calculerTopProduits(ventes);
+
+        // Ventes hebdomadaires et jour de pic
+        this.calculerVentesHebdo(ventes);
       },
       error: (err) => console.error('Erreur chargement ventes:', err)
     });
+
+    // Profil (note moyenne)
+    this.fournisseurService.getProfile().subscribe({
+      next: (p: FournisseurProfile) => {
+        this.noteMoyenne = p.note_moyenne ?? null;
+        this.totalAvis = p.nombre_avis ?? 0;
+      },
+      error: (err) => console.error('Erreur chargement profil:', err)
+    });
+
+    // Alertes stock
+    this.produitService.getProduits().subscribe({
+      next: (produits) => {
+        this.calculerAlertes(produits);
+      },
+      error: (err) => console.error('Erreur chargement produits:', err)
+    });
   }
 
-  private mapStatut(statut: string): CommandeItem['statut'] {
-    const map: Record<string, CommandeItem['statut']> = {
-      'en_attente': 'En attente',
-      'validee': 'Confirmée',
-      'expediee': 'Expédiée',
+  private mapStatut(statut: string): string {
+    const map: Record<string, string> = {
+      'nouvelle_commande': 'Nouvelle',
+      'en_attente_confirmation': 'En attente',
+      'en_attente_paiement': 'Paiement',
+      'acceptee': 'Confirmée',
+      'en_preparation': 'Préparation',
+      'prete_a_retirer': 'Prête',
+      'en_cours_livraison': 'Expédiée',
       'livree': 'Livrée',
+      'terminee': 'Terminée',
+      'refusee': 'Refusée',
       'annulee': 'Annulée'
     };
     return map[statut] || 'En attente';
@@ -221,18 +255,59 @@ export class DashboardFournisseurComponent implements OnInit {
       .slice(0, 5);
   }
 
+  private calculerVentesHebdo(ventes: Vente[]): void {
+    const jours = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const totaux: number[] = [0, 0, 0, 0, 0, 0, 0];
+
+    ventes.forEach(v => {
+      const d = new Date(v.date);
+      totaux[d.getDay()] += v.total;
+    });
+
+    const max = Math.max(...totaux) || 1;
+    const peakIndex = totaux.indexOf(Math.max(...totaux));
+    this.jourPic = jours[peakIndex];
+
+    const order = [1, 2, 3, 4, 5, 6, 0]; // Lun -> Dim
+    this.ventesHebdo = order.map(i => ({
+      jour: jours[i],
+      montant: totaux[i],
+      pct: Math.round((totaux[i] / max) * 100),
+      actif: i === peakIndex
+    }));
+  }
+
+  private calculerAlertes(produits: Produit[]): void {
+    const seuil = (p: Produit) => p.seuil_alerte ?? 5;
+    this.produitsAlertes = produits
+      .filter(p => (p.stock || 0) === 0 || (p.stock || 0) <= seuil(p))
+      .sort((a, b) => (a.stock || 0) - (b.stock || 0))
+      .slice(0, 6);
+
+    this.alertesStock = this.produitsAlertes.map(p => ({
+      nom: p.nom,
+      restants: p.stock || 0
+    }));
+  }
+
   // ---- Helpers ----
   formatCFA(montant: number): string {
     return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
   }
 
-  getStatutClass(statut: string): string {
+  getStatutClass(statut: StatutCommande | string): string {
     const map: Record<string, string> = {
-      'Confirmée': 'statut-confirmee',
-      'Expédiée':  'statut-expediee',
-      'Livrée':    'statut-livree',
-      'En attente':'statut-attente',
-      'Annulée':   'statut-annulee',
+      'nouvelle_commande': 'statut-attente',
+      'en_attente_confirmation': 'statut-attente',
+      'en_attente_paiement': 'statut-attente',
+      'acceptee': 'statut-confirmee',
+      'en_preparation': 'statut-expediee',
+      'prete_a_retirer': 'statut-expediee',
+      'en_cours_livraison': 'statut-expediee',
+      'livree': 'statut-livree',
+      'terminee': 'statut-livree',
+      'refusee': 'statut-annulee',
+      'annulee': 'statut-annulee'
     };
     return map[statut] || '';
   }

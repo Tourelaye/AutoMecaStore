@@ -1,0 +1,223 @@
+<div class="page-wrapper">
+
+  <!-- En-tête -->
+  <div class="edit-banner">
+    <h1 class="edit-title"><i class="bi bi-shop"></i> Mon magasin</h1>
+    <p class="edit-sub">Configurez les informations publiques de votre boutique : identité visuelle, contacts, localisation, horaires et modes de retrait.</p>
+  </div>
+
+  <form [formGroup]="magasinForm" (ngSubmit)="onSubmit()" class="edit-card">
+
+    <!-- Tabs -->
+    <div class="edit-tabs">
+      <button type="button" class="edit-tab" [class.active]="activeTab === 'identite'" (click)="activeTab = 'identite'">
+        <i class="bi bi-card-image"></i> Identité &amp; visuels
+      </button>
+      <button type="button" class="edit-tab" [class.active]="activeTab === 'contact'" (click)="activeTab = 'contact'">
+        <i class="bi bi-geo-alt"></i> Contact &amp; adresse
+      </button>
+      <button type="button" class="edit-tab" [class.active]="activeTab === 'horaires'" (click)="activeTab = 'horaires'">
+        <i class="bi bi-clock-history"></i> Horaires &amp; livraison
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-wrap" *ngIf="isLoading">
+      <div class="mini-spinner"></div>
+      <span>Chargement de votre magasin...</span>
+    </div>
+
+    <div class="edit-body" *ngIf="!isLoading">
+
+      <!-- ========== TAB 1 : IDENTITÉ & VISUELS ========== -->
+      <div class="tab-panel" *ngIf="activeTab === 'identite'">
+
+        <div class="field-group">
+          <label class="field-label">Nom du magasin <span class="required">*</span></label>
+          <input type="text" class="field-input" formControlName="nom_magasin"
+                 placeholder="ex: AutoMeca Dakar Distribution">
+          <div class="field-error" *ngIf="hasError('nom_magasin')">{{ errorMessage('nom_magasin') }}</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Logo du magasin</label>
+            <div class="upload-zone logo-zone" [class.has-image]="logoPreview" (click)="logoInput.click()">
+              <img *ngIf="logoPreview" [src]="logoPreview" alt="Logo" (error)="onImgError($event)">
+              <div class="upload-placeholder" *ngIf="!logoPreview">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                <span>Cliquez pour ajouter un logo</span>
+                <small>PNG, JPG jusqu'à 5 Mo</small>
+              </div>
+              <button type="button" class="btn-remove-img" *ngIf="logoPreview"
+                      (click)="$event.stopPropagation(); retirerLogo($event)">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <input #logoInput id="logoInput" type="file" accept="image/*" hidden (change)="onLogoSelectionne($event)">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Photo de couverture</label>
+            <div class="upload-zone cover-zone" [class.has-image]="coverPreview" (click)="coverInput.click()">
+              <img *ngIf="coverPreview" [src]="coverPreview" alt="Couverture" (error)="onImgError($event)">
+              <div class="upload-placeholder" *ngIf="!coverPreview">
+                <i class="bi bi-image-fill"></i>
+                <span>Cliquez pour ajouter une photo de couverture</span>
+                <small>PNG, JPG jusqu'à 5 Mo</small>
+              </div>
+              <button type="button" class="btn-remove-img" *ngIf="coverPreview"
+                      (click)="$event.stopPropagation(); retirerCover($event)">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            <input #coverInput id="coverInput" type="file" accept="image/*" hidden (change)="onCoverSelectionne($event)">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Description <span class="required">*</span></label>
+          <textarea class="field-input field-textarea" formControlName="description" rows="5"
+                    placeholder="Présentez votre magasin, vos spécialités, votre historique et votre zone de couverture..."></textarea>
+          <div class="field-error" *ngIf="hasError('description')">{{ errorMessage('description') }}</div>
+        </div>
+
+      </div>
+
+      <!-- ========== TAB 2 : CONTACT & ADRESSE ========== -->
+      <div class="tab-panel" *ngIf="activeTab === 'contact'">
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Téléphone <span class="required">*</span></label>
+            <input type="tel" class="field-input" formControlName="telephone"
+                   placeholder="ex: +221 77 845 20 30">
+            <div class="field-error" *ngIf="hasError('telephone')">{{ errorMessage('telephone') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">WhatsApp</label>
+            <input type="tel" class="field-input" formControlName="whatsapp"
+                   placeholder="ex: +221 77 845 20 30">
+            <div class="field-error" *ngIf="hasError('whatsapp')">{{ errorMessage('whatsapp') }}</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Email <span class="required">*</span></label>
+          <input type="email" class="field-input" formControlName="email"
+                 placeholder="ex: contact@monmagasin.sn">
+          <div class="field-error" *ngIf="hasError('email')">{{ errorMessage('email') }}</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Adresse complète <span class="required">*</span></label>
+          <textarea class="field-input field-textarea" formControlName="adresse_complete" rows="3"
+                    placeholder="ex: Zone Industrielle SODIDA, Rue 14 x 22, Dakar"></textarea>
+          <div class="field-error" *ngIf="hasError('adresse_complete')">{{ errorMessage('adresse_complete') }}</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Ville <span class="required">*</span></label>
+            <input type="text" class="field-input" formControlName="ville" placeholder="ex: Dakar">
+            <div class="field-error" *ngIf="hasError('ville')">{{ errorMessage('ville') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Région <span class="required">*</span></label>
+            <input type="text" class="field-input" formControlName="region" placeholder="ex: Dakar">
+            <div class="field-error" *ngIf="hasError('region')">{{ errorMessage('region') }}</div>
+          </div>
+        </div>
+
+        <label class="field-label section-label"><i class="bi bi-geo"></i> Coordonnées GPS</label>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label sub-label">Latitude</label>
+            <input type="number" step="any" class="field-input" formControlName="latitude" placeholder="ex: 14.7167">
+            <div class="field-error" *ngIf="hasError('latitude')">{{ errorMessage('latitude') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label sub-label">Longitude</label>
+            <input type="number" step="any" class="field-input" formControlName="longitude" placeholder="ex: -17.4677">
+            <div class="field-error" *ngIf="hasError('longitude')">{{ errorMessage('longitude') }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========== TAB 3 : HORAIRES & LIVRAISON ========== -->
+      <div class="tab-panel" *ngIf="activeTab === 'horaires'">
+
+        <label class="field-label section-label"><i class="bi bi-clock-fill"></i> Horaires d'ouverture</label>
+        <div class="horaires-list" formArrayName="horaires">
+          <div class="horaire-row" *ngFor="let jour of joursSemaine; let i = index" [formGroupName]="i">
+            <div class="horaire-jour">
+              <div class="toggle-switch sm" [class.toggle-on]="horaires.at(i).get('ouvert')?.value"
+                   (click)="horaires.at(i).get('ouvert')?.setValue(!horaires.at(i).get('ouvert')?.value)">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span [class.closed]="!horaires.at(i).get('ouvert')?.value">{{ jour.label }}</span>
+            </div>
+            <div class="horaire-heures" *ngIf="horaires.at(i).get('ouvert')?.value">
+              <input type="time" class="field-input field-input-sm" formControlName="debut">
+              <span class="horaire-sep">à</span>
+              <input type="time" class="field-input field-input-sm" formControlName="fin">
+            </div>
+            <span class="horaire-fermee" *ngIf="!horaires.at(i).get('ouvert')?.value">Fermé</span>
+            <div class="field-error" *ngIf="horaireError(i)">{{ horaireError(i) }}</div>
+          </div>
+        </div>
+
+        <label class="field-label section-label"><i class="bi bi-truck"></i> Modes de disponibilité</label>
+        <div class="field-row toggle-row">
+          <div class="toggle-card" (click)="magasinForm.get('livraison_disponible')?.setValue(!magasinForm.get('livraison_disponible')?.value)">
+            <div class="toggle-switch" [class.toggle-on]="magasinForm.get('livraison_disponible')?.value">
+              <div class="toggle-thumb"></div>
+            </div>
+            <div class="toggle-info">
+              <span class="toggle-title">Livraison disponible</span>
+              <span class="toggle-desc">Je propose la livraison à mes clients</span>
+            </div>
+          </div>
+
+          <div class="toggle-card" (click)="magasinForm.get('retrait_magasin')?.setValue(!magasinForm.get('retrait_magasin')?.value)">
+            <div class="toggle-switch" [class.toggle-on]="magasinForm.get('retrait_magasin')?.value">
+              <div class="toggle-thumb"></div>
+            </div>
+            <div class="toggle-info">
+              <span class="toggle-title">Retrait en magasin</span>
+              <span class="toggle-desc">Les clients peuvent retirer leurs commandes</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row" *ngIf="magasinForm.get('livraison_disponible')?.value">
+          <div class="field-group">
+            <label class="field-label">Rayon de livraison (km) <span class="required">*</span></label>
+            <input type="number" min="1" class="field-input" formControlName="rayon_livraison_km" placeholder="ex: 25">
+            <div class="field-error" *ngIf="hasError('rayon_livraison_km')">{{ errorMessage('rayon_livraison_km') }}</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="edit-footer">
+      <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving">Annuler</button>
+      <button type="submit" class="btn-save" [disabled]="isSaving">
+        <span *ngIf="!isSaving"><i class="bi bi-check-lg"></i> Enregistrer les modifications</span>
+        <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Enregistrement...</span>
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+  {{ toastMsg }}
+</div>

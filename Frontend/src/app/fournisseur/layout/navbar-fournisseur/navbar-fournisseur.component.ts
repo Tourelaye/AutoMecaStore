@@ -5,23 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Subject, interval, takeUntil } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { FournisseurService, FournisseurProfile } from '../../services/fournisseur.service';
-import { FournisseurNotificationsService, FournisseurNotification } from '../../services/fournisseur-notifications.service';
-
-interface NavbarNotification {
-  id: number;
-  titre: string;
-  message: string;
-  time: string;
-  icon: string;
-  type: 'commande' | 'stock' | 'promotion' | 'avis' | 'systeme' | string;
-  lu: boolean;
-  lien: string;
-}
+import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-navbar-fournisseur',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NotificationBellComponent],
   templateUrl: './navbar-fournisseur.component.html',
   styleUrls: ['./navbar-fournisseur.component.css']
 })
@@ -29,7 +18,6 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
   @Output() toggleSidebar = new EventEmitter<void>();
 
   isDropdownOpen = false;
-  showNotifications = false;
   isRefreshing = false;
   searchQuery = '';
 
@@ -41,29 +29,16 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
     id: ''
   };
 
-  notifications: NavbarNotification[] = [];
-
-  get notificationCount(): number {
-    return this.notifications.filter(n => !n.lu).length;
-  }
-
   private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
     private authService: AuthService,
-    private fournisseurService: FournisseurService,
-    private notificationsService: FournisseurNotificationsService
+    private fournisseurService: FournisseurService
   ) {}
 
   ngOnInit(): void {
     this.loadProfile();
-    this.loadNotifications();
-
-    // Rafraîchissement périodique toutes les 60s
-    interval(60000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.loadNotifications());
   }
 
   ngOnDestroy(): void {
@@ -87,47 +62,6 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadNotifications(): void {
-    this.notificationsService.getNotifications().subscribe({
-      next: (data: FournisseurNotification[]) => {
-        this.notifications = data.slice(0, 8).map(n => ({
-          id: n.id,
-          titre: n.titre || n.type,
-          message: n.message,
-          time: this.timeAgo(n.created_at),
-          icon: this.getNotificationIcon(n.type),
-          type: n.type,
-          lu: n.lu,
-          lien: n.lien || '/fournisseur/notifications'
-        }));
-      },
-      error: (err: any) => console.error('Erreur chargement notifications:', err)
-    });
-  }
-
-  private timeAgo(isoDate: string): string {
-    if (!isoDate) return 'À l\'instant';
-    const date = new Date(isoDate);
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-    if (diff < 60) return 'À l\'instant';
-    const mins = Math.floor(diff / 60);
-    if (mins < 60) return `Il y a ${mins} min`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `Il y a ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `Il y a ${days} j`;
-  }
-
-  getNotificationIcon(type: string): string {
-    switch (type) {
-      case 'commande': return 'bi-bag-check';
-      case 'stock': return 'bi-box-seam';
-      case 'promotion': return 'bi-tag';
-      case 'avis': return 'bi-star';
-      default: return 'bi-bell';
-    }
-  }
 
   onToggleSidebar(): void {
     this.toggleSidebar.emit();
@@ -135,44 +69,10 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
 
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
-    if (this.isDropdownOpen) this.showNotifications = false;
   }
 
   closeDropdown(): void {
     this.isDropdownOpen = false;
-  }
-
-  toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications;
-    if (this.showNotifications) {
-      this.isDropdownOpen = false;
-      this.loadNotifications();
-    }
-  }
-
-  onNotificationClick(n: NavbarNotification): void {
-    this.showNotifications = false;
-
-    if (!n.lu) {
-      n.lu = true;
-      this.notificationsService.markNotificationRead(n.id).subscribe({
-        error: () => n.lu = false
-      });
-    }
-
-    if (n.lien && n.lien.startsWith('/')) {
-      this.router.navigateByUrl(n.lien);
-    } else {
-      this.router.navigate(['/fournisseur/notifications']);
-    }
-  }
-
-  markAllRead(event: Event): void {
-    event.stopPropagation();
-    this.notificationsService.markAllNotificationsRead().subscribe({
-      next: () => this.notifications.forEach(n => n.lu = true),
-      error: (err: any) => console.error('Erreur marquer tout comme lu:', err)
-    });
   }
 
   onSearch(): void {
@@ -185,7 +85,6 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
 
   refresh(): void {
     this.isRefreshing = true;
-    this.loadNotifications();
     setTimeout(() => {
       this.isRefreshing = false;
     }, 600);
@@ -212,8 +111,6 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
     if (!target.closest('.user-menu-wrapper')) {
       this.isDropdownOpen = false;
     }
-    if (!target.closest('.icon-wrapper')) {
-      this.showNotifications = false;
-    }
+    // Dropdowns du composant notification-bell gérés en interne
   }
 }

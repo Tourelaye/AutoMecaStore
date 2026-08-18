@@ -28,53 +28,7 @@
     <div class="h-sep"></div>
 
     <!-- NOTIFICATIONS -->
-    <div class="notif-wrapper">
-      <button class="icon-btn" (click)="toggleNotifications()" [class.active]="showNotifications">
-        <i class="bi bi-bell"></i>
-        <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
-      </button>
-
-      <div class="notif-dropdown" *ngIf="showNotifications">
-
-        <div class="notif-header">
-          <div class="notif-title">
-            <i class="bi bi-bell-fill"></i>
-            Notifications
-            <span class="unread-pill" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
-          </div>
-          <button class="mark-read-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">
-            <i class="bi bi-check2-all"></i> Tout lire
-          </button>
-        </div>
-
-        <div class="notif-list">
-          <div
-            class="notif-item"
-            *ngFor="let n of notifications"
-            [class.unread]="!n.read"
-            [class.clickable]="n.type === 'produit'"
-            (click)="onNotificationClick(n)"
-          >
-            <div class="notif-icon-wrap" [style.background]="getNotifColor(n.type) + '20'">
-              <i class="bi {{ getNotifIcon(n.type) }}" [style.color]="getNotifColor(n.type)"></i>
-            </div>
-            <div class="notif-content">
-              <p>{{ n.message }}</p>
-              <small><i class="bi bi-clock"></i> {{ n.time }}</small>
-            </div>
-            <div class="notif-dot" *ngIf="!n.read"></div>
-          </div>
-        </div>
-
-        <div class="notif-footer">
-          <a class="notif-footer-link" routerLink="/admin/notifications" (click)="showNotifications = false">
-            <i class="bi bi-arrow-right-circle-fill"></i>
-            Voir toutes les notifications
-          </a>
-        </div>
-
-      </div>
-    </div>
+    <app-notification-bell></app-notification-bell>
 
     <!-- USER MENU -->
     <div class="user-menu-wrapper">

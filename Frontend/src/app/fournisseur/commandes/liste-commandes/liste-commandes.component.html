@@ -5,8 +5,8 @@
     <div class="page-header-left">
       <div class="page-icon">🛒</div>
       <div>
-        <h1 class="page-title">Mes Commandes</h1>
-        <p class="page-sub">Suivez les achats clients et mettez à jour le cycle d'expédition de vos colis.</p>
+        <h1 class="page-title">Gestion des commandes</h1>
+        <p class="page-sub">Suivez, gérez et faites évoluer les commandes de vos clients.</p>
       </div>
     </div>
     <div class="total-badge">
@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  <!-- ========== STATS RAPIDES ========== -->
+  <!-- ========== DASHBOARD ========== -->
   <div class="stats-row">
     <div class="stat-card" *ngFor="let s of statsCards" [style.borderLeftColor]="s.color">
       <div class="stat-icon" [style.background]="s.bg" [style.color]="s.color">
@@ -24,26 +24,21 @@
         <span class="stat-num">{{ s.count }}</span>
         <span class="stat-lbl">{{ s.label }}</span>
       </div>
-      <div class="stat-trend" [class.trend-up]="s.trend > 0" [class.trend-down]="s.trend < 0" *ngIf="s.trend !== 0">
-        <i class="bi" [class.bi-arrow-up-short]="s.trend > 0" [class.bi-arrow-down-short]="s.trend < 0"></i>
-        {{ Math.abs(s.trend) }}%
-      </div>
     </div>
   </div>
 
-  <!-- ========== FILTRES ========== -->
-  <div class="filters-bar">
+  <!-- ========== FILTRES RÉACTIFS ========== -->
+  <form class="filters-bar" [formGroup]="filtersForm">
     <!-- Recherche -->
     <div class="search-wrap">
       <i class="bi bi-search s-ico"></i>
       <input
         type="text"
         class="search-inp"
-        placeholder="Rechercher #CMD, client, pièce..."
-        [(ngModel)]="searchTerm"
-        (ngModelChange)="applyFilters()"
+        placeholder="N° commande, client, téléphone, produit..."
+        formControlName="search"
       >
-      <button class="s-clear" *ngIf="searchTerm" (click)="searchTerm=''; applyFilters()">
+      <button class="s-clear" *ngIf="filtersForm.value.search" (click)="filtersForm.get('search')?.setValue('')">
         <i class="bi bi-x"></i>
       </button>
     </div>
@@ -53,26 +48,20 @@
       <button
         *ngFor="let tab of statutTabs"
         class="stab"
-        [class.stab-active]="selectedStatut === tab.value"
-        [ngClass]="tab.activeCls"
-        (click)="selectStatut(tab.value)"
+        [class.stab-active]="filtersForm.value.statut === tab.key"
+        (click)="selectStatutGroup(tab.key)"
       >
         {{ tab.label }}
-        <span class="stab-count" *ngIf="tab.value !== ''">{{ getCount(tab.value) }}</span>
+        <span class="stab-count">{{ getCount(tab.key) }}</span>
       </button>
     </div>
 
     <!-- Filtre date -->
     <div class="date-filter">
       <i class="bi bi-calendar3 df-ico"></i>
-      <select class="df-select" [(ngModel)]="selectedPeriode" (ngModelChange)="applyFilters()">
-        <option value="">Toute période</option>
-        <option value="7">7 derniers jours</option>
-        <option value="30">30 derniers jours</option>
-        <option value="90">90 derniers jours</option>
-      </select>
+      <input type="date" class="df-select" formControlName="date">
     </div>
-  </div>
+  </form>
 
   <!-- ========== TABLEAU ========== -->
   <div class="table-card">
@@ -96,42 +85,40 @@
         <thead>
           <tr>
             <th (click)="sortBy('numero')">
-              NUMÉRO COMMANDE
-              <i class="bi" [ngClass]="getSortIcon('numero')"></i>
+              NUMÉRO <i class="bi" [ngClass]="getSortIcon('numero')"></i>
             </th>
-            <th>CLIENT</th>
+            <th (click)="sortBy('client')">
+              CLIENT <i class="bi" [ngClass]="getSortIcon('client')"></i>
+            </th>
             <th>PRODUIT</th>
             <th (click)="sortBy('quantite')">
               QTÉ <i class="bi" [ngClass]="getSortIcon('quantite')"></i>
             </th>
             <th (click)="sortBy('total')">
-              PRIX TOTAL <i class="bi" [ngClass]="getSortIcon('total')"></i>
+              TOTAL <i class="bi" [ngClass]="getSortIcon('total')"></i>
             </th>
-            <th (click)="sortBy('date')">
-              DATE <i class="bi" [ngClass]="getSortIcon('date')"></i>
+            <th (click)="sortBy('rawDate')">
+              DATE <i class="bi" [ngClass]="getSortIcon('rawDate')"></i>
             </th>
-            <th>STATUT ACTUEL</th>
-            <th>MODIFIER LE STATUT</th>
+            <th>STATUT</th>
+            <th>ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           <tr
             *ngFor="let cmd of paginatedCommandes; let i = index"
             class="cmd-row"
-            [class.row-annulee]="cmd.statut === 'annulee'"
-            [class.row-livree]="cmd.statut === 'livree'"
+            [class.row-inactive]="isRowInactive(cmd.statut)"
             [style.animationDelay.ms]="i * 55"
             (click)="openDetail(cmd)"
           >
-            <!-- Numéro -->
             <td class="td-num">
               <span class="cmd-num">{{ cmd.numero }}</span>
             </td>
 
-            <!-- Client -->
             <td class="td-client" (click)="$event.stopPropagation()">
               <div class="client-info">
-                <div class="client-avatar">{{ cmd.client.charAt(0) }}</div>
+                <div class="client-avatar">{{ cmd.clientNom.charAt(0) || 'C' }}</div>
                 <div>
                   <div class="client-nom">{{ cmd.client }}</div>
                   <div class="client-adresse">{{ cmd.adresse }}</div>
@@ -139,7 +126,6 @@
               </div>
             </td>
 
-            <!-- Produit -->
             <td class="td-produit" (click)="$event.stopPropagation()">
               <div class="produit-cell">
                 <div class="prod-img-wrap">
@@ -147,66 +133,69 @@
                   <div *ngIf="!cmd.produitImage" class="prod-img-ph">{{ cmd.produit.charAt(0) }}</div>
                 </div>
                 <span class="prod-nom">{{ cmd.produit | slice:0:30 }}{{ cmd.produit.length > 30 ? '...' : '' }}</span>
+                <span class="prod-extra" *ngIf="cmd.lignes.length > 1">+{{ cmd.lignes.length - 1 }}</span>
               </div>
             </td>
 
-            <!-- Quantité -->
             <td class="td-qte">
               <span class="qte-badge">{{ cmd.quantite }}</span>
             </td>
 
-            <!-- Prix -->
             <td class="td-prix">
               <span class="prix-val">{{ formatPrix(cmd.total) }}</span>
             </td>
 
-            <!-- Date -->
             <td class="td-date" (click)="$event.stopPropagation()">
               <div class="date-cell">
-                <span class="date-main">{{ formatDate(cmd.date) }}</span>
-                <span class="date-time">{{ formatTime(cmd.date) }}</span>
+                <span class="date-main">{{ cmd.date }}</span>
+                <span class="date-time">{{ cmd.heure }}</span>
               </div>
             </td>
 
-            <!-- Statut actuel -->
             <td class="td-statut" (click)="$event.stopPropagation()">
-              <span class="statut-badge" [ngClass]="getStatutClass(cmd.statut)">
+              <span class="statut-badge" [ngStyle]="getStatutStyle(cmd.statut)">
                 <i class="bi" [ngClass]="getStatutIcon(cmd.statut)"></i>
                 {{ getStatutLabel(cmd.statut) }}
               </span>
             </td>
 
-            <!-- Modifier statut -->
             <td class="td-action" (click)="$event.stopPropagation()">
-              <div class="statut-changer" [class.disabled]="cmd.statut === 'annulee' || cmd.statut === 'livree'">
+              <div class="statut-changer" *ngIf="getPrimaryAction(cmd) as primary">
                 <button
                   class="next-statut-btn"
-                  [disabled]="cmd.statut === 'annulee' || cmd.statut === 'livree' || updatingId === cmd.id"
-                  (click)="openStatutDropdown(cmd, $event)"
-                  [ngClass]="getNextStatutBtnClass(cmd.statut)"
+                  [disabled]="updatingId === cmd.id"
+                  (click)="handleAction(cmd, primary, $event)"
+                  [ngStyle]="{ background: primary.color + '22', color: primary.color, borderColor: primary.color }"
                 >
                   <span *ngIf="updatingId !== cmd.id">
-                    → Passer : {{ getNextStatutLabel(cmd.statut) }}
+                    <i class="bi {{ primary.icon }}"></i> {{ primary.label }}
                   </span>
                   <span *ngIf="updatingId === cmd.id" class="mini-loader">
                     <i class="bi bi-hourglass-split"></i>
                   </span>
-                  <i class="bi bi-chevron-down chev" *ngIf="updatingId !== cmd.id"></i>
+                </button>
+
+                <button class="dropdown-toggle" (click)="openDropdown(cmd, $event)" *ngIf="getOtherActions(cmd).length">
+                  <i class="bi bi-chevron-down"></i>
                 </button>
 
                 <!-- Dropdown statuts -->
                 <div class="statut-dropdown" *ngIf="dropdownOpenId === cmd.id" [@dropDown]>
                   <button
-                    *ngFor="let opt of getStatutOptions(cmd.statut)"
+                    *ngFor="let action of getOtherActions(cmd)"
                     class="sd-item"
-                    [ngClass]="'sd-' + opt.value"
-                    (click)="changeStatut(cmd, opt.value, $event)"
+                    [ngStyle]="{ color: action.color }"
+                    (click)="handleAction(cmd, action, $event)"
                   >
-                    <i class="bi {{ opt.icon }}"></i>
-                    {{ opt.label }}
+                    <i class="bi {{ action.icon }}"></i>
+                    {{ action.label }}
                   </button>
                 </div>
               </div>
+
+              <span class="no-action" *ngIf="!getPrimaryAction(cmd)">
+                <i class="bi bi-check-circle"></i> Finalisé
+              </span>
             </td>
           </tr>
         </tbody>
@@ -245,7 +234,7 @@
   <div class="drawer-header">
     <div>
       <h3 class="drawer-title">{{ selectedCommande.numero }}</h3>
-      <p class="drawer-sub">Détails de la commande</p>
+      <p class="drawer-sub">Passée le {{ selectedCommande.date }} à {{ selectedCommande.heure }}</p>
     </div>
     <button class="drawer-close" (click)="closeDetail()">
       <i class="bi bi-x-lg"></i>
@@ -255,43 +244,37 @@
   <div class="drawer-body">
     <!-- Statut -->
     <div class="detail-statut-row">
-      <span class="statut-badge lg" [ngClass]="getStatutClass(selectedCommande.statut)">
+      <span class="statut-badge lg" [ngStyle]="getStatutStyle(selectedCommande.statut)">
         <i class="bi" [ngClass]="getStatutIcon(selectedCommande.statut)"></i>
         {{ getStatutLabel(selectedCommande.statut) }}
       </span>
-      <span class="detail-date">{{ formatDate(selectedCommande.date) }} à {{ formatTime(selectedCommande.date) }}</span>
+      <span class="detail-mode">
+        <i class="bi" [ngClass]="selectedCommande.mode_reception === 'retrait_magasin' ? 'bi-shop' : 'bi-truck'"></i>
+        {{ selectedCommande.mode_reception_label }}
+      </span>
     </div>
-
-    <!-- Timeline statut -->
-    <div class="statut-timeline">
-      <div class="tl-step" *ngFor="let step of statutTimeline" [class.tl-done]="isStepDone(step.value, selectedCommande.statut)" [class.tl-current]="step.value === selectedCommande.statut">
-        <div class="tl-dot">
-          <i class="bi" [ngClass]="step.icon"></i>
-        </div>
-        <span class="tl-label">{{ step.label }}</span>
-      </div>
-    </div>
+    <p class="statut-desc">{{ getStatutDescription(selectedCommande.statut) }}</p>
 
     <!-- Client -->
     <div class="detail-section">
-      <h4 class="ds-title"><i class="bi bi-person-circle"></i> Client</h4>
+      <h4 class="ds-title"><i class="bi bi-person-circle"></i> Informations client</h4>
       <div class="ds-row"><span class="ds-lbl">Nom</span><span class="ds-val">{{ selectedCommande.client }}</span></div>
+      <div class="ds-row"><span class="ds-lbl">Téléphone</span><span class="ds-val">{{ selectedCommande.telephone }}</span></div>
+      <div class="ds-row"><span class="ds-lbl">Email</span><span class="ds-val">{{ selectedCommande.email || 'Non renseigné' }}</span></div>
       <div class="ds-row"><span class="ds-lbl">Adresse</span><span class="ds-val">{{ selectedCommande.adresse }}</span></div>
-      <div class="ds-row" *ngIf="selectedCommande.telephone"><span class="ds-lbl">Téléphone</span><span class="ds-val">{{ selectedCommande.telephone }}</span></div>
     </div>
 
-    <!-- Produit -->
+    <!-- Produits -->
     <div class="detail-section">
-      <h4 class="ds-title"><i class="bi bi-box-seam"></i> Produit commandé</h4>
-      <div class="produit-detail-card">
+      <h4 class="ds-title"><i class="bi bi-box-seam"></i> Produits commandés</h4>
+      <div class="produit-detail-card" *ngFor="let ligne of selectedCommande.lignes">
         <div class="pdc-img">
-          <img *ngIf="selectedCommande.produitImage" [src]="selectedCommande.produitImage" [alt]="selectedCommande.produit" (error)="onImgError($event)">
-          <div *ngIf="!selectedCommande.produitImage" class="pdc-ph">{{ selectedCommande.produit.charAt(0) }}</div>
+          <img *ngIf="ligne.image" [src]="ligne.image" [alt]="ligne.nom" (error)="onImgError($event)">
+          <div *ngIf="!ligne.image" class="pdc-ph">{{ ligne.nom.charAt(0) }}</div>
         </div>
         <div class="pdc-info">
-          <div class="pdc-nom">{{ selectedCommande.produit }}</div>
-          <div class="pdc-ref" *ngIf="selectedCommande.reference">Réf. {{ selectedCommande.reference }}</div>
-          <div class="pdc-prix">{{ formatPrix(selectedCommande.prixUnitaire) }} × {{ selectedCommande.quantite }}</div>
+          <div class="pdc-nom">{{ ligne.nom }}</div>
+          <div class="pdc-prix">{{ formatPrix(ligne.prixUnitaire) }} × {{ ligne.quantite }} = <strong>{{ formatPrix(ligne.sousTotal) }}</strong></div>
         </div>
       </div>
     </div>
@@ -299,23 +282,112 @@
     <!-- Récap financier -->
     <div class="detail-section">
       <h4 class="ds-title"><i class="bi bi-receipt"></i> Récapitulatif</h4>
-      <div class="ds-row"><span class="ds-lbl">Sous-total</span><span class="ds-val">{{ formatPrix(selectedCommande.prixUnitaire * selectedCommande.quantite) }}</span></div>
-      <div class="ds-row"><span class="ds-lbl">Livraison</span><span class="ds-val">Incluse</span></div>
-      <div class="ds-row ds-total"><span class="ds-lbl">Total</span><span class="ds-val total-val">{{ formatPrix(selectedCommande.total) }}</span></div>
+      <div class="ds-row"><span class="ds-lbl">Sous-total produits</span><span class="ds-val">{{ formatPrix(selectedCommande.montant_total) }}</span></div>
+      <div class="ds-row"><span class="ds-lbl">Frais de livraison</span><span class="ds-val">{{ selectedCommande.frais_livraison ? formatPrix(selectedCommande.frais_livraison) : 'Gratuite' }}</span></div>
+      <div class="ds-row"><span class="ds-lbl">Mode de paiement</span><span class="ds-val">{{ selectedCommande.mode_paiement_label }}</span></div>
+      <div class="ds-row ds-total"><span class="ds-lbl">Total à payer</span><span class="ds-val total-val">{{ formatPrix(selectedCommande.total) }}</span></div>
+    </div>
+
+    <!-- Commentaire fournisseur visible client -->
+    <div class="detail-section">
+      <h4 class="ds-title"><i class="bi bi-chat-left-text"></i> Remarque visible par le client</h4>
+      <form [formGroup]="commentForm" class="comment-form">
+        <textarea
+          class="comment-area"
+          formControlName="commentaire"
+          rows="3"
+          placeholder="Ex: Votre commande sera prête à partir de 16h."
+        ></textarea>
+        <button
+          type="button"
+          class="comment-save-btn"
+          (click)="saveCommentaire()"
+          [disabled]="updatingId === selectedCommande.id"
+        >
+          <span *ngIf="updatingId !== selectedCommande.id"><i class="bi bi-save"></i> Enregistrer</span>
+          <span *ngIf="updatingId === selectedCommande.id"><i class="bi bi-hourglass-split"></i></span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Timeline -->
+    <div class="detail-section">
+      <h4 class="ds-title"><i class="bi bi-clock-history"></i> Historique</h4>
+      <div class="history-timeline" *ngIf="selectedCommande.historique.length">
+        <div class="ht-step" *ngFor="let h of selectedCommande.historique; let last = last; let i = index" [class.ht-current]="isHistoryStepCurrent(h, i)">
+          <div class="ht-dot" [ngStyle]="{ background: getStatutStyle(h.statut).background, color: getStatutStyle(h.statut).color }">
+            <i class="bi" [ngClass]="h.icon"></i>
+          </div>
+          <div class="ht-content">
+            <div class="ht-title">{{ h.label }}</div>
+            <div class="ht-meta">{{ h.date }} à {{ h.heure }} — <strong>{{ h.utilisateur }}</strong></div>
+            <div class="ht-comment" *ngIf="h.commentaire">{{ h.commentaire }}</div>
+            <div class="ht-motif" *ngIf="h.motif">Motif : {{ h.motif }}</div>
+          </div>
+          <div class="ht-line" *ngIf="!last"></div>
+        </div>
+      </div>
+      <div class="empty-history" *ngIf="!selectedCommande.historique.length">
+        Aucun historique disponible.
+      </div>
     </div>
 
     <!-- Actions -->
-    <div class="drawer-actions" *ngIf="selectedCommande.statut !== 'annulee' && selectedCommande.statut !== 'livree'">
+    <div class="drawer-actions" *ngIf="getActions(selectedCommande).length">
       <button
-        *ngFor="let opt of getStatutOptions(selectedCommande.statut)"
+        *ngFor="let action of getActions(selectedCommande)"
         class="drawer-action-btn"
-        [ngClass]="'dab-' + opt.value"
-        (click)="changeStatutFromDrawer(selectedCommande, opt.value)"
+        [ngStyle]="getActionStyle(action)"
+        (click)="handleAction(selectedCommande, action, $event)"
         [disabled]="updatingId === selectedCommande.id"
       >
-        <i class="bi {{ opt.icon }}"></i> {{ opt.label }}
+        <i class="bi {{ action.icon }}"></i> {{ action.label }}
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL MOTIF ==================== -->
+<div class="modal-overlay" *ngIf="actionModal.visible" (click)="closeActionModal()" [@fadeIn]></div>
+<div class="modal-panel" *ngIf="actionModal.visible" [@modalIn] (click)="$event.stopPropagation()">
+  <div class="modal-header">
+    <h3><i class="bi" [ngClass]="actionModal.action?.icon"></i> {{ actionModal.action?.label }}</h3>
+    <button class="modal-close" (click)="closeActionModal()"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <form [formGroup]="motifForm" class="modal-body" (ngSubmit)="confirmAction()">
+    <p class="modal-info">Veuillez indiquer le motif de cette action. Il sera conservé dans l'historique.</p>
+    <label class="modal-label" for="motif">Motif <span class="req">*</span></label>
+    <textarea
+      id="motif"
+      class="modal-textarea"
+      formControlName="motif"
+      rows="3"
+      placeholder="Ex: Produit indisponible..."
+    ></textarea>
+    <div class="modal-error" *ngIf="motifForm.get('motif')?.touched && motifForm.get('motif')?.invalid">
+      Le motif est requis.
+    </div>
+
+    <label class="modal-label" for="commentaireModal">Remarque visible par le client (optionnel)</label>
+    <textarea
+      id="commentaireModal"
+      class="modal-textarea"
+      formControlName="commentaire"
+      rows="2"
+      placeholder="Ex: Nous vous proposons un remplacement..."
+    ></textarea>
+  </form>
+  <div class="modal-footer">
+    <button class="btn-cancel" (click)="closeActionModal()">Annuler</button>
+    <button
+      class="btn-confirm"
+      (click)="confirmAction()"
+      [disabled]="motifForm.invalid || updatingId === actionModal.commande?.id"
+      [ngStyle]="{ background: actionModal.action?.color || '#6b7280' }"
+    >
+      <span *ngIf="updatingId !== actionModal.commande?.id">Confirmer</span>
+      <span *ngIf="updatingId === actionModal.commande?.id"><i class="bi bi-hourglass-split"></i></span>
+    </button>
   </div>
 </div>
 

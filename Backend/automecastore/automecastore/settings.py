@@ -103,6 +103,7 @@ INSTALLED_APPS = [
 
     'fournisseur',
     'admin_api',
+    'demandes',
 ]
 
 

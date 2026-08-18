@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Livraison, LivraisonService } from '../../../admin/component/livraison/livraison.service';
 
 @Component({
   selector: 'app-liste-livraisons',
@@ -9,23 +10,43 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './liste-livraisons.component.html',
   styleUrls: ['./liste-livraisons.component.css']
 })
-export class ListeLivraisonsComponent {
-  livraisons = [
-    { id: 'LIV-001', commande: 'CMD-001', client: 'Jean Dupont', date: '2024-06-28', adresse: '123 Rue de la Paix, Paris', statut: 'En transit', transporteur: 'Colissimo' },
-    { id: 'LIV-002', commande: 'CMD-002', client: 'Marie Martin', date: '2024-06-28', adresse: '456 Avenue des Champs, Lyon', statut: 'Livré', transporteur: 'DHL' },
-    { id: 'LIV-003', commande: 'CMD-003', client: 'Pierre Bernard', date: '2024-06-27', adresse: '789 Boulevard Haussmann, Marseille', statut: 'En préparation', transporteur: 'UPS' },
-    { id: 'LIV-004', commande: 'CMD-004', client: 'Sophie Petit', date: '2024-06-27', adresse: '321 Rue de Rivoli, Bordeaux', statut: 'En transit', transporteur: 'Colissimo' },
-    { id: 'LIV-005', commande: 'CMD-005', client: 'Luc Dubois', date: '2024-06-26', adresse: '654 Place de la Concorde, Toulouse', statut: 'Livré', transporteur: 'DHL' }
-  ];
-
+export class ListeLivraisonsComponent implements OnInit {
+  livraisons: Livraison[] = [];
+  filteredLivraisons: Livraison[] = [];
+  loading = false;
+  error = '';
   searchTerm = '';
   selectedStatut = '';
-  statuts = ['Toutes', 'En préparation', 'En transit', 'Livré', 'Annulé'];
+  statuts = ['Toutes', 'en_attente_attribution', 'livraison_attribuee', 'en_preparation', 'prise_en_charge', 'en_cours_livraison', 'livree', 'echec_livraison', 'annulee'];
+  actionEnCours: number | null = null;
 
-  get filteredLivraisons() {
-    return this.livraisons.filter(livraison => {
-      const matchesSearch = livraison.client.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           livraison.id.toLowerCase().includes(this.searchTerm.toLowerCase());
+  constructor(public livraisonService: LivraisonService) {}
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading = true;
+    this.livraisonService.getFournisseurLivraisons().subscribe({
+      next: (list: Livraison[]) => {
+        this.livraisons = list;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'Impossible de charger les livraisons.';
+        this.loading = false;
+      }
+    });
+  }
+
+  applyFilters(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+    this.filteredLivraisons = this.livraisons.filter(livraison => {
+      const ref = livraison.commande?.reference || '';
+      const client = `${livraison.client?.prenom || ''} ${livraison.client?.nom || ''} ${livraison.client?.email || ''}`.toLowerCase();
+      const matchesSearch = !term || ref.toLowerCase().includes(term) || client.includes(term);
       const matchesStatut = this.selectedStatut === '' || this.selectedStatut === 'Toutes' || livraison.statut === this.selectedStatut;
       return matchesSearch && matchesStatut;
     });
@@ -33,15 +54,63 @@ export class ListeLivraisonsComponent {
 
   onStatutChange(statut: string): void {
     this.selectedStatut = statut;
+    this.applyFilters();
   }
 
-  getStatutClass(statut: string): string {
+  prendreEnCharge(id: number): void {
+    this.actionEnCours = id;
+    this.livraisonService.prendreEnCharge(id).subscribe({
+      next: (updated: Livraison) => {
+        this.updateLocal(updated);
+        this.actionEnCours = null;
+      },
+      error: () => {
+        this.error = 'Impossible de prendre en charge la livraison.';
+        this.actionEnCours = null;
+      }
+    });
+  }
+
+  avancerStatut(id: number, statut: string): void {
+    this.actionEnCours = id;
+    this.livraisonService.updateFournisseurStatut(id, statut).subscribe({
+      next: (updated: Livraison) => {
+        this.updateLocal(updated);
+        this.actionEnCours = null;
+      },
+      error: () => {
+        this.error = 'Impossible de mettre à jour le statut.';
+        this.actionEnCours = null;
+      }
+    });
+  }
+
+  prochainStatut(statut: string): string | null {
+    const flow = ['livraison_attribuee', 'en_preparation', 'prise_en_charge', 'en_cours_livraison', 'livree'];
+    const idx = flow.indexOf(statut);
+    if (idx === -1 || idx === flow.length - 1) return null;
+    return flow[idx + 1];
+  }
+
+  private updateLocal(updated: Livraison): void {
+    this.livraisons = this.livraisons.map(l => (l.id === updated.id ? updated : l));
+    this.applyFilters();
+  }
+
+  getStatutClass(statut: string | undefined): string {
     switch (statut) {
-      case 'Livré': return 'badge-success';
-      case 'En transit': return 'badge-warning';
-      case 'En préparation': return 'badge-info';
-      case 'Annulé': return 'badge-danger';
+      case 'livree': return 'badge-success';
+      case 'en_cours_livraison':
+      case 'prise_en_charge': return 'badge-primary';
+      case 'livraison_attribuee':
+      case 'en_preparation': return 'badge-info';
+      case 'echec_livraison':
+      case 'annulee': return 'badge-danger';
       default: return 'badge-secondary';
     }
+  }
+
+  getStatutLabel(statut: string | undefined): string {
+    return this.livraisonService.getStatutLabel(statut);
   }
 }

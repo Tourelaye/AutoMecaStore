@@ -24,7 +24,7 @@ for user in client_users_without_profile:
         date_inscription=timezone.now(),
         point_fidelite=0
     )
-    print(f'✅ Profil Client créé pour {user.email}')
+    print(f' Profil Client créé pour {user.email}')
 
 # Vérification finale
 print('\n=== VÉRIFICATION FINALE ===')
@@ -35,6 +35,6 @@ print(f'Utilisateurs avec role="client": {all_client_users.count()}')
 print(f'Profils Client dans la base: {all_client_profiles.count()}')
 
 if all_client_users.count() == all_client_profiles.count():
-    print('✅ SYNCHRONISATION COMPLÈTE !')
+    print(' SYNCHRONISATION COMPLÈTE !')
 else:
     print('⚠️  Problème persiste')

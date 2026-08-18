@@ -1,0 +1,274 @@
+<app-sidebar></app-sidebar>
+
+<div class="layout">
+  <app-header></app-header>
+
+  <main class="content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header fade-up">
+      <div class="page-title">
+        <div class="page-tag">
+          <i class="bi bi-tags-fill"></i>
+          Catalogue
+        </div>
+        <h2>Marques de Produits</h2>
+        <p>Gérez les marques et fabricants</p>
+      </div>
+      <div class="header-stats">
+        <div class="hs-item">
+          <span class="hs-val">{{ marques.length }}</span>
+          <span class="hs-lbl">Total</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-green">{{ getActiveCount() }}</span>
+          <span class="hs-lbl">Visibles</span>
+        </div>
+        <div class="hs-item">
+          <span class="hs-val text-gray">{{ getInactiveCount() }}</span>
+          <span class="hs-lbl">Masquées</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar fade-up delay-1">
+      <div class="search-box" [class.focused]="searchFocused">
+        <i class="bi bi-search search-ic"></i>
+        <input
+          type="text"
+          placeholder="Rechercher une marque..."
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="searchMarques()"
+          (focus)="searchFocused = true"
+          (blur)="searchFocused = false"
+        >
+        <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm=''; loadMarques()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <div class="toolbar-actions">
+        <button class="btn-filter" (click)="toggleFilter()">
+          <i class="bi bi-funnel-fill"></i>
+          Filtrer
+          <span class="filter-pill" *ngIf="activeFilter !== 'all'">{{ activeFilter === 'actif' ? 'Visible' : 'Masquée' }}</span>
+        </button>
+
+        <!-- FILTRE DROPDOWN -->
+        <div class="filter-drop" *ngIf="showFilter" (click)="$event.stopPropagation()">
+          <button [class.active]="activeFilter === 'all'"    (click)="setFilter('all')">Toutes</button>
+          <button [class.active]="activeFilter === 'actif'"  (click)="setFilter('actif')">Visibles</button>
+          <button [class.active]="activeFilter === 'inactif'"(click)="setFilter('inactif')">Masquées</button>
+        </div>
+
+        <button class="btn-add" (click)="openAddModal()">
+          <i class="bi bi-plus-lg"></i> Nouvelle marque
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL -->
+    <div class="panel fade-up delay-2">
+
+      <!-- LOADING SKELETON -->
+      <div class="skeleton-grid" *ngIf="loading">
+        <div class="cat-skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+          <div class="sk-icon"></div>
+          <div class="sk-lines">
+            <div class="sk-line"></div>
+            <div class="sk-line short"></div>
+          </div>
+          <div class="sk-footer">
+            <div class="sk-badge"></div>
+            <div class="sk-btns">
+              <div class="sk-btn"></div>
+              <div class="sk-btn"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARQUES GRID -->
+      <div class="categories-grid" *ngIf="!loading && filteredMarques.length > 0">
+        <div
+          class="category-card"
+          *ngFor="let m of filteredMarques; let i = index"
+          [style.--i]="i"
+          [class.inactive-card]="!m.est_visible"
+        >
+          <!-- GLOW -->
+          <div class="card-glow"></div>
+
+          <!-- CARD TOP -->
+          <div class="card-top">
+            <div class="cat-icon-wrap">
+              <div class="cat-icon marque-icon">
+                <img *ngIf="m.logo_url" [src]="m.logo_url" alt="{{ m.nom }}">
+                <i *ngIf="!m.logo_url" class="bi bi-tags-fill"></i>
+              </div>
+              <div class="cat-icon-ring"></div>
+            </div>
+            <div class="cat-info">
+              <h4>{{ m.nom }}</h4>
+              <p>{{ m.description || 'Aucune description' }}</p>
+            </div>
+          </div>
+
+          <!-- CARD BODY -->
+          <div class="card-body">
+            <div class="info-row">
+              <i class="bi bi-box-seam-fill"></i>
+              <span>{{ m.nombre_produits || 0 }} produit(s)</span>
+            </div>
+            <div class="info-row">
+              <i class="bi bi-calendar3"></i>
+              <span>Créée le {{ formatDate(m.datecreation) }}</span>
+            </div>
+          </div>
+
+          <!-- CARD FOOTER -->
+          <div class="card-footer">
+            <span class="status-badge" [class.active]="m.est_visible" [class.inactive]="!m.est_visible">
+              <span class="badge-dot"></span>
+              {{ m.est_visible ? 'Visible' : 'Masquée' }}
+            </span>
+
+            <div class="card-actions">
+              <button class="ca-btn order" (click)="moveUp(i)" title="Monter" [disabled]="i === 0">
+                <i class="bi bi-arrow-up"></i>
+              </button>
+              <button class="ca-btn order" (click)="moveDown(i)" title="Descendre" [disabled]="i === filteredMarques.length - 1">
+                <i class="bi bi-arrow-down"></i>
+              </button>
+              <button class="ca-btn edit" (click)="openEditModal(m)" title="Modifier">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="ca-btn delete" (click)="openDeleteModal(m)" title="Supprimer">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="!loading && filteredMarques.length === 0">
+        <div class="empty-icon"><i class="bi bi-tags"></i></div>
+        <h4>Aucune marque trouvée</h4>
+        <p>{{ searchTerm ? 'Modifiez votre recherche.' : 'Commencez par créer une marque.' }}</p>
+        <button class="btn-add" (click)="openAddModal()">
+          <i class="bi bi-plus-lg"></i> Créer une marque
+        </button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ══ MODAL AJOUTER / MODIFIER ══ -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon-wrap" [class.edit-mode]="!!editingMarque">
+          <i class="bi" [class.bi-plus-lg]="!editingMarque" [class.bi-pencil-fill]="!!editingMarque"></i>
+        </div>
+        <div>
+          <h3>{{ editingMarque ? 'Modifier la marque' : 'Nouvelle marque' }}</h3>
+          <small>{{ editingMarque ? 'Modifiez les informations ci-dessous' : 'Remplissez les champs requis' }}</small>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveMarque()">
+
+        <!-- NOM -->
+        <div class="form-group">
+          <label><i class="bi bi-tag"></i> Nom de la marque *</label>
+          <input type="text" [(ngModel)]="marqueForm.nom" name="nom" placeholder="Ex: Bosch, Valeo..." required>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="form-group">
+          <label><i class="bi bi-card-text"></i> Description</label>
+          <textarea [(ngModel)]="marqueForm.description" name="description" rows="3" placeholder="Description de la marque..."></textarea>
+        </div>
+
+        <!-- LOGO + ÉTAT + ORDRE -->
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class="bi bi-image"></i> Logo</label>
+            <input type="file" accept="image/*" (change)="onLogoSelected($event)" name="logo">
+          </div>
+          <div class="form-group">
+            <label><i class="bi bi-toggle-on"></i> Visibilité</label>
+            <select [(ngModel)]="marqueForm.est_visible" name="est_visible" required>
+              <option [ngValue]="true">Visible</option>
+              <option [ngValue]="false">Masquée</option>
+            </select>
+          </div>
+          <div class="form-group small">
+            <label><i class="bi bi-sort-numeric-down"></i> Ordre</label>
+            <input type="number" [(ngModel)]="marqueForm.ordre" name="ordre" min="0">
+          </div>
+        </div>
+
+        <!-- APERÇU LOGO -->
+        <div class="icon-preview" *ngIf="previewUrl">
+          <div class="preview-icon marque-icon">
+            <img [src]="previewUrl" alt="Aperçu logo">
+          </div>
+          <span>Aperçu du logo</span>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+          <button type="button" class="mf-btn cancel" (click)="closeModal()">
+            <i class="bi bi-x"></i> Annuler
+          </button>
+          <button type="submit" class="mf-btn save">
+            <i class="bi" [class.bi-plus-lg]="!editingMarque" [class.bi-check-lg]="!!editingMarque"></i>
+            {{ editingMarque ? 'Mettre à jour' : 'Créer la marque' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SUPPRESSION ══ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-box modal-sm" (click)="$event.stopPropagation()">
+    <div class="delete-icon-wrap">
+      <i class="bi bi-trash-fill"></i>
+    </div>
+    <div class="modal-head center">
+      <h3>Supprimer la marque</h3>
+    </div>
+    <div class="modal-body text-center">
+      <p>Voulez-vous supprimer <strong>"{{ marqueToDelete?.nom }}"</strong> ?</p>
+      <p class="warning-note">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Cette action est irréversible.
+      </p>
+    </div>
+    <div class="modal-foot center">
+      <button class="mf-btn cancel" (click)="closeDeleteModal()"><i class="bi bi-x"></i> Annuler</button>
+      <button class="mf-btn danger" (click)="confirmDelete()">
+        <i class="bi bi-trash-fill"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" *ngIf="notification" [class.success]="notification.type === 'success'" [class.error]="notification.type === 'error'">
+  <i class="bi" [class.bi-check-circle-fill]="notification.type === 'success'" [class.bi-exclamation-circle-fill]="notification.type === 'error'"></i>
+  <span>{{ notification.message }}</span>
+</div>

@@ -17,11 +17,13 @@ import { ParametresComponent } from './parametres/parametres-fournisseur/paramet
 import { supplierGuard } from '../core/guards/supplier.guard';
 import { ModifierProfilComponent } from './profil/modifier-profil/modifier-profil.component';
 import { HistoriquesComponent } from './historiques/historiques.component';
+import { FournisseurDemandesComponent } from './demandes/fournisseur-demandes.component';
 import { FournisseurLoginComponent } from './auth/login/fournisseur-login.component';
 import { FournisseurRegisterComponent } from './auth/register/fournisseur-register.component';
 import { FournisseurEnAttenteComponent } from './auth/en-attente/fournisseur-en-attente.component';
 import { SecuriteComponent } from './securite/securite.component';
 import { NotificationsFournisseurComponent } from './notifications/notifications-fournisseur/notifications-fournisseur.component';
+import { MonMagasinComponent } from './mon-magasin/mon-magasin.component';
 
 export const fournisseurRoutes: Routes = [
   {
@@ -46,6 +48,10 @@ export const fournisseurRoutes: Routes = [
         path: 'dashboard',
         component: DashboardFournisseurComponent
       },
+      {
+        path: 'mon-magasin',
+        component: MonMagasinComponent
+      },
    
       {
         path: 'produits/list-produit',
@@ -53,6 +59,10 @@ export const fournisseurRoutes: Routes = [
       },
       {
         path: 'ajouter-produit',
+        component: AjouterProduitComponent
+      },
+      {
+        path: 'modifier-produit/:id',
         component: AjouterProduitComponent
       },
 
@@ -67,6 +77,10 @@ export const fournisseurRoutes: Routes = [
       {
         path: 'stocks',
         component: StockComponent
+      },
+      {
+        path: 'demandes',
+        component: FournisseurDemandesComponent
       },
       {
         path: 'promotions',

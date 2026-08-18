@@ -1,0 +1,516 @@
+<div class="search-page container">
+
+  <!-- HEADER -->
+  <div class="search-header">
+    <span class="catalog-tag">
+      <i class="bi bi-search"></i> RECHERCHE DE PIÈCES
+    </span>
+    <h1>Recherche <span class="accent">avancée</span></h1>
+    <p class="search-count" *ngIf="!isLoading && totalCount > 0">
+      <span class="highlight-count">{{ totalCount }}</span> pièce{{ totalCount > 1 ? 's' : '' }} trouvée{{ totalCount > 1 ? 's' : '' }}
+    </p>
+  </div>
+
+  <!-- BARRE DE RECHERCHE -->
+  <div class="search-bar-wrapper">
+    <div class="search-bar-main">
+      <i class="bi bi-search search-icon"></i>
+      <input
+        type="text"
+        placeholder="Nom, référence OEM, référence vendeur, marque..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput()"
+        (focus)="onSearchFocus()"
+        (blur)="onSearchBlur()"
+        (keyup.enter)="onSearchSubmit()"
+        autocomplete="off"
+      >
+      <button class="search-btn" (click)="onSearchSubmit()">
+        <i class="bi bi-arrow-right"></i>
+      </button>
+      <ul class="suggestions-list" *ngIf="showSuggestions">
+        <li *ngFor="let s of suggestions" (mousedown)="selectSuggestion(s)">{{ s }}</li>
+      </ul>
+    </div>
+
+    <!-- Toggle recherche par véhicule -->
+    <button class="vehicle-toggle" (click)="toggleVehicleSearch()" [class.active]="showVehicleSearch">
+      <i class="bi bi-car-front"></i> Recherche par véhicule
+    </button>
+  </div>
+
+  <!-- RECHERCHE PAR VÉHICULE -->
+  <div class="vehicle-search-panel" *ngIf="showVehicleSearch">
+    <div class="vehicle-row">
+      <div class="vehicle-field">
+        <label>Marque</label>
+        <input type="text" placeholder="Ex: Toyota" [(ngModel)]="vehMarque" (change)="onFilterChange()">
+      </div>
+      <div class="vehicle-field">
+        <label>Modèle</label>
+        <input type="text" placeholder="Ex: Hilux" [(ngModel)]="vehModele" (change)="onFilterChange()">
+      </div>
+      <div class="vehicle-field">
+        <label>Version</label>
+        <input type="text" placeholder="Ex: SR5" [(ngModel)]="vehVersion" (change)="onFilterChange()">
+      </div>
+      <div class="vehicle-field">
+        <label>Motorisation</label>
+        <input type="text" placeholder="Ex: 2.8 D-4D" [(ngModel)]="vehMotorisation" (change)="onFilterChange()">
+      </div>
+      <div class="vehicle-field">
+        <label>Année</label>
+        <input type="text" placeholder="Ex: 2020" [(ngModel)]="vehAnnee" (change)="onFilterChange()">
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="search-layout">
+
+    <!-- SIDEBAR FILTRES -->
+    <aside class="filters-sidebar" [class.show-mobile]="showFiltersMobile">
+
+      <div class="filter-header">
+        <i class="bi bi-sliders"></i> Filtres
+        <button class="filter-close-mobile" (click)="toggleFiltersMobile()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- LOCALISATION CLIENT -->
+      <div class="filter-section">
+        <h6 (click)="showLocationPanel = !showLocationPanel" style="cursor: pointer;">
+          <i class="bi bi-geo-alt"></i> Ma localisation
+          <i class="bi" [class.bi-chevron-down]="!showLocationPanel" [class.bi-chevron-up]="showLocationPanel"></i>
+        </h6>
+        <div *ngIf="!showLocationPanel" class="location-summary">
+          <span *ngIf="clientLat != null && clientLng != null"><i class="bi bi-check-circle-fill text-success"></i> Localisé</span>
+          <span *ngIf="clientLat == null && clientAdresse" style="color: #4b5563;">{{ clientAdresse }}</span>
+          <span *ngIf="clientLat == null && !clientAdresse"><i class="bi bi-geo"></i> Non défini</span>
+        </div>
+        <div *ngIf="showLocationPanel" class="location-panel">
+          <p class="location-hint">Facultatif : activez votre position pour afficher les distances.</p>
+          <button class="btn-location" (click)="utiliserGPS()" [disabled]="locationLoading">
+            <i class="bi" [class.bi-geo-alt]="!locationLoading" [class.bi-arrow-repeat]="locationLoading"></i>
+            Utiliser ma position GPS
+          </button>
+          <div class="manual-location">
+            <label>Adresse manuelle</label>
+            <input type="text" placeholder="Ville, quartier, adresse" [(ngModel)]="clientAdresse" (change)="appliquerAdresseManuelle()">
+          </div>
+          <p class="location-error" *ngIf="locationError">{{ locationError }}</p>
+          <button class="btn-reset-location" (click)="reinitialiserLocalisation()">
+            <i class="bi bi-x-circle"></i> Réinitialiser
+          </button>
+        </div>
+      </div>
+
+      <!-- PRIX -->
+      <div class="filter-section">
+        <h6><i class="bi bi-currency-exchange"></i> Prix (FCFA)</h6>
+        <div class="price-inputs">
+          <input type="number" placeholder="Min" [(ngModel)]="prixMin" (change)="onFilterChange()">
+          <span>—</span>
+          <input type="number" placeholder="Max" [(ngModel)]="prixMax" (change)="onFilterChange()">
+        </div>
+      </div>
+
+      <!-- MARQUE -->
+      <div class="filter-section" *ngIf="marquesDisponibles.length > 0">
+        <h6><i class="bi bi-tag"></i> Marque</h6>
+        <select class="filter-select" [(ngModel)]="marqueFilter" (change)="onFilterChange()">
+          <option value="">Toutes les marques</option>
+          <option *ngFor="let m of marquesDisponibles" [value]="m">{{ m }}</option>
+        </select>
+      </div>
+
+      <!-- ÉTAT -->
+      <div class="filter-section">
+        <h6><i class="bi bi-gear"></i> État</h6>
+        <select class="filter-select" [(ngModel)]="etatFilter" (change)="onFilterChange()">
+          <option *ngFor="let e of etats" [value]="e.value">{{ e.label }}</option>
+        </select>
+      </div>
+
+      <!-- DISPONIBILITÉ -->
+      <div class="filter-section">
+        <h6><i class="bi bi-box-seam"></i> Disponibilité</h6>
+        <select class="filter-select" [(ngModel)]="disponibiliteFilter" (change)="onFilterChange()">
+          <option *ngFor="let d of disponibilites" [value]="d.value">{{ d.label }}</option>
+        </select>
+      </div>
+
+      <!-- LIVRAISON / RETRAIT -->
+      <div class="filter-section">
+        <h6><i class="bi bi-truck"></i> Réception</h6>
+        <label class="quick-filter" [class.active-filter]="livraisonFilter">
+          <input type="checkbox" [(ngModel)]="livraisonFilter" (change)="onFilterChange()">
+          <i class="bi bi-truck"></i> Livraison disponible
+        </label>
+        <label class="quick-filter" [class.active-filter]="retraitFilter">
+          <input type="checkbox" [(ngModel)]="retraitFilter" (change)="onFilterChange()">
+          <i class="bi bi-shop"></i> Retrait en magasin
+        </label>
+      </div>
+
+      <!-- NOTE MINIMALE -->
+      <div class="filter-section">
+        <h6><i class="bi bi-star-fill"></i> Note minimale</h6>
+        <div class="note-filter">
+          <button
+            *ngFor="let n of [1,2,3,4,5]"
+            class="note-btn"
+            [class.active]="noteMin === n"
+            (click)="noteMin = (noteMin === n ? 0 : n); onFilterChange()"
+          >{{ n }}★</button>
+        </div>
+      </div>
+
+      <!-- MAGASIN -->
+      <div class="filter-section">
+        <h6><i class="bi bi-shop"></i> Magasin</h6>
+        <input type="text" placeholder="Nom ou ville" [(ngModel)]="magasinFilter" (change)="onFilterChange()">
+      </div>
+
+      <!-- NOTE MAGASIN -->
+      <div class="filter-section">
+        <h6><i class="bi bi-star"></i> Note magasin</h6>
+        <select class="filter-select" [(ngModel)]="noteMagasinMin" (change)="onFilterChange()">
+          <option [ngValue]="null">Toutes les notes</option>
+          <option [ngValue]="3">3 et +</option>
+          <option [ngValue]="4">4 et +</option>
+          <option [ngValue]="4.5">4.5 et +</option>
+        </select>
+      </div>
+
+      <!-- RESET -->
+      <button class="btn-reset" (click)="resetFilters()" *ngIf="getNbFiltresActifs() > 0">
+        <i class="bi bi-x-circle"></i> Réinitialiser ({{ getNbFiltresActifs() }})
+      </button>
+
+    </aside>
+
+    <!-- RÉSULTATS -->
+    <div class="search-results">
+
+      <!-- BARRE ACTIONS -->
+      <div class="results-actions">
+        <button class="btn-filters-mobile" (click)="toggleFiltersMobile()">
+          <i class="bi bi-sliders"></i> Filtres
+          <span class="filter-badge" *ngIf="getNbFiltresActifs() > 0">{{ getNbFiltresActifs() }}</span>
+        </button>
+
+        <span class="results-info" *ngIf="!isLoading && produits.length > 0">
+          Page {{ currentPage }} — {{ produits.length }} résultat{{ produits.length > 1 ? 's' : '' }}
+        </span>
+
+        <select class="sort-select" [(ngModel)]="sortActif" (change)="onSortChange()">
+          <option *ngFor="let s of sortOptions" [value]="s.value">{{ s.label }}</option>
+        </select>
+      </div>
+
+      <!-- SKELETON -->
+      <div class="results-grid" *ngIf="isLoading">
+        <div class="result-card skeleton" *ngFor="let i of [1,2,3,4,5,6,7,8]">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line short"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line medium"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" *ngIf="!isLoading && produits.length === 0">
+        <i class="bi bi-search"></i>
+        <h3>Aucune pièce correspondant à votre recherche.</h3>
+        <p>Vous pouvez élargir votre recherche ou nous envoyer une demande de pièce.</p>
+        <div class="empty-actions">
+          <button class="btn-reset" (click)="resetFilters()" *ngIf="getNbFiltresActifs() > 0">
+            <i class="bi bi-arrow-counterclockwise"></i> Élargir la recherche
+          </button>
+          <button class="btn-demande" (click)="ouvrirDemandeForm()">
+            <i class="bi bi-send"></i> Demander une pièce
+          </button>
+        </div>
+      </div>
+
+      <!-- GRILLE DE RÉSULTATS -->
+      <div class="results-grid" *ngIf="!isLoading && produits.length > 0">
+
+        <div
+          class="result-card"
+          *ngFor="let p of produits"
+          [class.out-of-stock]="p.stock === 0"
+          (click)="goToProduit(p.id)"
+        >
+          <!-- BADGES -->
+          <div class="badges-row">
+            <span class="badge-discount" *ngIf="getDiscount(p)">-{{ getDiscount(p) }}%</span>
+            <span class="badge-new" *ngIf="p.is_new">✨ Nouveau</span>
+          </div>
+
+          <!-- STOCK -->
+          <div class="stock-faible" *ngIf="isStockFaible(p)">
+            <i class="bi bi-fire"></i> {{ p.stock }} restants
+          </div>
+          <div class="stock-out" *ngIf="p.stock === 0">
+            <i class="bi bi-x-circle"></i> Rupture
+          </div>
+
+          <!-- IMAGE -->
+          <div class="result-img">
+            <img *ngIf="p.image_url || p.image" [src]="p.image_url || p.image" [alt]="p.nom">
+            <i *ngIf="!p.image_url && !p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
+          </div>
+
+          <!-- INFOS -->
+          <h6 class="result-brand">{{ p.marque || 'AutoMecaStore' }}</h6>
+          <p class="result-name">{{ p.nom }}</p>
+
+          <div class="compat-row" *ngIf="p.compatibilite_vehicule">
+            <span class="badge-compat compatible" *ngIf="p.compatibilite_vehicule.statut === 'compatible'">
+              <i class="bi bi-check-circle"></i> Compatible avec votre véhicule
+            </span>
+            <span class="badge-compat non-compatible" *ngIf="p.compatibilite_vehicule.statut === 'non_compatible'">
+              <i class="bi bi-x-circle"></i> Non compatible
+            </span>
+            <span class="badge-compat a-verifier" *ngIf="p.compatibilite_vehicule.statut === 'a_verifier'">
+              <i class="bi bi-exclamation-triangle"></i> Compatibilité à vérifier
+            </span>
+          </div>
+
+          <p class="result-ref" *ngIf="p.reference">
+            <i class="bi bi-upc"></i> {{ p.reference }}
+            <span *ngIf="p.reference_oem"> · OEM: {{ p.reference_oem }}</span>
+          </p>
+
+          <!-- ÉTOILES -->
+          <div class="etoile">
+            <span class="stars">
+              <i *ngFor="let star of getEtoiles()"
+                [class]="isPleine(star, p.note_moyenne || 0) ? 'bi bi-star-fill'
+                        : isDemi(star, p.note_moyenne || 0) ? 'bi bi-star-half'
+                        : 'bi bi-star'"></i>
+            </span>
+            <span class="note-val" *ngIf="p.nombre_avis && p.nombre_avis > 0">{{ p.note_moyenne | number:'1.1-1' }}</span>
+            <span class="avis-count" *ngIf="p.nombre_avis && p.nombre_avis > 0">({{ p.nombre_avis }})</span>
+            <span class="avis-count" *ngIf="!p.nombre_avis || p.nombre_avis === 0">Aucune évaluation</span>
+          </div>
+
+          <!-- MAGASINS -->
+          <div class="result-stores" *ngIf="p.nombre_magasins && p.nombre_magasins > 0">
+            <i class="bi bi-shop"></i> Disponible chez {{ p.nombre_magasins }} magasin{{ p.nombre_magasins > 1 ? 's' : '' }}
+          </div>
+
+          <!-- PRIX -->
+          <div class="result-price">
+            <span class="price-label" *ngIf="p.nombre_magasins && p.nombre_magasins > 1">À partir de</span>
+            <span class="new-price">{{ getPrixActuel(p) | number:'1.0-0' }} FCFA</span>
+            <span class="old-price" *ngIf="p.prix_promo">{{ p.prix | number:'1.0-0' }} FCFA</span>
+          </div>
+
+          <!-- TAGS -->
+          <div class="result-tags">
+            <span class="tag-livraison" *ngIf="p.livraison_disponible">
+              <i class="bi bi-truck"></i> Livraison
+            </span>
+            <span class="tag-retrait" *ngIf="p.retrait_magasin">
+              <i class="bi bi-shop"></i> Retrait
+            </span>
+            <span class="tag-etat" *ngIf="p.etat">
+              {{ p.etat === 'neuf' ? 'Neuf' : p.etat === 'occasion' ? 'Occasion' : 'Reconditionné' }}
+            </span>
+          </div>
+
+          <!-- BOUTON -->
+          <button
+            class="btn-cart"
+            [disabled]="p.stock === 0"
+            (click)="goToProduit(p.id); $event.stopPropagation()"
+            type="button"
+          >
+            <i class="bi" [class.bi-shop-window]="!p.offres || p.offres.length <= 1" [class.bi-eye]="p.offres && p.offres.length > 1"></i>
+            {{ (p.offres && p.offres.length > 1) ? 'Comparer ' + p.offres.length + ' offres' : 'Voir le produit' }}
+          </button>
+
+          <button
+            class="btn-compare"
+            *ngIf="p.offres && p.offres.length > 1"
+            (click)="ouvrirCompare(p, $event)"
+          >
+            <i class="bi bi-shop"></i> Comparer {{ p.offres.length }} offres
+          </button>
+        </div>
+
+      </div>
+
+      <!-- PAGINATION -->
+      <div class="pagination" *ngIf="!isLoading && totalCount > pageSize">
+        <button class="page-btn" [disabled]="!hasPreviousPage" (click)="prevPage()">
+          <i class="bi bi-chevron-left"></i> Précédent
+        </button>
+        <span class="page-info">Page {{ currentPage }}</span>
+        <button class="page-btn" [disabled]="!hasNextPage" (click)="nextPage()">
+          Suivant <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DEMANDE DE PIÈCE -->
+<div class="modal-overlay" *ngIf="showDemandeForm" (click)="fermerDemandeForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="bi bi-send"></i> Demander une pièce</h3>
+      <button class="modal-close" (click)="fermerDemandeForm()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="modal-body" *ngIf="!demandeSuccess">
+      <p class="modal-desc">Indiquez les détails de la pièce. Les magasins partenaires vous feront une offre.</p>
+
+      <div class="form-group">
+        <label>Nom de la pièce <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="demandeForm.piece_recherchee" placeholder="Ex: Alternateur">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marque du véhicule</label>
+          <input type="text" [(ngModel)]="demandeForm.marque_vehicule" placeholder="Ex: Toyota">
+        </div>
+        <div class="form-group">
+          <label>Modèle</label>
+          <input type="text" [(ngModel)]="demandeForm.modele_vehicule" placeholder="Ex: Hilux">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Année</label>
+          <input type="text" [(ngModel)]="demandeForm.annee_vehicule" placeholder="Ex: 2018">
+        </div>
+        <div class="form-group">
+          <label>Motorisation</label>
+          <input type="text" [(ngModel)]="demandeForm.motorisation" placeholder="Ex: 2.4 D-4D">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Version</label>
+          <input type="text" [(ngModel)]="demandeForm.version" placeholder="Ex: SR5">
+        </div>
+        <div class="form-group">
+          <label>Référence OEM</label>
+          <input type="text" [(ngModel)]="demandeForm.reference_oem" placeholder="Facultatif">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantité</label>
+          <input type="number" min="1" [(ngModel)]="demandeForm.quantite" placeholder="1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="demandeForm.description" rows="3" placeholder="Précisez vos besoins..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Photo de la pièce (optionnel)</label>
+        <input type="file" accept="image/*" (change)="onPhotoPieceSelected($event)">
+        <div class="file-name" *ngIf="photoPiece">{{ photoPiece.name }} <i class="bi bi-trash" (click)="supprimerPhotoPiece()"></i></div>
+        <div class="error-message" *ngIf="photoPieceErreur">{{ photoPieceErreur }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Photo du véhicule (optionnel)</label>
+        <input type="file" accept="image/*" (change)="onPhotoVehiculeSelected($event)">
+        <div class="file-name" *ngIf="photoVehicule">{{ photoVehicule.name }} <i class="bi bi-trash" (click)="supprimerPhotoVehicule()"></i></div>
+        <div class="error-message" *ngIf="photoVehiculeErreur">{{ photoVehiculeErreur }}</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ville</label>
+          <input type="text" [(ngModel)]="demandeForm.ville" placeholder="Ex: Dakar">
+        </div>
+        <div class="form-group">
+          <label>Quartier</label>
+          <input type="text" [(ngModel)]="demandeForm.quartier" placeholder="Ex: Mermoz">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Votre nom</label>
+          <input type="text" [(ngModel)]="demandeForm.nom_contact" placeholder="Nom et prénom">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="demandeForm.email_contact" placeholder="email@exemple.com">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Téléphone</label>
+        <input type="text" [(ngModel)]="demandeForm.telephone_contact" placeholder="+221 ...">
+      </div>
+
+      <button class="btn-submit-demande" (click)="soumettreDemande()" [disabled]="demandeSubmitting">
+        <i class="bi" [class.bi-send]="!demandeSubmitting" [class.bi-arrow-repeat]="demandeSubmitting"></i>
+        {{ demandeSubmitting ? 'Envoi en cours...' : 'Envoyer la demande' }}
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="demandeSuccess">
+      <div class="success-icon">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h4>Demande envoyée !</h4>
+      <p>Votre demande a été enregistrée. Vous serez notifié dès qu'un magasin propose une offre.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPARER LES OFFRES -->
+<div class="modal-overlay" *ngIf="showCompareModal" (click)="fermerCompare()">
+  <div class="modal-content compare-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="bi bi-shop"></i> Comparer les offres</h3>
+      <button class="modal-close" (click)="fermerCompare()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body" *ngIf="selectedProduit">
+      <p class="compare-produit">{{ selectedProduit.nom }}</p>
+      <div class="offres-list">
+        <div class="offre-item" *ngFor="let o of selectedProduit.offres">
+          <div class="offre-header">
+            <strong>{{ o.magasin?.nom_magasin || o.fournisseur.nom_entreprise || 'Magasin' }}</strong>
+            <span class="offre-badges">
+              <span class="badge-mini" *ngFor="let b of o.badges" [class]="'badge-' + b">{{ badgeLabel(b) }}</span>
+            </span>
+          </div>
+          <div class="offre-details">
+            <p><strong>Prix :</strong> {{ o.prix | number:'1.0-0' }} FCFA</p>
+            <p *ngIf="o.distance_km != null"><strong>Distance :</strong> {{ o.distance_km }} km</p>
+            <p *ngIf="o.distance_km == null && (o.magasin?.adresse || o.magasin?.ville)"><em>Distance approximative</em></p>
+            <p *ngIf="o.magasin?.note"><strong>Note :</strong> {{ o.magasin?.note }}/5</p>
+            <p *ngIf="o.livraison_disponible"><i class="bi bi-truck"></i> Livraison</p>
+            <p *ngIf="o.retrait_magasin"><i class="bi bi-shop"></i> Retrait</p>
+            <p><strong>Stock :</strong> {{ o.stock }}</p>
+            <button class="btn-itineraire" *ngIf="o.magasin" (click)="voirItineraire(o, $event)">
+              <i class="bi bi-geo-alt"></i> Voir l'itinéraire
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

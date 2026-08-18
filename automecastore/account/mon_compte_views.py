@@ -104,12 +104,12 @@ class MesCommandesView(APIView):
     
     def get(self, request):
         """Retourne les commandes du client"""
-        print(f"🔍 COMMANDES GET - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
+        print(f" COMMANDES GET - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
         try:
             client = Client.objects.get(user=request.user)
-            print(f"✅ Client trouvé: {client}")
+            print(f" Client trouvé: {client}")
             commandes = Commande.objects.filter(client=client).prefetch_related('lignes__produit').order_by('-date_commande')
-            print(f"📦 Nombre de commandes: {commandes.count()}")
+            print(f" Nombre de commandes: {commandes.count()}")
             
             commandes_data = []
             for commande in commandes:
@@ -136,11 +136,11 @@ class MesCommandesView(APIView):
                 'commandes': commandes_data,
                 'total': len(commandes_data)
             }
-            print(f"✅ COMMANDES RESPONSE: {response_data}")
+            print(f" COMMANDES RESPONSE: {response_data}")
             return Response(response_data)
             
         except Client.DoesNotExist:
-            print(f"❌ Client.DoesNotExist pour user: {request.user}")
+            print(f" Client.DoesNotExist pour user: {request.user}")
             return Response(
                 {'error': 'Profil client non trouvé'}, 
                 status=status.HTTP_404_NOT_FOUND
@@ -154,12 +154,12 @@ class FavorisView(APIView):
     
     def get(self, request):
         """Retourne les favoris du client"""
-        print(f"🔍 FAVORIS GET - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
+        print(f" FAVORIS GET - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
         try:
             client = Client.objects.get(user=request.user)
-            print(f"✅ Client trouvé: {client}")
+            print(f" Client trouvé: {client}")
             favoris = Favori.objects.filter(client=client).select_related('produit').order_by('-date_ajout')
-            print(f"❤️ Nombre de favoris: {favoris.count()}")
+            print(f"️ Nombre de favoris: {favoris.count()}")
             
             favoris_data = []
             for favori in favoris:
@@ -177,11 +177,11 @@ class FavorisView(APIView):
                 'favoris': favoris_data,
                 'total': len(favoris_data)
             }
-            print(f"✅ FAVORIS RESPONSE: {response_data}")
+            print(f" FAVORIS RESPONSE: {response_data}")
             return Response(response_data)
             
         except Client.DoesNotExist:
-            print(f"❌ Client.DoesNotExist pour user: {request.user}")
+            print(f" Client.DoesNotExist pour user: {request.user}")
             return Response(
                 {'error': 'Profil client non trouvé'},
                 status=status.HTTP_404_NOT_FOUND
@@ -189,12 +189,12 @@ class FavorisView(APIView):
     
     def post(self, request):
         """Ajoute un produit aux favoris"""
-        print(f"🔍 FAVORIS POST - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
-        print(f"📦 Request data: {request.data}")
+        print(f" FAVORIS POST - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
+        print(f" Request data: {request.data}")
         produit_id = request.data.get('produit_id')
         
         if not produit_id:
-            print("❌ produit_id manquant")
+            print(" produit_id manquant")
             return Response(
                 {'error': 'produit_id requis'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -204,12 +204,12 @@ class FavorisView(APIView):
             # Get or create client profile for the user
             client, created = Client.objects.get_or_create(user=request.user)
             if created:
-                print(f"✅ Client profile created for user: {request.user}")
+                print(f" Client profile created for user: {request.user}")
             else:
-                print(f"✅ Client trouvé: {client}")
+                print(f" Client trouvé: {client}")
             
             produit = Produit.objects.get(id=produit_id)
-            print(f"✅ Produit trouvé: {produit.nom}")
+            print(f" Produit trouvé: {produit.nom}")
             
             # Vérifier si le produit est déjà dans les favoris
             if Favori.objects.filter(client=client, produit=produit).exists():
@@ -221,7 +221,7 @@ class FavorisView(APIView):
             
             # Ajouter aux favoris
             favori = Favori.objects.create(client=client, produit=produit)
-            print(f"❤️ FAVORI CRÉÉ: ID={favori.id}, Client={client}, Produit={produit.nom}")
+            print(f"️ FAVORI CRÉÉ: ID={favori.id}, Client={client}, Produit={produit.nom}")
             
             return Response({
                 'message': 'Produit ajouté aux favoris',
@@ -282,16 +282,16 @@ class PanierView(APIView):
     
     def get(self, request):
         """Retourne le panier du client"""
-        print(f"🔍 PANIER GET - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
+        print(f" PANIER GET - User: {request.user}, Authenticated: {request.user.is_authenticated}, Role: {getattr(request.user, 'role', 'N/A')}")
         try:
             client = Client.objects.get(user=request.user)
-            print(f"✅ Client trouvé: {client}")
+            print(f" Client trouvé: {client}")
             # Récupérer ou créer le panier du client
             panier, created = Panier.objects.get_or_create(client=client)
-            print(f"🛒 Panier: {'créé' if created else 'existant'}, ID: {panier.id}")
+            print(f" Panier: {'créé' if created else 'existant'}, ID: {panier.id}")
             
             items = PanierItem.objects.filter(panier=panier).select_related('produit')
-            print(f"📦 Nombre d'items: {items.count()}")
+            print(f" Nombre d'items: {items.count()}")
             
             items_data = []
             total = 0
@@ -318,11 +318,11 @@ class PanierView(APIView):
                 'total': total,
                 'nombre_items': nombre_items
             }
-            print(f"✅ PANIER RESPONSE: {response_data}")
+            print(f" PANIER RESPONSE: {response_data}")
             return Response(response_data)
             
         except Client.DoesNotExist:
-            print(f"❌ Client.DoesNotExist pour user: {request.user}")
+            print(f" Client.DoesNotExist pour user: {request.user}")
             return Response(
                 {'error': 'Profil client non trouvé'},
                 status=status.HTTP_404_NOT_FOUND

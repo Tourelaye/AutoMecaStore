@@ -1,0 +1,90 @@
+<div class="demandes-fournisseur-page">
+  <h2><i class="bi bi-search"></i> Demandes de pièces</h2>
+
+  <div class="filters">
+    <input type="text" [(ngModel)]="filtreVille" placeholder="Filtrer par ville" (keyup.enter)="load()">
+    <input type="text" [(ngModel)]="filtreMarque" placeholder="Filtrer par marque" (keyup.enter)="load()">
+    <button (click)="load()">Rechercher</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Chargement...</div>
+
+  <div *ngIf="!loading && demandes.length === 0" class="empty">
+    <p>Aucune demande ne correspond à vos filtres pour le moment.</p>
+  </div>
+
+  <div *ngIf="!loading" class="demandes-list">
+    <div class="demande-card" *ngFor="let d of demandes" (click)="openOffer(d)">
+      <div class="demande-header">
+        <span class="demande-ref">{{ d.reference }}</span>
+        <span class="demande-statut">{{ d.ville }}</span>
+      </div>
+      <div class="demande-piece">{{ d.piece_recherchee }}</div>
+      <div class="demande-vehicule" *ngIf="d.marque_vehicule || d.modele_vehicule">
+        {{ d.marque_vehicule }} {{ d.modele_vehicule }} {{ d.annee_vehicule }}
+      </div>
+      <div class="demande-meta">
+        <span *ngIf="d.quartier">{{ d.quartier }}</span>
+        <span>Qté : {{ d.quantite }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="offer-modal" *ngIf="selectedDemande" (click)="closeOffer()">
+  <div class="offer-content" (click)="$event.stopPropagation()">
+    <h3>Faire une offre pour {{ selectedDemande.piece_recherchee }}</h3>
+    <p class="ref">{{ selectedDemande.reference }}</p>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prix (FCFA) *</label>
+        <input type="number" [(ngModel)]="offreForm.prix" min="0">
+      </div>
+      <div class="form-group">
+        <label>État</label>
+        <select [(ngModel)]="offreForm.etat">
+          <option value="neuf">Neuf</option>
+          <option value="occasion">Occasion</option>
+          <option value="reconditionne">Reconditionné</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Disponibilité</label>
+        <select [(ngModel)]="offreForm.disponibilite">
+          <option value="en_stock">En stock</option>
+          <option value="sous_48h">Sous 48h</option>
+          <option value="sous_1_semaine">Sous 1 semaine</option>
+          <option value="sous_2_semaines">Sous 2 semaines</option>
+          <option value="sur_commande">Sur commande</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Mode de réception</label>
+        <select [(ngModel)]="offreForm.mode_reception">
+          <option value="livraison">Livraison</option>
+          <option value="retrait_magasin">Retrait en magasin</option>
+          <option value="livraison_ou_retrait">Les deux</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Garantie</label>
+      <input type="text" [(ngModel)]="offreForm.garantie" placeholder="Ex: 6 mois">
+    </div>
+
+    <div class="form-group">
+      <label>Délai / Observations</label>
+      <textarea [(ngModel)]="offreForm.description" rows="3"></textarea>
+    </div>
+
+    <button class="btn-submit" (click)="soumettreOffre()" [disabled]="submitting">
+      {{ submitting ? 'Envoi...' : 'Envoyer l\'offre' }}
+    </button>
+    <button class="btn-cancel" (click)="closeOffer()">Annuler</button>
+  </div>
+</div>

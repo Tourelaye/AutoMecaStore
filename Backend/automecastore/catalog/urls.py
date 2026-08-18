@@ -2,13 +2,17 @@ from django.urls import path
 from .views import (
     CategorieListCreateView,
     CategorieDetailView,
+    MarqueListCreateView,
+    MarqueDetailView,
     TypePieceListCreateView,
     TypePieceDetailView,
     ProduitListCreateView,
     ProduitDetailView,
+    ProduitAutocompleteView,
     ProduitFavorisListCreateView,
     ProduitRestaurerView,
     ProduitVerifierUtilisationView,
+    MagasinDetailView,
     LivraisonListCreateView,
     LivraisonDetailView,
     HomeCategoriesView,
@@ -19,19 +23,26 @@ from .views import (
     HomeFeaturedView,
     HomeRecommendedView,
     HomePopularSearchesView,
-    IncrementProductViewsView
+    IncrementProductViewsView,
+    DemandePieceCreateView,
+    DemandePieceListView,
+    DemandePieceDetailView
 )
 
 urlpatterns = [
     path('categories/', CategorieListCreateView.as_view(), name='categorie_list_create'),
     path('categories/<int:pk>/', CategorieDetailView.as_view(), name='categorie_detail'),
+    path('marques/', MarqueListCreateView.as_view(), name='marque_list_create'),
+    path('marques/<int:pk>/', MarqueDetailView.as_view(), name='marque_detail'),
     path('types-pieces/', TypePieceListCreateView.as_view(), name='type_piece_list_create'),
     path('types-pieces/<int:pk>/', TypePieceDetailView.as_view(), name='type_piece_detail'),
     path('produits/', ProduitListCreateView.as_view(), name='produit_list_create'),
+    path('produits/autocomplete/', ProduitAutocompleteView.as_view(), name='produit_autocomplete'),
     path('produits/<int:pk>/', ProduitDetailView.as_view(), name='produit_detail'),
     path('produits/<int:pk>/restaurer/', ProduitRestaurerView.as_view(), name='produit_restaurer'),
     path('produits/<int:pk>/verifier-utilisation/', ProduitVerifierUtilisationView.as_view(), name='produit_verifier_utilisation'),
     path('produits/<int:pk>/increment-views/', IncrementProductViewsView.as_view(), name='produit_increment_views'),
+    path('magasins/<int:pk>/', MagasinDetailView.as_view(), name='magasin_detail'),
     path('produits/favoris/', ProduitFavorisListCreateView.as_view(), name='produit_favoris_create'),
     path('livraisons/', LivraisonListCreateView.as_view(), name='livraison_list_create'),
     path('livraisons/<int:pk>/', LivraisonDetailView.as_view(), name='livraison_detail'),
@@ -44,4 +55,8 @@ urlpatterns = [
     path('home/featured/', HomeFeaturedView.as_view(), name='home_featured'),
     path('home/recommended/', HomeRecommendedView.as_view(), name='home_recommended'),
     path('home/popular-searches/', HomePopularSearchesView.as_view(), name='home_popular_searches'),
+    # Demande de pièce
+    path('demandes-pieces/', DemandePieceCreateView.as_view(), name='demande_piece_create'),
+    path('demandes-pieces/list/', DemandePieceListView.as_view(), name='demande_piece_list'),
+    path('demandes-pieces/<int:pk>/', DemandePieceDetailView.as_view(), name='demande_piece_detail'),
 ]

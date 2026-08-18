@@ -35,10 +35,10 @@ for category_name, types_names in types_pieces_data.items():
                     categorie=category,
                     description=f"Type de pièce: {type_name} pour {category.nom}"
                 )
-                print(f"  ✓ Created: {type_name}")
+                print(f"   Created: {type_name}")
             else:
                 print(f"  - Already exists: {type_name}")
     except Categorie.DoesNotExist:
-        print(f"  ✗ Category not found: {category_name}")
+        print(f"   Category not found: {category_name}")
 
-print("\n✅ TypePiece population completed!")
+print("\n TypePiece population completed!")

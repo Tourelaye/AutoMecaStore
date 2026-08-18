@@ -1,0 +1,186 @@
+.magasin-detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.magasin-hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, #eff6ff 0%, #fff 100%);
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.hero-logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.hero-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-logo i {
+  font-size: 40px;
+  color: #2563eb;
+}
+
+.hero-info h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  color: #111827;
+}
+
+.adresse, .telephone {
+  margin: 4px 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tags span {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 99px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tag-note { color: #ca8a04; }
+.tag-distance { color: #0891b2; }
+.tag-livraison { color: #2563eb; }
+.tag-retrait { color: #059669; }
+.tag-ouverture { color: #dc2626; }
+.tag-ouverture.ouvert { color: #16a34a; }
+
+.magasin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.magasin-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-link {
+  background: transparent;
+  color: #2563eb;
+}
+
+.magasin-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+
+.carte-bloc, .info-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.carte-bloc h2, .info-card h3 {
+  margin-top: 0;
+  font-size: 17px;
+  color: #111827;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carte-bloc h2 i, .info-card h3 i {
+  color: #2563eb;
+}
+
+.carte-placeholder {
+  background: #f9fafb;
+  border-radius: 16px;
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.infos-bloc {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-card p {
+  margin: 6px 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.magasin-retour {
+  margin-top: 24px;
+}
+
+.loading-state, .error-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  font-size: 32px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .magasin-hero { flex-direction: column; align-items: flex-start; }
+  .magasin-grid { grid-template-columns: 1fr; }
+}

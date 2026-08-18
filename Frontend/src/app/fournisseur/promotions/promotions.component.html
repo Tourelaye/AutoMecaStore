@@ -5,121 +5,271 @@
     <div class="page-icon">🏷️</div>
     <div>
       <h1 class="page-title">Campagnes Promotions</h1>
-      <p class="page-sub">Configurez des réductions flash sur vos pièces pour booster vos ventes auprès des garagistes.</p>
+      <p class="page-sub">Créez, pilotez et suivez vos campagnes marketing sur vos pièces auto.</p>
+    </div>
+  </div>
+
+  <!-- ========== DASHBOARD STATS ========== -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <i class="bi bi-tags-fill stat-icon stat-blue"></i>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total promotions</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <i class="bi bi-lightning-charge-fill stat-icon stat-green"></i>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats.actives }}</span>
+        <span class="stat-label">Actives</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <i class="bi bi-box-seam stat-icon stat-gold"></i>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats.produits_en_promotion }}</span>
+        <span class="stat-label">Produits en promo</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <i class="bi bi-cart-check-fill stat-icon stat-purple"></i>
+      <div class="stat-body">
+        <span class="stat-value">{{ stats.ventes_generees }}</span>
+        <span class="stat-label">Ventes générées</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <i class="bi bi-cash-stack stat-icon stat-mint"></i>
+      <div class="stat-body">
+        <span class="stat-value">{{ formatPrix(stats.revenus_generees) }}</span>
+        <span class="stat-label">Revenus générés</span>
+      </div>
+    </div>
+    <div class="stat-card best-promo" *ngIf="stats.meilleure_promotion">
+      <i class="bi bi-trophy-fill stat-icon stat-gold"></i>
+      <div class="stat-body">
+        <span class="stat-value truncate">{{ stats.meilleure_promotion.nom || stats.meilleure_promotion.type_promotion_label }}</span>
+        <span class="stat-label">Meilleure promo</span>
+      </div>
     </div>
   </div>
 
   <!-- ========== GRID 2 COLONNES ========== -->
   <div class="promo-grid">
 
-    <!-- ========== COLONNE GAUCHE : FORMULAIRE ========== -->
+    <!-- ========== FORMULAIRE ========== -->
     <div class="card form-card">
       <div class="card-header-simple">
-        <i class="bi bi-tag-fill card-icon"></i>
+        <i class="bi bi-tag-fill card-icon" [ngClass]="editingId ? 'card-icon-gold' : ''"></i>
         <div>
-          <h2 class="card-title">Nouvelle Promotion</h2>
-          <p class="card-sub">Exemple : Plaquettes Brembo · -15% · 01/08 au 10/08</p>
+          <h2 class="card-title">{{ editingId ? 'Modifier la promotion' : 'Nouvelle Promotion' }}</h2>
+          <p class="card-sub">{{ editingId ? 'Mettez à jour votre campagne.' : 'Exemple : Plaquettes Brembo · -15% · 01/08 au 10/08' }}</p>
         </div>
       </div>
 
-      <form (ngSubmit)="appliquerReduction()" #promoForm="ngForm" class="promo-form">
+      <form [formGroup]="promoForm" (ngSubmit)="submitForm()" class="promo-form">
+
+        <!-- Nom campagne -->
+        <div class="form-field">
+          <label class="form-label">Nom de la campagne *</label>
+          <input type="text" class="form-input" formControlName="nom" placeholder="Soldes d'été">
+        </div>
+
+        <!-- Description -->
+        <div class="form-field">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" formControlName="description" rows="2" placeholder="Décrivez votre offre..."></textarea>
+        </div>
 
         <!-- Produit -->
         <div class="form-field">
-          <label class="form-label">Produit à promouvoir *</label>
-          <select class="form-input form-select" [(ngModel)]="form.produitId" name="produitId" required>
-            <option [ngValue]="null">-- Choisir une référence --</option>
-            <option *ngFor="let p of produitsDisponibles" [ngValue]="p.id">{{ p.nom }}</option>
+          <label class="form-label">Produit concerné *</label>
+          <select class="form-input form-select" formControlName="produit">
+            <option [ngValue]="null">-- Choisir un produit --</option>
+            <option *ngFor="let p of produits" [ngValue]="p.id">{{ p.nom }} ({{ formatPrix(p.prix) }})</option>
           </select>
         </div>
 
-        <!-- Pourcentage -->
+        <!-- Type de promotion -->
         <div class="form-field">
-          <label class="form-label">Pourcentage de réduction (%) *</label>
-          <div class="input-with-suffix">
-            <input
-              type="number" class="form-input" [(ngModel)]="form.pourcentage" name="pourcentage"
-              required min="1" max="90" placeholder="15" #pctInput="ngModel"
-              [class.input-error]="pctInput.invalid && pctInput.touched"
-            >
-            <span class="input-suffix">%</span>
-          </div>
+          <label class="form-label">Type de promotion *</label>
+          <select class="form-input form-select" formControlName="type_promotion">
+            <option *ngFor="let t of typeOptions" [ngValue]="t.value">{{ t.label }}</option>
+          </select>
         </div>
 
-        <!-- Dates -->
+        <!-- Valeur de réduction (conditionnelle) -->
+        <div class="form-field" *ngIf="selectedTypeMeta?.needValue">
+          <label class="form-label">{{ selectedTypeMeta?.valueLabel }} *</label>
+          <div class="input-with-suffix">
+            <input type="number" class="form-input" formControlName="valeur" min="1" placeholder="15">
+            <span class="input-suffix">{{ selectedTypeMeta?.valueSuffix }}</span>
+          </div>
+          <small class="field-hint" *ngIf="selectedTypeMeta?.value === 'montant_fixe'">Ne peut pas dépasser le prix du produit.</small>
+          <small class="field-error" *ngIf="promoForm.get('valeur')?.invalid && promoForm.get('valeur')?.touched">Valeur requise.</small>
+        </div>
+
+        <!-- Dates / Heures -->
         <div class="form-row-2">
           <div class="form-field">
             <label class="form-label">Date de début *</label>
-            <input type="date" class="form-input" [(ngModel)]="form.dateDebut" name="dateDebut" required>
+            <input type="date" class="form-input" formControlName="date_debut">
           </div>
           <div class="form-field">
-            <label class="form-label">Date de fin *</label>
-            <input type="date" class="form-input" [(ngModel)]="form.dateFin" name="dateFin" required>
+            <label class="form-label">Heure début</label>
+            <input type="time" class="form-input" formControlName="heure_debut">
           </div>
         </div>
 
-        <!-- Aperçu prix -->
-        <div class="prix-preview" *ngIf="produitSelectionne && form.pourcentage">
-          <span class="preview-label">Aperçu :</span>
-          <span class="preview-old">{{ formatPrix(produitSelectionne.prix) }}</span>
-          <i class="bi bi-arrow-right"></i>
-          <span class="preview-new">{{ formatPrix(calculPrixReduit(produitSelectionne.prix, form.pourcentage)) }}</span>
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="form-label">Date de fin *</label>
+            <input type="date" class="form-input" formControlName="date_fin">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Heure fin</label>
+            <input type="time" class="form-input" formControlName="heure_fin">
+          </div>
         </div>
 
-        <!-- Erreur -->
-        <div class="form-error-msg" *ngIf="formError">
-          <i class="bi bi-exclamation-triangle-fill"></i> {{ formError }}
+        <!-- Quantité min / Max utilisations -->
+        <div class="form-row-2">
+          <div class="form-field">
+            <label class="form-label">Quantité minimale</label>
+            <input type="number" class="form-input" formControlName="quantite_min" min="1" placeholder="1">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Nombre max d'utilisations</label>
+            <input type="number" class="form-input" formControlName="nombre_max_utilisations" min="1" placeholder="Illimité">
+          </div>
         </div>
 
-        <button type="submit" class="btn-apply" [disabled]="promoForm.invalid || isSaving">
-          <span *ngIf="!isSaving"><i class="bi bi-plus-circle-fill"></i> Appliquer la réduction</span>
-          <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Application...</span>
-        </button>
+        <!-- Active -->
+        <div class="form-field form-check">
+          <input type="checkbox" id="isActive" formControlName="is_active" class="form-check-input">
+          <label for="isActive" class="form-check-label">Promotion active</label>
+        </div>
+
+        <!-- Aperçu -->
+        <div class="preview-card" *ngIf="showPreview && produitSelectionne">
+          <div class="preview-header"><i class="bi bi-eye-fill"></i> Prévisualisation</div>
+          <div class="preview-product">{{ produitSelectionne.nom }}</div>
+          <div class="preview-prices">
+            <span class="preview-old">{{ formatPrix(prixOriginal) }}</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="preview-new">{{ formatPrix(getPrixPreview()) }}</span>
+            <span class="preview-badge" *ngIf="getSavings() > 0">-{{ getSavings() | number:'1.0-0' }} FCFA</span>
+          </div>
+          <div class="preview-type">
+            <i class="bi" [ngClass]="selectedTypeMeta?.icon"></i>
+            {{ selectedTypeMeta?.label }}
+          </div>
+        </div>
+
+        <!-- Erreurs -->
+        <div class="form-error-msg" *ngIf="formError || promoForm.errors?.['dates']">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {{ formError || 'La date de fin doit être postérieure à la date de début.' }}
+        </div>
+
+        <!-- Boutons -->
+        <div class="form-actions">
+          <button type="submit" class="btn-apply" [disabled]="promoForm.invalid || isSaving">
+            <span *ngIf="!isSaving"><i class="bi" [ngClass]="editingId ? 'bi-check-circle-fill' : 'bi-plus-circle-fill'"></i> {{ editingId ? 'Mettre à jour' : 'Créer la promotion' }}</span>
+            <span *ngIf="isSaving" class="saving-spinner"><span class="mini-spinner"></span> Enregistrement...</span>
+          </button>
+          <button type="button" class="btn-secondary" (click)="annulerEdition()" *ngIf="editingId">Annuler</button>
+        </div>
       </form>
     </div>
 
-    <!-- ========== COLONNE DROITE : PROMOTIONS ACTIVES ========== -->
+    <!-- ========== TABLEAU DES PROMOTIONS ========== -->
     <div class="card list-card">
       <div class="card-header-simple">
         <i class="bi bi-lightning-charge-fill card-icon card-icon-gold"></i>
-        <h2 class="card-title">Promotions Actives &amp; Planifiées ({{ promotions.length }})</h2>
+        <h2 class="card-title">Campagnes ({{ promotions.length }})</h2>
       </div>
 
-      <!-- Vide -->
-      <div class="empty-state" *ngIf="promotions.length === 0">
+      <div class="table-loader" *ngIf="isLoading">
+        <div class="spin-ring"></div>
+        <p>Chargement des promotions...</p>
+      </div>
+
+      <div class="empty-state" *ngIf="!isLoading && promotions.length === 0">
         <div class="empty-ico">🏷️</div>
-        <h3>Aucune promotion active</h3>
+        <h3>Aucune promotion</h3>
         <p>Créez votre première campagne à gauche.</p>
       </div>
 
-      <!-- Liste -->
-      <div class="promo-list" *ngIf="promotions.length > 0">
-        <div class="promo-item" *ngFor="let promo of promotions">
-          <div class="promo-img-wrap">
-            <img *ngIf="promo.produitImage" [src]="promo.produitImage" [alt]="promo.produitNom" (error)="onImgError($event)">
-            <div *ngIf="!promo.produitImage" class="promo-img-ph">{{ promo.produitNom.charAt(0) }}</div>
-          </div>
-
-          <div class="promo-badge">-{{ promo.pourcentage }}% OFF</div>
-
-          <div class="promo-info">
-            <span class="promo-nom">{{ promo.produitNom }}</span>
-            <div class="promo-prix-row">
-              <span class="prix-barre">{{ formatPrix(promo.prixOriginal) }}</span>
-              <i class="bi bi-arrow-right"></i>
-              <span class="prix-final">{{ formatPrix(calculPrixReduit(promo.prixOriginal, promo.pourcentage)) }}</span>
-            </div>
-          </div>
-
-          <div class="promo-dates">
-            <i class="bi bi-calendar3"></i>
-            <span>{{ formatDateAffichage(promo.dateDebut) }} au {{ formatDateAffichage(promo.dateFin) }}</span>
-          </div>
-
-          <button class="btn-delete-promo" (click)="supprimerPromo(promo)" title="Supprimer la promotion">
-            <i class="bi bi-trash3"></i>
-          </button>
-        </div>
+      <div class="table-wrap" *ngIf="!isLoading && promotions.length > 0">
+        <table class="promo-table">
+          <thead>
+            <tr>
+              <th class="th-nom">NOM</th>
+              <th class="th-produit">PRODUIT</th>
+              <th class="th-type">TYPE</th>
+              <th class="th-prix">PRIX</th>
+              <th class="th-dates">DÉBUT</th>
+              <th class="th-dates">FIN</th>
+              <th class="th-statut">STATUT</th>
+              <th class="th-actions">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let promo of promotions; trackBy: trackById" class="promo-row">
+              <td class="td-nom">
+                <div class="promo-title">{{ promo.nom || getTypeMeta(promo.type_promotion).label }}</div>
+                <div class="promo-desc" *ngIf="promo.description">{{ promo.description }}</div>
+              </td>
+              <td class="td-produit">
+                <div class="prod-cell">
+                  <div class="prod-img-wrap">
+                    <img *ngIf="getProduct(promo)?.image && !imageErrors[promo.id || 0]" [src]="getProduct(promo)?.image" [alt]="promo.produit_nom" (error)="onImgError(promo.id || 0)">
+                    <div *ngIf="!getProduct(promo)?.image || imageErrors[promo.id || 0]" class="prod-img-ph">{{ (promo.produit_nom || '?').charAt(0) }}</div>
+                  </div>
+                  <span class="prod-name">{{ promo.produit_nom || '—' }}</span>
+                </div>
+              </td>
+              <td class="td-type">
+                <span class="type-badge" [ngClass]="'type-' + promo.type_promotion">
+                  <i class="bi" [ngClass]="getTypeMeta(promo.type_promotion).icon"></i>
+                  {{ getTypeMeta(promo.type_promotion).label }}
+                </span>
+              </td>
+              <td class="td-prix">
+                <div class="price-col">
+                  <span class="old-price" *ngIf="promo.prix_original && promo.prix_promo && promo.prix_promo < promo.prix_original">{{ formatPrix(promo.prix_original) }}</span>
+                  <span class="new-price">{{ promo.prix_promo ? formatPrix(promo.prix_promo) : formatPrix(promo.prix_original) }}</span>
+                </div>
+              </td>
+              <td class="td-dates">{{ formatDate(promo.date_debut) }}</td>
+              <td class="td-dates">{{ formatDate(promo.date_fin) }}</td>
+              <td class="td-statut">
+                <span class="status-badge" [ngClass]="getStatusMeta(promo).colorClass">
+                  <i class="bi" [ngClass]="getStatusMeta(promo).icon"></i>
+                  {{ getStatusMeta(promo).label }}
+                </span>
+              </td>
+              <td class="td-actions">
+                <div class="action-group">
+                  <button class="act-btn act-edit" (click)="modifierPromo(promo)" title="Modifier">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button class="act-btn act-duplicate" (click)="dupliquerPromo(promo)" title="Dupliquer">
+                    <i class="bi bi-copy"></i>
+                  </button>
+                  <button class="act-btn act-toggle" (click)="basculerPromo(promo)" [title]="promo.is_active ? 'Suspendre' : 'Réactiver'">
+                    <i class="bi" [ngClass]="promo.is_active ? 'bi-pause-fill' : 'bi-play-fill'"></i>
+                  </button>
+                  <button class="act-btn act-delete" (click)="supprimerPromo(promo)" title="Supprimer">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -127,7 +277,7 @@
 </div>
 
 <!-- Toast -->
-<div class="toast-notif" *ngIf="toastMsg" [class.toast-success]="toastType==='success'" [class.toast-error]="toastType==='error'">
-  <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
+<div class="toast-notif" *ngIf="toastMsg" [ngClass]="'toast-' + toastType">
+  <i class="bi" [ngClass]="toastType === 'success' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
   {{ toastMsg }}
 </div>

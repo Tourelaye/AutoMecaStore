@@ -1,0 +1,230 @@
+.mes-demandes-page {
+  padding: 40px 0 80px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.mes-demandes-page h2 {
+  margin-bottom: 24px;
+  font-size: 26px;
+  color: #111827;
+}
+
+.loading, .empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6b7280;
+}
+
+.empty-state .btn-shop {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: #f97316;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.demandes-list {
+  display: grid;
+  gap: 16px;
+}
+
+.demande-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.demande-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.demande-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.demande-ref {
+  font-weight: 700;
+  color: #f97316;
+  font-size: 14px;
+}
+
+.demande-statut {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.statut-nouvelle, .statut-en_recherche { background: #eff6ff; color: #1e40af; }
+.statut-offres_recues { background: #fff7ed; color: #f97316; }
+.statut-acceptee, .statut-commande_creee { background: #f0fdf4; color: #15803d; }
+.statut-terminee { background: #f3f4f6; color: #374151; }
+.statut-annulee { background: #fef2f2; color: #b91c1c; }
+
+.demande-piece {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.demande-vehicule {
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.demande-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.demande-meta .offres {
+  color: #f97316;
+  font-weight: 600;
+}
+
+.btn-back {
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.detail-ref {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.detail-item {
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item .label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.offres-section {
+  margin-top: 28px;
+}
+
+.offres-section h4 {
+  margin-bottom: 16px;
+}
+
+.offre-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.offre-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.offre-prix {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f97316;
+}
+
+.offre-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.offre-detail .badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 13px;
+}
+
+.offre-desc {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.offre-action {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
+}
+
+.offre-action .form-select {
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.btn-accept {
+  padding: 12px;
+  background: #f97316;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-accept:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.commande-link {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f0fdf4;
+  border-radius: 10px;
+  color: #15803d;
+}
+
+.commande-link a {
+  color: #15803d;
+  font-weight: 600;
+}

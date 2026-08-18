@@ -1,31 +1,31 @@
 <div class="liv-page">
 
-        <!-- PAGE HEADER -->
-    <div class="page-header fade-up">
-      <div class="page-title">
-        <div class="page-tag">
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Catalogue
-        </div>
-        <h2>Gestion des livraisons</h2>
-        <p>Gérez vos livraisons et leurs informations</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        AutoMecaStore
       </div>
+      <h2>Gestion des livraisons</h2>
+      <p>Suivi et pilotage de toutes les livraisons</p>
+    </div>
 
-      <div class="header-stats">
-        <div class="hs-item">
-          <span class="hs-val text-green">{{ livreesTerminees }}</span>
-          <span class="hs-lbl">Livrées</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-blue">{{ enTransitActifs }}</span>
-          <span class="hs-lbl">En transit</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-red">{{ retardsConstates }}</span>
-          <span class="hs-lbl">Retards</span>
-        </div>
+    <div class="header-stats">
+      <div class="hs-item">
+        <span class="hs-val text-green">{{ livreesTerminees }}</span>
+        <span class="hs-lbl">Livrées</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-blue">{{ enCours }}</span>
+        <span class="hs-lbl">En cours</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-orange">{{ enAttente }}</span>
+        <span class="hs-lbl">En attente</span>
       </div>
     </div>
+  </div>
 
   <!-- Barre de filtres -->
   <div class="toolbar">
@@ -33,7 +33,7 @@
       <i class="bi bi-search"></i>
       <input
         type="text"
-        placeholder="Rechercher par colis, transporteur, client, vendeur..."
+        placeholder="Rechercher par commande, client, magasin..."
         [(ngModel)]="searchTerm"
         (ngModelChange)="applyFilters()"
       />
@@ -44,6 +44,8 @@
     </select>
   </div>
 
+  <div class="error-message" *ngIf="error">{{ error }}</div>
+
   <!-- Chargement -->
   <div class="liv-loading" *ngIf="loading">
     <div class="spinner"></div>
@@ -53,57 +55,59 @@
   <!-- Liste des livraisons -->
   <div class="liv-list" *ngIf="!loading">
     <div
-      class="liv-card"
-      [class]="'liv-card--' + l.status"
+      class="liv-card liv-card--{{ l.statut }}"
       *ngFor="let l of filtered; let i = index; trackBy: trackById"
       [style.--delay]="(i * 60) + 'ms'"
     >
       <div class="liv-card__left">
         <span class="liv-icon"><i class="bi bi-truck"></i></span>
         <div class="liv-card__ids">
-          <span class="liv-card__transp">TRANSP_ID: {{ l.id }}</span>
-          <span class="liv-card__order">Commande : {{ l.orderRef }}</span>
+          <span class="liv-card__transp">LIV #{{ l.id }}</span>
+          <span class="liv-card__order">Commande : {{ l.commande?.reference }}</span>
         </div>
       </div>
 
       <div class="liv-card__parties">
         <div class="party">
-          <span class="party__label">Boutique expéditeur</span>
-          <span class="party__value">{{ l.vendor }}</span>
+          <span class="party__label">Boutique expéditrice</span>
+          <span class="party__value">{{ l.magasin?.nom_magasin || l.fournisseur?.nom_entreprise || '—' }}</span>
         </div>
         <div class="party">
           <span class="party__label">Destinataire final</span>
-          <span class="party__value">{{ l.client }}</span>
+          <span class="party__value">{{ l.client?.prenom }} {{ l.client?.nom }}<br><small>{{ l.client?.email }}</small></span>
         </div>
       </div>
 
       <div class="liv-card__middle">
         <div class="liv-card__meta">
-          <span class="meta-item"><span class="meta-item__label">Transporteur:</span> <strong>{{ l.carrier }}</strong></span>
-          <span class="meta-item"><span class="meta-item__label">Tracking:</span> <strong class="mono blue">{{ l.trackingNumber }}</strong></span>
+          <span class="meta-item"><span class="meta-item__label">Adresse:</span> <strong>{{ l.adresse?.adresse }}, {{ l.adresse?.quartier }}, {{ l.adresse?.ville }}</strong></span>
+          <span class="meta-item"><span class="meta-item__label">Téléphone:</span> <strong class="mono blue">{{ l.adresse?.telephone || '—' }}</strong></span>
+          <span class="meta-item"><span class="meta-item__label">Frais:</span> <strong>{{ l.frais_livraison | number:'1.2-2' }} FCFA</strong></span>
+          <span class="meta-item"><span class="meta-item__label">Responsable:</span> <strong>{{ l.responsable_nom || 'Non attribué' }}</strong></span>
         </div>
 
-        <div class="position-box" [class.position-box--incident]="l.status === 'incident'">
+        <div class="position-box">
           <span class="position-box__row">
-            <span><i class="bi bi-geo-alt-fill"></i> Position actuelle :</span>
-            <span class="position-box__value">{{ l.currentPosition }}</span>
+            <span><i class="bi bi-geo-alt-fill"></i> Instructions :</span>
+            <span class="position-box__value">{{ l.adresse?.instructions || l.instructions || '—' }}</span>
           </span>
-          <span class="position-box__incident" *ngIf="l.status === 'incident' && l.incidentReason">
-            {{ l.incidentReason }}
+          <span class="position-box__row" *ngIf="l.adresse?.point_de_repere">
+            <span><i class="bi bi-flag-fill"></i> Repère :</span>
+            <span class="position-box__value">{{ l.adresse?.point_de_repere }}</span>
           </span>
         </div>
       </div>
 
       <div class="liv-card__right">
-        <span class="badge" [class]="'badge--' + l.status">{{ statusLabel(l.status) }}</span>
-        <span class="liv-card__eta">Est. Livr. : {{ l.estimatedDelivery }}</span>
+        <span class="badge badge--{{ l.statut }}">{{ livraisonService.getStatutLabel(l.statut) }}</span>
 
         <div class="liv-card__actions">
-          <button class="btn-urgence" *ngIf="l.status === 'incident'" (click)="askResolve(l)">
-            Intervenir d'urgence
-          </button>
-          <button class="btn-icon" title="Voir le tracking" (click)="openTracking(l)">
-            <i class="bi bi-box-arrow-up-right"></i>
+          <select class="status-select" [(ngModel)]="nouveauStatut[l.id]" [ngModelOptions]="{ standalone: true }">
+            <option value="">Changer le statut</option>
+            <option *ngFor="let s of statuts" [value]="s">{{ livraisonService.getStatutLabel(s) }}</option>
+          </select>
+          <button class="btn-icon" title="Valider" (click)="updateStatut(l.id)" [disabled]="!nouveauStatut[l.id] || actionEnCours === l.id">
+            <i class="bi bi-check-lg"></i>
           </button>
         </div>
       </div>
@@ -112,37 +116,6 @@
     <div class="liv-empty" *ngIf="filtered.length === 0">
       <i class="bi bi-inboxes"></i>
       <p>Aucune livraison ne correspond à ces filtres.</p>
-    </div>
-  </div>
-
-  <!-- ===================== MODALE : RÉSOLUTION D'INCIDENT ===================== -->
-  <div class="modal-backdrop" *ngIf="showIncidentModal" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h3 class="modal__title">Intervenir sur l'incident</h3>
-      <p class="modal__text">
-        Colis <strong>{{ targetLivraison?.id }}</strong> — {{ targetLivraison?.carrier }} ({{ targetLivraison?.trackingNumber }})
-      </p>
-      <p class="modal__text modal__text--incident" *ngIf="targetLivraison?.incidentReason">
-        {{ targetLivraison?.incidentReason }}
-      </p>
-
-      <div class="field">
-        <label>Note d'intervention (action prise pour débloquer le colis)</label>
-        <textarea
-          rows="3"
-          placeholder="ex: Client recontacté, adresse complétée, nouvelle tentative de livraison programmée..."
-          [(ngModel)]="noteInput"
-          [ngModelOptions]="{ standalone: true }"
-        ></textarea>
-      </div>
-
-      <div class="modal__footer">
-        <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">Annuler</button>
-        <button type="button" class="btn-text btn-text--primary" [disabled]="submitting || !noteInput.trim()" (click)="confirmResolve()">
-          <span *ngIf="!submitting">Marquer comme repris en transit</span>
-          <span *ngIf="submitting">Traitement...</span>
-        </button>
-      </div>
     </div>
   </div>
 

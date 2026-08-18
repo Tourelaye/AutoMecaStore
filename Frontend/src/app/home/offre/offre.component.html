@@ -85,15 +85,12 @@
           <!-- BOUTON PANIER -->
           <button
             class="cart-btn"
-            [class.added]="produitAjoute === produit.id"
             [disabled]="produit.stock === 0"
-            (click)="ajouterAuPanier(produit, $event)"
+            (click)="goToProduit(produit.id); $event.stopPropagation()"
+            type="button"
+            title="Choisir un magasin"
           >
-            <i
-              class="fa-solid"
-              [class.fa-cart-shopping]="produitAjoute !== produit.id"
-              [class.fa-check]="produitAjoute === produit.id"
-            ></i>
+            <i class="fa-solid fa-shop"></i>
           </button>
 
         </div>

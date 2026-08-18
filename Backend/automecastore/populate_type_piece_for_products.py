@@ -46,11 +46,11 @@ def populate_type_pieces():
                 produit.type_piece = matching_type
                 produit.save()
                 updated_count += 1
-                print(f"✓ Produit '{produit.nom}' -> TypePiece: {matching_type.nom} (Catégorie: {categorie_nom})")
+                print(f" Produit '{produit.nom}' -> TypePiece: {matching_type.nom} (Catégorie: {categorie_nom})")
             else:
-                print(f"✗ Produit '{produit.nom}' -> Aucun TypePiece trouvé pour la catégorie {categorie_nom}")
+                print(f" Produit '{produit.nom}' -> Aucun TypePiece trouvé pour la catégorie {categorie_nom}")
         else:
-            print(f"✗ Produit '{produit.nom}' -> Catégorie non reconnue ou None: {categorie_nom}")
+            print(f" Produit '{produit.nom}' -> Catégorie non reconnue ou None: {categorie_nom}")
     
     print(f"\n=== Résumé ===")
     print(f"Produits mis à jour: {updated_count}/{products_without_type.count()}")

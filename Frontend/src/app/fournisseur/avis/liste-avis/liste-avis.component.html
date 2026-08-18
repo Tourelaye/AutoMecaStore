@@ -5,22 +5,47 @@
     <div class="page-icon">⭐</div>
     <div>
       <h1>Avis clients</h1>
-      <p class="page-subtitle">Consultez et répondez aux avis de vos clients.</p>
+      <p class="page-subtitle">Consultez, répondez et analysez les avis de vos clients.</p>
     </div>
   </div>
 
-  <!-- ========== RÉSUMÉ SATISFACTION ========== -->
-  <div class="summary-card">
-    <div class="summary-score">
-      <span class="score-big">{{ noteMoyenne.toFixed(1) }}</span>
-      <div class="score-stars">
-        <i class="bi bi-star-fill" *ngFor="let s of [1,2,3,4,5]" [class.star-empty]="s > noteMoyenne"></i>
+  <!-- ========== DASHBOARD ========== -->
+  <div class="dashboard-grid" *ngIf="stats">
+    <div class="stat-card stat-primary">
+      <span class="stat-label">Note moyenne</span>
+      <span class="stat-value">{{ stats.note_moyenne.toFixed(1) }}</span>
+      <div class="stars-row">
+        <ng-container *ngFor="let filled of getStars(getRoundedNote(stats.note_moyenne))">
+          <i class="bi bi-star-fill"></i>
+        </ng-container>
+        <ng-container *ngFor="let filled of getStars(5 - getRoundedNote(stats.note_moyenne))">
+          <i class="bi bi-star"></i>
+        </ng-container>
       </div>
-      <span class="score-total">{{ avis.length }} avis au total</span>
     </div>
 
+    <div class="stat-card">
+      <span class="stat-label">Total avis</span>
+      <span class="stat-value">{{ stats.total }}</span>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-label">Réponses fournisseur</span>
+      <span class="stat-value">{{ stats.reponses.count }}</span>
+      <span class="stat-sub" *ngIf="stats.reponses.avg_response_time_hours !== null">{{ stats.reponses.avg_response_time_hours }} h moy.</span>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-label">Avis signalés</span>
+      <span class="stat-value">{{ signalesCount }}</span>
+    </div>
+  </div>
+
+  <!-- ========== RÉPARTITION DES NOTES ========== -->
+  <div class="summary-card">
+    <h3 class="section-title">Répartition des notes</h3>
     <div class="summary-bars">
-      <div class="summary-row" *ngFor="let r of repartitionNotes">
+      <div class="summary-row" *ngFor="let r of repartitionPercentages">
         <span class="sr-label">{{ r.note }} <i class="bi bi-star-fill"></i></span>
         <div class="sr-track"><div class="sr-fill" [style.width.%]="r.pct"></div></div>
         <span class="sr-count">{{ r.count }}</span>
@@ -28,44 +53,98 @@
     </div>
   </div>
 
-  <!-- ========== ACTIONS BAR ========== -->
-  <div class="actions-bar">
+  <!-- ========== FILTRES ========== -->
+  <form [formGroup]="filtresForm" class="actions-bar">
     <div class="search-box">
       <i class="bi bi-search"></i>
-      <input type="text" placeholder="Rechercher un avis, un client, un produit..." [(ngModel)]="searchTerm">
-      <button class="search-clear" *ngIf="searchTerm" (click)="searchTerm=''">
+      <input type="text" formControlName="search" placeholder="Rechercher un client, un produit, un commentaire...">
+      <button type="button" class="search-clear" *ngIf="filtresForm.get('search')?.value" (click)="filtresForm.get('search')?.setValue('')">
         <i class="bi bi-x"></i>
       </button>
     </div>
 
     <div class="filters-right">
-      <select class="filter-select" [(ngModel)]="selectedNote" (change)="onNoteChange(selectedNote)">
-        <option value="">Toutes les notes</option>
-        <option *ngFor="let note of notes" [value]="note">{{ note }}</option>
+      <select class="filter-select" formControlName="note">
+        <option *ngFor="let opt of noteOptions" [value]="opt.value">{{ opt.label }}</option>
       </select>
 
-      <select class="filter-select" [(ngModel)]="sortBy">
-        <option value="recent">Plus récents</option>
-        <option value="ancien">Plus anciens</option>
-        <option value="meilleure">Meilleure note</option>
-        <option value="pire">Note la plus basse</option>
-        <option value="sans_reponse">Sans réponse</option>
+      <select class="filter-select" formControlName="avecPhotos" title="Photos">
+        <option *ngFor="let opt of ouiNonOptions" [value]="opt.value">{{ opt.value === 'tous' ? 'Photos' : opt.label }}</option>
       </select>
+
+      <select class="filter-select" formControlName="achatVerifie" title="Achat vérifié">
+        <option *ngFor="let opt of ouiNonOptions" [value]="opt.value">{{ opt.value === 'tous' ? 'Achat vérifié' : opt.label }}</option>
+      </select>
+
+      <select class="filter-select" formControlName="sortBy">
+        <option *ngFor="let opt of sortOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+
+      <button type="button" class="btn-sort-dir" (click)="toggleSortDirection()" title="Sens du tri">
+        <i class="bi" [class.bi-sort-down-alt]="filtresForm.get('sortDir')?.value === 'desc'" [class.bi-sort-up-alt]="filtresForm.get('sortDir')?.value === 'asc'"></i>
+      </button>
+
+      <button type="button" class="btn-export" (click)="exportPDF()"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+      <button type="button" class="btn-export" (click)="exportExcel()"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+
+      <button type="button" class="btn-reset" (click)="resetFilters()" title="Réinitialiser les filtres"><i class="bi bi-arrow-counterclockwise"></i></button>
+    </div>
+  </form>
+
+  <!-- ========== STATISTIQUES AVANCÉES ========== -->
+  <div class="stats-insight" *ngIf="stats && (stats.top_produits.length || stats.flop_produits.length || evolutionLabels.length)">
+    <div class="insight-col" *ngIf="stats.top_produits.length">
+      <h4><i class="bi bi-trophy"></i> Top produits</h4>
+      <ul>
+        <li *ngFor="let p of stats.top_produits">
+          <span class="insight-name">{{ p.nom }}</span>
+          <span class="badge-note">{{ p.note_moyenne.toFixed(1) }} <i class="bi bi-star-fill"></i></span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="insight-col" *ngIf="stats.flop_produits.length">
+      <h4><i class="bi bi-arrow-down-circle"></i> À améliorer</h4>
+      <ul>
+        <li *ngFor="let p of stats.flop_produits">
+          <span class="insight-name">{{ p.nom }}</span>
+          <span class="badge-note low">{{ p.note_moyenne.toFixed(1) }} <i class="bi bi-star-fill"></i></span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="insight-col wide" *ngIf="evolutionLabels.length">
+      <h4><i class="bi bi-graph-up"></i> Évolution de la satisfaction</h4>
+      <div class="evolution-chart">
+        <div class="evo-bar" *ngFor="let mois of evolutionLabels" [attr.title]="mois">
+          <div class="evo-stack">
+            <div class="evo-segment count" [style.height.%]="(stats!.evolution[mois].count / maxEvolutionCount) * 100"></div>
+          </div>
+          <span class="evo-moy">{{ stats!.evolution[mois].moyenne.toFixed(1) }}</span>
+          <span class="evo-label">{{ mois | slice:5:7 }}</span>
+        </div>
+      </div>
+      <div class="evo-legend">
+        <span><i class="dot count"></i> Nombre d'avis</span>
+        <span><i class="dot moy"></i> Note moyenne</span>
+      </div>
     </div>
   </div>
 
   <!-- ========== GRID AVIS ========== -->
-  <div class="avis-grid">
+  <div class="avis-grid" *ngIf="filteredAvis.length">
     <div class="avis-card" *ngFor="let avi of filteredAvis">
 
       <div class="avis-header">
         <div class="client-info">
           <div class="client-avatar">
-            <i class="bi bi-person-circle"></i>
+            <img *ngIf="avi.client_photo" [src]="avi.client_photo" alt="Avatar" (error)="avi.client_photo = null">
+            <span *ngIf="!avi.client_photo">{{ getInitials(avi.client_nom, avi.client_prenom) }}</span>
           </div>
-          <div>
-            <h4>{{ avi.client_nom }}</h4>
-            <p class="avis-date">{{ avi.date | date:'dd/MM/yyyy' }}</p>
+          <div class="client-meta">
+            <h4>{{ avi.client_prenom || '' }} {{ avi.client_nom }}</h4>
+            <p class="avis-date">{{ formatDate(avi.date) }}</p>
+            <span class="verified-badge" *ngIf="avi.achat_verifie"><i class="bi bi-patch-check-fill"></i> Achat vérifié</span>
           </div>
         </div>
         <div class="avis-note" [ngClass]="getNoteClass(avi.note)">
@@ -74,51 +153,60 @@
       </div>
 
       <div class="avis-produit">
-        <i class="bi bi-box-seam"></i>
-        <span>{{ avi.produit_nom }}</span>
+        <img *ngIf="avi.produit_image" [src]="avi.produit_image" alt="Produit" class="produit-thumb" (error)="avi.produit_image = null">
+        <i *ngIf="!avi.produit_image" class="bi bi-box-seam"></i>
+        <div class="produit-text">
+          <span class="produit-nom">{{ avi.produit_nom }}</span>
+          <span class="produit-ref" *ngIf="avi.produit_reference">{{ avi.produit_reference }}</span>
+        </div>
       </div>
 
       <p class="avis-commentaire">{{ avi.commentaire }}</p>
+
+      <!-- Photos client -->
+      <div class="avis-photos" *ngIf="avi.photos?.length">
+        <img *ngFor="let photo of avi.photos" [src]="photo" alt="Photo client" (click)="openPhotoPreview(photo)">
+      </div>
 
       <!-- Réponse existante -->
       <div class="reponse-block" *ngIf="avi.reponse_fournisseur">
         <div class="reponse-header">
           <i class="bi bi-shop"></i>
-          <span>Votre réponse</span>
-          <span class="reponse-date">{{ avi.date_reponse | date:'dd/MM/yyyy' }}</span>
+          <span>{{ avi.reponse_fournisseur_nom || 'Votre réponse' }}</span>
+          <span class="reponse-date">{{ formatDate(avi.date_reponse || '') }}</span>
         </div>
         <p class="reponse-texte">{{ avi.reponse_fournisseur }}</p>
-        <button class="btn-edit-reponse" (click)="ouvrirReponse(avi)">
+        <button type="button" class="btn-edit-reponse" (click)="ouvrirReponse(avi)">
           <i class="bi bi-pencil"></i> Modifier
         </button>
       </div>
 
-      <!-- Bouton répondre -->
-      <button class="btn-repondre" *ngIf="!avi.reponse_fournisseur && editingId !== avi.id" (click)="ouvrirReponse(avi)">
-        <i class="bi bi-reply-fill"></i> Répondre à cet avis
-      </button>
+      <!-- Actions -->
+      <div class="avis-actions" *ngIf="activeReplyAvis?.id !== avi.id">
+        <button type="button" class="btn-repondre" (click)="ouvrirReponse(avi)">
+          <i class="bi bi-reply-fill"></i> {{ avi.reponse_fournisseur ? 'Modifier la réponse' : 'Répondre' }}
+        </button>
+        <button type="button" class="btn-signaler" [disabled]="avi.signale" (click)="ouvrirSignalement(avi)">
+          <i class="bi bi-exclamation-triangle-fill"></i> {{ avi.signale ? 'Signalé' : 'Signaler' }}
+        </button>
+      </div>
 
       <!-- Formulaire réponse -->
-      <div class="reponse-form" *ngIf="editingId === avi.id">
-        <textarea
-          class="reponse-textarea"
-          rows="3"
-          placeholder="Remerciez le client ou répondez à sa remarque..."
-          [(ngModel)]="reponseTexte"
-        ></textarea>
+      <form [formGroup]="replyForm" class="reponse-form" *ngIf="activeReplyAvis?.id === avi.id" (ngSubmit)="enregistrerReponse()">
+        <textarea formControlName="reponse" rows="3" placeholder="Remerciez le client ou répondez à sa remarque..." class="reponse-textarea"></textarea>
         <div class="reponse-form-actions">
-          <button class="btn-cancel-reponse" (click)="annulerReponse()">Annuler</button>
-          <button class="btn-save-reponse" [disabled]="!reponseTexte.trim()" (click)="enregistrerReponse(avi)">
+          <button type="button" class="btn-cancel-reponse" (click)="annulerReponse()">Annuler</button>
+          <button type="submit" class="btn-save-reponse" [disabled]="replyForm.invalid">
             <i class="bi bi-check-circle"></i> Publier la réponse
           </button>
         </div>
-      </div>
+      </form>
 
     </div>
   </div>
 
   <!-- ========== EMPTY STATE ========== -->
-  <div class="no-results" *ngIf="filteredAvis.length === 0">
+  <div class="no-results" *ngIf="!isLoading && filteredAvis.length === 0">
     <i class="bi bi-inbox"></i>
     <p>Aucun avis trouvé</p>
     <span class="no-results-sub">Modifiez vos filtres de recherche.</span>
@@ -126,7 +214,33 @@
 
 </div>
 
+<!-- ========== MODAL SIGNALEMENT ========== -->
+<div class="modal-backdrop" *ngIf="showReportModal" (click)="annulerSignalement()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <h3><i class="bi bi-exclamation-triangle-fill"></i> Signaler un avis</h3>
+    <p>Choisissez un motif. Le signalement sera transmis à l'administrateur.</p>
+    <form [formGroup]="reportForm" (ngSubmit)="confirmerSignalement()">
+      <div class="form-group">
+        <label>Motif</label>
+        <select formControlName="motif">
+          <option value="" disabled>— Choisissez un motif —</option>
+          <option *ngFor="let m of motifsSignalement" [value]="m.value">{{ m.label }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Commentaire facultatif</label>
+        <textarea formControlName="commentaire" rows="3" placeholder="Précisez votre signalement (500 caractères max)"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="annulerSignalement()">Annuler</button>
+        <button type="submit" class="btn-confirm" [disabled]="reportForm.invalid">Envoyer le signalement</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Toast -->
-<div class="toast-notif" *ngIf="toastMsg">
-  <i class="bi bi-check-circle-fill"></i> {{ toastMsg }}
+<div class="toast-notif" *ngIf="toastMsg" [class.error]="toastType === 'error'">
+  <i class="bi" [class.bi-check-circle-fill]="toastType === 'success'" [class.bi-exclamation-circle-fill]="toastType === 'error'"></i>
+  {{ toastMsg }}
 </div>

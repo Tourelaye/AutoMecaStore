@@ -4,28 +4,35 @@
   <div class="page-header fade-up">
     <div class="page-title">
       <div class="page-tag">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        Catalogue
+        <i class="bi bi-shop-window"></i>
+        Partenaires
       </div>
-      <h2>Gestion des Fournisseurs</h2>
-      <p>Gérez vos fournisseurs et leurs informations</p>
+      <h2>Magasins partenaires</h2>
+      <p>Gérez les magasins, leurs statuts et leurs droits</p>
     </div>
   </div>
 
   <!-- STATS CARDS -->
   <div class="fr-stats-grid fade-up delay-1">
     <div class="fr-stat-card">
-      <div class="fr-stat-icon fr-stat-icon--blue"><i class="bi bi-truck"></i></div>
+      <div class="fr-stat-icon fr-stat-icon--blue"><i class="bi bi-shop"></i></div>
       <div class="fr-stat-info">
         <span class="fr-stat-value">{{ totalCount }}</span>
-        <span class="fr-stat-label">Total fournisseurs</span>
+        <span class="fr-stat-label">Total magasins</span>
       </div>
     </div>
     <div class="fr-stat-card">
-      <div class="fr-stat-icon fr-stat-icon--green"><i class="bi bi-patch-check-fill"></i></div>
+      <div class="fr-stat-icon fr-stat-icon--green"><i class="bi bi-check-circle-fill"></i></div>
       <div class="fr-stat-info">
         <span class="fr-stat-value">{{ actifsCount }}</span>
         <span class="fr-stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="fr-stat-card" [class.fr-stat-card--pulse]="attenteCount > 0">
+      <div class="fr-stat-icon fr-stat-icon--amber"><i class="bi bi-hourglass-split"></i></div>
+      <div class="fr-stat-info">
+        <span class="fr-stat-value">{{ attenteCount }}</span>
+        <span class="fr-stat-label">En attente</span>
       </div>
     </div>
     <div class="fr-stat-card">
@@ -35,11 +42,11 @@
         <span class="fr-stat-label">Suspendus</span>
       </div>
     </div>
-    <div class="fr-stat-card" [class.fr-stat-card--pulse]="attenteCount > 0">
-      <div class="fr-stat-icon fr-stat-icon--amber"><i class="bi bi-hourglass-split"></i></div>
+    <div class="fr-stat-card">
+      <div class="fr-stat-icon fr-stat-icon--neutral"><i class="bi bi-x-circle-fill"></i></div>
       <div class="fr-stat-info">
-        <span class="fr-stat-value">{{ attenteCount }}</span>
-        <span class="fr-stat-label">En attente</span>
+        <span class="fr-stat-value">{{ desactivesCount }}</span>
+        <span class="fr-stat-label">Désactivés</span>
       </div>
     </div>
   </div>
@@ -50,7 +57,7 @@
       <i class="bi bi-search"></i>
       <input
         type="text"
-        placeholder="Rechercher (Nom, E-mail, Siret)..."
+        placeholder="Rechercher (nom, email, téléphone, ville)..."
         [(ngModel)]="searchTerm"
         (ngModelChange)="applyFilters()"
       />
@@ -62,6 +69,15 @@
     <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
       <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
     </select>
+
+    <div class="toolbar__view-toggle">
+      <button class="view-btn" [class.active]="viewMode === 'table'" (click)="toggleViewMode('table')" title="Vue tableau">
+        <i class="bi bi-table"></i>
+      </button>
+      <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="toggleViewMode('grid')" title="Vue grille">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+      </button>
+    </div>
   </div>
 
   <!-- État de chargement -->
@@ -81,56 +97,74 @@
     </div>
   </div>
 
-  <!-- Grille de fournisseurs -->
-  <div class="fr-grid" *ngIf="!loading">
+  <!-- Grille de magasins -->
+  <div class="fr-grid" *ngIf="!loading && viewMode === 'grid'">
     <div
       class="fr-card"
       *ngFor="let f of filtered; let i = index; trackBy: trackByUserId"
       [style.--delay]="(i * 60) + 'ms'"
       [class.fr-card--pending]="f.statut === 'attente'"
+      [class.fr-card--suspended]="f.statut === 'suspendu'"
+      [class.fr-card--disabled]="f.statut === 'desactive'"
     >
       <div class="fr-card__top">
         <span class="fr-card__id">ID: {{ f.user.id }}</span>
-        <span class="badge" [ngClass]="statusClass(f.statut)">{{ statusLabel(f.statut) }}</span>
+        <span class="badge" [ngClass]="statusClass(f.statut)">
+          <i class="bi" [class]="statusIcon(f.statut)"></i>
+          {{ statusLabel(f.statut) }}
+        </span>
       </div>
 
       <div class="fr-card__identity">
-        <span class="avatar">{{ initials(f.nom_entreprise || f.nom_complet) }}</span>
+        <img [src]="f.magasin?.logo || ''" alt="" class="fr-card__logo" *ngIf="f.magasin?.logo; else noLogo" (error)="$any($event.target).style.display='none'">
+        <ng-template #noLogo>
+          <span class="avatar">{{ initials(f.magasin?.nom_magasin || f.nom_complet) }}</span>
+        </ng-template>
         <div class="fr-card__names">
-          <span class="fr-card__name">{{ f.nom_entreprise || f.nom_complet }}</span>
-          <span class="fr-card__sub">{{ f.nom_complet }} | Siret: {{ f.siret || 'N/A' }}</span>
+          <span class="fr-card__name">{{ f.magasin?.nom_magasin || f.nom_entreprise || f.nom_complet }}</span>
+          <span class="fr-card__sub">{{ f.nom_complet }} · SIRET : {{ f.siret || 'N/A' }}</span>
         </div>
       </div>
 
-      <p class="fr-card__bio">&ldquo;{{ f.description || 'Aucune description' }}&rdquo;</p>
+      <div class="fr-card__meta">
+        <div class="fr-card__meta-item" *ngIf="f.magasin?.ville"><i class="bi bi-geo-alt"></i> {{ f.magasin?.ville }}{{ f.magasin?.region ? ', ' + f.magasin?.region : '' }}</div>
+        <div class="fr-card__meta-item" *ngIf="f.magasin?.email"><i class="bi bi-envelope"></i> {{ f.magasin?.email }}</div>
+        <div class="fr-card__meta-item" *ngIf="f.magasin?.telephone"><i class="bi bi-telephone"></i> {{ f.magasin?.telephone }}</div>
+        <div class="fr-card__meta-item"><i class="bi bi-calendar"></i> Inscrit le {{ f.date_inscription | date:'dd/MM/yyyy' }}</div>
+      </div>
+
+      <p class="fr-card__bio" *ngIf="f.description">&ldquo;{{ f.description }}&rdquo;</p>
 
       <div class="fr-card__stats">
         <div class="stat">
           <span class="stat__label">Produits</span>
-          <span class="stat__value">{{ f.nombre_produits }} ref</span>
+          <span class="stat__value">{{ f.nombre_produits }}</span>
         </div>
         <div class="stat">
-          <span class="stat__label">Chiffre d'aff.</span>
-          <span class="stat__value stat__value--green">{{ f.chiffre_affaires | number:'1.0-0':'fr' }} FCFA</span>
+          <span class="stat__label">Commandes</span>
+          <span class="stat__value">{{ f.nombre_commandes }}</span>
         </div>
         <div class="stat">
-          <span class="stat__label">Évaluation</span>
-          <span class="stat__value stat__value--amber" *ngIf="f.note_moyenne !== null">{{ f.note_moyenne }}★</span>
+          <span class="stat__label">Note</span>
+          <span class="stat__value stat__value--amber" *ngIf="f.note_moyenne !== null">{{ f.note_moyenne }} <i class="bi bi-star-fill"></i></span>
           <span class="stat__value stat__value--muted" *ngIf="f.note_moyenne === null">N/A</span>
         </div>
       </div>
 
       <div class="fr-card__actions">
-        <button class="btn-outline btn-outline--info" (click)="openDetail(f)" title="Voir les détails">
-          <i class="bi bi-eye-fill"></i> Détails
+        <button class="btn-outline btn-outline--info" (click)="openDetail(f)" title="Voir la fiche">
+          <i class="bi bi-eye-fill"></i> Voir
         </button>
-        <button class="btn-outline btn-outline--success" (click)="openValidation(f, 'valider')" *ngIf="f.statut === 'attente'">
+        <button class="btn-outline btn-outline--success" (click)="openValidation(f, 'valider')" *ngIf="f.statut === 'attente'" title="Valider le magasin">
           <i class="bi bi-check-circle-fill"></i> Valider
         </button>
-        <button class="btn-outline btn-outline--warning" (click)="openValidation(f, 'suspendre')" *ngIf="f.statut === 'actif'">
+        <button class="btn-outline btn-outline--danger" (click)="openValidation(f, 'refuser')" *ngIf="f.statut === 'attente'" title="Refuser le magasin">
+          <i class="bi bi-x-circle-fill"></i> Refuser
+        </button>
+        <button class="btn-outline btn-outline--warning" (click)="openValidation(f, 'suspendre')" *ngIf="f.statut === 'actif'" title="Suspendre le magasin">
           <i class="bi bi-pause-circle-fill"></i> Suspendre
         </button>
-        <button class="btn-outline btn-outline--success" (click)="openValidation(f, 'reactiver')" *ngIf="f.statut === 'desactive'">
+        <button class="btn-outline btn-outline--success" (click)="openValidation(f, 'reactiver')" *ngIf="f.statut === 'suspendu' || f.statut === 'desactive'" title="Réactiver le magasin">
           <i class="bi bi-arrow-clockwise"></i> Réactiver
         </button>
         <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(f)">
@@ -141,30 +175,105 @@
 
     <div class="fr-empty" *ngIf="filtered.length === 0">
       <i class="bi bi-inboxes"></i>
-      <p>Aucun fournisseur ne correspond à ta recherche.</p>
+      <p>Aucun magasin ne correspond à votre recherche.</p>
     </div>
   </div>
+
+  <!-- Tableau des magasins -->
+  <div class="table-container fade-up delay-2" *ngIf="!loading && viewMode === 'table'">
+    <table class="magasins-table">
+      <thead>
+        <tr>
+          <th>Magasin</th>
+          <th>Responsable</th>
+          <th>Téléphone</th>
+          <th>E-mail</th>
+          <th>Ville</th>
+          <th>Région</th>
+          <th>Inscription</th>
+          <th>Produits</th>
+          <th>Commandes</th>
+          <th>Note</th>
+          <th>Statut</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let f of filtered; trackBy: trackByUserId" [class.fr-row--pending]="f.statut === 'attente'" [class.fr-row--suspended]="f.statut === 'suspendu'" [class.fr-row--disabled]="f.statut === 'desactive'">
+          <td>
+            <div class="fr-cell__store">
+              <img [src]="f.magasin?.logo || ''" alt="" class="fr-cell__logo" *ngIf="f.magasin?.logo; else noLogo" (error)="$any($event.target).style.display='none'">
+              <ng-template #noLogo>
+                <span class="fr-cell__avatar">{{ initials(f.magasin?.nom_magasin || f.nom_complet) }}</span>
+              </ng-template>
+              <div>
+                <span class="fr-cell__name">{{ f.magasin?.nom_magasin || f.nom_entreprise || f.nom_complet }}</span>
+                <span class="fr-cell__sub" *ngIf="f.nom_entreprise && f.nom_entreprise !== (f.magasin?.nom_magasin || '')">{{ f.nom_entreprise }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ f.nom_complet }}</td>
+          <td>{{ f.magasin?.telephone || 'N/A' }}</td>
+          <td>{{ f.magasin?.email || f.user.email }}</td>
+          <td>{{ f.magasin?.ville || 'N/A' }}</td>
+          <td>{{ f.magasin?.region || 'N/A' }}</td>
+          <td>{{ f.date_inscription | date:'dd/MM/yyyy' }}</td>
+          <td>{{ f.nombre_produits }}</td>
+          <td>{{ f.nombre_commandes }}</td>
+          <td>
+            <span *ngIf="f.note_moyenne !== null" class="fr-cell__rating">{{ f.note_moyenne }} <i class="bi bi-star-fill"></i></span>
+            <span *ngIf="f.note_moyenne === null" class="fr-cell__rating--none">N/A</span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="statusClass(f.statut)">
+              <i class="bi" [class]="statusIcon(f.statut)"></i> {{ statusLabel(f.statut) }}
+            </span>
+          </td>
+          <td class="actions-col">
+            <div class="fr-cell__actions">
+              <button class="btn-icon" title="Voir" (click)="openDetail(f)"><i class="bi bi-eye-fill"></i></button>
+              <button class="btn-icon" title="Produits" (click)="openProduits(f)"><i class="bi bi-box"></i></button>
+              <button class="btn-icon" title="Commandes" (click)="openCommandes(f)"><i class="bi bi-receipt"></i></button>
+              <button class="btn-icon btn-icon--success" (click)="openValidation(f, 'valider')" *ngIf="f.statut === 'attente'" title="Valider"><i class="bi bi-check-circle-fill"></i></button>
+              <button class="btn-icon btn-icon--danger" (click)="openValidation(f, 'refuser')" *ngIf="f.statut === 'attente'" title="Refuser"><i class="bi bi-x-circle-fill"></i></button>
+              <button class="btn-icon btn-icon--warning" (click)="openValidation(f, 'suspendre')" *ngIf="f.statut === 'actif'" title="Suspendre"><i class="bi bi-pause-circle-fill"></i></button>
+              <button class="btn-icon btn-icon--success" (click)="openValidation(f, 'reactiver')" *ngIf="f.statut === 'suspendu' || f.statut === 'desactive'" title="Réactiver"><i class="bi bi-arrow-clockwise"></i></button>
+              <button class="btn-icon btn-icon--danger" title="Supprimer" (click)="askDelete(f)"><i class="bi bi-trash-fill"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="fr-empty" *ngIf="filtered.length === 0">
+      <i class="bi bi-inboxes"></i>
+      <p>Aucun magasin ne correspond à votre recherche.</p>
+    </div>
+  </div>
+
 
   <!-- ===================== MODALE : VALIDATION ===================== -->
   <div class="modal-backdrop" *ngIf="showValidationModal" (click)="closeValidation()">
     <div class="modal modal--sm" (click)="$event.stopPropagation()">
       <h3 class="modal__title">
         <ng-container [ngSwitch]="validationAction">
-          <span *ngSwitchCase="'valider'">Valider ce fournisseur ?</span>
-          <span *ngSwitchCase="'suspendre'">Suspendre ce fournisseur ?</span>
-          <span *ngSwitchCase="'reactiver'">Réactiver ce fournisseur ?</span>
+          <span *ngSwitchCase="'valider'">Valider ce magasin ?</span>
+          <span *ngSwitchCase="'refuser'">Refuser ce magasin ?</span>
+          <span *ngSwitchCase="'suspendre'">Suspendre ce magasin ?</span>
+          <span *ngSwitchCase="'reactiver'">Réactiver ce magasin ?</span>
         </ng-container>
       </h3>
       <p class="modal__text">
         <ng-container [ngSwitch]="validationAction">
-          <span *ngSwitchCase="'valider'">Le fournisseur pourra accéder à son espace et gérer ses produits.</span>
-          <span *ngSwitchCase="'suspendre'">Le fournisseur ne pourra plus accéder à son espace ni gérer ses produits.</span>
-          <span *ngSwitchCase="'reactiver'">Le fournisseur retrouvera l'accès à son espace.</span>
+          <span *ngSwitchCase="'valider'">Le magasin sera visible sur la plateforme et le vendeur pourra gérer ses produits.</span>
+          <span *ngSwitchCase="'refuser'">Le magasin sera rejeté. Un motif obligatoire sera communiqué au vendeur.</span>
+          <span *ngSwitchCase="'suspendre'">Le magasin sera temporairement inaccessible. Un motif obligatoire sera communiqué au vendeur.</span>
+          <span *ngSwitchCase="'reactiver'">Le magasin retrouvera son accès normal.</span>
         </ng-container>
       </p>
-      <div class="field">
-        <label>Commentaire (optionnel)</label>
-        <textarea [(ngModel)]="validationCommentaire" rows="2" placeholder="Ajouter un commentaire..." [disabled]="submitting"></textarea>
+      <div class="field" [class.field--required]="validationAction === 'refuser' || validationAction === 'suspendre'">
+        <label>{{ validationCommentLabel }}</label>
+        <textarea [(ngModel)]="validationMotif" rows="3" [placeholder]="validationCommentLabel" [disabled]="submitting"></textarea>
       </div>
       <p class="field__error" *ngIf="validationError">
         <i class="bi bi-exclamation-triangle-fill"></i> {{ validationError }}
@@ -182,8 +291,8 @@
   <!-- ===================== MODALE : CONFIRMATION SUPPRESSION ===================== -->
   <div class="modal-backdrop" *ngIf="pendingDeleteId !== null" (click)="cancelDelete()">
     <div class="modal modal--sm" (click)="$event.stopPropagation()">
-      <h3 class="modal__title">Supprimer ce fournisseur ?</h3>
-      <p class="modal__text">Cette action est irréversible. Le fournisseur et ses données associées seront supprimés.</p>
+      <h3 class="modal__title">Supprimer ce magasin ?</h3>
+      <p class="modal__text">Cette action est irréversible. Le magasin, son compte et ses données associées seront supprimés.</p>
       <p class="field__error" *ngIf="deleteError">
         <i class="bi bi-exclamation-triangle-fill"></i> {{ deleteError }}
       </p>
@@ -203,12 +312,17 @@
       <!-- En-tête du modal -->
       <div class="detail-modal__header">
         <div class="detail-modal__title">
-          <h2>{{ selectedFournisseur?.nom_entreprise || selectedFournisseur?.nom_complet }}</h2>
-          <p>{{ selectedFournisseur?.user?.email }}</p>
+          <h2>{{ selectedFournisseur?.magasin?.nom_magasin || selectedFournisseur?.nom_entreprise || selectedFournisseur?.nom_complet }}</h2>
+          <p><span class="badge" [ngClass]="statusClass(selectedFournisseur?.statut!)">{{ statusLabel(selectedFournisseur?.statut!) }}</span> · {{ selectedFournisseur?.user?.email }}</p>
         </div>
-        <button class="btn-icon" (click)="closeDetail()">
-          <i class="bi bi-x-lg"></i>
-        </button>
+        <div class="detail-modal__actions">
+          <button class="btn-text btn-text--primary" (click)="openMagasinEdit()" *ngIf="detailTab === 'info'">
+            <i class="bi bi-pencil"></i> Modifier le magasin
+          </button>
+          <button class="btn-icon" (click)="closeDetail()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Onglets -->
@@ -246,38 +360,90 @@
 
         <!-- TAB: INFOS -->
         <div *ngIf="detailTab === 'info'" class="tab-content">
-          <div class="detail-grid">
-            <div class="detail-item">
-              <span class="detail-label">Nom d'entreprise</span>
-              <span class="detail-value">{{ selectedFournisseur?.nom_entreprise }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Contact</span>
-              <span class="detail-value">{{ selectedFournisseur?.nom_complet }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">E-mail</span>
-              <span class="detail-value">{{ selectedFournisseur?.user?.email }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Téléphone</span>
-              <span class="detail-value">{{ selectedFournisseur?.user?.telephone || 'N/A' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">SIRET</span>
-              <span class="detail-value">{{ selectedFournisseur?.siret || 'N/A' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Statut</span>
-              <span class="detail-value">
-                <span class="badge" [ngClass]="statusClass(selectedFournisseur?.statut!)">
-                  {{ statusLabel(selectedFournisseur?.statut!) }}
+          <div class="detail-hero" *ngIf="selectedFournisseur?.magasin?.photo_couverture" [style.background-image]="'url(' + selectedFournisseur?.magasin?.photo_couverture + ')'">
+            <div class="detail-hero__overlay"></div>
+          </div>
+
+          <div class="detail-sections">
+            <h4 class="detail-section__title"><i class="bi bi-building"></i> Informations générales</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Nom du magasin</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.nom_magasin || selectedFournisseur?.nom_entreprise }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Entreprise / SIRET</span>
+                <span class="detail-value">{{ selectedFournisseur?.nom_entreprise }} · {{ selectedFournisseur?.siret || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Responsable</span>
+                <span class="detail-value">{{ selectedFournisseur?.nom_complet }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Inscription</span>
+                <span class="detail-value">{{ selectedFournisseur?.date_inscription | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Statut</span>
+                <span class="detail-value">
+                  <span class="badge" [ngClass]="statusClass(selectedFournisseur?.statut!)">
+                    <i class="bi" [class]="statusIcon(selectedFournisseur?.statut!)"></i> {{ statusLabel(selectedFournisseur?.statut!) }}
+                  </span>
                 </span>
-              </span>
+              </div>
+              <div class="detail-item full" *ngIf="selectedFournisseur?.raison_refus">
+                <span class="detail-label">Motif du dernier refus / suspension</span>
+                <span class="detail-value detail-value--muted">{{ selectedFournisseur?.raison_refus }}</span>
+              </div>
             </div>
+
+            <h4 class="detail-section__title"><i class="bi bi-telephone"></i> Coordonnées</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">E-mail</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.email || selectedFournisseur?.user?.email }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Téléphone</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.telephone || 'N/A' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="selectedFournisseur?.magasin?.whatsapp">
+                <span class="detail-label">WhatsApp</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.whatsapp }}</span>
+              </div>
+            </div>
+
+            <h4 class="detail-section__title"><i class="bi bi-geo-alt"></i> Localisation</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Adresse</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.adresse_complete || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Ville</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.ville || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Région</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.region || 'N/A' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="selectedFournisseur?.magasin?.latitude">
+                <span class="detail-label">GPS</span>
+                <span class="detail-value">{{ selectedFournisseur?.magasin?.latitude }}, {{ selectedFournisseur?.magasin?.longitude }}</span>
+              </div>
+            </div>
+
+            <h4 class="detail-section__title" *ngIf="selectedFournisseur?.magasin?.horaires_ouverture"><i class="bi bi-clock"></i> Horaires d'ouverture</h4>
+            <div class="detail-grid" *ngIf="selectedFournisseur?.magasin?.horaires_ouverture">
+              <div class="detail-item" *ngFor="let day of selectedFournisseur?.magasin?.horaires_ouverture | keyvalue">
+                <span class="detail-label">{{ day.key }}</span>
+                <span class="detail-value">{{ day.value }}</span>
+              </div>
+            </div>
+
+            <h4 class="detail-section__title"><i class="bi bi-info-circle"></i> Description</h4>
             <div class="detail-item full">
-              <span class="detail-label">Description</span>
-              <p class="detail-value">{{ selectedFournisseur?.description || 'Aucune description' }}</p>
+              <p class="detail-value detail-value--text">{{ selectedFournisseur?.description || 'Aucune description' }}</p>
             </div>
           </div>
         </div>
@@ -428,4 +594,78 @@
     </div>
   </div>
 
+</div>
+
+<!-- ===================== MODALE : ÉDITION MAGASIN ===================== -->
+<div class="modal-backdrop" *ngIf="showMagasinEditModal" (click)="closeMagasinEdit()">
+  <div class="modal modal--md" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3 class="modal__title"><i class="bi bi-shop"></i> Modifier le magasin</h3>
+      <button class="btn-icon" (click)="closeMagasinEdit()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal__body" *ngIf="editingMagasin">
+      <div class="form-grid">
+        <div class="field">
+          <label>Nom du magasin</label>
+          <input [(ngModel)]="editingMagasin.nom_magasin" />
+        </div>
+        <div class="field">
+          <label>Téléphone</label>
+          <input [(ngModel)]="editingMagasin.telephone" />
+        </div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input [(ngModel)]="editingMagasin.whatsapp" />
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input [(ngModel)]="editingMagasin.email" />
+        </div>
+        <div class="field full">
+          <label>Adresse complète</label>
+          <textarea [(ngModel)]="editingMagasin.adresse_complete" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label>Ville</label>
+          <input [(ngModel)]="editingMagasin.ville" />
+        </div>
+        <div class="field">
+          <label>Région</label>
+          <input [(ngModel)]="editingMagasin.region" />
+        </div>
+        <div class="field">
+          <label>Latitude</label>
+          <input type="number" step="any" [(ngModel)]="editingMagasin.latitude" />
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input type="number" step="any" [(ngModel)]="editingMagasin.longitude" />
+        </div>
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="editingMagasin.livraison_disponible" /> Livraison disponible
+          </label>
+        </div>
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="editingMagasin.retrait_magasin" /> Retrait en magasin
+          </label>
+        </div>
+        <div class="field" *ngIf="editingMagasin.livraison_disponible">
+          <label>Rayon livraison (km)</label>
+          <input type="number" [(ngModel)]="editingMagasin.rayon_livraison_km" />
+        </div>
+      </div>
+      <p class="field__error" *ngIf="editMagasinError">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ editMagasinError }}
+      </p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn-text" (click)="closeMagasinEdit()" [disabled]="editMagasinLoading">Annuler</button>
+      <button class="btn-text btn-text--primary" (click)="saveMagasin()" [disabled]="editMagasinLoading">
+        <span *ngIf="!editMagasinLoading"><i class="bi bi-check-lg"></i> Enregistrer</span>
+        <span *ngIf="editMagasinLoading"><i class="bi bi-arrow-repeat spin"></i> Enregistrement...</span>
+      </button>
+    </div>
+  </div>
 </div>

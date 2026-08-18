@@ -33,4 +33,4 @@ for user in client_users:
 if users_without_profile:
     print(f'⚠️  Utilisateurs sans profil Client: {users_without_profile}')
 else:
-    print('✅ Tous les utilisateurs clients ont un profil Client')
+    print(' Tous les utilisateurs clients ont un profil Client')

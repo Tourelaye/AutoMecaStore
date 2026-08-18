@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { CommandeService } from '../../../core/services/commande.service';
+import { CommandeClientService, CommandeClient } from '../../../core/services/commande-client.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { Commande } from '../../../models/commande.model';
 
 @Component({
   selector: 'app-commandes',
@@ -14,12 +13,12 @@ import { Commande } from '../../../models/commande.model';
 })
 export class CommandesComponent implements OnInit {
 
-  commandes: Commande[] = [];
+  commandes: CommandeClient[] = [];
   isLoading = false;
   erreur = false;
 
   constructor(
-    private commandeService: CommandeService,
+    private commandeService: CommandeClientService,
     private notificationService: NotificationService
   ) {}
 
@@ -46,23 +45,29 @@ export class CommandesComponent implements OnInit {
   }
 
   getStatutClass(statut: string): string {
-    switch (statut) {
-      case 'en_attente': return 'statut-attente';
-      case 'en_cours': return 'statut-cours';
-      case 'paye': return 'statut-paye';
-      case 'livre': return 'statut-livre';
-      default: return 'statut-default';
-    }
+    if (statut === 'nouvelle_commande' || statut === 'en_attente_paiement' || statut === 'en_attente_confirmation') return 'statut-attente';
+    if (statut === 'acceptee' || statut === 'en_preparation') return 'statut-cours';
+    if (statut === 'prete_a_retirer' || statut === 'en_cours_livraison') return 'statut-cours';
+    if (statut === 'livree' || statut === 'terminee') return 'statut-livre';
+    if (statut === 'refusee' || statut === 'annulee') return 'statut-attente';
+    return 'statut-default';
   }
 
   getStatutLabel(statut: string): string {
-    switch (statut) {
-      case 'en_attente': return 'En attente';
-      case 'en_cours': return 'En cours';
-      case 'paye': return 'Payée';
-      case 'livre': return 'Livrée';
-      default: return statut;
-    }
+    const labels: Record<string, string> = {
+      nouvelle_commande: 'Nouvelle commande',
+      en_attente_paiement: 'En attente de paiement',
+      en_attente_confirmation: 'En attente de confirmation',
+      acceptee: 'Acceptée',
+      en_preparation: 'En préparation',
+      prete_a_retirer: 'Prête à retirer',
+      en_cours_livraison: 'En cours de livraison',
+      livree: 'Livrée',
+      terminee: 'Terminée',
+      refusee: 'Refusée',
+      annulee: 'Annulée'
+    };
+    return labels[statut] || statut;
   }
 
   formatDate(dateString: string): string {

@@ -1,0 +1,102 @@
+﻿[33mÔØ»[39m Building...
+[32mÔ£ö[39m Building...
+[1mInitial chunk files[22m  [2m | [22m[1mNames[22m        [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mmain-74FAM2TA.js[39m     [2m | [22m[2mmain[22m         [2m | [22m  [36m1.46 MB[39m[2m | [22m              [36m204.50 kB[39m
+[32mchunk-LZOUIM43.js[39m    [2m | [22m[2m-[22m            [2m | [22m[36m388.47 kB[39m[2m | [22m               [36m99.07 kB[39m
+[32mstyles-FRKPCLTY.css[39m  [2m | [22m[2mstyles[22m       [2m | [22m[36m323.25 kB[39m[2m | [22m               [36m34.18 kB[39m
+[32mpolyfills-B6TNHZQ6.js[39m[2m | [22m[2mpolyfills[22m    [2m | [22m [36m34.58 kB[39m[2m | [22m               [36m11.32 kB[39m
+
+[1m [22m                    [2m | [22m[1mInitial total[22m[2m | [22m  [1m2.21 MB[22m[2m | [22m              [1m349.08 kB[22m
+
+[1mLazy chunk files[22m     [2m | [22m[1mNames[22m        [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-CZHCDIFT.js[39m    [2m | [22m[2madmin-module[22m [2m | [22m  [36m1.27 MB[39m[2m | [22m              [36m187.83 kB[39m
+
+Application bundle generation complete. [55.860 seconds]
+
+[1m[33m[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:261:124:
+[37m      261 Ôöé ...lectedUtilisateur.profil?.[32mnom_entreprise[37m || 'ÔÇö' }}</span></div>
+          ÔòÁ                              [32m~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:262:119:
+[37m      262 Ôöé ...ue">{{ selectedUtilisateur.profil?.[32msiret[37m || 'ÔÇö' }}</span></div>
+          ÔòÁ                                       [32m~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:263:120:
+[37m      263 Ôöé ...edUtilisateur.profil?.[32mstatut_fournisseur[37m || 'ÔÇö' }}</span></div>
+          ÔòÁ                          [32m~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:264:121:
+[37m      264 Ôöé ...selectedUtilisateur.profil?.[32mmagasin[37m?.nom_magasin || 'ÔÇö' }}</...
+          ÔòÁ                                [32m~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.html:265:119:
+[37m      265 Ôöé ...selectedUtilisateur.profil?.[32mmagasin[37m?.ville || 'ÔÇö' }}</span><...
+          ÔòÁ                                [32m~~~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component UtilisateurAdminComponent.
+System.Management.Automation.RemoteException
+    src/app/admin/component/utilisateur/utilisateur-admin.component.ts:22:15:
+[37m      22 Ôöé   templateUrl: [32m'./utilisateur-admin.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.html:312:47:
+[37m      312 Ôöé             [src]="item.image || item.produit?.[32mimage[37m"
+          ÔòÁ                                                [32m~~~~~[0m
+System.Management.Automation.RemoteException
+  Error occurs in the template of component PanierComponent.
+System.Management.Automation.RemoteException
+    src/app/client/pages/panier/panier.component.ts:20:15:
+[37m      20 Ôöé   templateUrl: [32m'./panier.component.html'[37m,
+         ÔòÁ                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+[33mÔû▓ [43;33m[[43;30mWARNING[43;33m][0m [1m4 rules skipped due to selector errors:
+  .form-floating>~label -> Did not expect successive traversals.
+  .btn-group>+.btn -> Did not expect successive traversals.
+  .btn-group>+.btn -> Did not expect successive traversals.
+  .btn-group-vertical>+.btn -> Did not expect successive traversals.[0m
+System.Management.Automation.RemoteException
+[39m[22m
+Output location: C:\Users\ablay\AutoMecaStore_backup\Frontend\dist\automecastore-frontend
+

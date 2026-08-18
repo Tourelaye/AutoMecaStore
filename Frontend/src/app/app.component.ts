@@ -84,21 +84,10 @@ export class AppComponent {
     return this.router.url.startsWith('/fournisseur');
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement | null;
-    const button = target?.closest('button');
-    if (!button || !this.isAddToCartButton(button)) {
-      return;
-    }
-
-    const produit = this.buildProduitFromCard(button);
-    this.panierService.ajouterProduit({
-      ...produit,
-      quantite: this.quantite ?? 1
-      
-    });
-  }
+  // Catch-all ajout au panier : chaque composant gère désormais son propre bouton
+  // (produit.component, listes, favoris, home). Il ne doit plus y avoir d'ajout global.
+  // @HostListener('document:click', ['$event'])
+  // onDocumentClick(event: MouseEvent): void { ... }
 
   private isAddToCartButton(button: Element): boolean {
     const classes = button.classList;

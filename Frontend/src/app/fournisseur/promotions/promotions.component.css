@@ -418,3 +418,341 @@ input[type="date"].form-input::-webkit-calendar-picker-indicator {
   .promo-item { flex-wrap: wrap; }
   .promo-dates { width: 100%; order: 5; }
 }
+
+/* =============================================
+   DASHBOARD STATISTIQUES
+   ============================================= */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.stat-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.stat-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.055); }
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.stat-blue  { background: rgba(59, 130, 246, 0.16); color: #60a5fa; }
+.stat-green { background: rgba(34, 197, 94, 0.16); color: #4ade80; }
+.stat-gold  { background: rgba(227, 191, 125, 0.18); color: var(--gold); }
+.stat-purple { background: rgba(168, 85, 247, 0.16); color: #c084fc; }
+.stat-mint  { background: rgba(45, 212, 191, 0.16); color: var(--accent); }
+
+.stat-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat-value { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+.stat-value.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+
+.best-promo { border-color: var(--gold-border); box-shadow: 0 0 18px var(--gold-soft); }
+
+/* =============================================
+   CHAMPS CHECKBOX ET HINTS
+   ============================================= */
+.form-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 10px 14px;
+  border-radius: 9px;
+}
+
+.form-check-input {
+  width: 18px; height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.form-check-label {
+  font-size: 13.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.field-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: -2px;
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--alert);
+  margin-top: 2px;
+}
+
+/* =============================================
+   BOUTONS DU FORMULAIRE
+   ============================================= */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.btn-secondary {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1.5px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover { background: rgba(255,255,255,0.06); border-color: var(--accent); }
+
+/* =============================================
+   APERÇU PROMOTION
+   ============================================= */
+.preview-card {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.10), rgba(45, 212, 191, 0.03));
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preview-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-product { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+.preview-prices {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preview-old {
+  font-size: 13px;
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+.preview-new {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.preview-badge {
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.preview-type {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-type i { color: var(--accent); }
+
+/* =============================================
+   TABLEAU DES PROMOTIONS
+   ============================================= */
+.table-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  gap: 14px;
+  color: var(--text-muted);
+}
+
+.spin-ring {
+  width: 44px; height: 44px;
+  border: 3px solid rgba(45, 212, 191, 0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.promo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 850px;
+}
+
+.promo-table thead {
+  background: rgba(255,255,255,0.04);
+  position: sticky;
+  top: 0;
+}
+
+.promo-table th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.promo-table td {
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.promo-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+.td-nom { min-width: 170px; }
+.promo-title { font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+.promo-desc { font-size: 11.5px; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.prod-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prod-img-wrap {
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.prod-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+.prod-img-ph {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-3));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--accent);
+}
+
+.prod-name { font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+
+.type-badge,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.type-badge { background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--text-muted); }
+.type-badge i { font-size: 12px; }
+.type-pourcentage { color: #60a5fa; border-color: rgba(96, 165, 250, 0.35); background: rgba(96, 165, 250, 0.10); }
+.type-montant_fixe { color: #f87171; border-color: rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.10); }
+.type-vente_flash { color: #facc15; border-color: rgba(250, 204, 21, 0.35); background: rgba(250, 204, 21, 0.10); }
+.type-offre_speciale { color: #c084fc; border-color: rgba(192, 132, 252, 0.35); background: rgba(192, 132, 252, 0.10); }
+.type-produit_vedette { color: var(--gold); border-color: var(--gold-border); background: var(--gold-soft); }
+.type-nouveau_produit { color: #4ade80; border-color: rgba(74, 222, 128, 0.35); background: rgba(74, 222, 128, 0.10); }
+.type-dernieres_pieces { color: #fb923c; border-color: rgba(251, 146, 60, 0.35); background: rgba(251, 146, 60, 0.10); }
+
+.status-badge { border: 1px solid transparent; }
+.status-active { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+.status-upcoming { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.status-ended { background: rgba(156, 163, 175, 0.15); color: #9ca3af; }
+.status-suspended { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+.price-col { display: flex; flex-direction: column; gap: 2px; }
+.old-price { font-size: 11px; color: var(--text-faint); text-decoration: line-through; }
+.new-price { font-size: 13px; font-weight: 700; color: var(--gold); }
+
+.td-actions { width: 1px; white-space: nowrap; }
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.act-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.18s;
+}
+
+.act-btn:hover { background: rgba(255,255,255,0.09); transform: scale(1.08); }
+.act-edit { color: #60a5fa; }
+.act-duplicate { color: #c084fc; }
+.act-toggle { color: #facc15; }
+.act-delete { color: var(--alert); }
+.act-delete:hover { background: var(--alert); color: #fff; }
+
+/* =============================================
+   RESPONSIVE TABLE
+   ============================================= */
+@media (max-width: 1000px) {
+  .promo-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .page-wrapper { padding: 16px; }
+  .promo-item { flex-wrap: wrap; }
+  .promo-dates { width: 100%; order: 5; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 12px; }
+  .stat-icon { width: 36px; height: 36px; font-size: 16px; }
+  .stat-value { font-size: 16px; }
+}

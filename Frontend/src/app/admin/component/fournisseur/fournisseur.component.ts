@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import {
   FournisseurService,
   Fournisseur,
-  FournisseurStatus
+  FournisseurStatus,
+  MagasinData
 } from './fournisseur.service';
 
 @Component({
@@ -25,14 +26,17 @@ export class FournisseurComponent implements OnInit {
   statusOptions: { value: 'tous' | FournisseurStatus; label: string }[] = [
     { value: 'tous', label: 'Tous les statuts' },
     { value: 'actif', label: 'Actif' },
-    { value: 'desactive', label: 'Suspendu' },
-    { value: 'attente', label: 'En attente de validation' }
+    { value: 'attente', label: 'En attente de validation' },
+    { value: 'suspendu', label: 'Suspendu' },
+    { value: 'desactive', label: 'Désactivé' }
   ];
 
   // --- Modale de validation ---
   showValidationModal = false;
-  validationAction: 'valider' | 'suspendre' | 'reactiver' = 'valider';
-  validationCommentaire = '';
+  validationAction: 'valider' | 'refuser' | 'suspendre' | 'reactiver' = 'valider';
+  validationMotif = '';
+  validationConfirmLabel = '';
+  validationCommentLabel = '';
   validationError: string | null = null;
   targetFournisseur: Fournisseur | null = null;
   submitting = false;
@@ -46,12 +50,19 @@ export class FournisseurComponent implements OnInit {
   showDetailModal = false;
   selectedFournisseur: Fournisseur | null = null;
   detailTab: 'info' | 'produits' | 'commandes' | 'stats' = 'info';
+  viewMode: 'grid' | 'table' = 'table';
 
   // Données détail
   fournisseurProduits: any[] = [];
   fournisseurCommandes: any[] = [];
   fournisseurStats: any = null;
   detailLoading = false;
+
+  // Édition magasin
+  editingMagasin: MagasinData | null = null;
+  editMagasinLoading = false;
+  editMagasinError: string | null = null;
+  showMagasinEditModal = false;
 
   constructor(private fournisseurService: FournisseurService) {}
 
@@ -78,32 +89,43 @@ export class FournisseurComponent implements OnInit {
     const term = this.searchTerm.trim().toLowerCase();
     this.filtered = this.fournisseurs.filter(f => {
       const matchesStatus = this.statusFilter === 'tous' || f.statut === this.statusFilter;
+      const mag = f.magasin || { nom_magasin: '', ville: '', telephone: '', email: '' };
       const matchesSearch =
         !term ||
+        mag.nom_magasin?.toLowerCase().includes(term) ||
         f.nom_entreprise?.toLowerCase().includes(term) ||
         f.nom_complet?.toLowerCase().includes(term) ||
         f.user?.email?.toLowerCase().includes(term) ||
+        mag.email?.toLowerCase().includes(term) ||
+        f.user?.telephone?.includes(term) ||
+        mag.telephone?.includes(term) ||
+        mag.ville?.toLowerCase().includes(term) ||
         f.siret?.includes(term);
       return matchesStatus && matchesSearch;
     });
   }
 
+  statusConfig: Record<FournisseurStatus, { label: string; class: string; icon: string; description: string }> = {
+    attente: { label: 'En attente', class: 'badge-amber', icon: 'bi-hourglass-split', description: 'Ce magasin est en attente de validation administrative.' },
+    actif: { label: 'Actif', class: 'badge-success', icon: 'bi-check-circle-fill', description: 'Ce magasin est approuvé et visible sur la plateforme.' },
+    suspendu: { label: 'Suspendu', class: 'badge-danger', icon: 'bi-pause-circle-fill', description: 'Ce magasin est temporairement suspendu pour motif.' },
+    desactive: { label: 'Désactivé', class: 'badge-neutral', icon: 'bi-x-circle-fill', description: 'Ce magasin est désactivé ou refusé.' }
+  };
+
   statusLabel(statut: FournisseurStatus): string {
-    const labels: Record<FournisseurStatus, string> = {
-      'actif': 'ACTIF',
-      'desactive': 'SUSPENDU',
-      'attente': 'EN ATTENTE'
-    };
-    return labels[statut] || statut;
+    return this.statusConfig[statut]?.label || statut;
   }
 
   statusClass(statut: FournisseurStatus): string {
-    const classes: Record<FournisseurStatus, string> = {
-      'actif': 'badge-success',
-      'desactive': 'badge-danger',
-      'attente': 'badge-warning'
-    };
-    return classes[statut] || 'badge-secondary';
+    return this.statusConfig[statut]?.class || 'badge-secondary';
+  }
+
+  statusIcon(statut: FournisseurStatus): string {
+    return this.statusConfig[statut]?.icon || 'bi-question-circle';
+  }
+
+  statusDescription(statut: FournisseurStatus): string {
+    return this.statusConfig[statut]?.description || '';
   }
 
   initials(name: string): string {
@@ -142,12 +164,23 @@ export class FournisseurComponent implements OnInit {
   }
 
   // --- Validation ---
-  openValidation(f: Fournisseur, action: 'valider' | 'suspendre' | 'reactiver'): void {
+  openValidation(f: Fournisseur, action: 'valider' | 'refuser' | 'suspendre' | 'reactiver'): void {
     this.targetFournisseur = f;
     this.validationAction = action;
-    this.validationCommentaire = '';
+    this.validationMotif = '';
     this.validationError = null;
     this.submitting = false;
+
+    const labels: Record<string, { confirm: string; field: string }> = {
+      valider: { confirm: 'Valider', field: 'Commentaire (optionnel)' },
+      refuser: { confirm: 'Refuser', field: 'Motif du refus (obligatoire)' },
+      suspendre: { confirm: 'Suspendre', field: 'Motif de la suspension (obligatoire)' },
+      reactiver: { confirm: 'Réactiver', field: 'Commentaire (optionnel)' }
+    };
+    const cfg = labels[action] || { confirm: 'Confirmer', field: 'Commentaire' };
+    this.validationConfirmLabel = cfg.confirm;
+    this.validationCommentLabel = cfg.field;
+
     this.showValidationModal = true;
   }
 
@@ -160,11 +193,17 @@ export class FournisseurComponent implements OnInit {
 
   confirmValidation(): void {
     if (!this.targetFournisseur || this.submitting) return;
+
+    if ((this.validationAction === 'refuser' || this.validationAction === 'suspendre') && !this.validationMotif.trim()) {
+      this.validationError = 'Le motif est obligatoire pour cette action.';
+      return;
+    }
+
     this.submitting = true;
     this.validationError = null;
     const userId = this.targetFournisseur.user.id;
 
-    this.fournisseurService.valider(userId, this.validationAction, this.validationCommentaire).subscribe({
+    this.fournisseurService.valider(userId, this.validationAction, this.validationMotif).subscribe({
       next: () => {
         this.submitting = false;
         this.showValidationModal = false;
@@ -204,8 +243,13 @@ export class FournisseurComponent implements OnInit {
 
     this.fournisseurService.delete(idToDelete).subscribe({
       next: () => {
-        this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== idToDelete);
-        this.statusFilter = 'tous';
+        const idx = this.fournisseurs.findIndex(f => f.user.id === idToDelete);
+        if (idx >= 0) {
+          this.fournisseurs[idx].statut = 'desactive';
+          if (this.fournisseurs[idx].user) {
+            this.fournisseurs[idx].user.is_active = false;
+          }
+        }
         this.applyFilters();
         this.pendingDeleteId = null;
         this.deleteError = null;
@@ -221,12 +265,24 @@ export class FournisseurComponent implements OnInit {
 
   // ===== MÉTHODES POUR AFFICHAGE DYNAMIQUE =====
 
-  openDetail(f: Fournisseur): void {
+  openDetail(f: Fournisseur, tab: 'info' | 'produits' | 'commandes' | 'stats' = 'info'): void {
     this.selectedFournisseur = f;
-    this.detailTab = 'info';
+    this.detailTab = tab;
     this.showDetailModal = true;
-    this.loadDetailData(f);
+    if (tab === 'stats') this.loadDetailData(f);
+    if (tab === 'produits') this.fournisseurService.getProduits(f.user.id).subscribe({
+      next: (data) => { this.fournisseurProduits = data.produits || []; },
+      error: (err) => console.error('[Fournisseur] Erreur lors du chargement des produits :', err)
+    });
+    if (tab === 'commandes') this.fournisseurService.getCommandes(f.user.id).subscribe({
+      next: (data) => { this.fournisseurCommandes = data.commandes || []; },
+      error: (err) => console.error('[Fournisseur] Erreur lors du chargement des commandes :', err)
+    });
+    if (tab === 'info') this.loadDetailData(f);
   }
+
+  openProduits(f: Fournisseur): void { this.openDetail(f, 'produits'); }
+  openCommandes(f: Fournisseur): void { this.openDetail(f, 'commandes'); }
 
   closeDetail(): void {
     this.showDetailModal = false;
@@ -234,6 +290,10 @@ export class FournisseurComponent implements OnInit {
     this.fournisseurProduits = [];
     this.fournisseurCommandes = [];
     this.fournisseurStats = null;
+  }
+
+  toggleViewMode(mode: 'grid' | 'table'): void {
+    this.viewMode = mode;
   }
 
   loadDetailData(fournisseur: Fournisseur): void {
@@ -259,6 +319,44 @@ export class FournisseurComponent implements OnInit {
     this.detailTab = tab;
   }
 
+  openMagasinEdit(): void {
+    if (!this.selectedFournisseur?.magasin) return;
+    this.editingMagasin = { ...this.selectedFournisseur.magasin };
+    this.editMagasinError = null;
+    this.showMagasinEditModal = true;
+  }
+
+  closeMagasinEdit(): void {
+    if (this.editMagasinLoading) return;
+    this.editingMagasin = null;
+    this.showMagasinEditModal = false;
+    this.editMagasinError = null;
+  }
+
+  saveMagasin(): void {
+    if (!this.selectedFournisseur || !this.editingMagasin) return;
+    this.editMagasinLoading = true;
+    this.editMagasinError = null;
+
+    const data = { ...this.editingMagasin };
+    if (data.latitude === null || data.latitude === undefined) data.latitude = null;
+    if (data.longitude === null || data.longitude === undefined) data.longitude = null;
+    if (data.rayon_livraison_km === null || data.rayon_livraison_km === undefined) data.rayon_livraison_km = null;
+
+    this.fournisseurService.updateMagasin(this.selectedFournisseur.user.id, data).subscribe({
+      next: (magasin) => {
+        this.editMagasinLoading = false;
+        this.showMagasinEditModal = false;
+        if (this.selectedFournisseur) this.selectedFournisseur.magasin = magasin as any;
+        this.editingMagasin = null;
+      },
+      error: (err) => {
+        this.editMagasinLoading = false;
+        this.editMagasinError = err?.error?.detail || err?.error?.telephone?.[0] || err?.error?.email?.[0] || 'Erreur lors de la mise à jour.';
+      }
+    });
+  }
+
   trackByUserId(_index: number, item: Fournisseur): number {
     return item.user.id;
   }
@@ -266,6 +364,7 @@ export class FournisseurComponent implements OnInit {
   // --- Stats cards ---
   get totalCount(): number { return this.fournisseurs.length; }
   get actifsCount(): number { return this.fournisseurs.filter(f => f.statut === 'actif').length; }
-  get suspendusCount(): number { return this.fournisseurs.filter(f => f.statut === 'desactive').length; }
   get attenteCount(): number { return this.fournisseurs.filter(f => f.statut === 'attente').length; }
+  get suspendusCount(): number { return this.fournisseurs.filter(f => f.statut === 'suspendu').length; }
+  get desactivesCount(): number { return this.fournisseurs.filter(f => f.statut === 'desactive').length; }
 }

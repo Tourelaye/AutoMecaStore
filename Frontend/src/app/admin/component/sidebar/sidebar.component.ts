@@ -32,19 +32,28 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isMobile    = false;
   adminInfo: AdminInfo = { nom: '', role: '', initiales: '' };
 
-  navItems: NavItem[] = [
+  gestionMenuItems: NavItem[] = [
     { label: 'Dashboard',           icon: 'bi-speedometer2',   route: '/admin/dashboard' },
     { label: 'Fournisseurs',        icon: 'bi-building',       route: '/admin/fournisseurs' },
     { label: 'Produits',            icon: 'bi-box-seam',       route: '/admin/produits'  },
     { label: 'Approbation Produits',icon: 'bi-check-circle',   route: '/admin/approbation-produits' },
     { label: 'Catégories',          icon: 'bi-grid-3x3-gap',   route: '/admin/categories' },
+    { label: 'Marques',             icon: 'bi-tags',           route: '/admin/marques' },
     { label: 'Commandes',           icon: 'bi-cart-check',     route: '/admin/commandes'  },
-    { label: 'Clients',             icon: 'bi-people',         route: '/admin/clients'    },
+    { label: 'Utilisateurs', icon: 'bi-people-fill', route: '/admin/utilisateurs' },
     { label: 'Paiements & Factures',           icon: 'bi-credit-card',    route: '/admin/paiements'  },
     { label: 'Livraisons',          icon: 'bi-truck',          route: '/admin/livraisons' },
     { label: 'Avis & Réclamations', icon: 'bi-chat-left-text', route: '/admin/avis'       },
-    { label: 'Journal d\'activités',             icon: 'bi-journal-text',   route: '/admin/journal'    },
+    { label: 'Réclamations & Litiges', icon: 'bi-shield-exclamation', route: '/admin/reclamations' },
+  ];
+
+  analyseMenuItems: NavItem[] = [
+    { label: 'Centre d\'analyse',  icon: 'bi-graph-up-arrow', route: '/admin/analyse'  },
+    { label: 'Journal d\'activités', icon: 'bi-journal-text', route: '/admin/journal'    },
     { label: 'Notifications',       icon: 'bi-bell',           route: '/admin/notifications' },
+  ];
+
+  compteMenuItems: NavItem[] = [
     { label: 'Sécurité',            icon: 'bi-shield-lock',   route: '/admin/securite'    },
     { label: 'Paramètres',          icon: 'bi-gear',           route: '/admin/parametres' },
   ];
@@ -83,7 +92,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // ── Met à jour les badges Commandes & Avis ──────────────────────────────
   private updateNavItemsBadges(counts: { commandes: number; avis: number; total: number }): void {
-    this.navItems = this.navItems.map(item => {
+    const applyBadges = (item: NavItem): NavItem => {
       if (item.label === 'Commandes') {
         return { ...item, badge: counts.commandes > 0 ? counts.commandes : undefined };
       }
@@ -91,7 +100,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
         return { ...item, badge: counts.avis > 0 ? counts.avis : undefined };
       }
       return item;
-    });
+    };
+    this.gestionMenuItems = this.gestionMenuItems.map(applyBadges);
+    this.analyseMenuItems = this.analyseMenuItems.map(applyBadges);
   }
 
   checkMobile(): void {

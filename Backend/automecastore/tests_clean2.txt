@@ -1,0 +1,298 @@
+��py : Creating test database for alias 'default' ('test_automecastore_dev')...
+Au caract�re Ligne:1 : 1
++ py manage.py test orders.tests payments.tests --noinput -v 2 > c:\Use ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Creating test d...astore_dev')...:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Found 14 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, messages, rest_framework, rest_framework_simplejwt, staticfiles
+  Apply all migrations: account, admin, admin_api, auth, catalog, contenttypes, delivery, demandes, fournisseur, orders, payments, sessions, support
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying account.0001_initial... OK
+  Applying account.0002_alter_utilisateur_options_utilisateur_date_joined_and_more... OK
+  Applying catalog.0001_initial... OK
+  Applying catalog.0002_remove_navigation_invite_delete_page_and_more... OK
+  Applying catalog.0003_produit_date_fin_promo_produit_est_en_promo_and_more... OK
+  Applying catalog.0004_produit_date_suppression_produit_is_active... OK
+  Applying catalog.0005_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0006_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0007_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0008_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0009_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0010_auto_20260602_0318... OK
+  Applying catalog.0011_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0012_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying catalog.0013_add_typepiece... OK
+  Applying catalog.0014_alter_produit_image... OK
+  Applying catalog.0015_add_product_additional_images... OK
+  Applying catalog.0016_livraison... OK
+  Applying catalog.0017_add_produit_promo_fields... OK
+  Applying catalog.0018_alter_categorie_id_alter_entrepot_id_and_more... OK
+  Applying account.0003_alter_utilisateur_id_alter_utilisateur_role... OK
+  Applying account.0004_favori... OK
+  Applying account.0005_alter_favori_id_alter_utilisateur_id... OK
+  Applying account.0006_alter_favori_id_alter_utilisateur_id... OK
+  Applying account.0007_alter_favori_id_alter_utilisateur_id... OK
+  Applying account.0008_auto_20260708_1952... OK
+  Applying catalog.0019_auto_20260708_1955... OK
+  Applying catalog.0020_remove_promotion_fournisseur_and_more... OK
+  Applying account.0009_alter_utilisateur_role_delete_fournisseur... OK
+  Applying account.0010_fournisseur_alter_utilisateur_role... OK
+  Applying account.0011_utilisateur_email_alerts_enabled_and_more... OK
+  Applying account.0012_fournisseur_raison_refus_fournisseur_validated_by_and_more... OK
+  Applying account.0013_client_photo... OK
+  Applying account.0014_alter_fournisseur_statut... OK
+  Applying account.0015_vehiculeclient... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying admin_api.0001_initial... OK
+  Applying catalog.0021_auto_20260713_0249... OK
+  Applying catalog.0022_remove_produit_motif_rejet_and_more... OK
+  Applying catalog.0023_alter_fournisseur_administrateur... OK
+  Applying catalog.0024_produit_fournisseur... OK
+  Applying catalog.0025_promotion... OK
+  Applying catalog.0026_produit_motif_rejet_produit_signale_produit_statut_and_more... OK
+  Applying catalog.0027_produit_est_meilleure_offre... OK
+  Applying catalog.0028_produit_annee_debut_produit_annee_fin_and_more... OK
+  Applying catalog.0029_produit_date_ajout... OK
+  Applying catalog.0030_produit_compatibilites_produit_conditions_garantie_and_more... OK
+  Applying catalog.0031_alter_mouvementstock_options_and_more... OK
+  Applying catalog.0032_promotion_description_promotion_heure_debut_and_more... OK
+  Applying catalog.0033_marque_alter_categorie_options_categorie_ordre... OK
+  Applying catalog.0034_demande_piece... OK
+  Applying catalog.0035_fournisseurproduit_prix_vente_and_more... OK
+  Applying catalog.0036_produit_nombre_avis_produit_note_moyenne... OK
+  Applying orders.0001_initial... OK
+  Applying orders.0002_commande_reference_alter_commande_administrateur_and_more... OK
+  Applying orders.0003_alter_commande_id_alter_commande_statut_and_more... OK
+  Applying orders.0004_alter_commande_id_alter_lignecommande_id_and_more... OK
+  Applying orders.0005_alter_commande_id_alter_lignecommande_id_and_more... OK
+  Applying orders.0006_alter_commande_id_alter_lignecommande_id_and_more... OK
+  Applying orders.0007_alter_commande_client... OK
+  Applying orders.0008_commande_commentaire_fournisseur_and_more... OK
+  Applying fournisseur.0001_initial... OK
+  Applying fournisseur.0002_alter_notification_options_notification_lien_and_more... OK
+  Applying fournisseur.0003_magasin... OK
+  Applying orders.0009_lignecommande_fournisseur_lignecommande_magasin_and_more... OK
+  Applying orders.0010_commande_adresse_livraison_commande_telephone_client_and_more... OK
+  Applying fournisseur.0004_alter_notification_destinataire_type... OK
+  Applying fournisseur.0005_magasin_delai_livraison_estime_and_more... OK
+  Applying delivery.0001_initial... OK
+  Applying delivery.0002_initial... OK
+  Applying delivery.0003_remove_livraison_adresse_livraison_livraison_adresse_and_more... OK
+  Applying delivery.0004_alter_adresse_id_alter_livraison_id_and_more... OK
+  Applying delivery.0005_alter_adresse_id_alter_livraison_id_and_more... OK
+  Applying delivery.0006_partenairelivraison_alter_adresse_options_and_more... OK
+  Applying orders.0011_alter_commande_mode_paiement_alter_commande_statut_and_more... OK
+  Applying demandes.0001_initial... OK
+  Applying fournisseur.0006_magasin_nombre_avis_magasin_note_moyenne... OK
+  Applying fournisseur.0007_notification_importance_notification_objet_id_and_more... OK
+  Applying orders.0012_historiquecommande_ligne_lignecommande_statut... OK
+  Applying orders.0013_auto_20260811_0107... OK
+  Applying payments.0001_initial... OK
+  Applying payments.0002_paiement_montant_paiement_reference_and_more... OK
+  Applying payments.0003_alter_paiement_id... OK
+  Applying payments.0004_alter_paiement_id... OK
+  Applying payments.0005_alter_paiement_options_and_more... OK
+  Applying sessions.0001_initial... OK
+  Applying support.0001_initial... OK
+  Applying support.0002_alter_agentsupportclient_id_alter_avis_id_and_more... OK
+  Applying support.0003_alter_agentsupportclient_id_alter_avis_id_and_more... OK
+  Applying support.0004_alter_agentsupportclient_id_alter_avis_id_and_more... OK
+  Applying support.0005_alter_agentsupportclient_id_alter_avis_id_and_more... OK
+  Applying support.0006_avis_achat_verifie_avis_date_reponse_avis_photos_and_more... OK
+  Applying support.0007_alter_reclamation_options_reclamation_assigne_a_and_more... OK
+test_admin_voit_toutes_les_commandes (orders.tests.CommandeFlowAndSecurityTests.test_admin_voit_toutes_les_commandes) ... ok
+test_client_a_ne_peut_pas_voir_commande_b (orders.tests.CommandeFlowAndSecurityTests.test_client_a_ne_peut_pas_voir_commande_b) ... ok
+test_client_a_ne_voit_pas_commande_client_b (orders.tests.CommandeFlowAndSecurityTests.test_client_a_ne_voit_pas_commande_client_b) ... ok
+test_client_ne_peut_pas_modifier_statut (orders.tests.CommandeFlowAndSecurityTests.test_client_ne_peut_pas_modifier_statut) ... ok
+test_fournisseur_a_ne_voit_pas_commande_fournisseur_b (orders.tests.CommandeFlowAndSecurityTests.test_fournisseur_a_ne_voit_pas_commande_fournisseur_b) ... ok
+test_scenario_complet_commande_et_statuts (orders.tests.CommandeFlowAndSecurityTests.test_scenario_complet_commande_et_statuts) ... ERROR
+test_admin_confirme_paiement (payments.tests.PaiementAPITestCase.test_admin_confirme_paiement)
+Seul le backend/admin confirme la r�ussite d'un paiement. ... ERROR
+test_admin_marque_echoue_paiement (payments.tests.PaiementAPITestCase.test_admin_marque_echoue_paiement)
+Admin marque un paiement comme �chou� : commande reste payable. ... ERROR
+test_client_ne_peut_pas_confirmer (payments.tests.PaiementAPITestCase.test_client_ne_peut_pas_confirmer)
+Le client ne peut pas forcer le statut 'reussi' via l'API admin. ... ERROR
+test_paiement_client_annule (payments.tests.PaiementAPITestCase.test_paiement_client_annule)
+Le client peut annuler un paiement en attente. ... ERROR
+test_paiement_idempotence (payments.tests.PaiementAPITestCase.test_paiement_idempotence)
+Double clic : la m�me cl� d'idempotence renvoie le m�me paiement. ... FAIL
+test_paiement_initier_cash_a_la_livraison (payments.tests.PaiementAPITestCase.test_paiement_initier_cash_a_la_livraison)
+Paiement � la livraison : commande en attente de confirmation. ... FAIL
+test_paiement_initier_mobile_money (payments.tests.PaiementAPITestCase.test_paiement_initier_mobile_money)
+Paiement mobile : commande en attente de confirmation backend. ... FAIL
+test_transition_refus_si_invalide (payments.tests.PaiementAPITestCase.test_transition_refus_si_invalide)
+On ne peut pas confirmer un paiement d�j� annul�. ... ERROR
+
+======================================================================
+ERROR: test_scenario_complet_commande_et_statuts (orders.tests.CommandeFlowAndSecurityTests.test_scenario_complet_commande_et_statuts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\orders\tests.py", line 95, in test_scenario_complet_commande_et_statuts
+    r = self.client.post(
+        '/api/commande/panier/',
+    ...<8 lines>...
+        format='json'
+    )
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\test.py", line 283, in post
+    response = super().post(
+        path, data=data, format=format, content_type=content_type, **extra)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\test.py", line 197, in post
+    return self.generic('POST', path, data, content_type, **extra)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\test.py", line 221, in generic
+    return super().generic(
+           ~~~~~~~~~~~~~~~^
+        method, path, data, content_type, secure, **extra)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\test\client.py", line 671, in generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\test.py", line 273, in request
+    return super().request(**kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\test.py", line 225, in request
+    request = super().request(**kwargs)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\test\client.py", line 1090, in request
+    self.check_exception(response)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\test\client.py", line 805, in check_exception
+    raise exc_value
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\django\views\generic\base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 85, in inner
+    return func(*args, **kwds)
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\orders\views.py", line 203, in post
+    print(f"\U0001f50d Cr�er commande depuis panier - User: {request.user}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ablay\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f50d' in position 0: character maps to <undefined>
+
+======================================================================
+ERROR: test_admin_confirme_paiement (payments.tests.PaiementAPITestCase.test_admin_confirme_paiement)
+Seul le backend/admin confirme la r�ussite d'un paiement.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 127, in test_admin_confirme_paiement
+    paiement_id = r.data['id']
+                  ^^^^^^
+AttributeError: 'HttpResponseNotFound' object has no attribute 'data'
+
+======================================================================
+ERROR: test_admin_marque_echoue_paiement (payments.tests.PaiementAPITestCase.test_admin_marque_echoue_paiement)
+Admin marque un paiement comme �chou� : commande reste payable.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 147, in test_admin_marque_echoue_paiement
+    paiement_id = r.data['id']
+                  ^^^^^^
+AttributeError: 'HttpResponseNotFound' object has no attribute 'data'
+
+======================================================================
+ERROR: test_client_ne_peut_pas_confirmer (payments.tests.PaiementAPITestCase.test_client_ne_peut_pas_confirmer)
+Le client ne peut pas forcer le statut 'reussi' via l'API admin.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 167, in test_client_ne_peut_pas_confirmer
+    paiement_id = r.data['id']
+                  ^^^^^^
+AttributeError: 'HttpResponseNotFound' object has no attribute 'data'
+
+======================================================================
+ERROR: test_paiement_client_annule (payments.tests.PaiementAPITestCase.test_paiement_client_annule)
+Le client peut annuler un paiement en attente.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 108, in test_paiement_client_annule
+    paiement_id = r.data['id']
+                  ^^^^^^
+AttributeError: 'HttpResponseNotFound' object has no attribute 'data'
+
+======================================================================
+ERROR: test_transition_refus_si_invalide (payments.tests.PaiementAPITestCase.test_transition_refus_si_invalide)
+On ne peut pas confirmer un paiement d�j� annul�.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 185, in test_transition_refus_si_invalide
+    paiement_id = r.data['id']
+                  ^^^^^^
+AttributeError: 'HttpResponseNotFound' object has no attribute 'data'
+
+======================================================================
+FAIL: test_paiement_idempotence (payments.tests.PaiementAPITestCase.test_paiement_idempotence)
+Double clic : la m�me cl� d'idempotence renvoie le m�me paiement.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 90, in test_paiement_idempotence
+    self.assertEqual(r1.status_code, status.HTTP_201_CREATED)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 404 != 201
+
+======================================================================
+FAIL: test_paiement_initier_cash_a_la_livraison (payments.tests.PaiementAPITestCase.test_paiement_initier_cash_a_la_livraison)
+Paiement � la livraison : commande en attente de confirmation.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 57, in test_paiement_initier_cash_a_la_livraison
+    self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 404 != 201
+
+======================================================================
+FAIL: test_paiement_initier_mobile_money (payments.tests.PaiementAPITestCase.test_paiement_initier_mobile_money)
+Paiement mobile : commande en attente de confirmation backend.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ablay\AutoMecaStore_backup\Backend\automecastore\payments\tests.py", line 74, in test_paiement_initier_mobile_money
+    self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 404 != 201
+
+----------------------------------------------------------------------
+Ran 14 tests in 53.302s
+
+FAILED (failures=3, errors=6)
+Destroying test database for alias 'default' ('test_automecastore_dev')...
+
+  Applying support.0008_alter_avis_unique_together_avis_approuve_and_more... OK
+System check identified no issues (0 silenced).

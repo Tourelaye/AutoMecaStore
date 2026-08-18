@@ -42,7 +42,7 @@
         <div class="kpi-value">{{ stats.produitsActifs }}</div>
         <div class="kpi-footer">
           <span class="kpi-sub">{{ stats.tauxActifs }}% en ligne</span>
-          <span class="kpi-tag kpi-tag-green">+12%</span>
+          <span class="kpi-tag kpi-tag-green">{{ stats.produitsActifs }} actifs</span>
         </div>
       </div>
 
@@ -65,7 +65,7 @@
         </div>
         <div class="kpi-value">{{ stats.commandesMois }}</div>
         <div class="kpi-footer">
-          <span class="kpi-sub">+12% ce mois</span>
+          <span class="kpi-sub">Mois en cours</span>
           <span class="kpi-tag kpi-tag-orange">{{ stats.commandesEnAttente }} en attente</span>
         </div>
       </div>
@@ -78,7 +78,7 @@
         <div class="kpi-value">{{ stats.produitsVendus }}</div>
         <div class="kpi-footer">
           <span class="kpi-sub">Toutes catégories</span>
-          <span class="kpi-tag kpi-tag-green">+18%</span>
+          <span class="kpi-tag kpi-tag-green">{{ stats.produitsVendus }} vendus</span>
         </div>
       </div>
 
@@ -89,7 +89,7 @@
         </div>
         <div class="kpi-value kpi-value-lg">{{ formatCFA(stats.chiffreAffaires) }}</div>
         <div class="kpi-footer">
-          <span class="kpi-sub">Dernière mise à jour: Aujourd'hui</span>
+          <span class="kpi-sub">{{ stats.produitsVendus }} articles vendus</span>
         </div>
       </div>
 
@@ -131,7 +131,7 @@
                 <td class="cmd-client">{{ cmd.client }}</td>
                 <td class="cmd-produit">{{ cmd.produit | slice:0:22 }}{{ cmd.produit.length > 22 ? '...' : '' }}</td>
                 <td>
-                  <span class="statut-badge" [ngClass]="getStatutClass(cmd.statut)">
+                  <span class="statut-badge" [ngClass]="getStatutClass(cmd.rawStatut)">
                     {{ cmd.statut }}
                   </span>
                 </td>
@@ -221,13 +221,12 @@
         </div>
 
         <div class="alerte-list">
-          <div class="alerte-item alerte-rupture">
-            <span class="alerte-nom">Huile Castrol 5W40 Synthétique</span>
-            <span class="alerte-tag rupture">Rupture</span>
-          </div>
-          <div class="alerte-item alerte-low" *ngFor="let a of alertesStock">
+          <div class="alerte-item" *ngFor="let a of alertesStock" [ngClass]="a.restants === 0 ? 'alerte-rupture' : 'alerte-low'">
             <span class="alerte-nom">{{ a.nom }}</span>
-            <span class="alerte-tag low-stock">{{ a.restants }} restants</span>
+            <span class="alerte-tag" [ngClass]="a.restants === 0 ? 'rupture' : 'low-stock'">{{ a.restants === 0 ? 'Rupture' : a.restants + ' restants' }}</span>
+          </div>
+          <div class="alerte-item" *ngIf="!alertesStock.length">
+            <span class="alerte-nom">Aucune alerte stock</span>
           </div>
         </div>
 
@@ -279,9 +278,10 @@
       <div class="card mt-card satisfaction-card">
         <div class="card-header">
           <h2 class="card-title">Satisfaction client</h2>
-          <span class="satisfaction-score">4.7 <i class="bi bi-star-fill text-yellow"></i></span>
+          <span class="satisfaction-score" *ngIf="noteMoyenne != null">{{ noteMoyenne | number:'1.1-1' }} <i class="bi bi-star-fill text-yellow"></i></span>
+          <span class="satisfaction-score" *ngIf="noteMoyenne == null">—</span>
         </div>
-        <div class="satisfaction-bars">
+        <div class="satisfaction-bars" *ngIf="satisfaction.length">
           <div class="sat-row" *ngFor="let s of satisfaction">
             <div class="sat-stars">
               <span *ngFor="let i of [1,2,3,4,5]">
@@ -295,7 +295,8 @@
             <span class="sat-pct">{{ s.pct }}%</span>
           </div>
         </div>
-        <p class="sat-note">Basé sur {{ totalAvis }} avis clients</p>
+        <p class="sat-note" *ngIf="totalAvis">Basé sur {{ totalAvis }} avis clients</p>
+        <p class="sat-note" *ngIf="!totalAvis">Aucun avis client</p>
       </div>
 
     </div>
