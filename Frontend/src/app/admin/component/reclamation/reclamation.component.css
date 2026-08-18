@@ -217,19 +217,19 @@
 .table-head, .table-row, .sk-row {
   display: grid;
   grid-template-columns:
-    minmax(160px, 1.2fr)
-    minmax(170px, 1.4fr)
-    minmax(120px, 1fr)
     minmax(150px, 1.2fr)
-    minmax(130px, 1fr)
-    minmax(100px, 0.75fr)
-    minmax(120px, 0.8fr)
-    minmax(125px, 0.85fr)
-    110px;
-  gap: 16px;
-  padding: 18px 22px;
+    minmax(160px, 1.4fr)
+    minmax(110px, 1fr)
+    minmax(140px, 1.2fr)
+    minmax(120px, 1fr)
+    minmax(95px, 0.75fr)
+    minmax(115px, 0.8fr)
+    minmax(120px, 0.85fr)
+    100px;
+  gap: 12px;
+  padding: 18px 18px;
   align-items: center;
-  min-width: 1180px;
+  min-width: 1090px;
 }
 
 .table-head {
@@ -388,7 +388,7 @@
 
 /* ─── DRAWER DÉTAIL ─── */
 .detail-overlay {
-  position: fixed; inset: 0; z-index: 3000;
+  position: fixed; inset: 0; z-index: 100005;
   background: rgba(3, 7, 18, 0.66);
   backdrop-filter: blur(5px);
   display: flex; justify-content: flex-end;
