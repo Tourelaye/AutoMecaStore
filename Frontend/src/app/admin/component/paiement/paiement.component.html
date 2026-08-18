@@ -1,138 +1,438 @@
 <div class="pay-page">
 
-          <!-- PAGE HEADER -->
-    <div class="page-header fade-up">
-      <div class="page-title">
-        <div class="page-tag">
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Catalogue
-        </div>
-        <h2>Gestion des Paiements</h2>
-        <p>Gérez vos paiements et leurs informations</p>
+  <!-- ─── HEADER ─── -->
+  <div class="page-header fade-up">
+    <div class="page-title">
+      <div class="page-tag">
+        <i class="bi bi-credit-card-2-front"></i>
+        Finance
       </div>
-
-      <div class="header-stats">
-        <div class="hs-item">
-          <span class="hs-val text-green">{{ volumeCA | number:'1.2-2':'fr' }} FCFA</span>
-          <span class="hs-lbl">Volume CA</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-blue">{{ commissionsNet | number:'1.2-2':'fr' }} FCFA</span>
-          <span class="hs-lbl">Commissions</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-red">{{ paiementsEchoues }}</span>
-          <span class="hs-lbl">Échecs</span>
-        </div>
-        <div class="hs-item">
-          <span class="hs-val text-amber">{{ remboursementsEmis }}</span>
-          <span class="hs-lbl">Remboursés</span>
-        </div>
-      </div>
+      <h2>Paiements &amp; Factures</h2>
+      <p>Suivez les encaissements, les remboursements et éditez les factures.</p>
     </div>
 
-  <!-- Barre de filtres -->
-  <div class="toolbar">
-    <div class="toolbar__search">
-      <i class="bi bi-search"></i>
+    <button class="btn-primary" (click)="load()" [disabled]="loading">
+      <i class="bi bi-arrow-clockwise"></i>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- ─── STATS ─── -->
+  <div class="pay-stats-grid fade-up delay-1">
+    <div class="pay-stat-card">
+      <div class="pay-stat-icon pay-stat-icon--green"><i class="bi bi-cash-coin"></i></div>
+      <div class="pay-stat-info">
+        <span class="pay-stat-value">{{ formatMontant(volumeEncaisse) }}</span>
+        <span class="pay-stat-label">Volume encaissé</span>
+      </div>
+    </div>
+    <div class="pay-stat-card">
+      <div class="pay-stat-icon pay-stat-icon--blue"><i class="bi bi-percent"></i></div>
+      <div class="pay-stat-info">
+        <span class="pay-stat-value">{{ formatMontant(commissions) }}</span>
+        <span class="pay-stat-label">Commissions</span>
+      </div>
+    </div>
+    <div class="pay-stat-card">
+      <div class="pay-stat-icon pay-stat-icon--amber"><i class="bi bi-hourglass-split"></i></div>
+      <div class="pay-stat-info">
+        <span class="pay-stat-value">{{ formatMontant(montantEnAttente) }}</span>
+        <span class="pay-stat-label">En attente</span>
+      </div>
+    </div>
+    <div class="pay-stat-card">
+      <div class="pay-stat-icon pay-stat-icon--purple"><i class="bi bi-arrow-return-left"></i></div>
+      <div class="pay-stat-info">
+        <span class="pay-stat-value">{{ formatMontant(montantRembourse) }}</span>
+        <span class="pay-stat-label">Remboursé</span>
+      </div>
+    </div>
+    <div class="pay-stat-card">
+      <div class="pay-stat-icon pay-stat-icon--cyan"><i class="bi bi-arrow-repeat"></i></div>
+      <div class="pay-stat-info">
+        <span class="pay-stat-value">{{ nbRemboursementsEnCours }}</span>
+        <span class="pay-stat-label">Remb. en traitement</span>
+      </div>
+    </div>
+    <div class="pay-stat-card">
+      <div class="pay-stat-icon pay-stat-icon--red"><i class="bi bi-x-octagon"></i></div>
+      <div class="pay-stat-info">
+        <span class="pay-stat-value">{{ nbEchecs }}</span>
+        <span class="pay-stat-label">Échecs / annulations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOOLBAR ─── -->
+  <div class="toolbar fade-up delay-2">
+    <div class="search-box">
+      <i class="bi bi-search search-ic"></i>
       <input
         type="text"
-        placeholder="Rechercher par référence, client, vendeur..."
+        placeholder="Rechercher une référence, une commande, un client..."
         [(ngModel)]="searchTerm"
-        (ngModelChange)="applyFilters()"
-      />
+        (ngModelChange)="applyFilters()" />
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm = ''; applyFilters()">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
     </div>
 
-    <select class="toolbar__select" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
-      <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
-    </select>
-  </div>
+    <div class="filter-group">
+      <select [(ngModel)]="statutFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let opt of statutOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
 
-  <!-- Chargement -->
-  <div class="pay-loading" *ngIf="loading">
-    <div class="spinner"></div>
-    <span>Chargement des transactions...</span>
-  </div>
+      <select [(ngModel)]="moyenFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let opt of moyenOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
 
-  <!-- Tableau -->
-  <div class="table-wrap" *ngIf="!loading">
-    <table class="pay-table">
-      <thead>
-        <tr>
-          <th>ID Transaction</th>
-          <th>Commande</th>
-          <th>Client</th>
-          <th>Fournisseur</th>
-          <th>Passerelle</th>
-          <th>Date</th>
-          <th class="ta-right">Net Client</th>
-          <th class="ta-right">Commission</th>
-          <th>Statut</th>
-          <th class="ta-right">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let p of filtered; let i = index; trackBy: trackById" [style.--delay]="(i * 40) + 'ms'">
-          <td class="mono muted">{{ p.id }}</td>
-          <td class="mono strong">{{ p.orderRef }}</td>
-          <td>{{ p.client }}</td>
-          <td>{{ p.vendor }}</td>
-          <td class="muted">{{ p.gateway }}</td>
-          <td class="muted">{{ p.date }}</td>
-          <td class="ta-right strong">{{ p.netClient | number:'1.2-2':'fr' }} FCFA</td>
-          <td class="ta-right commission">{{ p.commission | number:'1.2-2':'fr' }} FCFA</td>
-          <td>
-            <span class="badge" [class]="'badge--' + p.status">{{ statusLabel(p.status) }}</span>
-          </td>
-          <td class="ta-right">
-            <button class="btn-link btn-link--danger" *ngIf="p.status === 'reussi'" (click)="askRefund(p)">
-              Rembourser
-            </button>
-            <button class="btn-link" *ngIf="p.status === 'echec'" (click)="askRetry(p)">
-              Réessayer
-            </button>
-            <span class="muted" *ngIf="p.status === 'rembourse'">Remboursé</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <select [(ngModel)]="periodeFilter" (ngModelChange)="applyFilters()">
+        <option *ngFor="let opt of periodeOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
 
-    <div class="pay-empty" *ngIf="filtered.length === 0">
-      <i class="bi bi-inboxes"></i>
-      <p>Aucune transaction ne correspond à ces filtres.</p>
+      <button class="btn-reset" *ngIf="hasFilters" (click)="resetFilters()">
+        <i class="bi bi-x-lg"></i>
+        Réinitialiser
+      </button>
     </div>
   </div>
 
-  <!-- ===================== MODALE : CONFIRMATION ===================== -->
-  <div class="modal-backdrop" *ngIf="activeModal" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <h3 class="modal__title" *ngIf="activeModal === 'refund'">Rembourser cette transaction ?</h3>
-      <h3 class="modal__title" *ngIf="activeModal === 'retry'">Relancer ce paiement ?</h3>
+  <!-- ─── TABLE ─── -->
+  <div class="panel fade-up delay-3">
+    <div class="table-wrapper">
+      <div class="table-head">
+        <span class="th">Transaction</span>
+        <span class="th">Commande</span>
+        <span class="th">Client</span>
+        <span class="th">Moyen</span>
+        <span class="th">Date</span>
+        <span class="th text-right">Montant</span>
+        <span class="th text-right">Commission</span>
+        <span class="th">Statut</span>
+        <span class="th text-right">Actions</span>
+      </div>
 
-      <p class="modal__text" *ngIf="activeModal === 'refund'">
-        <strong>{{ targetPaiement?.netClient | number:'1.2-2':'fr' }} FCFA</strong> seront remboursés à
-        <strong>{{ targetPaiement?.client }}</strong> pour la commande <strong>{{ targetPaiement?.orderRef }}</strong>.
-        Cette action est irréversible.
-      </p>
+      <!-- Chargement -->
+      <div class="skeleton-rows" *ngIf="loading">
+        <div class="sk-row" *ngFor="let i of [1,2,3,4,5]">
+          <div class="sk-lines"><span class="sk-line md"></span><span class="sk-line sm"></span></div>
+          <span class="sk-line md"></span>
+          <div class="sk-lines"><span class="sk-line md"></span><span class="sk-line sm"></span></div>
+          <span class="sk-line sm"></span>
+          <span class="sk-line sm"></span>
+          <span class="sk-line sm"></span>
+          <span class="sk-line sm"></span>
+          <span class="sk-badge"></span>
+          <span class="sk-actions"></span>
+        </div>
+      </div>
 
-      <p class="modal__text" *ngIf="activeModal === 'retry'">
-        Une nouvelle tentative de prélèvement sera effectuée pour la commande
-        <strong>{{ targetPaiement?.orderRef }}</strong> ({{ targetPaiement?.client }}).
-      </p>
+      <!-- Erreur -->
+      <div class="error-state" *ngIf="!loading && error">
+        <div class="error-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <h4>{{ error }}</h4>
+        <button class="btn-retry" (click)="load()">Réessayer</button>
+      </div>
 
-      <div class="modal__footer">
-        <button type="button" class="btn-text" (click)="closeModal()" [disabled]="submitting">Annuler</button>
-        <button
-          type="button"
-          class="btn-text"
-          [class.btn-text--danger]="activeModal === 'refund'"
-          [disabled]="submitting"
-          (click)="confirmModal()"
-        >
-          <span *ngIf="!submitting">{{ activeModal === 'refund' ? 'Rembourser' : 'Relancer' }}</span>
+      <!-- Lignes -->
+      <ng-container *ngIf="!loading && !error">
+        <div class="table-row"
+             *ngFor="let p of filtered; let i = index; trackBy: trackById"
+             [style.--i]="i"
+             (click)="openDetail(p)">
+          <div class="td transaction-cell">
+            <span class="transaction-ref">{{ p.reference || '—' }}</span>
+            <span class="transaction-sub"><i class="bi bi-hash"></i>{{ p.id }}</span>
+          </div>
+
+          <div class="td">
+            <span class="mono">{{ p.commande_reference || '—' }}</span>
+          </div>
+
+          <div class="td user-cell">
+            <div class="user-avatar">{{ initiales(p.client_nom) }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ p.client_nom || 'Client inconnu' }}</span>
+            </div>
+          </div>
+
+          <div class="td">
+            <span class="moyen-chip"><i class="bi bi-wallet2"></i>{{ p.moyen_libelle }}</span>
+          </div>
+
+          <div class="td">
+            <span class="date-chip">
+              <i class="bi bi-calendar3"></i>{{ p.date_creation | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <div class="td text-right amount">{{ formatMontant(p.montant) }}</div>
+          <div class="td text-right commission">{{ formatMontant(commissionDe(p)) }}</div>
+
+          <div class="td">
+            <span class="pay-badge" [ngClass]="statut(p).badge">
+              <i class="bi" [ngClass]="statut(p).icon"></i>{{ statut(p).label }}
+            </span>
+          </div>
+
+          <div class="td actions-cell" (click)="$event.stopPropagation()">
+            <button class="btn-icon" title="Facture" (click)="openDetail(p, 'facture')">
+              <i class="bi bi-receipt"></i>
+            </button>
+            <div class="dropdown">
+              <button class="btn-icon"
+                      title="Actions"
+                      [class.active]="dropdownOpenId === p.id"
+                      (click)="toggleDropdown(p, $event)">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vide -->
+        <div class="empty-state" *ngIf="filtered.length === 0">
+          <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
+          <h4>Aucune transaction</h4>
+          <p>Aucun paiement ne correspond à ces filtres.</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- ─── MENU ⋮ (unique, positionné sur le bouton cliqué) ─── -->
+  <div class="dropdown-menu"
+       #dropdownMenu
+       *ngIf="dropdownPaiement as p"
+       [class.dropdown-menu--up]="dropdownMenuUp"
+       [style.top.px]="dropdownTop"
+       [style.left.px]="dropdownLeft"
+       (click)="$event.stopPropagation()">
+
+    <div class="dropdown-section">
+      <span class="dropdown-section-label">Consultation</span>
+      <button (click)="openDetail(p)"><i class="bi bi-eye"></i> Voir le détail</button>
+      <button (click)="openDetail(p, 'facture')"><i class="bi bi-receipt"></i> Voir la facture</button>
+      <button (click)="imprimerFacture(p); closeDropdown()"><i class="bi bi-printer"></i> Imprimer la facture</button>
+    </div>
+
+    <ng-container *ngIf="actionsGroupees(p, 'Encaissement').length">
+      <div class="dropdown-separator"></div>
+      <div class="dropdown-section">
+        <span class="dropdown-section-label">Encaissement</span>
+        <button *ngFor="let a of actionsGroupees(p, 'Encaissement')"
+                [ngClass]="a.tone"
+                (click)="openActionModal(p, a)">
+          <i class="bi" [ngClass]="a.icon"></i> {{ a.label }}
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="actionsGroupees(p, 'Remboursement').length">
+      <div class="dropdown-separator"></div>
+      <div class="dropdown-section">
+        <span class="dropdown-section-label">Remboursement</span>
+        <button *ngFor="let a of actionsGroupees(p, 'Remboursement')"
+                [ngClass]="a.tone"
+                (click)="openActionModal(p, a)">
+          <i class="bi" [ngClass]="a.icon"></i> {{ a.label }}
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!actionsFor(p).length">
+      <div class="dropdown-separator"></div>
+      <span class="dropdown-note">Transaction clôturée : aucune action disponible.</span>
+    </ng-container>
+  </div>
+
+  <!-- ─── DRAWER DÉTAIL ─── -->
+  <div class="detail-overlay" *ngIf="showDetail && selected as p" (click)="closeDetail()">
+    <div class="detail-drawer" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <div class="detail-identity">
+          <h3>{{ p.reference || 'Transaction' }}</h3>
+          <span class="detail-meta">{{ p.client_nom || 'Client inconnu' }} · {{ p.commande_reference || 'Sans commande' }}</span>
+          <div class="detail-badges">
+            <span class="pay-badge" [ngClass]="statut(p).badge">
+              <i class="bi" [ngClass]="statut(p).icon"></i>{{ statut(p).label }}
+            </span>
+            <span class="pay-badge badge-blue"><i class="bi bi-wallet2"></i>{{ p.moyen_libelle }}</span>
+          </div>
+        </div>
+        <button class="btn-icon" (click)="closeDetail()"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <div class="detail-tabs">
+        <button [class.active]="detailTab === 'infos'" (click)="detailTab = 'infos'">
+          <i class="bi bi-info-circle"></i> Informations
+        </button>
+        <button [class.active]="detailTab === 'facture'" (click)="detailTab = 'facture'">
+          <i class="bi bi-receipt"></i> Facture
+        </button>
+      </div>
+
+      <div class="detail-content">
+        <!-- Informations -->
+        <div class="tab-pane" *ngIf="detailTab === 'infos'">
+          <div class="info-section">
+            <h4><i class="bi bi-credit-card"></i> Transaction</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Référence</span><span class="value">{{ p.reference || '—' }}</span></div>
+              <div class="info-row"><span class="label">Commande</span><span class="value">{{ p.commande_reference || '—' }}</span></div>
+              <div class="info-row"><span class="label">Client</span><span class="value">{{ p.client_nom || '—' }}</span></div>
+              <div class="info-row"><span class="label">Moyen</span><span class="value">{{ p.moyen_libelle }}</span></div>
+              <div class="info-row"><span class="label">Créé le</span><span class="value">{{ p.date_creation | date:'dd/MM/yyyy HH:mm' }}</span></div>
+              <div class="info-row"><span class="label">Mis à jour</span><span class="value">{{ p.date_mise_a_jour | date:'dd/MM/yyyy HH:mm' }}</span></div>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h4><i class="bi bi-cash-stack"></i> Répartition</h4>
+            <div class="info-row"><span class="label">Montant réglé</span><span class="value">{{ formatMontant(p.montant) }}</span></div>
+            <div class="info-row"><span class="label">Commission plateforme</span><span class="value">{{ formatMontant(commissionDe(p)) }}</span></div>
+            <div class="info-row"><span class="label">Net fournisseur</span><span class="value">{{ formatMontant(netFournisseur(p)) }}</span></div>
+          </div>
+
+          <div class="info-section danger" *ngIf="p.motif_erreur">
+            <h4><i class="bi bi-exclamation-octagon"></i> Motif d'échec</h4>
+            <p class="description-text">{{ p.motif_erreur }}</p>
+          </div>
+
+          <div class="info-section note" *ngIf="p.remboursement_motif || p.remboursement_montant !== null">
+            <h4><i class="bi bi-arrow-counterclockwise"></i> Remboursement</h4>
+            <div class="info-row" *ngIf="p.remboursement_montant !== null">
+              <span class="label">Montant</span>
+              <span class="value">{{ formatMontant(p.remboursement_montant || 0) }}</span>
+            </div>
+            <p class="description-text" *ngIf="p.remboursement_motif">{{ p.remboursement_motif }}</p>
+          </div>
+
+          <div class="info-section" *ngIf="p.provider_reference">
+            <h4><i class="bi bi-hdd-network"></i> Prestataire</h4>
+            <div class="info-row"><span class="label">Référence</span><span class="value">{{ p.provider_reference }}</span></div>
+          </div>
+
+          <div class="detail-actions" *ngIf="actionsFor(p).length">
+            <button class="btn-soft"
+                    *ngFor="let a of actionsFor(p)"
+                    [ngClass]="a.tone === 'danger' ? 'danger' : (a.tone === 'success' ? 'success' : '')"
+                    (click)="openActionModal(p, a)">
+              <i class="bi" [ngClass]="a.icon"></i> {{ a.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Facture -->
+        <div class="tab-pane" *ngIf="detailTab === 'facture'">
+          <div class="facture-sheet">
+            <div class="facture-head">
+              <div>
+                <span class="facture-brand">AutoMecaStore</span>
+                <span class="facture-sub">Pièces automobiles</span>
+              </div>
+              <div class="facture-num">
+                <span class="facture-numero">{{ numeroFacture(p) }}</span>
+                <span class="facture-sub">Émise le {{ p.date_creation | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+
+            <div class="facture-parties">
+              <div>
+                <span class="facture-label">Facturé à</span>
+                <strong>{{ p.client_nom || 'Client inconnu' }}</strong>
+              </div>
+              <div>
+                <span class="facture-label">Commande</span>
+                <strong>{{ p.commande_reference || '—' }}</strong>
+              </div>
+              <div>
+                <span class="facture-label">Moyen de paiement</span>
+                <strong>{{ p.moyen_libelle }}</strong>
+              </div>
+              <div>
+                <span class="facture-label">Statut</span>
+                <strong>{{ statut(p).label }}</strong>
+              </div>
+            </div>
+
+            <table class="facture-table">
+              <thead>
+                <tr><th>Désignation</th><th class="text-right">Montant</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Montant réglé par le client</td>
+                  <td class="text-right">{{ formatMontant(p.montant) }}</td>
+                </tr>
+                <tr>
+                  <td>Commission AutoMecaStore</td>
+                  <td class="text-right">- {{ formatMontant(commissionDe(p)) }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Net reversé au fournisseur</td>
+                  <td class="text-right">{{ formatMontant(netFournisseur(p)) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div class="detail-actions">
+            <button class="btn-primary" (click)="imprimerFacture(p)">
+              <i class="bi bi-printer"></i> Imprimer / PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODALE D'ACTION ─── -->
+  <div class="modal-overlay" *ngIf="activeAction as a" (click)="closeActionModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ a.label }}</h3>
+        <button class="btn-icon" (click)="closeActionModal()"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-help">
+          Transaction <strong>{{ actionTarget?.reference }}</strong> ·
+          <strong>{{ formatMontant(actionTarget?.montant || 0) }}</strong> ·
+          {{ actionTarget?.client_nom }}
+        </p>
+
+        <div class="field" *ngIf="a.needsMontant">
+          <label for="montant-remboursement">Montant du remboursement</label>
+          <input id="montant-remboursement" type="number" min="0" step="0.01" [(ngModel)]="actionMontant" />
+        </div>
+
+        <div class="field" *ngIf="a.needsMotif">
+          <label for="motif-action">Motif</label>
+          <textarea id="motif-action" rows="3" [(ngModel)]="actionMotif"
+                    placeholder="Précisez la raison de cette opération..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-soft" (click)="closeActionModal()" [disabled]="submitting">Annuler</button>
+        <button class="btn-primary" (click)="confirmAction()" [disabled]="submitting">
+          <span *ngIf="!submitting">Confirmer</span>
           <span *ngIf="submitting">Traitement...</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ─── TOASTS ─── -->
+  <div class="notif-stack">
+    <div class="notif-toast" *ngFor="let t of toasts" [ngClass]="t.type">
+      <i class="bi"
+         [ngClass]="t.type === 'success' ? 'bi-check-circle-fill' : (t.type === 'error' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill')"></i>
+      <span>{{ t.message }}</span>
+      <button class="notif-close" (click)="dismiss(t.id)"><i class="bi bi-x"></i></button>
     </div>
   </div>
 
