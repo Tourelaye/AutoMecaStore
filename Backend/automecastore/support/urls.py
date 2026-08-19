@@ -23,6 +23,11 @@ from .admin_views import (
     AdminReclamationMessageView,
     AdminReclamationAttachmentView,
     AdminReclamationHistoriqueView,
+    AdminAvisListView,
+    AdminAvisDetailView,
+    AdminAvisStatsView,
+    AdminAvisActionView,
+    AdminAvisSignalementsView,
 )
 
 urlpatterns = [
@@ -49,6 +54,13 @@ urlpatterns = [
     # Admin - Signalements
     path('admin/signalements-avis/', AdminSignalementAvisListView.as_view(), name='admin_signalements_avis_list'),
     path('admin/signalements-avis/<int:pk>/', AdminSignalementAvisUpdateStatutView.as_view(), name='admin_signalements_avis_update'),
+
+    # Admin - Gestion avis (nouvelles routes enrichies)
+    path('admin/avis/v2/', AdminAvisListView.as_view(), name='admin_avis_list_v2'),
+    path('admin/avis/stats/', AdminAvisStatsView.as_view(), name='admin_avis_stats'),
+    path('admin/avis/<int:pk>/detail/', AdminAvisDetailView.as_view(), name='admin_avis_detail_v2'),
+    path('admin/avis/<int:pk>/action/', AdminAvisActionView.as_view(), name='admin_avis_action_v2'),
+    path('admin/avis/<int:pk>/signalements/', AdminAvisSignalementsView.as_view(), name='admin_avis_signalements'),
 
     # Admin - Gestion réclamations
     path('admin/reclamations/', AdminReclamationListView.as_view(), name='admin_reclamation_list'),

@@ -14,7 +14,7 @@ from rest_framework import filters
 from account.permissions import IsAdmin
 from account.models import Utilisateur, Client, Fournisseur
 from fournisseur.models import creer_notification_fournisseur
-from .models import Reclamation, MessageReclamation, PieceJointeReclamation, HistoriqueReclamation
+from .models import Reclamation, MessageReclamation, PieceJointeReclamation, HistoriqueReclamation, Avis, SignalementAvis
 from .serializers import (
     ReclamationListSerializer,
     ReclamationDetailSerializer,
@@ -22,6 +22,10 @@ from .serializers import (
     MessageReclamationSerializer,
     PieceJointeReclamationSerializer,
     HistoriqueReclamationSerializer,
+    AvisSerializer,
+    AvisListSerializer,
+    AvisDetailSerializer,
+    SignalementAvisSerializer,
 )
 
 
@@ -414,3 +418,184 @@ class AdminReclamationHistoriqueView(generics.ListAPIView):
 
     def get_queryset(self):
         return HistoriqueReclamation.objects.filter(reclamation_id=self.kwargs['pk']).order_by('-date')
+
+
+# ===============================
+# ADMIN - AVIS
+# ===============================
+
+class AdminAvisListView(generics.ListAPIView):
+    """Liste paginée des avis pour l'admin."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+    serializer_class = AvisListSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['client__user__nom', 'client__user__prenom', 'client__user__email', 'produit__nom', 'magasin__nom_magasin', 'commentaire']
+    ordering_fields = ['date', 'note', 'approuve']
+    ordering = ['-date']
+
+    def get_queryset(self):
+        qs = Avis.objects.select_related(
+            'client__user', 'produit', 'magasin', 'commande'
+        ).prefetch_related('signalements').all()
+
+        note = self.request.query_params.get('note')
+        statut = self.request.query_params.get('statut')
+        achat_verifie = self.request.query_params.get('achat_verifie')
+        signale = self.request.query_params.get('signale')
+        q = self.request.query_params.get('q')
+        periode = self.request.query_params.get('periode')
+
+        if note and note != 'toutes':
+            qs = qs.filter(note=int(note))
+
+        if statut and statut != 'tous':
+            if statut == 'visible':
+                qs = qs.filter(approuve=True)
+            elif statut == 'masque':
+                qs = qs.filter(approuve=False)
+            elif statut == 'moderation_requise':
+                qs = qs.filter(signalements__statut='en_attente').distinct()
+
+        if achat_verifie == 'true':
+            qs = qs.filter(achat_verifie=True)
+
+        if signale == 'true':
+            qs = qs.filter(signalements__isnull=False).distinct()
+
+        if periode and periode != 'tous':
+            now = timezone.now()
+            if periode == 'today':
+                qs = qs.filter(date__date=now.date())
+            elif periode == 'week':
+                start = now - timezone.timedelta(days=now.weekday())
+                qs = qs.filter(date__date__gte=start.date())
+            elif periode == 'month':
+                qs = qs.filter(date__year=now.year, date__month=now.month)
+
+        if q:
+            qs = qs.filter(
+                Q(client__user__nom__icontains=q) |
+                Q(client__user__prenom__icontains=q) |
+                Q(client__user__email__icontains=q) |
+                Q(produit__nom__icontains=q) |
+                Q(magasin__nom_magasin__icontains=q) |
+                Q(commentaire__icontains=q)
+            )
+
+        return qs
+
+
+class AdminAvisDetailView(APIView):
+    """Détail complet d'un avis."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        avis = get_object_or_404(
+            Avis.objects.select_related('client__user', 'produit', 'magasin', 'commande', 'livreur')
+                        .prefetch_related('signalements__client__user', 'signalements__fournisseur__user'),
+            pk=pk
+        )
+        return Response(AvisDetailSerializer(avis).data)
+
+
+class AdminAvisStatsView(APIView):
+    """Statistiques des avis."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        total = Avis.objects.count()
+        visibles = Avis.objects.filter(approuve=True).count()
+        masques = Avis.objects.filter(approuve=False).count()
+        signales = Avis.objects.filter(signalements__isnull=False).distinct().count()
+        signalements_en_attente = SignalementAvis.objects.filter(statut='en_attente').count()
+
+        avg = Avis.objects.aggregate(avg=Avg('note'))['avg']
+        note_moyenne = round(avg, 2) if avg is not None else 0
+
+        achats_verifies = Avis.objects.filter(achat_verifie=True).count()
+
+        par_note = []
+        for i in range(1, 6):
+            par_note.append({'note': i, 'count': Avis.objects.filter(note=i).count()})
+
+        return Response({
+            'total': total,
+            'visibles': visibles,
+            'masques': masques,
+            'signales': signales,
+            'signalements_en_attente': signalements_en_attente,
+            'note_moyenne': note_moyenne,
+            'achats_verifies': achats_verifies,
+            'par_note': par_note,
+        })
+
+
+class AdminAvisActionView(APIView):
+    """Actions admin sur un avis : approuver, masquer, supprimer, répondre."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        avis = get_object_or_404(Avis, pk=pk)
+        action = request.data.get('action')
+
+        if action == 'approuver':
+            avis.approuve = True
+            avis.save()
+            return Response({'message': 'Avis rendu visible', 'avis': AvisDetailSerializer(avis).data})
+
+        elif action == 'masquer':
+            avis.approuve = False
+            avis.save()
+            return Response({'message': 'Avis masqué', 'avis': AvisDetailSerializer(avis).data})
+
+        elif action == 'repondre':
+            reponse = request.data.get('reponse_admin', '').strip()
+            if not reponse:
+                return Response({'error': 'Réponse requise'}, status=400)
+            avis.reponse_fournisseur = reponse
+            avis.date_reponse = timezone.now()
+            avis.reponse_fournisseur_nom = f"{request.user.prenom} {request.user.nom}".strip() or 'Administrateur'
+            avis.save()
+            return Response({'message': 'Réponse publiée', 'avis': AvisDetailSerializer(avis).data})
+
+        elif action == 'supprimer':
+            avis.delete()
+            return Response({'message': 'Avis supprimé'}, status=status.HTTP_204_NO_CONTENT)
+
+        elif action == 'signaler':
+            motif = request.data.get('motif', 'autre')
+            commentaire = request.data.get('commentaire', '')
+            SignalementAvis.objects.create(
+                avis=avis,
+                motif=motif,
+                commentaire=commentaire,
+            )
+            return Response({'message': 'Avis signalé', 'avis': AvisDetailSerializer(avis).data})
+
+        return Response({'error': 'Action inconnue'}, status=400)
+
+
+class AdminAvisSignalementsView(APIView):
+    """Liste des signalements d'un avis."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        avis = get_object_or_404(Avis, pk=pk)
+        signalements = avis.signalements.select_related('client__user', 'fournisseur__user').all()
+        return Response(SignalementAvisSerializer(signalements, many=True).data)
+
+    def patch(self, request, pk):
+        """Marquer un signalement comme traité ou rejeté."""
+        signalement_id = request.data.get('signalement_id')
+        nouveau_statut = request.data.get('statut')
+        if nouveau_statut not in ['traite', 'rejete']:
+            return Response({'error': 'Statut invalide'}, status=400)
+        signalement = get_object_or_404(SignalementAvis, pk=signalement_id, avis_id=pk)
+        signalement.statut = nouveau_statut
+        signalement.save()
+        return Response(SignalementAvisSerializer(signalement).data)

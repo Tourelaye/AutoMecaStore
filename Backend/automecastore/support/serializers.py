@@ -371,6 +371,144 @@ class AvisSerializer(serializers.ModelSerializer):
         return bool(client and obj.signalements.filter(client=client).exists()) or bool(fournisseur and obj.signalements.filter(fournisseur=fournisseur).exists())
 
 
+class AvisListSerializer(serializers.ModelSerializer):
+    """Serializer léger pour la liste admin."""
+    client_nom = serializers.SerializerMethodField()
+    client_prenom = serializers.SerializerMethodField()
+    client_email = serializers.SerializerMethodField()
+    client_photo = serializers.SerializerMethodField()
+    produit_nom = serializers.SerializerMethodField()
+    produit_image = serializers.SerializerMethodField()
+    magasin_nom = serializers.SerializerMethodField()
+    commande_reference = serializers.SerializerMethodField()
+    fournisseur_nom = serializers.SerializerMethodField()
+    nb_signalements = serializers.SerializerMethodField()
+    signale_en_attente = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Avis
+        fields = [
+            'id', 'note', 'commentaire', 'date', 'approuve', 'achat_verifie',
+            'client_nom', 'client_prenom', 'client_email', 'client_photo',
+            'produit_nom', 'produit_image', 'magasin_nom', 'commande_reference',
+            'fournisseur_nom', 'nb_signalements', 'signale_en_attente',
+            'note_qualite_produit', 'note_delai', 'note_communication', 'note_livraison',
+            'reponse_fournisseur', 'date_reponse',
+        ]
+
+    def get_client_nom(self, obj):
+        return obj.client.user.nom if obj.client and obj.client.user else None
+
+    def get_client_prenom(self, obj):
+        return obj.client.user.prenom if obj.client and obj.client.user else None
+
+    def get_client_email(self, obj):
+        return obj.client.user.email if obj.client and obj.client.user else None
+
+    def get_client_photo(self, obj):
+        if obj.client and obj.client.photo:
+            try:
+                return obj.client.photo.url
+            except Exception:
+                return None
+        return None
+
+    def get_produit_nom(self, obj):
+        return obj.produit.nom if obj.produit else None
+
+    def get_produit_image(self, obj):
+        if obj.produit and hasattr(obj.produit, 'image') and obj.produit.image:
+            try:
+                return obj.produit.image.url
+            except Exception:
+                return None
+        return None
+
+    def get_magasin_nom(self, obj):
+        return obj.magasin.nom_magasin if obj.magasin else None
+
+    def get_commande_reference(self, obj):
+        return obj.commande.reference if obj.commande else None
+
+    def get_fournisseur_nom(self, obj):
+        if obj.produit and obj.produit.fournisseur:
+            f = obj.produit.fournisseur
+            return f.nom_entreprise or f.nom_complet or f"{f.user.prenom} {f.user.nom}".strip()
+        if obj.magasin and obj.magasin.fournisseur:
+            f = obj.magasin.fournisseur
+            return f.nom_entreprise or f.nom_complet or f"{f.user.prenom} {f.user.nom}".strip()
+        return None
+
+    def get_nb_signalements(self, obj):
+        return obj.signalements.count()
+
+    def get_signale_en_attente(self, obj):
+        return obj.signalements.filter(statut='en_attente').exists()
+
+
+class AvisDetailSerializer(serializers.ModelSerializer):
+    """Serializer complet pour le détail admin."""
+    client = serializers.SerializerMethodField()
+    produit = serializers.SerializerMethodField()
+    magasin = serializers.SerializerMethodField()
+    commande = serializers.SerializerMethodField()
+    signalements = SignalementAvisSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Avis
+        fields = [
+            'id', 'note', 'commentaire', 'date', 'approuve', 'achat_verifie',
+            'client', 'produit', 'magasin', 'commande', 'ligne_commande',
+            'note_qualite_produit', 'note_delai', 'note_communication', 'note_livraison',
+            'reponse_fournisseur', 'date_reponse', 'reponse_fournisseur_nom',
+            'photos', 'signalements',
+        ]
+
+    def get_client(self, obj):
+        if not obj.client or not obj.client.user:
+            return None
+        u = obj.client.user
+        return {
+            'id': u.id,
+            'nom': u.nom,
+            'prenom': u.prenom,
+            'nom_complet': f"{u.prenom} {u.nom}".strip(),
+            'email': u.email,
+            'telephone': u.telephone,
+            'photo': obj.client.photo.url if obj.client.photo else None,
+        }
+
+    def get_produit(self, obj):
+        if not obj.produit:
+            return None
+        return {
+            'id': obj.produit.id,
+            'nom': obj.produit.nom,
+            'reference': obj.produit.reference,
+            'image': obj.produit.image.url if hasattr(obj.produit, 'image') and obj.produit.image else None,
+            'prix': getattr(obj.produit, 'prix', None),
+        }
+
+    def get_magasin(self, obj):
+        if not obj.magasin:
+            return None
+        return {
+            'id': obj.magasin.id,
+            'nom_magasin': obj.magasin.nom_magasin,
+        }
+
+    def get_commande(self, obj):
+        if not obj.commande:
+            return None
+        return {
+            'id': obj.commande.id,
+            'reference': obj.commande.reference,
+            'date_commande': obj.commande.date_commande,
+            'statut': obj.commande.statut,
+            'montant_total': obj.commande.montant_total,
+        }
+
+
 class AvisCreateSerializer(serializers.ModelSerializer):
     note = serializers.IntegerField(min_value=1, max_value=5)
     note_qualite_produit = serializers.IntegerField(min_value=1, max_value=5, required=False, allow_null=True)

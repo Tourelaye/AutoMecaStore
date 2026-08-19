@@ -697,7 +697,7 @@ class FournisseurSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Fournisseur
-        fields = ['id', 'nom_entreprise', 'note', 'nombre_avis']
+        fields = ['user', 'nom_entreprise', 'note', 'nombre_avis']
 
 
 # -----------------------------

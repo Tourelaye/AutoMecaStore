@@ -208,10 +208,10 @@ class AdminAnalyticsView(APIView):
         if days <= 1:
             return self._evolution_hourly(lignes_qs, commandes_qs, start, end)
         if days <= 60:
-            return self._evolution_daily(lignes_qs, start, end, params)
+            return self._evolution_daily(lignes_qs, commandes_qs, start, end, params)
         if (end - start).days <= 730:
-            return self._evolution_monthly(lignes_qs, start, end, params)
-        return self._evolution_yearly(lignes_qs, start, end, params)
+            return self._evolution_monthly(lignes_qs, commandes_qs, start, end, params)
+        return self._evolution_yearly(lignes_qs, commandes_qs, start, end, params)
 
     def _evolution_daily(self, lignes_qs, commandes_qs, start, end, params):
         labels = []
@@ -560,7 +560,7 @@ class AdminAnalyticsView(APIView):
 
         inactif_since = end - timedelta(days=30)
         magasins_inactifs = Fournisseur.objects.exclude(
-            id__in=LigneCommande.objects.filter(commande__date_commande__gte=inactif_since)
+            user_id__in=LigneCommande.objects.filter(commande__date_commande__gte=inactif_since)
             .values('produit__fournisseur')
         ).count()
         if magasins_inactifs > 0:
