@@ -255,6 +255,17 @@ export class PanierComponent implements OnInit, OnDestroy {
     return this.adresseForm.telephone;
   }
 
+  get etapesParcours(): { etape: number; label: string; icon: string }[] {
+    const etapes = [
+      { etape: 2, label: 'Réception', icon: 'bi-shop' },
+      ...(this.aLivraison ? [{ etape: 3, label: 'Adresse', icon: 'bi-geo-alt' }] : []),
+      { etape: 4, label: 'Récapitulatif', icon: 'bi-receipt' },
+      { etape: 5, label: 'Paiement', icon: 'bi-credit-card' },
+      { etape: 6, label: 'Confirmation', icon: 'bi-check-circle' }
+    ];
+    return etapes;
+  }
+
   adresseValide(): boolean {
     const f = this.adresseForm;
     return !!(

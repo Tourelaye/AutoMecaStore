@@ -261,15 +261,15 @@
             <i class="bi bi-shop"></i> Modes par magasin
           </div>
 
-          <div class="store-mode-list" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+          <div class="store-mode-list">
             <div class="store-mode-row" *ngFor="let g of groupesMagasins">
-              <div class="sm-name" style="font-weight: 600;">
+              <div class="sm-name">
                 {{ g.magasin_nom || g.fournisseur_nom || 'AutoMecaStore' }}
               </div>
-              <div class="sm-detail" style="color: #6c757d;">
+              <div class="sm-detail">
                 <i class="bi" [class.bi-shop]="g.items[0].mode_reception === 'retrait_magasin'" [class.bi-truck]="g.items[0].mode_reception === 'livraison'"></i>
                 {{ g.items[0].mode_reception === 'retrait_magasin' ? 'Retrait' : 'Livraison' }}
-                <span *ngIf="g.items[0].mode_reception === 'livraison' && g.magasin?.frais_livraison != null" style="margin-left: 0.5rem;">
+                <span class="sm-fees" *ngIf="g.items[0].mode_reception === 'livraison' && g.magasin?.frais_livraison != null">
                   ({{ g.magasin.frais_livraison | number:'1.2-2' }} FCFA)
                 </span>
               </div>
@@ -333,9 +333,25 @@
   <!-- COMMANDE STEPS -->
   <div class="recap-overlay" *ngIf="etapeCommande > 1" @pageAnimation>
 
+    <!-- STEPPER -->
+    <div class="checkout-stepper">
+      <ng-container *ngFor="let s of etapesParcours; let i = index; let last = last">
+        <div class="stepper-step"
+             [class.active]="etapeCommande === s.etape"
+             [class.done]="etapeCommande > s.etape">
+          <div class="stepper-dot">
+            <i class="bi" [class]="etapeCommande > s.etape ? 'bi bi-check-lg' : 'bi ' + s.icon"></i>
+          </div>
+          <span class="stepper-label">{{ s.label }}</span>
+        </div>
+        <div class="stepper-line" *ngIf="!last" [class.done]="etapeCommande > s.etape"></div>
+      </ng-container>
+    </div>
+
     <!-- STEP 2 : CHOIX DU MODE PAR MAGASIN -->
     <div class="recap-card" *ngIf="etapeCommande === 2">
       <h2><i class="bi bi-shop"></i> Mode de réception par magasin</h2>
+      <p class="step-intro">Choisissez, pour chaque magasin, comment vous souhaitez récupérer vos articles.</p>
 
       <div class="magasin-groups">
         <div class="magasin-group" *ngFor="let g of groupesMagasins">
