@@ -1,7 +1,7 @@
 <app-sidebar></app-sidebar>
 
 <div class="layout">
-  <app-header></app-header>
+  <app-header *ngIf="!showDetail"></app-header>
 
   <main class="content">
 
@@ -170,10 +170,10 @@
         </div>
 
         <div class="table-row" *ngFor="let c of commandesFiltrees; let i = index; trackBy: trackByCommandeId"
-             [style.--i]="i">
+             [style.--i]="i" (click)="openDetail(c)">
 
           <div class="td">
-            <span class="ref-badge" (click)="openDetail(c)">{{ c.reference || '#' + c.id }}</span>
+            <span class="ref-badge">{{ c.reference || '#' + c.id }}</span>
           </div>
 
           <div class="td">
@@ -225,8 +225,8 @@
             <span class="alert-dot" *ngIf="c.alertes.length > 0" [title]="c.alertes[0].label"></span>
           </div>
 
-          <div class="td actions-cell">
-            <button class="btn-icon" (click)="openDetail(c)" title="Consulter"><i class="bi bi-eye"></i></button>
+          <div class="td text-right actions-cell" (click)="$event.stopPropagation()">
+            <button class="btn-icon" (click)="openDetail(c)" title="Voir la commande"><i class="bi bi-eye"></i></button>
             <div class="dropdown">
               <button class="btn-icon" (click)="openActionModal('note', c)" title="Note"><i class="bi bi-journal-text"></i></button>
               <button class="btn-icon" (click)="openActionModal('intervention', c)" title="Intervention"><i class="bi bi-tools"></i></button>
@@ -261,117 +261,191 @@
 
 <!-- DETAIL SIDEBAR -->
 <div class="detail-overlay" *ngIf="showDetail" (click)="closeDetail()">
-  <div class="detail-drawer" *ngIf="selectedCommande" (click)="$event.stopPropagation()">
+  <div class="detail-drawer" (click)="$event.stopPropagation()">
 
-    <div class="detail-header">
-      <div>
-        <h3>{{ selectedCommande.reference || '#' + selectedCommande.id }}</h3>
-        <span class="detail-date">{{ formatDate(selectedCommande.date_commande) }}</span>
-      </div>
-      <div class="detail-actions">
-        <button class="btn-icon" (click)="printDetail()" title="Imprimer"><i class="bi bi-printer"></i></button>
-        <button class="btn-icon" (click)="exportCSV()" title="Exporter Excel"><i class="bi bi-file-earmark-excel"></i></button>
-        <button class="btn-icon" (click)="closeDetail()" title="Fermer"><i class="bi bi-x-lg"></i></button>
-      </div>
+    <button class="detail-close" (click)="closeDetail()" title="Fermer"><i class="bi bi-x-lg"></i></button>
+
+    <div class="detail-loading" *ngIf="detailLoading">
+      <div class="spinner"></div>
+      <p>Chargement de la commande...</p>
     </div>
 
-    <div class="detail-status">
-      <span class="status-badge" [ngClass]="getStatutClass(selectedCommande.statut)">
-        <i class="bi" [ngClass]="getStatutIcon(selectedCommande.statut)"></i>
-        {{ getStatutLabel(selectedCommande.statut) }}
-      </span>
-      <span class="detail-montant">{{ formatMontant(selectedCommande.montant_total) }}</span>
-    </div>
-
-    <!-- TIMELINE -->
-    <div class="detail-section">
-      <h4><i class="bi bi-clock-history"></i> Chronologie</h4>
-      <div class="timeline">
-        <div class="timeline-item" *ngFor="let t of getTimeline()"
-             [class.completed]="t.completed" [class.active]="t.active" [class.note]="t.isNote">
-          <div class="timeline-icon"><i class="bi" [class]="t.icon"></i></div>
-          <div class="timeline-body">
-            <span class="timeline-label">{{ t.label }}</span>
-            <span class="timeline-meta" *ngIf="t.date">{{ t.date }} — {{ t.utilisateur }}</span>
-            <span class="timeline-meta" *ngIf="!t.date && !t.isNote">En attente</span>
+    <ng-container *ngIf="!detailLoading && selectedCommande">
+      <div class="detail-header">
+        <div class="detail-identity">
+          <h3>Commande {{ selectedCommande.reference }}</h3>
+          <span class="detail-meta">Passée le {{ formatDate(selectedCommande.date_commande) }}</span>
+          <div class="detail-badges">
+            <span class="status-badge" [ngClass]="getStatutClass(selectedCommande.statut)">
+              <i class="bi" [ngClass]="getStatutIcon(selectedCommande.statut)"></i>
+              {{ getStatutLabel(selectedCommande.statut) }}
+            </span>
+            <span class="mode-chip"><i class="bi" [ngClass]="selectedCommande.mode_reception === 'livraison' ? 'bi-truck' : 'bi-shop'"></i> {{ getReceptionLabel(selectedCommande.mode_reception) }}</span>
+            <span class="mode-chip"><i class="bi bi-cash-coin"></i> {{ getPaiementLabel(selectedCommande.mode_paiement) }}</span>
+            <span class="mode-chip alert-amber" *ngIf="selectedCommande.alertes?.length"><i class="bi bi-exclamation-triangle"></i> {{ selectedCommande.alertes.length }} alerte(s)</span>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- TABS -->
-    <div class="detail-tabs">
-      <button [class.active]="activeTab === 'produits'" (click)="activeTab = 'produits'">Produits</button>
-      <button [class.active]="activeTab === 'client'" (click)="activeTab = 'client'">Client & Livraison</button>
-      <button [class.active]="activeTab === 'historique'" (click)="activeTab = 'historique'">Historique</button>
-    </div>
-
-    <div class="detail-body">
-
-      <div class="tab-panel" *ngIf="activeTab === 'produits'">
-        <div class="products-list">
-          <div class="product-row" *ngFor="let l of selectedCommande.lignes">
-            <img [src]="l.produit?.image || 'assets/img/placeholder.png'" alt="" class="product-thumb">
-            <div class="product-info">
-              <span class="product-name">{{ l.produit?.nom }}</span>
-              <span class="product-store" *ngIf="l.magasin"><i class="bi bi-shop"></i> {{ l.magasin.nom }}</span>
-            </div>
-            <div class="product-qty">x{{ l.quantite }}</div>
-            <div class="product-price">{{ formatMontant(l.prix_unitaire) }}</div>
-            <div class="product-total">{{ formatMontant(l.sous_total) }}</div>
-          </div>
-        </div>
-        <div class="pricing-summary">
-          <div class="price-line"><span>Sous-total</span><span>{{ formatMontant(selectedCommande.montant_total - selectedCommande.frais_livraison) }}</span></div>
-          <div class="price-line"><span>Frais de livraison</span><span>{{ formatMontant(selectedCommande.frais_livraison) }}</span></div>
-          <div class="price-line total"><span>Total</span><span>{{ formatMontant(selectedCommande.montant_total) }}</span></div>
-        </div>
+      <div class="detail-tabs">
+        <button *ngFor="let t of tabs; let i = index" [class.active]="detailTab === i" (click)="detailTab = i">
+          <i class="bi" [ngClass]="t.icon"></i> {{ t.label }}
+          <span class="tab-count" *ngIf="t.key === 'articles' && selectedCommande.lignes?.length">{{ selectedCommande.lignes.length }}</span>
+          <span class="tab-count" *ngIf="t.key === 'historique' && selectedCommande.historique?.length">{{ selectedCommande.historique.length }}</span>
+          <span class="tab-count" *ngIf="t.key === 'reclamations' && selectedCommande.reclamations?.length">{{ selectedCommande.reclamations.length }}</span>
+        </button>
       </div>
 
-      <div class="tab-panel" *ngIf="activeTab === 'client'">
-        <div class="info-block">
-          <h5>Client</h5>
-          <p><strong>{{ getClientFullName(selectedCommande.client) }}</strong></p>
-          <p *ngIf="selectedCommande.client?.email"><i class="bi bi-envelope"></i> {{ selectedCommande.client?.email }}</p>
-          <p *ngIf="selectedCommande.client?.telephone"><i class="bi bi-telephone"></i> {{ selectedCommande.client?.telephone }}</p>
-          <p *ngIf="selectedCommande.client?.adresse"><i class="bi bi-geo-alt"></i> {{ selectedCommande.client?.adresse }}</p>
-        </div>
-        <div class="info-block" *ngIf="selectedCommande.livraison">
-          <h5>Livraison</h5>
-          <p><span class="label">Statut</span><span class="value">{{ selectedCommande.livraison.statut }}</span></p>
-          <p *ngIf="selectedCommande.livraison.livreur"><span class="label">Livreur</span><span class="value">{{ selectedCommande.livraison.livreur }}</span></p>
-          <p *ngIf="selectedCommande.livraison.date_livraison"><span class="label">Date</span><span class="value">{{ formatDate(selectedCommande.livraison.date_livraison) }}</span></p>
-          <p *ngIf="selectedCommande.livraison.frais_livraison !== undefined"><span class="label">Frais</span><span class="value">{{ formatMontant(selectedCommande.livraison.frais_livraison) }}</span></p>
-          <p *ngIf="selectedCommande.livraison.remarque"><span class="label">Remarque</span><span class="value">{{ selectedCommande.livraison.remarque }}</span></p>
-        </div>
-        <div class="info-block" *ngIf="!selectedCommande.livraison">
-          <h5>Livraison</h5>
-          <p>Aucune information de livraison.</p>
-        </div>
-      </div>
+      <div class="detail-content">
 
-      <div class="tab-panel" *ngIf="activeTab === 'historique'">
-        <div class="history-list">
-          <div class="history-item" *ngFor="let h of selectedCommande.historique">
-            <div class="history-icon"><i class="bi" [class]="h.statut ? getStatutIcon(h.statut) : 'bi-journal-text'"></i></div>
-            <div class="history-body">
-              <span class="history-title">{{ h.statut ? (h.statut_label || getStatutLabel(h.statut)) : h.commentaire }}</span>
-              <span class="history-meta" *ngIf="h.motif">Motif : {{ h.motif }}</span>
-              <span class="history-meta">{{ formatDate(h.date) }} — {{ h.utilisateur }}</span>
+        <!-- INFORMATIONS -->
+        <div class="tab-pane" *ngIf="detailTab === 0">
+          <div class="info-section">
+            <h4><i class="bi bi-cart-check"></i> Commande</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Référence</span><span class="value">{{ selectedCommande.reference || '#' + selectedCommande.id }}</span></div>
+              <div class="info-row"><span class="label">Date</span><span class="value">{{ formatDate(selectedCommande.date_commande) }}</span></div>
+              <div class="info-row"><span class="label">Statut</span><span class="value"><span class="status-badge" [ngClass]="getStatutClass(selectedCommande.statut)"><i class="bi" [ngClass]="getStatutIcon(selectedCommande.statut)"></i> {{ getStatutLabel(selectedCommande.statut) }}</span></span></div>
+              <div class="info-row"><span class="label">Mode de paiement</span><span class="value">{{ getPaiementLabel(selectedCommande.mode_paiement) }}</span></div>
+              <div class="info-row"><span class="label">Mode de réception</span><span class="value">{{ getReceptionLabel(selectedCommande.mode_reception) }}</span></div>
+              <div class="info-row"><span class="label">Frais de livraison</span><span class="value">{{ formatMontant(selectedCommande.frais_livraison) }}</span></div>
+              <div class="info-row"><span class="label">Montant total</span><span class="value" style="color:#4ade80;font-weight:800;">{{ formatMontant(selectedCommande.montant_total) }}</span></div>
             </div>
           </div>
+
+          <div class="info-section" *ngIf="selectedCommande.client">
+            <h4><i class="bi bi-person"></i> Client</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Nom</span><span class="value">{{ getClientFullName(selectedCommande.client) }}</span></div>
+              <div class="info-row"><span class="label">Email</span><span class="value">{{ selectedCommande.client.email || '-' }}</span></div>
+              <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ selectedCommande.client.telephone || '-' }}</span></div>
+              <div class="info-row"><span class="label">Adresse</span><span class="value">{{ selectedCommande.client.adresse || '-' }}</span></div>
+            </div>
+          </div>
+
+          <div class="info-section" *ngIf="selectedCommande.magasins?.length">
+            <h4><i class="bi bi-shop"></i> Magasins</h4>
+            <div class="magasins-list">
+              <span class="magasin-chip" *ngFor="let m of selectedCommande.magasins">{{ m }}</span>
+            </div>
+          </div>
+
+          <div class="info-section" *ngIf="selectedCommande.commentaire_fournisseur">
+            <h4><i class="bi bi-journal-text"></i> Commentaire fournisseur</h4>
+            <p class="description-text">{{ selectedCommande.commentaire_fournisseur }}</p>
+          </div>
         </div>
+
+        <!-- ARTICLES -->
+        <div class="tab-pane" *ngIf="detailTab === 1">
+          <div class="products-list" *ngIf="selectedCommande.lignes?.length; else noArticles">
+            <div class="product-row" *ngFor="let l of selectedCommande.lignes">
+              <div class="product-thumb">
+                <img *ngIf="l.produit?.image" [src]="getProduitImageUrl(l.produit?.image)" alt="{{ l.produit?.nom }}">
+                <i *ngIf="!l.produit?.image" class="bi bi-image"></i>
+              </div>
+              <div class="product-info">
+                <span class="product-name">{{ l.produit?.nom || 'Produit' }}</span>
+                <span class="product-store" *ngIf="l.magasin"><i class="bi bi-shop"></i> {{ l.magasin.nom }}</span>
+              </div>
+              <div class="product-qty">x{{ l.quantite }}</div>
+              <div class="product-price">{{ formatMontant(l.prix_unitaire) }}</div>
+              <div class="product-total">{{ formatMontant(l.sous_total) }}</div>
+            </div>
+          </div>
+          <ng-template #noArticles>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-box"></i></div>
+              <h4>Aucun article</h4>
+            </div>
+          </ng-template>
+
+          <div class="pricing-summary" *ngIf="selectedCommande.lignes?.length">
+            <div class="price-line"><span>Sous-total</span><span>{{ formatMontant((selectedCommande.montant_total || 0) - (selectedCommande.frais_livraison || 0)) }}</span></div>
+            <div class="price-line"><span>Frais de livraison</span><span>{{ formatMontant(selectedCommande.frais_livraison) }}</span></div>
+            <div class="price-line total"><span>Total</span><span>{{ formatMontant(selectedCommande.montant_total) }}</span></div>
+          </div>
+        </div>
+
+        <!-- LIVRAISON -->
+        <div class="tab-pane" *ngIf="detailTab === 2">
+          <div class="info-section" *ngIf="selectedCommande.livraison; else noLivraison">
+            <h4><i class="bi bi-truck"></i> Livraison</h4>
+            <div class="info-grid">
+              <div class="info-row"><span class="label">Statut</span><span class="value">{{ selectedCommande.livraison.statut }}</span></div>
+              <div class="info-row" *ngIf="selectedCommande.livraison.livreur"><span class="label">Livreur</span><span class="value">{{ selectedCommande.livraison.livreur }}</span></div>
+              <div class="info-row" *ngIf="selectedCommande.livraison.date_livraison"><span class="label">Date</span><span class="value">{{ formatDate(selectedCommande.livraison.date_livraison) }}</span></div>
+              <div class="info-row" *ngIf="selectedCommande.livraison.frais_livraison !== undefined"><span class="label">Frais</span><span class="value">{{ formatMontant(selectedCommande.livraison.frais_livraison) }}</span></div>
+              <div class="info-row" *ngIf="selectedCommande.livraison.remarque"><span class="label">Remarque</span><span class="value">{{ selectedCommande.livraison.remarque }}</span></div>
+            </div>
+          </div>
+          <ng-template #noLivraison>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-truck"></i></div>
+              <h4>Aucune livraison</h4>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- HISTORIQUE -->
+        <div class="tab-pane" *ngIf="detailTab === 3">
+          <div class="timeline" *ngIf="getTimeline().length; else noHisto">
+            <div class="timeline-item" *ngFor="let t of getTimeline()" [class.completed]="t.completed" [class.active]="t.active" [class.note]="t.isNote">
+              <div class="timeline-icon"><i class="bi" [class]="t.icon"></i></div>
+              <div class="timeline-body">
+                <span class="timeline-title">{{ t.label }}</span>
+                <span class="timeline-meta" *ngIf="t.date">{{ t.date }} — {{ t.utilisateur }}</span>
+                <span class="timeline-meta" *ngIf="!t.date && !t.isNote">En attente</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noHisto>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-clock-history"></i></div>
+              <h4>Aucun historique</h4>
+            </div>
+          </ng-template>
+
+          <div class="history-list" *ngIf="selectedCommande.historique?.length">
+            <div class="history-item" *ngFor="let h of selectedCommande.historique">
+              <div class="history-icon"><i class="bi" [class]="h.statut ? getStatutIcon(h.statut) : 'bi-journal-text'"></i></div>
+              <div class="history-body">
+                <span class="history-title">{{ h.statut ? (h.statut_label || getStatutLabel(h.statut)) : h.commentaire }}</span>
+                <span class="history-meta" *ngIf="h.motif">Motif : {{ h.motif }}</span>
+                <span class="history-meta">{{ formatDate(h.date) }} — {{ h.utilisateur }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECLAMATIONS -->
+        <div class="tab-pane" *ngIf="detailTab === 4">
+          <div class="documents-grid" *ngIf="selectedCommande.reclamations?.length; else noReclamation">
+            <div class="document-card" *ngFor="let r of selectedCommande.reclamations">
+              <i class="bi doc-icon bi-shield-exclamation"></i>
+              <span class="doc-name">{{ r.objet }}</span>
+              <span class="doc-date">{{ formatDate(r.date) }}</span>
+              <span class="doc-status" [ngClass]="'status-' + (r.statut.toLowerCase() || 'gray')">{{ r.statut }}</span>
+            </div>
+          </div>
+          <ng-template #noReclamation>
+            <div class="empty-state small">
+              <div class="empty-icon"><i class="bi bi-shield-check"></i></div>
+              <h4>Aucune réclamation</h4>
+            </div>
+          </ng-template>
+        </div>
+
       </div>
 
-    </div>
-
-    <div class="detail-footer" *ngIf="selectedCommande">
-      <button class="btn-action" (click)="openActionModal('contact_fournisseur', selectedCommande!)"><i class="bi bi-shop"></i> Fournisseur</button>
-      <button class="btn-action" (click)="openActionModal('contact_client', selectedCommande!)"><i class="bi bi-person-lines-fill"></i> Client</button>
-      <button class="btn-action" (click)="openActionModal('intervention', selectedCommande!)"><i class="bi bi-tools"></i> Intervention</button>
-      <button class="btn-action" (click)="openActionModal('note', selectedCommande!)"><i class="bi bi-journal-text"></i> Note</button>
-      <button class="btn-action exceptional" (click)="openActionModal('exception_status', selectedCommande!)"><i class="bi bi-exclamation-triangle"></i> Statut exceptionnel</button>
-    </div>
+      <div class="detail-footer">
+        <button class="btn-action" (click)="openActionModal('contact_fournisseur', selectedCommande!)"><i class="bi bi-shop"></i> Fournisseur</button>
+        <button class="btn-action" (click)="openActionModal('contact_client', selectedCommande!)"><i class="bi bi-person-lines-fill"></i> Client</button>
+        <button class="btn-action" (click)="openActionModal('intervention', selectedCommande!)"><i class="bi bi-tools"></i> Intervention</button>
+        <button class="btn-action" (click)="openActionModal('note', selectedCommande!)"><i class="bi bi-journal-text"></i> Note</button>
+        <button class="btn-action exceptional" (click)="openActionModal('exception_status', selectedCommande!)"><i class="bi bi-exclamation-triangle"></i> Statut exceptionnel</button>
+      </div>
+    </ng-container>
 
   </div>
 </div>

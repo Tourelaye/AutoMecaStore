@@ -233,26 +233,26 @@
               <button class="btn-action btn-primary" (click)="openDetail(p)" [disabled]="submitting" title="Fiche produit">
                 <i class="bi bi-eye"></i>
               </button>
-              <button class="btn-action" [matMenuTriggerFor]="actionsMenu" title="Actions validation">
+              <button class="btn-action btn-menu" [matMenuTriggerFor]="actionsMenu" title="Actions validation">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
-              <mat-menu #actionsMenu="matMenu" xPosition="before">
-                <button mat-menu-item (click)="openValidation(p, 'publier')" [disabled]="p.admin_status === 'publie'">
+              <mat-menu #actionsMenu="matMenu" xPosition="before" panelClass="pr-actions-menu">
+                <button mat-menu-item class="pr-publier" (click)="openValidation(p, 'publier')" [disabled]="p.admin_status === 'publie'">
                   <i class="bi bi-check-circle me-2 text-success"></i> Publier
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'demander_correction')" [disabled]="p.admin_status === 'a_corriger'">
+                <button mat-menu-item class="pr-corriger" (click)="openValidation(p, 'demander_correction')" [disabled]="p.admin_status === 'a_corriger'">
                   <i class="bi bi-exclamation-octagon me-2 text-warning"></i> Demander corrections
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'masquer')" [disabled]="p.admin_status === 'masque'">
+                <button mat-menu-item class="pr-masquer" (click)="openValidation(p, 'masquer')" [disabled]="p.admin_status === 'masque'">
                   <i class="bi bi-eye-slash me-2 text-muted"></i> Masquer
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'refuser')" [disabled]="p.admin_status === 'refuse'">
+                <button mat-menu-item class="pr-refuser" (click)="openValidation(p, 'refuser')" [disabled]="p.admin_status === 'refuse'">
                   <i class="bi bi-x-circle me-2 text-danger"></i> Refuser
                 </button>
-                <button mat-menu-item (click)="askSections(p)">
+                <button mat-menu-item class="pr-sections" (click)="askSections(p)">
                   <i class="bi bi-tags me-2 text-info"></i> Sections
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'supprimer')">
+                <button mat-menu-item class="pr-supprimer" (click)="openValidation(p, 'supprimer')">
                   <i class="bi bi-trash me-2 text-danger"></i> Supprimer
                 </button>
               </mat-menu>
@@ -320,26 +320,26 @@
               <button class="btn-action btn-primary" (click)="openDetail(p)" [disabled]="submitting" title="Fiche produit">
                 <i class="bi bi-eye"></i>
               </button>
-              <button class="btn-action" [matMenuTriggerFor]="actionsMenu2" title="Actions validation">
+              <button class="btn-action btn-menu" [matMenuTriggerFor]="actionsMenu2" title="Actions validation">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
-              <mat-menu #actionsMenu2="matMenu" xPosition="before">
-                <button mat-menu-item (click)="openValidation(p, 'publier')" [disabled]="p.admin_status === 'publie'">
+              <mat-menu #actionsMenu2="matMenu" xPosition="before" panelClass="pr-actions-menu">
+                <button mat-menu-item class="pr-publier" (click)="openValidation(p, 'publier')" [disabled]="p.admin_status === 'publie'">
                   <i class="bi bi-check-circle me-2 text-success"></i> Publier
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'demander_correction')" [disabled]="p.admin_status === 'a_corriger'">
+                <button mat-menu-item class="pr-corriger" (click)="openValidation(p, 'demander_correction')" [disabled]="p.admin_status === 'a_corriger'">
                   <i class="bi bi-exclamation-octagon me-2 text-warning"></i> Demander corrections
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'masquer')" [disabled]="p.admin_status === 'masque'">
+                <button mat-menu-item class="pr-masquer" (click)="openValidation(p, 'masquer')" [disabled]="p.admin_status === 'masque'">
                   <i class="bi bi-eye-slash me-2 text-muted"></i> Masquer
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'refuser')" [disabled]="p.admin_status === 'refuse'">
+                <button mat-menu-item class="pr-refuser" (click)="openValidation(p, 'refuser')" [disabled]="p.admin_status === 'refuse'">
                   <i class="bi bi-x-circle me-2 text-danger"></i> Refuser
                 </button>
-                <button mat-menu-item (click)="askSections(p)">
+                <button mat-menu-item class="pr-sections" (click)="askSections(p)">
                   <i class="bi bi-tags me-2 text-info"></i> Sections
                 </button>
-                <button mat-menu-item (click)="openValidation(p, 'supprimer')">
+                <button mat-menu-item class="pr-supprimer" (click)="openValidation(p, 'supprimer')">
                   <i class="bi bi-trash me-2 text-danger"></i> Supprimer
                 </button>
               </mat-menu>
@@ -485,153 +485,203 @@
       <mat-tab-group [(selectedIndex)]="selectedTab" class="detail-tabs">
         <mat-tab label="Informations">
           <div class="detail-body">
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-info-circle"></i> Description</h4>
-                <p class="desc-short" *ngIf="selectedProduit.description_courte">{{ selectedProduit.description_courte }}</p>
-                <p class="desc-detail">{{ selectedProduit.description_detaillee || 'Aucune description détaillée.' }}</p>
-                <p class="desc-precautions" *ngIf="selectedProduit.precautions"><strong>Précautions :</strong> {{ selectedProduit.precautions }}</p>
+            <div class="info-section">
+              <h4><i class="bi bi-fingerprint"></i> Identification</h4>
+              <div class="info-grid">
+                <div class="info-row"><span class="label">Nom</span><span class="value">{{ selectedProduit.name }}</span></div>
+                <div class="info-row"><span class="label">Référence</span><span class="value">{{ selectedProduit.ref || selectedProduit.reference_oem || '-' }}</span></div>
+                <div class="info-row"><span class="label">Marque</span><span class="value">{{ selectedProduit.brand || '-' }}</span></div>
+                <div class="info-row"><span class="label">Catégorie</span><span class="value">{{ selectedProduit.category || '-' }}</span></div>
               </div>
-            </mat-card>
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-shop"></i> Magasin / Fournisseur</h4>
-                <div class="store-card">
-                  <div class="vendor-av large">{{ getInitials(selectedProduit.vendor_store) }}</div>
-                  <div>
-                    <div class="store-name">{{ selectedProduit.vendor_store || selectedProduit.vendor }}</div>
-                    <div class="store-vendor">{{ selectedProduit.vendor }}</div>
-                  </div>
-                </div>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-cash-coin"></i> Commercial</h4>
+              <div class="info-grid">
+                <div class="info-row"><span class="label">Statut</span><span class="value" [style.color]="selectedProduit.admin_status_color">{{ selectedProduit.admin_status_label }}</span></div>
+                <div class="info-row"><span class="label">Prix</span><span class="value price-value">{{ selectedProduit.price | number:'1.0-0':'fr' }} FCFA</span></div>
+                <div class="info-row"><span class="label">Stock</span><span class="value">{{ selectedProduit.stock }} p.</span></div>
+                <div class="info-row"><span class="label">Ventes</span><span class="value">{{ selectedProduit.sales }}</span></div>
               </div>
-            </mat-card>
-            <mat-card class="detail-card" *ngIf="selectedProduit.mots_cles.length">
-              <div class="detail-section">
-                <h4><i class="bi bi-key"></i> Mots-clés</h4>
-                <div class="tags-list">
-                  <span class="tag-pill" *ngFor="let k of selectedProduit.mots_cles">{{ k }}</span>
-                </div>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-clock-history"></i> Suivi</h4>
+              <div class="info-grid">
+                <div class="info-row"><span class="label">Créé le</span><span class="value">{{ formatDate(selectedProduit.created_at) }}</span></div>
+                <div class="info-row"><span class="label">Modifié le</span><span class="value">{{ formatDate(selectedProduit.updated_at) }}</span></div>
               </div>
-            </mat-card>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-text-paragraph"></i> Description</h4>
+              <p class="desc-short" *ngIf="selectedProduit.description_courte">{{ selectedProduit.description_courte }}</p>
+              <p class="desc-detail">{{ selectedProduit.description_detaillee || 'Aucune description détaillée.' }}</p>
+              <p class="desc-precautions" *ngIf="selectedProduit.precautions"><strong>Précautions :</strong> {{ selectedProduit.precautions }}</p>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-shop"></i> Magasin / Fournisseur</h4>
+              <div class="info-grid">
+                <div class="info-row"><span class="label">Magasin</span><span class="value">{{ selectedProduit.vendor_store || '-' }}</span></div>
+                <div class="info-row"><span class="label">Fournisseur</span><span class="value">{{ selectedProduit.vendor || '-' }}</span></div>
+              </div>
+            </div>
+
+            <div class="info-section" *ngIf="selectedProduit.mots_cles.length">
+              <h4><i class="bi bi-key"></i> Mots-clés</h4>
+              <div class="tags-list">
+                <span class="tag-pill" *ngFor="let k of selectedProduit.mots_cles">{{ k }}</span>
+              </div>
+            </div>
           </div>
         </mat-tab>
 
-        <mat-tab label="Images ({{ selectedProduit.images.length || 0 }})">
+        <mat-tab label="Images ({{ selectedProduit.images.length + (selectedProduit.image ? 1 : 0) }})">
           <div class="detail-body">
-            <div class="gallery" *ngIf="selectedProduit.images.length; else noImages">
-              <div class="gallery-item" *ngFor="let img of selectedProduit.images">
-                <img [src]="img" [alt]="selectedProduit.name" />
+            <div class="info-section">
+              <h4><i class="bi bi-image"></i> Aperçu principal</h4>
+              <div class="main-image-wrap" *ngIf="selectedProduit.image; else noMainImage">
+                <img [src]="selectedProduit.image" [alt]="selectedProduit.name" />
               </div>
+              <ng-template #noMainImage>
+                <div class="empty-gallery">
+                  <i class="bi bi-image"></i>
+                  <p>Aucune image principale.</p>
+                </div>
+              </ng-template>
             </div>
-            <ng-template #noImages>
-              <div class="pr-empty compact">
-                <i class="bi bi-image"></i>
-                <p>Aucune image pour ce produit.</p>
+
+            <div class="info-section">
+              <h4><i class="bi bi-images"></i> Galerie ({{ selectedProduit.images.length || 0 }} image{{ selectedProduit.images.length > 1 ? 's' : '' }})</h4>
+              <div class="gallery" *ngIf="selectedProduit.images.length; else noImages">
+                <div class="gallery-item" *ngFor="let img of selectedProduit.images">
+                  <img [src]="img" [alt]="selectedProduit.name" />
+                </div>
               </div>
-            </ng-template>
+              <ng-template #noImages>
+                <div class="empty-gallery">
+                  <i class="bi bi-image"></i>
+                  <p>Aucune image dans la galerie.</p>
+                </div>
+              </ng-template>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Compatibilité">
           <div class="detail-body">
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-car-front"></i> Véhicules compatibles</h4>
-                <ul class="compat-list" *ngIf="selectedProduit.compatibility.compatibilites?.length; else noCompat">
-                  <li *ngFor="let c of selectedProduit.compatibility.compatibilites">
-                    <i class="bi bi-check2-circle"></i> {{ c }}
-                  </li>
-                </ul>
-                <ng-template #noCompat>
-                  <p class="empty-text">Aucune compatibilité renseignée.</p>
-                </ng-template>
+            <div class="info-section">
+              <h4><i class="bi bi-car-front"></i> Véhicules compatibles</h4>
+              <ul class="compat-list" *ngIf="selectedProduit.compatibility.compatibilites?.length; else noCompat">
+                <li *ngFor="let c of selectedProduit.compatibility.compatibilites">
+                  <i class="bi bi-check2-circle"></i> {{ c }}
+                </li>
+              </ul>
+              <ng-template #noCompat>
+                <p class="empty-text">Aucune compatibilité renseignée.</p>
+              </ng-template>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-car-front"></i> Modèles compatibles</h4>
+              <ul class="compat-list" *ngIf="selectedProduit.compatibility.modeles_compatibles?.length; else noModeles">
+                <li *ngFor="let m of selectedProduit.compatibility.modeles_compatibles">
+                  <i class="bi bi-check2-circle"></i> {{ m }}
+                </li>
+              </ul>
+              <ng-template #noModeles>
+                <p class="empty-text">Aucun modèle compatible renseigné.</p>
+              </ng-template>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-calendar-range"></i> Années</h4>
+              <div class="info-grid">
+                <div class="info-row"><span class="label">Année début</span><span class="value">{{ selectedProduit.compatibility.annee_debut || '?' }}</span></div>
+                <div class="info-row"><span class="label">Année fin</span><span class="value">{{ selectedProduit.compatibility.annee_fin || '?' }}</span></div>
               </div>
-            </mat-card>
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-calendar-range"></i> Années</h4>
-                <p class="empty-text" *ngIf="!selectedProduit.compatibility.annee_debut && !selectedProduit.compatibility.annee_fin">Années non renseignées.</p>
-                <p *ngIf="selectedProduit.compatibility.annee_debut || selectedProduit.compatibility.annee_fin">
-                  De <strong>{{ selectedProduit.compatibility.annee_debut || '?' }}</strong> à <strong>{{ selectedProduit.compatibility.annee_fin || '?' }}</strong>
-                </p>
-              </div>
-            </mat-card>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Caractéristiques">
           <div class="detail-body">
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-tools"></i> Fiche technique</h4>
-                <div class="tech-grid">
-                  <div class="tech-item"><span>État</span><strong>{{ selectedProduit.technical.etat || '-' }}</strong></div>
-                  <div class="tech-item"><span>Fabricant</span><strong>{{ selectedProduit.technical.fabricant || '-' }}</strong></div>
-                  <div class="tech-item"><span>Pays d'origine</span><strong>{{ selectedProduit.technical.pays_origine || '-' }}</strong></div>
-                  <div class="tech-item"><span>Matière</span><strong>{{ selectedProduit.technical.matiere || '-' }}</strong></div>
-                  <div class="tech-item"><span>Couleur</span><strong>{{ selectedProduit.technical.couleur || '-' }}</strong></div>
-                  <div class="tech-item"><span>Garantie</span><strong>{{ selectedProduit.technical.garantie_disponible ? (selectedProduit.technical.garantie_mois + ' mois') : 'Non' }}</strong></div>
-                  <div class="tech-item"><span>Poids</span><strong>{{ selectedProduit.technical.poids ? selectedProduit.technical.poids + ' kg' : '-' }}</strong></div>
-                  <div class="tech-item"><span>Dimensions</span><strong>{{ selectedProduit.technical.longueur || '-' }} x {{ selectedProduit.technical.largeur || '-' }} x {{ selectedProduit.technical.hauteur || '-' }}</strong></div>
-                </div>
+            <div class="info-section">
+              <h4><i class="bi bi-tools"></i> Fiche technique</h4>
+              <div class="tech-grid">
+                <div class="tech-item"><span>État</span><strong>{{ selectedProduit.technical.etat || '-' }}</strong></div>
+                <div class="tech-item"><span>Fabricant</span><strong>{{ selectedProduit.technical.fabricant || '-' }}</strong></div>
+                <div class="tech-item"><span>Pays d'origine</span><strong>{{ selectedProduit.technical.pays_origine || '-' }}</strong></div>
+                <div class="tech-item"><span>Matière</span><strong>{{ selectedProduit.technical.matiere || '-' }}</strong></div>
+                <div class="tech-item"><span>Couleur</span><strong>{{ selectedProduit.technical.couleur || '-' }}</strong></div>
+                <div class="tech-item"><span>Garantie</span><strong>{{ selectedProduit.technical.garantie_disponible ? (selectedProduit.technical.garantie_mois + ' mois') : 'Non' }}</strong></div>
+                <div class="tech-item"><span>Poids</span><strong>{{ selectedProduit.technical.poids ? selectedProduit.technical.poids + ' kg' : '-' }}</strong></div>
+                <div class="tech-item"><span>Dimensions</span><strong>{{ selectedProduit.technical.longueur || '-' }} x {{ selectedProduit.technical.largeur || '-' }} x {{ selectedProduit.technical.hauteur || '-' }}</strong></div>
               </div>
-            </mat-card>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Alertes qualité">
           <div class="detail-body">
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-shield-exclamation"></i> Contrôle qualité automatique</h4>
-                <div class="alerts-list" *ngIf="selectedProduit.alerts.length; else noAlerts">
-                  <div class="alert-row" *ngFor="let a of selectedProduit.alerts" [class]="'alert-row--' + a.severity">
-                    <i class="bi" [class]="getAlertIcon(a.type)"></i>
-                    <div>
-                      <strong>{{ a.label }}</strong>
-                      <small>{{ a.type }}</small>
-                    </div>
+            <div class="info-section" *ngIf="selectedProduit.alerts.length">
+              <h4><i class="bi bi-pie-chart"></i> Résumé des alertes</h4>
+              <div class="info-grid">
+                <div class="info-row"><span class="label">Total</span><span class="value">{{ selectedProduit.alerts.length }}</span></div>
+                <div class="info-row"><span class="label">Critiques</span><span class="value alert-count alert-count--high">{{ countAlerts('high') }}</span></div>
+                <div class="info-row"><span class="label">Modérées</span><span class="value alert-count alert-count--medium">{{ countAlerts('medium') }}</span></div>
+                <div class="info-row"><span class="label">Faibles</span><span class="value alert-count alert-count--low">{{ countAlerts('low') }}</span></div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h4><i class="bi bi-shield-exclamation"></i> Détail des alertes</h4>
+              <div class="alerts-list" *ngIf="selectedProduit.alerts.length; else noAlerts">
+                <div class="alert-row" *ngFor="let a of selectedProduit.alerts" [class]="'alert-row--' + a.severity">
+                  <i class="bi" [class]="getAlertIcon(a.type)"></i>
+                  <div>
+                    <strong>{{ a.label }}</strong>
+                    <small>{{ a.type }}</small>
                   </div>
                 </div>
-                <ng-template #noAlerts>
-                  <p class="empty-text text-success"><i class="bi bi-check-circle"></i> Aucune alerte qualité détectée.</p>
-                </ng-template>
               </div>
-            </mat-card>
+              <ng-template #noAlerts>
+                <p class="empty-text text-success"><i class="bi bi-check-circle"></i> Aucune alerte qualité détectée.</p>
+              </ng-template>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Historique">
           <div class="detail-body">
-            <mat-card class="detail-card">
-              <div class="detail-section">
-                <h4><i class="bi bi-clock-history"></i> Historique des modifications</h4>
-                <ul class="history-list">
-                  <li>
-                    <i class="bi bi-plus-circle"></i>
-                    <div>
-                      <strong>Création</strong>
-                      <small>{{ formatDate(selectedProduit.created_at) }}</small>
-                    </div>
-                  </li>
-                  <li *ngIf="selectedProduit.updated_at">
-                    <i class="bi bi-arrow-repeat"></i>
-                    <div>
-                      <strong>Dernière mise à jour stock</strong>
-                      <small>{{ formatDate(selectedProduit.updated_at) }}</small>
-                    </div>
-                  </li>
-                  <li *ngIf="selectedProduit.motif_rejet">
-                    <i class="bi bi-pencil-square"></i>
-                    <div>
-                      <strong>Motif de rejet / correction</strong>
-                      <small>{{ selectedProduit.motif_rejet }}</small>
-                    </div>
-                  </li>
-                </ul>
-                <p class="empty-text">L'historique complet des modifications sera disponible prochainement.</p>
-              </div>
-            </mat-card>
+            <div class="info-section">
+              <h4><i class="bi bi-clock-history"></i> Historique des modifications</h4>
+              <ul class="history-list">
+                <li>
+                  <i class="bi bi-plus-circle"></i>
+                  <div>
+                    <strong>Création</strong>
+                    <small>{{ formatDate(selectedProduit.created_at) }}</small>
+                  </div>
+                </li>
+                <li *ngIf="selectedProduit.updated_at">
+                  <i class="bi bi-arrow-repeat"></i>
+                  <div>
+                    <strong>Dernière mise à jour stock</strong>
+                    <small>{{ formatDate(selectedProduit.updated_at) }}</small>
+                  </div>
+                </li>
+                <li *ngIf="selectedProduit.motif_rejet">
+                  <i class="bi bi-pencil-square"></i>
+                  <div>
+                    <strong>Motif de rejet / correction</strong>
+                    <small>{{ selectedProduit.motif_rejet }}</small>
+                  </div>
+                </li>
+              </ul>
+              <p class="empty-text">L'historique complet des modifications sera disponible prochainement.</p>
+            </div>
           </div>
         </mat-tab>
       </mat-tab-group>

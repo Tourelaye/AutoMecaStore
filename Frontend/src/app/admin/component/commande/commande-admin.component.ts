@@ -52,7 +52,16 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
 
   selectedCommande: AdminCommandeDetail | null = null;
   showDetail = false;
-  activeTab: 'produits' | 'client' | 'historique' = 'produits';
+  detailLoading = false;
+  detailTab = 0;
+
+  tabs = [
+    { key: 'infos', label: 'Informations', icon: 'bi-info-circle' },
+    { key: 'articles', label: 'Articles', icon: 'bi-box-seam' },
+    { key: 'livraison', label: 'Livraison', icon: 'bi-truck' },
+    { key: 'historique', label: 'Historique', icon: 'bi-clock-history' },
+    { key: 'reclamations', label: 'Réclamations', icon: 'bi-shield-exclamation' }
+  ];
 
   activeModal: 'contact_fournisseur' | 'contact_client' | 'note' | 'intervention' | 'exception_status' | null = null;
   modalTitle = '';
@@ -263,6 +272,12 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(montant);
   }
 
+  getProduitImageUrl(url?: string | null): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `http://127.0.0.1:8000${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
   getTotalMontant(): number {
     return this.commandesFiltrees.reduce((sum, c) => sum + (c.montant_total || 0), 0);
   }
@@ -275,17 +290,18 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
   }
 
   openDetail(commande: AdminCommande): void {
-    this.loading = true;
+    this.detailLoading = true;
+    this.showDetail = true;
+    this.detailTab = 0;
+    this.selectedCommande = null;
     this.adminCommandeService.getCommande(commande.id).subscribe({
       next: (detail) => {
         this.selectedCommande = detail;
-        this.activeTab = 'produits';
-        this.showDetail = true;
-        this.loading = false;
+        this.detailLoading = false;
       },
       error: () => {
+        this.detailLoading = false;
         this.showNotification('Erreur lors du chargement du détail', 'error');
-        this.loading = false;
       }
     });
   }

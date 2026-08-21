@@ -263,6 +263,7 @@ export class ProduitComponent implements OnInit {
   }
 
   openValidation(p: Produit, action: ProductAction): void {
+    this.selectedProduit = null;
     this.targetProduit = p;
     this.validationAction = action;
     this.validationConfig = this.validationActions.find(a => a.value === action) || null;
@@ -312,6 +313,7 @@ export class ProduitComponent implements OnInit {
   }
 
   askSections(p: Produit): void {
+    this.selectedProduit = null;
     this.targetProduit = p;
     this.sectionsForm = { ...p.sections };
     this.activeModal = 'sections';
@@ -394,6 +396,10 @@ export class ProduitComponent implements OnInit {
     if (!value) return '-';
     const d = new Date(value);
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  countAlerts(severity: 'high' | 'medium' | 'low'): number {
+    return (this.selectedProduit?.alerts ?? []).filter(a => a.severity === severity).length;
   }
 
   sectionsForm: ProductSections = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };

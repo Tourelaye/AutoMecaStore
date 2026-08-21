@@ -39,3 +39,54 @@ img, svg, video, canvas { max-width: 100%; height: auto; }
 }
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* ── ADMIN ACTIONS MENU (overlay mat-menu) ── */
+.pr-actions-menu.mat-mdc-menu-panel,
+.pr-actions-menu .mat-mdc-menu-surface,
+.pr-actions-menu .mat-mdc-menu-content,
+.pr-actions-menu .mdc-menu-surface {
+  background-color: #0f172a !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 13px !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.48) !important;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.pr-actions-menu .mat-mdc-menu-content {
+  padding: 6px 0 !important;
+}
+
+.pr-actions-menu .mat-mdc-menu-item {
+  color: #f1f5f9 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  min-height: 38px !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pr-actions-menu .mat-mdc-menu-item .mdc-list-item__primary-text {
+  color: inherit !important;
+}
+
+.pr-actions-menu .mat-mdc-menu-item:hover:not(.mdc-list-item--disabled) {
+  background-color: rgba(56,189,248,0.12) !important;
+  color: #ffffff !important;
+}
+
+.pr-actions-menu .mat-mdc-menu-item.mdc-list-item--disabled {
+  opacity: 0.35 !important;
+  color: #94a3b8 !important;
+}
+
+/* Couleurs d'icônes Bootstrap conservées */
+.pr-actions-menu .mat-mdc-menu-item .text-success,
+.pr-actions-menu .mat-mdc-menu-item:hover .text-success { color: #4ade80 !important; }
+.pr-actions-menu .mat-mdc-menu-item .text-warning,
+.pr-actions-menu .mat-mdc-menu-item:hover .text-warning { color: #fbbf24 !important; }
+.pr-actions-menu .mat-mdc-menu-item .text-muted,
+.pr-actions-menu .mat-mdc-menu-item:hover .text-muted   { color: #94a3b8 !important; }
+.pr-actions-menu .mat-mdc-menu-item .text-danger,
+.pr-actions-menu .mat-mdc-menu-item:hover .text-danger  { color: #f87171 !important; }
+.pr-actions-menu .mat-mdc-menu-item .text-info,
+.pr-actions-menu .mat-mdc-menu-item:hover .text-info    { color: #38bdf8 !important; }

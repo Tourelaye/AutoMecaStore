@@ -303,6 +303,9 @@ app-header { position: sticky; top: 0; z-index: 100; }
   display: flex; align-items: center; justify-content: center;
   font-size: 13px; cursor: pointer; transition: all 0.2s;
 }
+.ca-btn.order { background: rgba(34,211,238,0.16); color: #22d3ee; border: 1px solid rgba(34,211,238,0.3); }
+.ca-btn.order:hover:not(:disabled) { background: rgba(34,211,238,0.3); color: #67e8f9; transform: scale(1.08); box-shadow: 0 0 14px rgba(34,211,238,0.25); }
+.ca-btn.order:disabled { opacity: 0.35; cursor: not-allowed; }
 .ca-btn.edit   { background: rgba(56,189,248,0.12); color: #38bdf8; }
 .ca-btn.edit:hover   { background: rgba(56,189,248,0.22); transform: scale(1.08); }
 .ca-btn.delete { background: rgba(239,68,68,0.12); color: #f87171; }
