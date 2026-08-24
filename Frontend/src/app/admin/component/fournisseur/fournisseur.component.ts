@@ -74,7 +74,7 @@ export class FournisseurComponent implements OnInit {
     this.loading = true;
     this.fournisseurService.getAll().subscribe({
       next: (list) => {
-        this.fournisseurs = list;
+        this.fournisseurs = list.map(f => ({ ...f, statut: this.normalizeStatut(f.statut) }));
         this.applyFilters();
         this.loading = false;
       },
@@ -83,6 +83,12 @@ export class FournisseurComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private normalizeStatut(statut: string): FournisseurStatus {
+    if (statut === 'valide') return 'actif';
+    if (statut === 'refuse') return 'desactive';
+    return (statut as FournisseurStatus) || 'attente';
   }
 
   applyFilters(): void {

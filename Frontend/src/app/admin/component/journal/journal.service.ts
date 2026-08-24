@@ -25,8 +25,8 @@ export class JournalService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<LogEntry[]> {
-    return this.http.get<{ activities: any[]; total: number }>(this.apiUrl).pipe(
-      map(res => res.activities.map((a, i) => this.mapActivityToLogEntry(a, i)))
+    return this.http.get<any[]>(this.apiUrl).pipe(
+      map(res => (res || []).map((a, i) => this.mapEntry(a, i)))
     );
   }
 
@@ -34,41 +34,39 @@ export class JournalService {
     return this.http.delete(this.apiUrl);
   }
 
-  private mapActivityToLogEntry(a: any, index: number): LogEntry {
-    const category = this.inferCategory(a.type);
+  private mapEntry(a: any, index: number): LogEntry {
+    const category = this.inferCategory((a.content_type || '').toLowerCase());
+    const actionLabel = this.actionFlagLabel(a.action_flag);
     return {
-      id: a.id ? this.hashString(a.id.toString()) : index,
+      id: a.id ?? index,
       utilisateur: null,
       utilisateur_nom: a.user || 'Système',
       categorie: category,
       categorie_label: this.categoryLabel(category),
-      action: a.type || 'info',
-      action_label: a.titre || 'Activité',
-      description: a.detail || '',
+      action: String(a.action_flag ?? ''),
+      action_label: a.content_type ? `${actionLabel} — ${a.content_type}` : actionLabel,
+      description: a.object_repr || '',
       ip_address: null,
-      date_creation: a.date ? new Date(a.date).toLocaleString('fr-FR') : ''
+      date_creation: a.action_time || ''
     };
   }
 
-  private hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+  private actionFlagLabel(flag: number): string {
+    switch (flag) {
+      case 1: return 'Création';
+      case 2: return 'Modification';
+      case 3: return 'Suppression';
+      default: return 'Activité';
     }
-    return Math.abs(hash);
   }
 
-  private inferCategory(type: string): LogCategory {
-    switch (type) {
-      case 'nouveau_client': return 'securite';
-      case 'nouveau_produit': return 'produits';
-      case 'nouvelle_commande': return 'finances';
-      case 'nouveau_fournisseur': return 'vendeurs';
-      case 'categorie_creee': return 'categories';
-      default: return 'systeme';
-    }
+  private inferCategory(contentType: string): LogCategory {
+    if (contentType.includes('produit') || contentType.includes('stock')) return 'produits';
+    if (contentType.includes('catégorie') || contentType.includes('categorie') || contentType.includes('marque')) return 'categories';
+    if (contentType.includes('commande') || contentType.includes('paiement') || contentType.includes('facture')) return 'finances';
+    if (contentType.includes('fournisseur') || contentType.includes('magasin')) return 'vendeurs';
+    if (contentType.includes('utilisateur') || contentType.includes('user') || contentType.includes('client')) return 'securite';
+    return 'systeme';
   }
 
   private categoryLabel(category: LogCategory): string {

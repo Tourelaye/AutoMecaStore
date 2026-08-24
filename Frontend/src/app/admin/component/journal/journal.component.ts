@@ -16,6 +16,7 @@ export class JournalComponent implements OnInit {
   loading = true;
   logs: LogEntry[] = [];
   filtered: LogEntry[] = [];
+  error = '';
 
   searchTerm = '';
   categoryFilter: CategoryFilter = 'toutes';
@@ -34,6 +35,7 @@ export class JournalComponent implements OnInit {
   showClearModal = false;
   clearConfirmText = '';
   clearing = false;
+  clearError = '';
 
   constructor(private journalService: JournalService) {}
 
@@ -43,10 +45,17 @@ export class JournalComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.journalService.getAll().subscribe((list: LogEntry[]) => {
-      this.logs = list;
-      this.applyFilters();
-      this.loading = false;
+    this.error = '';
+    this.journalService.getAll().subscribe({
+      next: (list: LogEntry[]) => {
+        this.logs = list;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'Impossible de charger le journal d\'activités.';
+        this.loading = false;
+      }
     });
   }
 
@@ -96,6 +105,7 @@ export class JournalComponent implements OnInit {
   // --- Purge du journal ---
   openClearModal(): void {
     this.clearConfirmText = '';
+    this.clearError = '';
     this.showClearModal = true;
   }
 
@@ -107,11 +117,18 @@ export class JournalComponent implements OnInit {
   confirmClear(): void {
     if (this.clearConfirmText.trim().toUpperCase() !== 'VIDER') return;
     this.clearing = true;
-    this.journalService.clear().subscribe(() => {
-      this.logs = [];
-      this.applyFilters();
-      this.clearing = false;
-      this.showClearModal = false;
+    this.clearError = '';
+    this.journalService.clear().subscribe({
+      next: () => {
+        this.logs = [];
+        this.applyFilters();
+        this.clearing = false;
+        this.showClearModal = false;
+      },
+      error: () => {
+        this.clearing = false;
+        this.clearError = 'La purge du journal a échoué : le serveur ne l\'autorise pas.';
+      }
     });
   }
 }

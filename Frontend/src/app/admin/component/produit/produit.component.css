@@ -142,7 +142,9 @@
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 10px;
   padding: 10px 14px;
-  width: 320px;
+  flex: 1 1 320px;
+  min-width: 260px;
+  max-width: 460px;
   transition: all 0.25s;
 }
 .search-box.focused,

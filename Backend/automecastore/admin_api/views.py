@@ -485,7 +485,7 @@ class LogEntryListView(APIView):
             data.append({
                 'id': entry.id,
                 'action_time': entry.action_time,
-                'user': entry.user.get_full_name() or entry.user.email,
+                'user': f"{entry.user.prenom} {entry.user.nom}".strip() or entry.user.email if entry.user else 'Système',
                 'content_type': entry.content_type.name if entry.content_type else 'Inconnu',
                 'object_repr': entry.object_repr,
                 'action_flag': entry.action_flag,
@@ -502,7 +502,7 @@ class LogEntryDetailView(APIView):
             return Response({
                 'id': entry.id,
                 'action_time': entry.action_time,
-                'user': entry.user.get_full_name() or entry.user.email,
+                'user': f"{entry.user.prenom} {entry.user.nom}".strip() or entry.user.email if entry.user else 'Système',
                 'content_type': entry.content_type.name if entry.content_type else 'Inconnu',
                 'object_repr': entry.object_repr,
                 'action_flag': entry.action_flag,
