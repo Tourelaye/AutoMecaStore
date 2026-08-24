@@ -1168,7 +1168,7 @@
 }
 
 .magasins-table th {
-  padding: 12px 14px;
+  padding: 12px 10px;
   text-align: left;
   font-weight: 600;
   color: var(--text-secondary);
@@ -1177,7 +1177,7 @@
 }
 
 .magasins-table td {
-  padding: 12px 14px;
+  padding: 14px 10px;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
   color: var(--text-primary);
@@ -1217,6 +1217,12 @@
 
 .fr-cell__name { font-weight: 600; display: block; }
 .fr-cell__sub { font-size: 0.72rem; color: var(--text-muted); display: block; }
+
+.fr-cell__stack { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fr-cell__line { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
+.fr-cell__line--muted { color: var(--text-muted); font-size: 0.76rem; }
+
+.num-col { text-align: center; }
 
 .fr-cell__actions {
   display: flex;

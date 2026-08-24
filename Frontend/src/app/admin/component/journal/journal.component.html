@@ -33,6 +33,13 @@
     </select>
   </div>
 
+  <!-- Erreur -->
+  <div class="journal-error" *ngIf="!loading && error">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span>{{ error }}</span>
+    <button class="btn-outline" (click)="load()"><i class="bi bi-arrow-clockwise"></i> Réessayer</button>
+  </div>
+
   <!-- Chargement -->
   <div class="journal-loading" *ngIf="loading">
     <div class="spinner"></div>
@@ -40,7 +47,7 @@
   </div>
 
   <!-- Tableau -->
-  <div class="table-wrap" *ngIf="!loading">
+  <div class="table-wrap" *ngIf="!loading && !error">
     <table class="journal-table">
       <thead>
         <tr>
@@ -90,6 +97,10 @@
         <label>Tape <strong>VIDER</strong> pour confirmer</label>
         <input type="text" [(ngModel)]="clearConfirmText" placeholder="VIDER" />
       </div>
+
+      <p class="field__error" *ngIf="clearError">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ clearError }}
+      </p>
 
       <div class="modal__footer">
         <button type="button" class="btn-text" (click)="closeClearModal()" [disabled]="clearing">Annuler</button>

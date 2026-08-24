@@ -21,15 +21,17 @@ export class LivraisonComponent implements OnInit {
 
   statuts = ['en_attente_attribution', 'livraison_attribuee', 'en_preparation', 'prise_en_charge', 'en_cours_livraison', 'livree', 'echec_livraison', 'annulee'];
 
-  statusOptions: { value: string; label: string }[] = [
-    { value: 'tous', label: 'Tous les statuts' },
-    ...this.statuts.map(s => ({ value: s, label: this.livraisonService.getStatutLabel(s) }))
-  ];
+  statusOptions: { value: string; label: string }[] = [];
 
   actionEnCours: number | null = null;
   nouveauStatut: Record<number, string> = {};
 
-  constructor(public livraisonService: LivraisonService) {}
+  constructor(public livraisonService: LivraisonService) {
+    this.statusOptions = [
+      { value: 'tous', label: 'Tous les statuts' },
+      ...this.statuts.map(s => ({ value: s, label: this.livraisonService.getStatutLabel(s) }))
+    ];
+  }
 
   ngOnInit(): void {
     this.load();

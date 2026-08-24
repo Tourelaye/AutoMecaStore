@@ -66,3 +66,20 @@ class LivraisonSerializer(serializers.ModelSerializer):
         if obj.responsable_type == 'non_attribue':
             return 'Non attribué'
         return None
+
+# -----------------------------
+# Livraison (vue Admin : commande et client détaillés en lecture)
+# -----------------------------
+class AdminLivraisonSerializer(LivraisonSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['commande'] = (
+            {'id': instance.commande.id, 'reference': instance.commande.reference}
+            if instance.commande else None
+        )
+        user = instance.client.user if instance.client else None
+        data['client'] = (
+            {'id': instance.client.pk, 'nom': user.nom, 'prenom': user.prenom, 'email': user.email}
+            if user else None
+        )
+        return data

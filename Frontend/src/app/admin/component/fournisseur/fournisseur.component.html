@@ -186,14 +186,12 @@
         <tr>
           <th>Magasin</th>
           <th>Responsable</th>
-          <th>Téléphone</th>
-          <th>E-mail</th>
-          <th>Ville</th>
-          <th>Région</th>
+          <th>Contact</th>
+          <th>Localisation</th>
           <th>Inscription</th>
-          <th>Produits</th>
-          <th>Commandes</th>
-          <th>Note</th>
+          <th class="num-col">Produits</th>
+          <th class="num-col">Commandes</th>
+          <th class="num-col">Note</th>
           <th>Statut</th>
           <th class="actions-col">Actions</th>
         </tr>
@@ -213,16 +211,22 @@
             </div>
           </td>
           <td>{{ f.nom_complet }}</td>
-          <td>{{ f.magasin?.telephone || 'N/A' }}</td>
-          <td>{{ f.magasin?.email || f.user.email }}</td>
-          <td>{{ f.magasin?.ville || 'N/A' }}</td>
-          <td>{{ f.magasin?.region || 'N/A' }}</td>
-          <td>{{ f.date_inscription | date:'dd/MM/yyyy' }}</td>
-          <td>{{ f.nombre_produits }}</td>
-          <td>{{ f.nombre_commandes }}</td>
           <td>
+            <div class="fr-cell__stack">
+              <span class="fr-cell__line">{{ f.magasin?.email || f.user.email }}</span>
+              <span class="fr-cell__line fr-cell__line--muted" *ngIf="f.magasin?.telephone">{{ f.magasin?.telephone }}</span>
+            </div>
+          </td>
+          <td>
+            <span *ngIf="f.magasin?.ville; else noLoc">{{ f.magasin?.ville }}<ng-container *ngIf="f.magasin?.region">, {{ f.magasin?.region }}</ng-container></span>
+            <ng-template #noLoc><span class="fr-cell__line--muted">—</span></ng-template>
+          </td>
+          <td>{{ f.date_inscription | date:'dd/MM/yyyy' }}</td>
+          <td class="num-col">{{ f.nombre_produits }}</td>
+          <td class="num-col">{{ f.nombre_commandes }}</td>
+          <td class="num-col">
             <span *ngIf="f.note_moyenne !== null" class="fr-cell__rating">{{ f.note_moyenne }} <i class="bi bi-star-fill"></i></span>
-            <span *ngIf="f.note_moyenne === null" class="fr-cell__rating--none">N/A</span>
+            <span *ngIf="f.note_moyenne === null" class="fr-cell__rating--none">—</span>
           </td>
           <td>
             <span class="badge" [ngClass]="statusClass(f.statut)">

@@ -7,7 +7,7 @@ from rest_framework import filters
 
 from .models import Livraison, Adresse, PartenaireLivraison
 from .serializers import (
-    LivraisonSerializer, AdresseSerializer,
+    LivraisonSerializer, AdminLivraisonSerializer, AdresseSerializer,
     PartenaireLivraisonSerializer
 )
 from orders.models import Commande, HistoriqueCommande, STATUT_COMMANDE
@@ -187,7 +187,7 @@ class FournisseurLivraisonUpdateStatutView(generics.UpdateAPIView):
 # Admin - Gestion des livraisons
 # -----------------------------
 class AdminLivraisonListView(generics.ListAPIView):
-    serializer_class = LivraisonSerializer
+    serializer_class = AdminLivraisonSerializer
     permission_classes = [IsAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['statut', 'responsable_type', 'mode_tarif']
@@ -202,7 +202,7 @@ class AdminLivraisonListView(generics.ListAPIView):
 
 
 class AdminLivraisonDetailView(generics.RetrieveUpdateAPIView):
-    serializer_class = LivraisonSerializer
+    serializer_class = AdminLivraisonSerializer
     permission_classes = [IsAdmin]
 
     def get_queryset(self):
@@ -212,7 +212,7 @@ class AdminLivraisonDetailView(generics.RetrieveUpdateAPIView):
 
 
 class AdminLivraisonUpdateStatutView(generics.UpdateAPIView):
-    serializer_class = LivraisonSerializer
+    serializer_class = AdminLivraisonSerializer
     permission_classes = [IsAdmin]
 
     def get_queryset(self):
@@ -231,7 +231,7 @@ class AdminLivraisonUpdateStatutView(generics.UpdateAPIView):
                     livraison.commande.save()
             livraison.save()
 
-        return Response(LivraisonSerializer(livraison).data)
+        return Response(AdminLivraisonSerializer(livraison).data)
 
 
 # -----------------------------
