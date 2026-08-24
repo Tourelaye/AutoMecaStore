@@ -218,7 +218,7 @@ class CommandeAdminDetailSerializer(serializers.ModelSerializer):
     magasins = serializers.SerializerMethodField()
     lignes = LigneCommandeAdminSerializer(many=True, read_only=True)
     historique = HistoriqueCommandeAdminSerializer(many=True, read_only=True)
-    livraison = LivraisonAdminSerializer(read_only=True)
+    livraison = serializers.SerializerMethodField()
     alertes = serializers.SerializerMethodField()
     reclamations = serializers.SerializerMethodField()
 
@@ -248,8 +248,14 @@ class CommandeAdminDetailSerializer(serializers.ModelSerializer):
     def get_alertes(self, obj):
         return get_commande_alertes(obj)
 
+    def get_livraison(self, obj):
+        livraison = obj.livraisons.first()
+        if livraison:
+            return LivraisonAdminSerializer(livraison).data
+        return None
+
     def get_reclamations(self, obj):
-        return [{'id': r.id, 'objet': r.objet, 'statut': r.statut, 'date': r.date_soumission} for r in obj.reclamation_set.all()]
+        return [{'id': r.id, 'objet': r.objet, 'statut': r.statut, 'date': r.date_soumission} for r in obj.reclamations.all()]
 
 
 # -----------------------------

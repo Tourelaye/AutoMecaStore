@@ -1,0 +1,208 @@
+<div class="login-page">
+
+  <!-- FOND ANIMÉ -->
+  <div class="bg-grid"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="login-wrapper">
+
+    <!-- ===================== LEFT PANEL ===================== -->
+    <div class="left-panel">
+
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="bi bi-shield-fill-check"></i>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">AutoMeca<strong>Store</strong></span>
+          <span class="brand-sub">Console d'administration</span>
+        </div>
+      </div>
+
+      <div class="hero">
+        <h1>Récupération<br>de votre compte</h1>
+        <p>Sécurité avant tout. Réinitialisez votre mot de passe administrateur en toute confidentialité.</p>
+
+        <div class="features">
+          <div class="feat">
+            <span class="feat-icon"><i class="bi bi-envelope-check"></i></span>
+            <div>
+              <strong>Code par email</strong>
+              <span>Un code à 6 chiffres est envoyé à votre adresse.</span>
+            </div>
+          </div>
+          <div class="feat">
+            <span class="feat-icon"><i class="bi bi-shield-lock"></i></span>
+            <div>
+              <strong>Chiffrement</strong>
+              <span>Votre nouveau mot de passe est hashé et sécurisé.</span>
+            </div>
+          </div>
+          <div class="feat">
+            <span class="feat-icon"><i class="bi bi-clock-history"></i></span>
+            <div>
+              <strong>Validité 10 min</strong>
+              <span>Le code expire automatiquement après 10 minutes.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <i class="bi bi-c-circle"></i> {{ currentYear }} AutoMecaStore — Administration
+      </div>
+    </div>
+
+    <!-- ===================== RIGHT PANEL ===================== -->
+    <div class="right-panel">
+
+      <a routerLink="/admin/login" class="back-link">
+        <i class="bi bi-arrow-left"></i> Retour à la connexion
+      </a>
+
+      <!-- ÉTAPE 1 : EMAIL -->
+      <div *ngIf="step === 1" class="step-content fade-in">
+        <div class="form-header">
+          <div class="step-icon"><i class="bi bi-envelope-exclamation-fill"></i></div>
+          <h2>Mot de passe oublié</h2>
+          <p>Saisissez votre adresse email administrateur. Nous vous enverrons un code de réinitialisation.</p>
+        </div>
+
+        <form (ngSubmit)="sendResetCode()" class="auth-form">
+          <div class="field-group">
+            <label>Adresse email</label>
+            <div class="field-wrap" [class.field-filled]="email" [class.field-error]="errorMessage">
+              <i class="bi bi-envelope-fill field-icon"></i>
+              <input
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                required
+                placeholder="admin@automecastore.sn"
+                [disabled]="isLoading"
+                autocomplete="email"
+              >
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-error">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="isLoading">
+            <span *ngIf="!isLoading"><i class="bi bi-send-fill"></i> Envoyer le code</span>
+            <span *ngIf="isLoading"><i class="bi bi-arrow-repeat spin"></i> Envoi...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ÉTAPE 2 : CODE + NOUVEAU MOT DE PASSE -->
+      <div *ngIf="step === 2" class="step-content fade-in">
+        <div class="form-header">
+          <div class="step-icon"><i class="bi bi-key-fill"></i></div>
+          <h2>Réinitialiser</h2>
+          <p>Entrez le code reçu par email et votre nouveau mot de passe.</p>
+        </div>
+
+        <div class="email-reminder">
+          <i class="bi bi-info-circle-fill"></i>
+          Code envoyé à <strong>{{ email }}</strong>
+          <button type="button" class="link-btn" (click)="backToStep1()">Changer</button>
+        </div>
+
+        <form (ngSubmit)="resetPassword()" class="auth-form">
+          <div class="field-group">
+            <label>Code de vérification</label>
+            <div class="field-wrap" [class.field-filled]="code" [class.field-error]="errorMessage">
+              <i class="bi bi-shield-check field-icon"></i>
+              <input
+                type="text"
+                [(ngModel)]="code"
+                name="code"
+                required
+                placeholder="000000"
+                maxlength="6"
+                [disabled]="isLoading"
+                class="code-input"
+                autocomplete="one-time-code"
+              >
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Nouveau mot de passe</label>
+            <div class="field-wrap" [class.field-filled]="newPassword" [class.field-error]="errorMessage">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="newPassword"
+                name="newPassword"
+                required
+                placeholder="••••••••"
+                [disabled]="isLoading"
+                autocomplete="new-password"
+              >
+              <button type="button" class="toggle-eye" (click)="showPassword = !showPassword" tabindex="-1">
+                <i class="bi" [class.bi-eye-fill]="!showPassword" [class.bi-eye-slash-fill]="showPassword"></i>
+              </button>
+            </div>
+            <div class="pwd-hint" *ngIf="newPassword.length > 0 && newPassword.length < 8">
+              <i class="bi bi-exclamation-triangle-fill"></i> Minimum 8 caractères
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Confirmer le mot de passe</label>
+            <div class="field-wrap" [class.field-filled]="confirmPassword" [class.field-error]="errorMessage">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                required
+                placeholder="••••••••"
+                [disabled]="isLoading"
+                autocomplete="new-password"
+              >
+            </div>
+            <div class="pwd-hint success" *ngIf="confirmPassword.length > 0 && confirmPassword === newPassword">
+              <i class="bi bi-check-circle-fill"></i> Les mots de passe correspondent
+            </div>
+            <div class="pwd-hint" *ngIf="confirmPassword.length > 0 && confirmPassword !== newPassword">
+              <i class="bi bi-x-circle-fill"></i> Les mots de passe ne correspondent pas
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="alert alert-error">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="isLoading">
+            <span *ngIf="!isLoading"><i class="bi bi-check2-circle"></i> Réinitialiser</span>
+            <span *ngIf="isLoading"><i class="bi bi-arrow-repeat spin"></i> Traitement...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ÉTAPE 3 : SUCCÈS -->
+      <div *ngIf="step === 3" class="step-content fade-in">
+        <div class="success-wrap">
+          <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h2>Mot de passe réinitialisé !</h2>
+          <p class="success-msg">{{ successMessage }}</p>
+          <p class="success-sub">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+          <button class="btn-submit" (click)="backToLogin()">
+            <i class="bi bi-box-arrow-in-right"></i> Se connecter
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

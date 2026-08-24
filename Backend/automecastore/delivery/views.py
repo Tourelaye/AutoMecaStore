@@ -11,7 +11,7 @@ from .serializers import (
     PartenaireLivraisonSerializer
 )
 from orders.models import Commande, HistoriqueCommande, STATUT_COMMANDE
-from account.permissions import IsAdmin, IsClient, IsFournisseur
+from account.permissions import IsAdmin, IsClient, IsClientOrAdmin, IsFournisseur
 from fournisseur.models import creer_notification_client
 
 
@@ -20,7 +20,7 @@ from fournisseur.models import creer_notification_client
 # -----------------------------
 class ClientAdresseListCreateView(generics.ListCreateAPIView):
     serializer_class = AdresseSerializer
-    permission_classes = [IsClient]
+    permission_classes = [IsClientOrAdmin]
 
     def get_queryset(self):
         return Adresse.objects.filter(client=self.request.user.client)
@@ -31,7 +31,7 @@ class ClientAdresseListCreateView(generics.ListCreateAPIView):
 
 class ClientAdresseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AdresseSerializer
-    permission_classes = [IsClient]
+    permission_classes = [IsClientOrAdmin]
 
     def get_queryset(self):
         return Adresse.objects.filter(client=self.request.user.client)

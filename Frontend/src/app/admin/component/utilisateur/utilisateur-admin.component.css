@@ -483,6 +483,95 @@ body.modal-open .admin-header {
 .mini-detail { font-size: 0.72rem; color: var(--text-muted); }
 .empty-hint { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
 
+/* ── Galerie produits (fournisseur) ── */
+.produits-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+.produit-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.07));
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s;
+}
+.produit-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(56,189,248,0.45);
+  background: rgba(56,189,248,0.04);
+}
+.produit-card__img {
+  width: 100%;
+  height: 110px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.produit-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+.produit-card:hover .produit-card__img img { transform: scale(1.06); }
+.produit-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+.produit-card__nom {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.produit-card__ref {
+  font-size: 0.66rem;
+  color: var(--text-muted, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.produit-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.produit-card__prix {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #4ade80;
+}
+.produit-card__stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-secondary, #94a3b8);
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.05);
+}
+.produit-card__stock.out {
+  color: #f87171;
+  background: rgba(239,68,68,0.1);
+}
+@media (max-width: 640px) {
+  .produits-gallery { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .produit-card__img { height: 90px; }
+}
+
 /* Timeline */
 .timeline { display: flex; flex-direction: column; gap: 16px; }
 .timeline-item { display: flex; align-items: flex-start; gap: 14px; position: relative; padding-left: 4px; opacity: 0.5; }

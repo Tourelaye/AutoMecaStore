@@ -1,8 +1,12 @@
 import secrets
+import random
 from datetime import datetime
 
 from django.utils import timezone
 from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -99,6 +103,93 @@ class ChangePasswordView(APIView):
         _log_activity(user, 'password_change', request)
 
         return Response({'message': 'Mot de passe mis à jour avec succès'})
+
+
+# ==============================
+# MOT DE PASSE OUBLIÉ (public)
+# ==============================
+
+class PasswordResetRequestView(APIView):
+    """
+    Étape 1 : l'utilisateur saisit son email.
+    Génère un code à 6 chiffres, le stocke en cache 10 min et l'envoie par email.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        if not email:
+            return Response({'error': 'L\'email est obligatoire.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = Utilisateur.objects.filter(email__iexact=email).first()
+        # Toujours répondre OK pour ne pas divulguer si l'email existe ou non.
+        if user:
+            code = f"{random.randint(0, 999999):06d}"
+            cache_key = f"pwd_reset_{email}"
+            cache.set(cache_key, {'code': code, 'user_id': user.id, 'attempts': 0}, timeout=600)
+
+            try:
+                send_mail(
+                    'AutoMecaStore — Réinitialisation de votre mot de passe',
+                    f"Bonjour {user.prenom or ''},\n\n"
+                    f"Voici votre code de réinitialisation : {code}\n\n"
+                    f"Ce code est valable 10 minutes.\n\nL'équipe AutoMecaStore",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=True
+                )
+            except Exception:
+                pass
+
+        return Response({'message': 'Si cet email existe, un code de réinitialisation vous a été envoyé.'})
+
+
+class PasswordResetConfirmView(APIView):
+    """
+    Étape 2 : l'utilisateur saisit le code reçu + son nouveau mot de passe.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        code = (request.data.get('code') or '').strip()
+        new_password = request.data.get('new_password', '')
+
+        if not email or not code or not new_password:
+            return Response({'error': 'Tous les champs sont obligatoires.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({'error': 'Le mot de passe doit contenir au moins 8 caractères.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        cache_key = f"pwd_reset_{email}"
+        data = cache.get(cache_key)
+
+        if not data:
+            return Response({'error': 'Aucune demande de réinitialisation trouvée. Veuillez recommencer.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Limiter les tentatives
+        if data.get('attempts', 0) >= 5:
+            cache.delete(cache_key)
+            return Response({'error': 'Trop de tentatives. Veuillez refaire une demande.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if data['code'] != code:
+            data['attempts'] = data.get('attempts', 0) + 1
+            cache.set(cache_key, data, timeout=600)
+            return Response({'error': 'Code incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Code correct → reset
+        try:
+            user = Utilisateur.objects.get(id=data['user_id'])
+        except Utilisateur.DoesNotExist:
+            cache.delete(cache_key)
+            return Response({'error': 'Utilisateur introuvable.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.password_changed_at = timezone.now()
+        user.save()
+        cache.delete(cache_key)
+
+        return Response({'message': 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.'})
 
 
 class TwoFactorView(APIView):

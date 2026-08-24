@@ -341,7 +341,7 @@ export class MonCompteService {
   supprimerDuPanier(itemId: number): Observable<any> {
     const headers = this.getAuthHeaders();
 
-    return this.http.delete(`${this.API_URL}/panier/delete/${itemId}/`, { headers }).pipe(
+    return this.http.delete(`${this.API_URL}/panier/${itemId}/`, { headers }).pipe(
       tap(() => {
         // Rafraîchir le panier après suppression
         this.getPanier().subscribe();

@@ -38,7 +38,8 @@ export class AppComponent {
       // cacher navbar + footer (auth)
       this.hideLayout =
         url.startsWith('/register') ||
-        url.startsWith('/login');
+        url.startsWith('/login') ||
+        url.startsWith('/mot-de-passe-oublie');
 
       // cacher footer seulement (catalog)
       this.hideFooter =

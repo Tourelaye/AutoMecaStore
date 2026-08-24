@@ -1,0 +1,205 @@
+<div class="auth-page">
+  <div class="auth-shell">
+
+    <!-- ===== PANNEAU DE MARQUE ===== -->
+    <div class="brand-panel">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <div class="brand-content">
+        <div class="brand-logo">
+          <div class="logo-badge"><i class="bi bi-shield-check"></i></div>
+          <div>
+            <span class="logo-title">AutoMeca<strong>Store</strong></span>
+            <span class="logo-sub">Espace Fournisseur</span>
+          </div>
+        </div>
+
+        <h1>Récupération de votre compte</h1>
+        <p class="brand-text">
+          Sécurité avant tout. Réinitialisez votre mot de passe en quelques étapes simples et retrouvez l'accès à votre espace vendeur.
+        </p>
+
+        <ul class="brand-features">
+          <li>
+            <span class="feat-icon"><i class="bi bi-envelope-check"></i></span>
+            Code de vérification envoyé par email
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-shield-lock"></i></span>
+            Mot de passe chiffré et sécurisé
+          </li>
+          <li>
+            <span class="feat-icon"><i class="bi bi-clock-history"></i></span>
+            Code valable 10 minutes
+          </li>
+        </ul>
+      </div>
+
+      <div class="brand-footer">
+        <i class="bi bi-c-circle"></i> {{ currentYear }} AutoMecaStore — Tous droits réservés
+      </div>
+    </div>
+
+    <!-- ===== PANNEAU FORMULAIRE ===== -->
+    <div class="form-panel">
+      <div class="form-wrap">
+
+        <a routerLink="/fournisseur/login" class="back-link">
+          <i class="bi bi-arrow-left"></i> Retour à la connexion
+        </a>
+
+        <!-- ÉTAPE 1 : EMAIL -->
+        <div *ngIf="step === 1" class="step-content fade-in">
+          <div class="auth-header">
+            <div class="step-icon"><i class="bi bi-envelope-exclamation"></i></div>
+            <h2>Mot de passe oublié</h2>
+            <p>Saisissez votre adresse email. Nous vous enverrons un code de réinitialisation.</p>
+          </div>
+
+          <form (ngSubmit)="sendResetCode()" class="auth-form">
+            <div class="field-group">
+              <label for="email">Adresse email</label>
+              <div class="input-wrap" [class.has-error]="errorMessage">
+                <i class="bi bi-envelope field-icon"></i>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  [(ngModel)]="email"
+                  required
+                  placeholder="votre@email.com"
+                  [disabled]="isLoading"
+                  autocomplete="email"
+                />
+              </div>
+            </div>
+
+            <div *ngIf="errorMessage" class="alert alert-error">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              {{ errorMessage }}
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+              <span *ngIf="!isLoading"><i class="bi bi-send"></i> Envoyer le code</span>
+              <span *ngIf="isLoading" class="loading-content">
+                <i class="bi bi-arrow-repeat spin"></i> Envoi...
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <!-- ÉTAPE 2 : CODE + NOUVEAU MOT DE PASSE -->
+        <div *ngIf="step === 2" class="step-content fade-in">
+          <div class="auth-header">
+            <div class="step-icon"><i class="bi bi-key"></i></div>
+            <h2>Réinitialiser le mot de passe</h2>
+            <p>Entrez le code à 6 chiffres reçu par email et votre nouveau mot de passe.</p>
+          </div>
+
+          <div class="email-reminder">
+            <i class="bi bi-info-circle"></i>
+            Code envoyé à <strong>{{ email }}</strong>
+            <button type="button" class="link-btn" (click)="backToStep1()">Changer</button>
+          </div>
+
+          <form (ngSubmit)="resetPassword()" class="auth-form">
+            <div class="field-group">
+              <label for="code">Code de vérification</label>
+              <div class="input-wrap" [class.has-error]="errorMessage">
+                <i class="bi bi-shield-check field-icon"></i>
+                <input
+                  type="text"
+                  id="code"
+                  name="code"
+                  [(ngModel)]="code"
+                  required
+                  placeholder="000000"
+                  maxlength="6"
+                  [disabled]="isLoading"
+                  class="code-input"
+                  autocomplete="one-time-code"
+                />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="newPassword">Nouveau mot de passe</label>
+              <div class="input-wrap" [class.has-error]="errorMessage">
+                <i class="bi bi-lock field-icon"></i>
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  id="newPassword"
+                  name="newPassword"
+                  [(ngModel)]="newPassword"
+                  required
+                  placeholder="••••••••"
+                  [disabled]="isLoading"
+                  autocomplete="new-password"
+                />
+                <button type="button" class="toggle-password" (click)="showPassword = !showPassword" tabindex="-1">
+                  <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                </button>
+              </div>
+              <div class="pwd-hint" *ngIf="newPassword.length > 0 && newPassword.length < 8">
+                <i class="bi bi-exclamation-triangle"></i> Minimum 8 caractères
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="confirmPassword">Confirmer le mot de passe</label>
+              <div class="input-wrap" [class.has-error]="errorMessage">
+                <i class="bi bi-lock-fill field-icon"></i>
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  [(ngModel)]="confirmPassword"
+                  required
+                  placeholder="••••••••"
+                  [disabled]="isLoading"
+                  autocomplete="new-password"
+                />
+              </div>
+              <div class="pwd-hint success" *ngIf="confirmPassword.length > 0 && confirmPassword === newPassword">
+                <i class="bi bi-check-circle"></i> Les mots de passe correspondent
+              </div>
+              <div class="pwd-hint" *ngIf="confirmPassword.length > 0 && confirmPassword !== newPassword">
+                <i class="bi bi-x-circle"></i> Les mots de passe ne correspondent pas
+              </div>
+            </div>
+
+            <div *ngIf="errorMessage" class="alert alert-error">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              {{ errorMessage }}
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+              <span *ngIf="!isLoading"><i class="bi bi-check2-circle"></i> Réinitialiser</span>
+              <span *ngIf="isLoading" class="loading-content">
+                <i class="bi bi-arrow-repeat spin"></i> Traitement...
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <!-- ÉTAPE 3 : SUCCÈS -->
+        <div *ngIf="step === 3" class="step-content fade-in">
+          <div class="success-wrap">
+            <div class="success-icon">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <h2>Mot de passe réinitialisé !</h2>
+            <p>{{ successMessage }}</p>
+            <p class="success-sub">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+            <button class="btn btn-primary" (click)="backToLogin()">
+              <i class="bi bi-box-arrow-in-right"></i> Se connecter
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

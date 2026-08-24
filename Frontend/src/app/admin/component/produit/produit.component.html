@@ -103,7 +103,7 @@
         <input type="date" class="toolbar__select" [(ngModel)]="dateFrom" (ngModelChange)="applyFilters()" title="Depuis" />
         <input type="date" class="toolbar__select" [(ngModel)]="dateTo" (ngModelChange)="applyFilters()" title="Jusqu'à" />
       </div>
-      <button class="btn-action" (click)="resetFilters()" title="Réinitialiser les filtres">
+      <button class="btn-action btn-reset" (click)="resetFilters()" title="Réinitialiser les filtres">
         <i class="bi bi-arrow-counterclockwise"></i>
       </button>
 

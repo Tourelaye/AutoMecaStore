@@ -238,6 +238,13 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
     return new Date(d).toLocaleDateString('fr-FR');
   }
 
+  getImageUrl(image?: string | null): string {
+    if (!image) return 'assets/img/placeholder.png';
+    if (image.startsWith('http://') || image.startsWith('https://')) return image;
+    const separator = image.startsWith('/') ? '' : '/';
+    return `http://127.0.0.1:8000${separator}${image}`;
+  }
+
   trackByUserId(_: number, u: AdminUtilisateur): number {
     return u.id;
   }

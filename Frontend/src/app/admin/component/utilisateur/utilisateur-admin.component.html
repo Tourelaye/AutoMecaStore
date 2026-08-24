@@ -343,13 +343,23 @@
           </div>
 
           <div class="info-section" *ngIf="selectedUtilisateur.role === 'fournisseur'">
-            <h4><i class="bi bi-box-seam"></i> Derniers produits</h4>
-            <div class="mini-list" *ngIf="selectedUtilisateur.produits?.length; else noProduit">
-              <div class="mini-item" *ngFor="let p of selectedUtilisateur.produits">
-                <img [src]="p.image || 'assets/img/placeholder.png'" alt="" class="mini-thumb" (error)="$any($event.target).src='assets/img/placeholder.png'">
-                <span class="mini-nom">{{ p.nom }}</span>
-                <span class="mini-prix">{{ p.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
-                <span class="mini-stock">Stock: {{ p.stock }}</span>
+            <h4><i class="bi bi-box-seam"></i> Produits du fournisseur ({{ selectedUtilisateur.produits?.length || 0 }})</h4>
+            <div class="produits-gallery" *ngIf="selectedUtilisateur.produits?.length; else noProduit">
+              <div class="produit-card" *ngFor="let p of selectedUtilisateur.produits">
+                <div class="produit-card__img">
+                  <img [src]="getImageUrl(p.image)" [alt]="p.nom" (error)="$any($event.target).src='assets/img/placeholder.png'" />
+                </div>
+                <div class="produit-card__body">
+                  <span class="produit-card__nom" [title]="p.nom">{{ p.nom }}</span>
+                  <span class="produit-card__ref" *ngIf="p.reference_oem">Réf : {{ p.reference_oem }}</span>
+                  <div class="produit-card__footer">
+                    <span class="produit-card__prix">{{ p.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+                    <span class="produit-card__stock" [class.out]="!p.stock || p.stock === 0">
+                      <i class="bi" [class.bi-box-seam]="!!p.stock && p.stock > 0" [class.bi-exclamation-triangle]="!p.stock || p.stock === 0"></i>
+                      Stock : {{ p.stock || 0 }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
             <ng-template #noProduit><p class="empty-hint">Aucun produit</p></ng-template>

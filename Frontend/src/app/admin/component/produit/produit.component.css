@@ -839,6 +839,18 @@
 .alert-pill--low { background: rgba(56,189,248,0.18); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); }
 
 .btn-action.btn-primary { background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.25); }
+.btn-action.btn-reset {
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1px solid rgba(56,189,248,0.25);
+}
+.btn-action.btn-reset:hover:not(:disabled) {
+  background: #1e293b;
+  color: #7dd3fc;
+  border-color: rgba(56,189,248,0.45);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(56,189,248,0.22);
+}
 
 /* Modal validation note */
 .modal__note { font-size: 12px; color: #64748b; margin: 10px 0 0; font-style: italic; }

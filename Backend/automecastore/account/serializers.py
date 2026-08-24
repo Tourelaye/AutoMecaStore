@@ -3,7 +3,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from django.db.models import Avg, Count
 from django.apps import apps
-from .models import Utilisateur, Client, Fournisseur, VehiculeClient 
+from django.utils import timezone
+from .models import Utilisateur, Client, Fournisseur, VehiculeClient, SecurityActivity
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from orders.models import Commande
@@ -200,13 +201,33 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             print(f"DEBUG: Validation réussie")
         except Exception as e:
             print(f"DEBUG: Erreur validation: {e}")
+            # Journaliser l'échec de connexion
+            self._log_security(attrs.get('email'), 'login', status='failure')
             raise
 
+        # ── Mettre à jour last_login (SimpleJWT ne le fait pas automatiquement)
+        user = self.user
+        if user is not None:
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+
+            # Journaliser la connexion réussie
+            request = self.context.get('request')
+            ip = self._get_client_ip(request) if request else None
+            try:
+                SecurityActivity.objects.create(
+                    user=user,
+                    action='login',
+                    ip_address=ip,
+                    status='success',
+                    metadata={'portal': request.data.get('portal') if request else None}
+                )
+            except Exception:
+                pass
+
         # Portail demandé (client, fournisseur, admin)
-        request = self.context.get('request')
         portal = request.data.get('portal') if request else None
 
-        user = self.user
         if portal:
             if portal == 'client':
                 if user.role != 'client':
@@ -219,15 +240,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     raise PermissionDenied(
                         "Ce compte n'est pas autorisé à accéder à l'espace Fournisseur."
                     )
+                # Un compte fournisseur désactivé (refusé par l'admin) reste bloqué.
                 if not user.is_active:
                     raise PermissionDenied(
                         "Votre compte est inactif. Veuillez contacter l'administrateur."
                     )
+                # Les comptes en attente/suspendus peuvent se connecter : le front
+                # redirige ensuite vers la page /fournisseur/en-attente.
                 fournisseur = getattr(user, 'fournisseur', None)
-                if not fournisseur or fournisseur.statut != 'actif':
-                    raise PermissionDenied(
-                        "Votre compte est en attente de validation par un administrateur. Vous recevrez un e-mail dès que votre demande sera approuvée."
-                    )
 
             elif portal == 'admin':
                 if user.role != 'admin' or not user.is_staff:
@@ -236,6 +256,30 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     )
 
         return result
+
+    @staticmethod
+    def _get_client_ip(request):
+        xff = request.META.get('HTTP_X_FORWARDED_FOR')
+        if xff:
+            return xff.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR')
+
+    @staticmethod
+    def _log_security(email, action, status='failure'):
+        """Journalise une tentative de connexion (échec) quand l'utilisateur existe."""
+        try:
+            user = Utilisateur.objects.filter(email__iexact=email or '').first()
+            if user:
+                request = None
+                # On n'a pas toujours le contexte ; on log sans IP si indisponible.
+                SecurityActivity.objects.create(
+                    user=user,
+                    action=action,
+                    status=status,
+                    metadata={'email': email}
+                )
+        except Exception:
+            pass
 
     @classmethod
     def get_token(cls, user):

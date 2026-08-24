@@ -15,7 +15,8 @@ from .security_views import (
     SecurityOverviewView, ChangePasswordView, TwoFactorView,
     SecurityActivityView, SessionsListView, RegisterSessionView,
     RevokeSessionView, RevokeOtherSessionsView, APITokenListCreateView,
-    APITokenRevokeView, LogoutAllDevicesView, DeactivateAccountView
+    APITokenRevokeView, LogoutAllDevicesView, DeactivateAccountView,
+    PasswordResetRequestView, PasswordResetConfirmView
 )
 from .vehicule_views import VehiculeClientListCreateView, VehiculeClientDetailView
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -63,6 +64,8 @@ urlpatterns = [
     # URLs pour la sécurité du compte
     path('security/overview/', SecurityOverviewView.as_view(), name='security_overview'),
     path('security/change-password/', ChangePasswordView.as_view(), name='security_change_password'),
+    path('password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('security/two-factor/', TwoFactorView.as_view(), name='security_two_factor'),
     path('security/activity/', SecurityActivityView.as_view(), name='security_activity'),
     path('security/sessions/', SessionsListView.as_view(), name='security_sessions'),

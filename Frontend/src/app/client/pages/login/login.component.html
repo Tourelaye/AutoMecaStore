@@ -75,30 +75,7 @@
 
       </div>
 
-      <!-- COMPTES DÉMO -->
-      <div class="demo-accounts">
-        <div class="demo-title">
-          <i class="bi bi-play-circle-fill"></i>
-          <span>Tester avec un compte de démonstration</span>
-        </div>
 
-        <div
-          class="demo-card"
-          *ngFor="let demo of demoAccounts"
-          (click)="fillDemo(demo)"
-          [title]="'Connexion en tant que ' + demo.label"
-        >
-          <div class="demo-icon" [style.background]="demo.color">
-            {{ demo.letter }}
-          </div>
-          <div class="demo-info">
-            <strong>{{ demo.label }}</strong>
-            <p>{{ demo.email }}</p>
-          </div>
-          <span class="demo-badge">Cliquer pour remplir</span>
-          <i class="bi bi-arrow-right-circle"></i>
-        </div>
-      </div>
 
     </div>
 
@@ -164,7 +141,7 @@
             <input type="checkbox" formControlName="remember">
             <span>Se souvenir de moi</span>
           </label>
-          <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+          <a routerLink="/mot-de-passe-oublie" class="forgot-link">Mot de passe oublié ?</a>
         </div>
 
         <!-- BOUTON -->

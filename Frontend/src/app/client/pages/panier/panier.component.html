@@ -1,33 +1,62 @@
 <section class="panier-page">
   <div class="container" [@pageAnimation]>
 
+    <!-- BREADCRUMB -->
+    <nav class="panier-breadcrumb">
+      <a routerLink="/"><i class="bi bi-house-door"></i> Accueil</a>
+      <i class="bi bi-chevron-right sep"></i>
+      <span class="current">Mon panier</span>
+    </nav>
+
     <!-- HEADER -->
     <div class="panier-header">
-      <a routerLink="/" class="back">
-        <i class="bi bi-arrow-left"></i> Continuer mes achats
-      </a>
       <div class="panier-title">
-        <h2>
-          <i class="bi bi-cart3"></i> Mon Panier
-          <span class="nb-articles" *ngIf="nbArticles > 0">{{ nbArticles }}</span>
-        </h2>
+        <div class="title-icon">
+          <i class="bi bi-cart3"></i>
+        </div>
+        <div>
+          <h2>Mon Panier</h2>
+          <p class="panier-subtitle" *ngIf="nbArticles > 0">{{ nbArticles }} article{{ nbArticles > 1 ? 's' : '' }} · {{ sousTotal | number:'1.2-2' }} FCFA</p>
+          <p class="panier-subtitle" *ngIf="nbArticles === 0">Vos articles sélectionnés</p>
+        </div>
       </div>
-      <button class="btn-vider" (click)="viderPanier()" *ngIf="items.length > 0">
-        <i class="bi bi-trash3"></i> Vider
-      </button>
+      <div class="panier-header-actions">
+        <a routerLink="/" class="back-link">
+          <i class="bi bi-arrow-left"></i> Continuer mes achats
+        </a>
+        <button class="btn-vider" (click)="viderPanier()" *ngIf="items.length > 0">
+          <i class="bi bi-trash3"></i> Vider
+        </button>
+      </div>
     </div>
 
     <!-- PANIER VIDE -->
     <div class="empty-container" *ngIf="items.length === 0 && etapeCommande === 1">
       <div class="empty-icon-wrap">
-        <i class="bi bi-cart3 empty-icon"></i>
+        <div class="empty-icon-circle">
+          <i class="bi bi-cart3 empty-icon"></i>
+        </div>
         <div class="empty-sparkle">✨</div>
       </div>
       <h3>Votre panier est vide</h3>
-      <p>Découvrez notre catalogue de pièces détachées</p>
+      <p>Découvrez notre catalogue de pièces détachées et trouvez les pièces adaptées à votre véhicule.</p>
       <a routerLink="/" class="btn-shop">
         <i class="bi bi-shop"></i> Parcourir le catalogue
       </a>
+      <div class="empty-features">
+        <div class="empty-feature">
+          <i class="bi bi-truck"></i>
+          <span>Livraison rapide</span>
+        </div>
+        <div class="empty-feature">
+          <i class="bi bi-shield-check"></i>
+          <span>Paiement sécurisé</span>
+        </div>
+        <div class="empty-feature">
+          <i class="bi bi-arrow-return-left"></i>
+          <span>Retour 30 jours</span>
+        </div>
+      </div>
     </div>
 
     <!-- CONFIRMATION COMMANDE -->
@@ -149,23 +178,30 @@
 
             <!-- INFO -->
             <div class="item-info">
-              <span class="item-brand" *ngIf="item.produit.nom">
-                {{ item.produit.nom | slice:0:15 }}...
-              </span>
-              <h4 class="item-nom">{{ item.nom }}</h4>
-              <p class="item-prix-unit" *ngIf="item.produit.reference as ref">
-                <span class="label">Réf. :</span> {{ ref }}
-              </p>
-              <p class="item-prix-unit">
-                {{ item.prix | number:'1.2-2' }} FCFA / unité
-              </p>
-              <p class="item-stock" [class.insuffisant]="item.quantite > (item.stock || 0)">
-                <i class="bi bi-box-seam"></i> Stock : {{ item.stock ?? '—' }}
-              </p>
-              <p class="item-store" *ngIf="item.magasin_nom || item.fournisseur_nom">
-                <i class="bi" [class.bi-shop]="item.mode_reception === 'retrait_magasin'" [class.bi-truck]="item.mode_reception === 'livraison'"></i>
-                {{ item.magasin_nom || item.fournisseur_nom }} — {{ item.mode_reception === 'retrait_magasin' ? 'Retrait' : 'Livraison' }}
-              </p>
+              <div class="item-info-top">
+                <h4 class="item-nom">{{ item.nom }}</h4>
+                <span class="item-mode-badge" [class.retrait]="item.mode_reception === 'retrait_magasin'">
+                  <i class="bi" [class.bi-shop]="item.mode_reception === 'retrait_magasin'" [class.bi-truck]="item.mode_reception === 'livraison'"></i>
+                  {{ item.mode_reception === 'retrait_magasin' ? 'Retrait' : 'Livraison' }}
+                </span>
+              </div>
+
+              <div class="item-meta">
+                <span class="meta-chip" *ngIf="item.produit.reference">
+                  <i class="bi bi-upc-scan"></i> {{ item.produit.reference }}
+                </span>
+                <span class="meta-chip" *ngIf="item.magasin_nom || item.fournisseur_nom">
+                  <i class="bi bi-shop"></i> {{ item.magasin_nom || item.fournisseur_nom }}
+                </span>
+              </div>
+
+              <div class="item-price-row">
+                <span class="item-prix-unit">{{ item.prix | number:'1.2-2' }} FCFA <small>/ unité</small></span>
+                <span class="item-stock-badge" [class.ok]="(item.stock || 0) >= item.quantite" [class.low]="(item.stock || 0) > 0 && (item.stock || 0) < item.quantite" [class.out]="(item.stock || 0) === 0">
+                  <i class="bi bi-box-seam"></i>
+                  {{ (item.stock || 0) === 0 ? 'Rupture' : (item.stock || 0) < item.quantite ? 'Stock faible' : 'En stock' }}
+                </span>
+              </div>
 
               <!-- CONTRÔLE QUANTITÉ -->
               <div class="qty-control">
@@ -225,62 +261,11 @@
       <!-- ========== RIGHT ========== -->
       <div class="panier-right">
 
-        <!-- CODE PROMO -->
-        <div class="card">
-          <div class="card-title">
-            <i class="bi bi-gift"></i> Code promo
-          </div>
-
-          <div class="promo-box" *ngIf="!promoAppliquee">
-            <input
-              type="text"
-              placeholder="Ex: AUTO10"
-              [(ngModel)]="codePromo"
-              (keyup.enter)="appliquerPromo()"
-              [class.input-error]="promoErreur"
-            >
-            <button (click)="appliquerPromo()">Appliquer</button>
-          </div>
-
-          <div class="promo-error" *ngIf="promoErreur">
-            <i class="bi bi-x-circle"></i> Code invalide ou expiré
-          </div>
-
-          <div class="promo-success" *ngIf="promoAppliquee">
-            <i class="bi bi-check-circle-fill"></i>
-            Code <strong>{{ codePromo.toUpperCase() }}</strong> appliqué — -{{ remisePromo }}%
-            <button class="btn-retirer-promo" (click)="retirerPromo()">
-              <i class="bi bi-x"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- MODES PAR MAGASIN -->
-        <div class="card">
-          <div class="card-title">
-            <i class="bi bi-shop"></i> Modes par magasin
-          </div>
-
-          <div class="store-mode-list" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
-            <div class="store-mode-row" *ngFor="let g of groupesMagasins">
-              <div class="sm-name" style="font-weight: 600;">
-                {{ g.magasin_nom || g.fournisseur_nom || 'AutoMecaStore' }}
-              </div>
-              <div class="sm-detail" style="color: #6c757d;">
-                <i class="bi" [class.bi-shop]="g.items[0].mode_reception === 'retrait_magasin'" [class.bi-truck]="g.items[0].mode_reception === 'livraison'"></i>
-                {{ g.items[0].mode_reception === 'retrait_magasin' ? 'Retrait' : 'Livraison' }}
-                <span *ngIf="g.items[0].mode_reception === 'livraison' && g.magasin?.frais_livraison != null" style="margin-left: 0.5rem;">
-                  ({{ g.magasin.frais_livraison | number:'1.2-2' }} FCFA)
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- RÉCAPITULATIF -->
-        <div class="card total-box">
+        <div class="card total-box sticky-card">
           <div class="card-title">
-            <i class="bi bi-receipt"></i> Récapitulatif
+            <span class="card-icon"><i class="bi bi-receipt"></i></span>
+            Récapitulatif
           </div>
 
           <div class="total-lines">
@@ -302,18 +287,44 @@
                   : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
               </span>
             </div>
+          </div>
 
-            <div class="separator"></div>
+          <!-- CODE PROMO -->
+          <div class="promo-section">
+            <div class="promo-box" *ngIf="!promoAppliquee">
+              <input
+                type="text"
+                placeholder="Code promo (ex: AUTO10)"
+                [(ngModel)]="codePromo"
+                (keyup.enter)="appliquerPromo()"
+                [class.input-error]="promoErreur"
+              >
+              <button (click)="appliquerPromo()">Appliquer</button>
+            </div>
 
-            <div class="line total-final">
-              <span>Total TTC</span>
-              <span>{{ total | number:'1.2-2' }} FCFA</span>
+            <div class="promo-error" *ngIf="promoErreur">
+              <i class="bi bi-x-circle"></i> Code invalide ou expiré
+            </div>
+
+            <div class="promo-success" *ngIf="promoAppliquee">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Code <strong>{{ codePromo.toUpperCase() }}</strong> — -{{ remisePromo }}%</span>
+              <button class="btn-retirer-promo" (click)="retirerPromo()">
+                <i class="bi bi-x"></i>
+              </button>
             </div>
           </div>
 
+          <div class="separator"></div>
+
+          <div class="line total-final">
+            <span>Total TTC</span>
+            <span>{{ total | number:'1.2-2' }} FCFA</span>
+          </div>
+
           <button class="checkout" (click)="afficherRecap()">
-            <i class="bi bi-receipt"></i>
-            Voir le récapitulatif
+            <i class="bi bi-bag-check"></i>
+            Passer la commande
             <i class="bi bi-arrow-right"></i>
           </button>
 
@@ -328,55 +339,232 @@
       </div>
     </div>
 
+    <!-- ========== SECTION BAS DE PAGE — RÉCAP & CONFIANCE ========== -->
+    <div class="panier-bottom-section" *ngIf="items.length > 0 && !showRecap && etapeCommande === 1">
+
+      <!-- RÉCAPITULATIF RAPIDE EN BAS -->
+      <div class="bottom-summary-bar">
+        <div class="bsb-left">
+          <div class="bsb-stat">
+            <i class="bi bi-bag"></i>
+            <div>
+              <span class="bsb-label">Articles</span>
+              <span class="bsb-value">{{ nbArticles }}</span>
+            </div>
+          </div>
+          <div class="bsb-divider"></div>
+          <div class="bsb-stat">
+            <i class="bi bi-shop"></i>
+            <div>
+              <span class="bsb-label">Magasins</span>
+              <span class="bsb-value">{{ groupesMagasins.length }}</span>
+            </div>
+          </div>
+          <div class="bsb-divider"></div>
+          <div class="bsb-stat">
+            <i class="bi bi-truck"></i>
+            <div>
+              <span class="bsb-label">Livraison</span>
+              <span class="bsb-value" [class.gratuit]="fraisLivraison === 0 || livraisonGratuite">
+                {{ (fraisLivraison === 0 || livraisonGratuite) ? 'Gratuite' : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
+              </span>
+            </div>
+          </div>
+          <div class="bsb-divider" *ngIf="promoAppliquee"></div>
+          <div class="bsb-stat" *ngIf="promoAppliquee">
+            <i class="bi bi-tag"></i>
+            <div>
+              <span class="bsb-label">Remise</span>
+              <span class="bsb-value promo">- {{ montantRemise | number:'1.2-2' }} FCFA</span>
+            </div>
+          </div>
+        </div>
+        <div class="bsb-right">
+          <div class="bsb-total">
+            <span class="bsb-total-label">Total</span>
+            <span class="bsb-total-value">{{ total | number:'1.2-2' }} FCFA</span>
+          </div>
+          <button class="checkout bsb-btn" (click)="afficherRecap()">
+            <i class="bi bi-bag-check"></i> Commander
+          </button>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
   <!-- COMMANDE STEPS -->
   <div class="recap-overlay" *ngIf="etapeCommande > 1" @pageAnimation>
 
+    <!-- TEMPLATE RÉUTILISABLE : INDICATEUR DE PROGRESSION -->
+    <ng-template #stepProgress>
+      <div class="step-progress-inline" *ngIf="etapeCommande >= 2 && etapeCommande <= 5">
+        <div class="spi-bar">
+          <div class="spi-fill" [style.width.%]="((etapeCommande - 1) / 4) * 100"></div>
+        </div>
+        <div class="spi-steps">
+          <div class="spi-step" [class.active]="etapeCommande === 2" [class.done]="etapeCommande > 2">
+            <div class="spi-circle"><i class="bi bi-shop"></i></div>
+            <span class="spi-label">Magasin</span>
+          </div>
+          <div class="spi-step" [class.active]="etapeCommande === 3" [class.done]="etapeCommande > 3" [class.skip]="!aLivraison">
+            <div class="spi-circle"><i class="bi bi-geo-alt"></i></div>
+            <span class="spi-label">Adresse</span>
+          </div>
+          <div class="spi-step" [class.active]="etapeCommande === 4" [class.done]="etapeCommande > 4">
+            <div class="spi-circle"><i class="bi bi-receipt"></i></div>
+            <span class="spi-label">Récap</span>
+          </div>
+          <div class="spi-step" [class.active]="etapeCommande === 5" [class.done]="etapeCommande > 5">
+            <div class="spi-circle"><i class="bi bi-credit-card"></i></div>
+            <span class="spi-label">Paiement</span>
+          </div>
+        </div>
+        <p class="spi-current">Étape {{ etapeCommande - 1 }} sur 4</p>
+      </div>
+    </ng-template>
+
     <!-- STEP 2 : CHOIX DU MODE PAR MAGASIN -->
     <div class="recap-card" *ngIf="etapeCommande === 2">
       <h2><i class="bi bi-shop"></i> Mode de réception par magasin</h2>
+      <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
 
       <div class="magasin-groups">
         <div class="magasin-group" *ngFor="let g of groupesMagasins">
-          <h3 class="store-title">
-            <i class="bi bi-shop"></i>
-            {{ g.magasin_nom || g.fournisseur_nom || 'AutoMecaStore' }}
-          </h3>
-          <div class="group-items">
-            <div class="group-item" *ngFor="let item of g.items">
-              <img [src]="item.image || item.produit.image" [alt]="item.nom" />
+
+          <!-- EN-TÊTE MAGASIN -->
+          <div class="store-header">
+            <div class="store-title-wrap">
+              <div class="store-icon-badge">
+                <i class="bi bi-shop"></i>
+              </div>
               <div>
-                <span class="gi-nom">{{ item.nom }}</span>
-                <span class="gi-qty">× {{ item.quantite }}</span>
+                <h3 class="store-title">{{ g.magasin_nom || g.fournisseur_nom || 'AutoMecaStore' }}</h3>
+                <div class="store-meta">
+                  <span class="store-address" *ngIf="g.magasin?.adresse || g.magasin?.ville">
+                    <i class="bi bi-geo-alt"></i>
+                    {{ g.magasin?.adresse || '' }}{{ g.magasin?.adresse && g.magasin?.ville ? ', ' : '' }}{{ g.magasin?.ville || '' }}
+                  </span>
+                  <span class="store-items-count">
+                    {{ g.items.length }} article{{ g.items.length > 1 ? 's' : '' }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="store-address" *ngIf="g.magasin?.adresse || g.magasin?.ville">
-            <i class="bi bi-geo-alt"></i> {{ g.magasin?.adresse || '' }}{{ g.magasin?.adresse && g.magasin?.ville ? ', ' : '' }}{{ g.magasin?.ville || '' }}
+
+          <!-- PRODUITS DU MAGASIN -->
+          <div class="group-items">
+            <div class="group-item" *ngFor="let item of g.items">
+              <img [src]="item.image || item.produit.image" [alt]="item.nom" />
+              <div class="gi-info">
+                <span class="gi-nom">{{ item.nom }}</span>
+                <span class="gi-qty">× {{ item.quantite }}</span>
+              </div>
+              <span class="gi-price" *ngIf="item.prix">
+                {{ (item.prix * item.quantite) | number:'1.2-2' }} FCFA
+              </span>
+            </div>
           </div>
-          <div class="store-fees" *ngIf="g.magasin?.frais_livraison !== undefined">
-            <i class="bi bi-cash"></i> Frais de livraison : {{ (g.magasin?.frais_livraison || 0) | number:'1.2-2' }} FCFA
+
+          <!-- FRAIS DE LIVRAISON -->
+          <div class="store-fees-info" *ngIf="g.magasin?.frais_livraison !== undefined && g.magasin?.frais_livraison != null">
+            <div class="fees-icon">
+              <i class="bi bi-truck"></i>
+            </div>
+            <div class="fees-content">
+              <span class="fees-label">Frais de livraison</span>
+              <span class="fees-value" [class.free]="(g.magasin?.frais_livraison || 0) === 0">
+                {{ (g.magasin?.frais_livraison || 0) === 0
+                  ? 'Gratuite'
+                  : (g.magasin?.frais_livraison | number:'1.2-2') + ' FCFA' }}
+              </span>
+            </div>
+            <div class="fees-detail" *ngIf="g.magasin?.rayon_livraison_km">
+              <i class="bi bi-info-circle"></i> Rayon : {{ g.magasin?.rayon_livraison_km }} km
+            </div>
+          </div>
+
+          <!-- MODES DE RÉCEPTION -->
+          <div class="mode-section-label">
+            <i class="bi bi-gear"></i> Mode de réception
           </div>
           <div class="mode-options">
-            <label class="mode-card" [class.selected]="g.items[0].mode_reception === 'livraison'" [class.disabled]="!g.magasin?.livraison_disponible">
-              <input type="radio" [name]="'mode-' + g.key" [checked]="g.items[0].mode_reception === 'livraison'" (change)="setModePourMagasin(g.key, 'livraison')" [disabled]="!g.magasin?.livraison_disponible">
+            <label class="mode-card"
+                   [class.selected]="g.items[0].mode_reception === 'livraison'"
+                   [class.disabled]="!g.magasin?.livraison_disponible">
+              <input type="radio"
+                     [name]="'mode-' + g.key"
+                     [checked]="g.items[0].mode_reception === 'livraison'"
+                     (change)="setModePourMagasin(g.key, 'livraison')"
+                     [disabled]="!g.magasin?.livraison_disponible">
               <div class="mode-icon"><i class="bi bi-truck"></i></div>
-              <span class="mode-label">Livraison</span>
+              <div class="mode-text">
+                <span class="mode-label">Livraison</span>
+                <span class="mode-desc" *ngIf="g.magasin?.livraison_disponible">À domicile</span>
+                <span class="mode-desc unavailable" *ngIf="!g.magasin?.livraison_disponible">Indisponible</span>
+              </div>
+              <i class="bi bi-check-circle-fill mode-check" *ngIf="g.items[0].mode_reception === 'livraison'"></i>
             </label>
-            <label class="mode-card" [class.selected]="g.items[0].mode_reception === 'retrait_magasin'" [class.disabled]="!g.magasin?.retrait_magasin">
-              <input type="radio" [name]="'mode-' + g.key" [checked]="g.items[0].mode_reception === 'retrait_magasin'" (change)="setModePourMagasin(g.key, 'retrait_magasin')" [disabled]="!g.magasin?.retrait_magasin">
+
+            <label class="mode-card"
+                   [class.selected]="g.items[0].mode_reception === 'retrait_magasin'"
+                   [class.disabled]="!g.magasin?.retrait_magasin">
+              <input type="radio"
+                     [name]="'mode-' + g.key"
+                     [checked]="g.items[0].mode_reception === 'retrait_magasin'"
+                     (change)="setModePourMagasin(g.key, 'retrait_magasin')"
+                     [disabled]="!g.magasin?.retrait_magasin">
               <div class="mode-icon"><i class="bi bi-shop"></i></div>
-              <span class="mode-label">Retrait en magasin</span>
+              <div class="mode-text">
+                <span class="mode-label">Retrait en magasin</span>
+                <span class="mode-desc" *ngIf="g.magasin?.retrait_magasin">Sous 2h</span>
+                <span class="mode-desc unavailable" *ngIf="!g.magasin?.retrait_magasin">Indisponible</span>
+              </div>
+              <i class="bi bi-check-circle-fill mode-check" *ngIf="g.items[0].mode_reception === 'retrait_magasin'"></i>
             </label>
           </div>
-          <div class="store-no-mode" *ngIf="!g.magasin?.livraison_disponible && !g.magasin?.retrait_magasin">
-            <i class="bi bi-exclamation-triangle"></i> Ce magasin ne propose actuellement aucun mode de réception.
+
+          <!-- AVERTISSEMENT : AUCUN MODE -->
+          <div class="store-warning" *ngIf="!g.magasin?.livraison_disponible && !g.magasin?.retrait_magasin">
+            <div class="warning-icon">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="warning-content">
+              <strong>Aucun mode de réception disponible</strong>
+              <p>Ce magasin ne propose actuellement ni livraison ni retrait en magasin. Contactez le vendeur ou retirez les produits concernés de votre panier.</p>
+            </div>
           </div>
+
+          <!-- AVERTISSEMENT : LIVRAISON INDISPONIBLE MAIS RETRAIT OK -->
+          <div class="store-warning soft" *ngIf="!g.magasin?.livraison_disponible && g.magasin?.retrait_magasin && g.items[0].mode_reception === 'livraison'">
+            <div class="warning-icon">
+              <i class="bi bi-exclamation-circle-fill"></i>
+            </div>
+            <div class="warning-content">
+              <strong>Livraison non proposée</strong>
+              <p>Ce magasin ne livre pas à domicile. Le retrait en magasin est disponible — sélectionnez-le ci-dessus.</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <div class="error-message" *ngIf="commandeErreur">{{ commandeErreur }}</div>
+      <!-- AVERTISSEMENT/ERREUR COMMANDE -->
+      <div class="cmd-alert" [class.warning]="isWarningErreur" [class.error]="!isWarningErreur" *ngIf="commandeErreur">
+        <div class="cmd-alert-icon">
+          <i class="bi" [class.bi-exclamation-triangle-fill]="isWarningErreur" [class.bi-x-circle-fill]="!isWarningErreur"></i>
+        </div>
+        <div class="cmd-alert-content">
+          <strong *ngIf="isWarningErreur">Attention</strong>
+          <strong *ngIf="!isWarningErreur">Erreur</strong>
+          <span>{{ commandeErreur }}</span>
+        </div>
+        <button class="cmd-alert-close" (click)="commandeErreur = ''">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
 
       <div class="recap-actions">
         <button class="btn-secondary" (click)="annulerCommande()">
@@ -391,31 +579,104 @@
     <!-- STEP 3 : ADRESSE DE LIVRAISON -->
     <div class="recap-card" *ngIf="etapeCommande === 3 && aLivraison">
       <h2><i class="bi bi-geo-alt"></i> Adresse de livraison</h2>
+      <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
       <p class="adresse-intro">
         Une livraison est sélectionnée pour au moins un magasin. Veuillez renseigner l'adresse où vous souhaitez recevoir votre commande.
       </p>
 
       <div class="adresse-form">
+
+        <!-- BOUTON GÉOLOCALISATION (en évidence) -->
+        <div class="geo-block" [class.geo-success]="geoSuccess" [class.geo-error]="geoError">
+          <div class="geo-header">
+            <div class="geo-info">
+              <i class="bi bi-geo-alt-fill geo-icon"></i>
+              <div>
+                <strong>Localiser mon adresse</strong>
+                <p class="geo-sub">Accélère la saisie en pré-remplissant automatiquement votre position</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-location"
+              [class.loading]="geoLoading"
+              [class.success]="geoSuccess"
+              [class.error]="geoError"
+              (click)="localiser()"
+              [disabled]="geoLoading">
+              <span *ngIf="!geoLoading && !geoSuccess" class="btn-geo-default">
+                <i class="bi bi-crosshair"></i> Partager ma position
+              </span>
+              <span *ngIf="geoLoading" class="btn-geo-loading">
+                <i class="bi bi-arrow-repeat spin"></i> Localisation en cours...
+              </span>
+              <span *ngIf="geoSuccess" class="btn-geo-success">
+                <i class="bi bi-check-circle-fill"></i> Position captée
+              </span>
+              <span *ngIf="geoError" class="btn-geo-error">
+                <i class="bi bi-x-circle"></i> Réessayer
+              </span>
+            </button>
+          </div>
+
+          <!-- Message + détails -->
+          <div class="geo-message" *ngIf="geolocalisationMessage">
+            <i class="bi" [class.bi-check-circle-fill]="geoSuccess" [class.bi-exclamation-triangle-fill]="geoError"></i>
+            <span>{{ geolocalisationMessage }}</span>
+          </div>
+
+          <!-- Détails GPS + carte -->
+          <div class="geo-details" *ngIf="geoSuccess">
+            <div class="gps-coords">
+              <div class="coord-item">
+                <i class="bi bi-compass"></i>
+                <span>Lat: <strong>{{ adresseForm.latitude | number:'1.6-6' }}</strong></span>
+              </div>
+              <div class="coord-item">
+                <i class="bi bi-compass"></i>
+                <span>Lng: <strong>{{ adresseForm.longitude | number:'1.6-6' }}</strong></span>
+              </div>
+              <div class="coord-item" *ngIf="geoPrecision != null">
+                <i class="bi bi-bullseye"></i>
+                <span>Précision: <strong>{{ geoPrecision }} m</strong></span>
+              </div>
+              <div class="coord-item" *ngIf="geoTimestamp">
+                <i class="bi bi-clock"></i>
+                <span>{{ geoTimestamp }}</span>
+              </div>
+            </div>
+            <div class="geo-actions">
+              <a [href]="geoMapUrl" target="_blank" rel="noopener" class="geo-link">
+                <i class="bi bi-map"></i> Voir sur Google Maps
+              </a>
+              <button type="button" class="geo-clear" (click)="effacerLocalisation()">
+                <i class="bi bi-trash"></i> Effacer la position
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHAMPS ADRESSE -->
         <label>
-          <span>Nom complet</span>
-          <input type="text" [(ngModel)]="adresseForm.nom_destinataire" placeholder="Prénom et nom">
+          <span>Nom complet <span class="req">*</span></span>
+          <input type="text" [(ngModel)]="adresseForm.nom_destinataire" placeholder="Prénom et nom" [class.invalid]="!adresseForm.nom_destinataire && commandeErreur">
         </label>
         <label>
-          <span>Téléphone</span>
-          <input type="tel" [(ngModel)]="adresseForm.telephone" placeholder="77 123 45 67">
+          <span>Téléphone <span class="req">*</span></span>
+          <input type="tel" [(ngModel)]="adresseForm.telephone" placeholder="77 123 45 67" [class.invalid]="!adresseForm.telephone && commandeErreur">
         </label>
         <label>
-          <span>Adresse</span>
-          <input type="text" [(ngModel)]="adresseForm.adresse" placeholder="Rue, immeuble, porte...">
+          <span>Adresse <span class="req">*</span></span>
+          <input type="text" [(ngModel)]="adresseForm.adresse" placeholder="Rue, immeuble, porte..." [class.invalid]="!adresseForm.adresse && commandeErreur">
         </label>
         <div class="form-row">
           <label>
-            <span>Ville</span>
-            <input type="text" [(ngModel)]="adresseForm.ville" placeholder="Dakar">
+            <span>Ville <span class="req">*</span></span>
+            <input type="text" [(ngModel)]="adresseForm.ville" placeholder="Dakar" [class.invalid]="!adresseForm.ville && commandeErreur">
           </label>
           <label>
-            <span>Quartier</span>
-            <input type="text" [(ngModel)]="adresseForm.quartier" placeholder="Médina">
+            <span>Quartier <span class="req">*</span></span>
+            <input type="text" [(ngModel)]="adresseForm.quartier" placeholder="Médina" [class.invalid]="!adresseForm.quartier && commandeErreur">
           </label>
         </div>
         <label>
@@ -424,16 +685,29 @@
         </label>
         <label>
           <span>Instructions supplémentaires</span>
-          <textarea [(ngModel)]="adresseForm.instructions" rows="2" placeholder="Immeuble, couleur de porte, etc."></textarea>
+          <textarea [(ngModel)]="adresseForm.instructions" rows="2" placeholder="Immeuble, couleur de porte, code d'accès, etc."></textarea>
         </label>
-        <button type="button" class="btn-location" (click)="localiser()">
-          <i class="bi bi-geo-alt"></i> Partager ma position (optionnel)
-        </button>
-        <small *ngIf="geolocalisationMessage">{{ geolocalisationMessage }}</small>
-        <small class="help">Vous pouvez refuser la géolocalisation, l'adresse textuelle suffit.</small>
+
+        <small class="help">
+          <i class="bi bi-info-circle"></i>
+          Les champs avec <span class="req">*</span> sont obligatoires. La géolocalisation est optionnelle mais recommandée pour faciliter la livraison.
+        </small>
       </div>
 
-      <div class="error-message" *ngIf="commandeErreur">{{ commandeErreur }}</div>
+      <!-- AVERTISSEMENT/ERREUR COMMANDE -->
+      <div class="cmd-alert" [class.warning]="isWarningErreur" [class.error]="!isWarningErreur" *ngIf="commandeErreur">
+        <div class="cmd-alert-icon">
+          <i class="bi" [class.bi-exclamation-triangle-fill]="isWarningErreur" [class.bi-x-circle-fill]="!isWarningErreur"></i>
+        </div>
+        <div class="cmd-alert-content">
+          <strong *ngIf="isWarningErreur">Attention</strong>
+          <strong *ngIf="!isWarningErreur">Erreur</strong>
+          <span>{{ commandeErreur }}</span>
+        </div>
+        <button class="cmd-alert-close" (click)="commandeErreur = ''">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
 
       <div class="recap-actions">
         <button class="btn-secondary" (click)="retourEtape()">
@@ -448,12 +722,58 @@
     <!-- STEP 4 : RÉCAPITULATIF FINAL -->
     <div class="recap-card" *ngIf="etapeCommande === 4">
       <h2><i class="bi bi-receipt"></i> Récapitulatif de votre commande</h2>
+      <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
 
+      <!-- INFOS RAPIDES -->
+      <div class="recap-quick-info">
+        <div class="quick-info-item">
+          <div class="qi-icon"><i class="bi bi-bag"></i></div>
+          <div class="qi-text">
+            <span class="qi-label">Articles</span>
+            <span class="qi-value">{{ nbArticles }}</span>
+          </div>
+        </div>
+        <div class="quick-info-item">
+          <div class="qi-icon"><i class="bi bi-shop"></i></div>
+          <div class="qi-text">
+            <span class="qi-label">Magasins</span>
+            <span class="qi-value">{{ groupesMagasins.length }}</span>
+          </div>
+        </div>
+        <div class="quick-info-item">
+          <div class="qi-icon" [class.livraison]="aLivraison" [class.retrait]="!aLivraison">
+            <i class="bi" [class.bi-truck]="aLivraison" [class.bi-shop]="!aLivraison"></i>
+          </div>
+          <div class="qi-text">
+            <span class="qi-label">Mode</span>
+            <span class="qi-value">{{ aLivraison ? 'Livraison' : 'Retrait' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUITS PAR MAGASIN -->
+      <div class="recap-section-label">
+        <i class="bi bi-box-seam"></i> Produits par magasin
+      </div>
       <div class="recap-items-by-store">
         <div class="store-block" *ngFor="let g of groupesMagasins">
-          <h4 class="store-name">
-            <i class="bi" [class.bi-shop]="g.items[0].mode_reception === 'retrait_magasin'" [class.bi-truck]="g.items[0].mode_reception === 'livraison'"></i>
-            {{ g.magasin_nom || g.fournisseur_nom || 'AutoMecaStore' }} — {{ g.items[0].mode_reception === 'retrait_magasin' ? 'Retrait' : 'Livraison' }}
+
+          <!-- En-tête magasin -->
+          <div class="recap-store-header">
+            <div class="recap-store-info">
+              <div class="recap-store-icon" [class.retrait]="g.items[0].mode_reception === 'retrait_magasin'">
+                <i class="bi" [class.bi-shop]="g.items[0].mode_reception === 'retrait_magasin'" [class.bi-truck]="g.items[0].mode_reception === 'livraison'"></i>
+              </div>
+              <div>
+                <h4 class="recap-store-name">{{ g.magasin_nom || g.fournisseur_nom || 'AutoMecaStore' }}</h4>
+                <span class="recap-store-mode">
+                  {{ g.items[0].mode_reception === 'retrait_magasin' ? 'Retrait en magasin' : 'Livraison' }}
+                  <span *ngIf="g.items[0].mode_reception === 'livraison' && g.magasin?.frais_livraison != null">
+                    · {{ g.magasin.frais_livraison | number:'1.2-2' }} FCFA
+                  </span>
+                </span>
+              </div>
+            </div>
             <button
               *ngIf="g.items[0].mode_reception === 'retrait_magasin'"
               class="btn-itineraire-small"
@@ -462,7 +782,9 @@
             >
               <i class="bi bi-signpost-split"></i> Itinéraire
             </button>
-          </h4>
+          </div>
+
+          <!-- Items -->
           <div class="recap-item" *ngFor="let item of g.items">
             <img
               [src]="item.image || item.produit.image"
@@ -471,41 +793,117 @@
             />
             <div class="recap-item-info">
               <h4>{{ item.nom }}</h4>
-              <p class="recap-ref" *ngIf="item.produit.reference">
-                <span class="label">Réf. :</span> {{ item.produit.reference }}
-              </p>
+              <div class="recap-item-meta">
+                <span class="recap-chip" *ngIf="item.produit.reference">
+                  <i class="bi bi-upc-scan"></i> {{ item.produit.reference }}
+                </span>
+                <span class="recap-chip stock" [class.ok]="(item.stock || 0) >= item.quantite" [class.low]="(item.stock || 0) > 0 && (item.stock || 0) < item.quantite" [class.out]="(item.stock || 0) === 0">
+                  <i class="bi bi-box-seam"></i>
+                  {{ (item.stock || 0) === 0 ? 'Rupture' : (item.stock || 0) < item.quantite ? 'Stock faible' : 'En stock' }}
+                </span>
+              </div>
               <p class="recap-qty-prix">
-                {{ item.quantite }} × {{ item.prix | number:'1.2-2' }} FCFA
-              </p>
-              <p class="recap-stock" [class.insuffisant]="item.quantite > (item.stock || 0)">
-                <i class="bi bi-box-seam"></i> Stock : {{ item.stock ?? '—' }}
+                {{ item.quantite }} × <strong>{{ item.prix | number:'1.2-2' }} FCFA</strong>
               </p>
             </div>
             <div class="recap-total">
               {{ (item.sous_total || item.prix * item.quantite) | number:'1.2-2' }} FCFA
             </div>
           </div>
+
+          <!-- Sous-total magasin -->
+          <div class="recap-store-subtotal">
+            <span>Sous-total {{ g.magasin_nom || g.fournisseur_nom || 'magasin' }}</span>
+            <span>{{ sousTotalMagasin(g) | number:'1.2-2' }} FCFA</span>
+          </div>
         </div>
       </div>
 
+      <!-- LIVRAISON / RETRAIT -->
+      <div class="recap-section-label">
+        <i class="bi bi-geo-alt"></i> {{ aLivraison ? 'Adresse de livraison' : 'Retrait en magasin' }}
+      </div>
       <div class="recap-livraison" *ngIf="aLivraison">
-        <h4><i class="bi bi-truck"></i> Livraison</h4>
-        <p *ngIf="adresseLivraison"><strong>Adresse :</strong> {{ adresseLivraison }}</p>
-        <p *ngIf="telephoneClient"><strong>Tél :</strong> {{ telephoneClient }}</p>
+        <div class="livraison-icon">
+          <i class="bi bi-truck"></i>
+        </div>
+        <div class="livraison-content">
+          <p *ngIf="adresseForm.nom_destinataire" class="livraison-name">{{ adresseForm.nom_destinataire }}</p>
+          <p *ngIf="adresseLivraison" class="livraison-address">{{ adresseLivraison }}</p>
+          <p *ngIf="telephoneClient" class="livraison-phone">
+            <i class="bi bi-telephone"></i> {{ telephoneClient }}
+          </p>
+          <div class="livraison-gps" *ngIf="adresseForm.latitude && adresseForm.longitude">
+            <i class="bi bi-geo-alt-fill"></i> GPS : {{ adresseForm.latitude | number:'1.4-4' }}, {{ adresseForm.longitude | number:'1.4-4' }}
+          </div>
+        </div>
+        <button class="btn-modifier-adresse" (click)="retourEtape()">
+          <i class="bi bi-pencil"></i> Modifier
+        </button>
       </div>
 
-      <div class="recap-livraison" *ngIf="!aLivraison">
-        <h4><i class="bi bi-shop"></i> Retrait en magasin</h4>
-        <p>Aucune adresse de livraison n'est nécessaire. Vous récupérerez votre commande directement auprès des magasins sélectionnés.</p>
+      <div class="recap-livraison retrait-only" *ngIf="!aLivraison">
+        <div class="livraison-icon retrait">
+          <i class="bi bi-shop"></i>
+        </div>
+        <div class="livraison-content">
+          <p class="livraison-name">Retrait en magasin</p>
+          <p class="livraison-address">Vous récupérerez votre commande directement auprès des magasins sélectionnés. Aucune adresse de livraison n'est nécessaire.</p>
+        </div>
       </div>
 
+      <!-- TOTAUX -->
+      <div class="recap-section-label">
+        <i class="bi bi-calculator"></i> Totaux
+      </div>
       <div class="recap-totaux">
-        <div class="line"><span>Sous-total</span><span>{{ sousTotal | number:'1.2-2' }} FCFA</span></div>
-        <div class="line"><span>Frais de livraison</span><span>{{ fraisLivraison | number:'1.2-2' }} FCFA</span></div>
-        <div class="line total"><span>Total TTC</span><span>{{ total | number:'1.2-2' }} FCFA</span></div>
+        <div class="totaux-line">
+          <span class="totaux-label">
+            <i class="bi bi-bag"></i> Sous-total ({{ nbArticles }} article{{ nbArticles > 1 ? 's' : '' }})
+          </span>
+          <span class="totaux-value">{{ sousTotal | number:'1.2-2' }} FCFA</span>
+        </div>
+        <div class="totaux-line" *ngIf="promoAppliquee">
+          <span class="totaux-label promo">
+            <i class="bi bi-tag"></i> Remise ({{ remisePromo }}%)
+          </span>
+          <span class="totaux-value promo">- {{ montantRemise | number:'1.2-2' }} FCFA</span>
+        </div>
+        <div class="totaux-line">
+          <span class="totaux-label">
+            <i class="bi bi-truck"></i> Frais de livraison
+          </span>
+          <span class="totaux-value" [class.gratuit]="fraisLivraison === 0 || livraisonGratuite">
+            {{ (fraisLivraison === 0 || livraisonGratuite) ? 'Gratuite' : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
+          </span>
+        </div>
+        <div class="totaux-divider"></div>
+        <div class="totaux-line total-final">
+          <span class="totaux-label">Total TTC</span>
+          <span class="totaux-value">{{ total | number:'1.2-2' }} FCFA</span>
+        </div>
       </div>
 
-      <div class="error-message" *ngIf="commandeErreur">{{ commandeErreur }}</div>
+      <!-- AVERTISSEMENT -->
+      <div class="recap-confirm-warning" *ngIf="!isCommandeEnCours">
+        <i class="bi bi-info-circle"></i>
+        <span>En confirmant, vous acceptez les conditions de vente. Le paiement sera effectué à l'étape suivante.</span>
+      </div>
+
+      <!-- AVERTISSEMENT/ERREUR COMMANDE -->
+      <div class="cmd-alert" [class.warning]="isWarningErreur" [class.error]="!isWarningErreur" *ngIf="commandeErreur">
+        <div class="cmd-alert-icon">
+          <i class="bi" [class.bi-exclamation-triangle-fill]="isWarningErreur" [class.bi-x-circle-fill]="!isWarningErreur"></i>
+        </div>
+        <div class="cmd-alert-content">
+          <strong *ngIf="isWarningErreur">Attention</strong>
+          <strong *ngIf="!isWarningErreur">Erreur</strong>
+          <span>{{ commandeErreur }}</span>
+        </div>
+        <button class="cmd-alert-close" (click)="commandeErreur = ''">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
 
       <div class="recap-actions">
         <button class="btn-secondary" (click)="retourEtape()">
@@ -523,6 +921,7 @@
     <!-- STEP 5 : CHOIX DU MOYEN DE PAIEMENT -->
     <div class="recap-card" *ngIf="etapeCommande === 5">
       <h2><i class="bi bi-credit-card"></i> Choix du mode de paiement</h2>
+      <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
 
       <div class="recap-totaux">
         <div class="line total"><span>Total à payer</span><span>{{ commandeDetails?.montant_total | number:'1.2-2' }} FCFA</span></div>

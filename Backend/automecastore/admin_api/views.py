@@ -1592,7 +1592,7 @@ class AdminCommandeListView(APIView):
                 Q(lignes__produit__fournisseur__nom_entreprise__icontains=q)
             ).distinct()
 
-        serializer = CommandeAdminListSerializer(qs, many=True)
+        serializer = CommandeAdminListSerializer(qs, many=True, context={'request': request})
         return Response(serializer.data)
 
 
@@ -1612,7 +1612,7 @@ class AdminCommandeDetailView(APIView):
         except Commande.DoesNotExist:
             return Response({'error': 'Commande non trouvée'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = CommandeAdminDetailSerializer(commande)
+        serializer = CommandeAdminDetailSerializer(commande, context={'request': request})
         return Response(serializer.data)
 
 

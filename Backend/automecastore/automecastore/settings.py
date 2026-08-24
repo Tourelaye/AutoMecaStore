@@ -27,6 +27,13 @@ from pathlib import Path
 
 from datetime import timedelta
 
+# Charger automatiquement le fichier .env s'il existe à la racine du projet.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except Exception:
+    pass
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -332,9 +339,15 @@ CORS_ALLOW_ALL_ORIGINS = True  # Pour le développement
 
 
 # Configuration email
-# En développement, les emails s'affichent dans la console.
-# Remplacez par un backend SMTP en production.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# - En développement (par défaut) : les emails s'affichent dans la console.
+# - En production : définissez EMAIL_BACKEND=smtp dans le fichier .env
+#   ainsi que EMAIL_HOST_USER / EMAIL_HOST_PASSWORD pour envoyer réellement.
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend'
+    if os.environ.get('EMAIL_HOST_USER')
+    else 'django.core.mail.backends.console.EmailBackend'
+)
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'

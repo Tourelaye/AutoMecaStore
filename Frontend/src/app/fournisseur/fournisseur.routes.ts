@@ -21,6 +21,7 @@ import { FournisseurDemandesComponent } from './demandes/fournisseur-demandes.co
 import { FournisseurLoginComponent } from './auth/login/fournisseur-login.component';
 import { FournisseurRegisterComponent } from './auth/register/fournisseur-register.component';
 import { FournisseurEnAttenteComponent } from './auth/en-attente/fournisseur-en-attente.component';
+import { FournisseurMotDePasseOublieComponent } from './auth/mot-de-passe-oublie/mot-de-passe-oublie.component';
 import { SecuriteComponent } from './securite/securite.component';
 import { NotificationsFournisseurComponent } from './notifications/notifications-fournisseur/notifications-fournisseur.component';
 import { MonMagasinComponent } from './mon-magasin/mon-magasin.component';
@@ -37,6 +38,10 @@ export const fournisseurRoutes: Routes = [
   {
     path: 'en-attente',
     component: FournisseurEnAttenteComponent
+  },
+  {
+    path: 'mot-de-passe-oublie',
+    component: FournisseurMotDePasseOublieComponent
   },
   {
     path: '',

@@ -76,7 +76,7 @@ class AjouterAuPanierView(generics.CreateAPIView):
         magasin = None
         if fournisseur_id:
             try:
-                fournisseur = Fournisseur.objects.get(id=fournisseur_id)
+                fournisseur = Fournisseur.objects.get(pk=fournisseur_id)
             except Fournisseur.DoesNotExist:
                 pass
         if magasin_id:
@@ -204,14 +204,14 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
         # print(f"📦 Request data: {request.data}")
 
         try:
-            panier = Panier.objects.get(client=request.user.client)
-            # print(f"✅ Panier trouvé: ID={panier.id}")
-        except Panier.DoesNotExist:
-            # print("❌ Panier introuvable")
+            client = request.user.client
+        except Exception:
             return Response(
-                {"error": "Panier introuvable"},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Profil client introuvable. Veuillez vous reconnecter."},
+                status=status.HTTP_400_BAD_REQUEST
             )
+
+        panier, _ = Panier.objects.get_or_create(client=client)
 
         if not panier.items.exists():
             # print("❌ Panier vide")

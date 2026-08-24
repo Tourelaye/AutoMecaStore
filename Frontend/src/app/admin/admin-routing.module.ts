@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
+import { AdminMotDePasseOublieComponent } from './mot-de-passe-oublie/mot-de-passe-oublie.component';
 import { AdminLayoutComponent } from './layouts/admin-layout.component';
 import { AdminDashboardComponent } from './component/dashboard/dashboard.component';
 import { ProduitComponent } from './component/produit/produit.component';
@@ -25,6 +26,7 @@ import { AnalyseComponent } from './component/analyse/analyse.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'mot-de-passe-oublie', component: AdminMotDePasseOublieComponent },
   {
     path: '',
     component: AdminLayoutComponent,

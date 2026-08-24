@@ -86,6 +86,12 @@ export class PanierComponent implements OnInit, OnDestroy {
     longitude: null as number | null
   };
   geolocalisationMessage = '';
+  geoLoading = false;
+  geoSuccess = false;
+  geoError = false;
+  geoPrecision: number | null = null;
+  geoTimestamp: string | null = null;
+  geoMapUrl: string | null = null;
 
   // Suppression en cours (pour animation)
   suppressionEnCours: number | null = null;
@@ -96,6 +102,16 @@ export class PanierComponent implements OnInit, OnDestroy {
   commandeSucces = false;
   commandeConfirmee = false;
   commandeDetails: any = null;
+
+  /** Détecte si l'erreur est un avertissement (magasin/mode) ou une erreur critique */
+  get isWarningErreur(): boolean {
+    const e = this.commandeErreur.toLowerCase();
+    return e.includes('ne propose pas') ||
+           e.includes('livraison') && e.includes('magasin') ||
+           e.includes('retrait') && e.includes('magasin') ||
+           e.includes('indisponible') ||
+           e.includes('non disponible');
+  }
   showRecap = false; // conservé pour compatibilité
 
   // Paiement
@@ -122,45 +138,27 @@ export class PanierComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('[PANIER COMPONENT] Initialisation, logged in:', this.authService.isLoggedIn());
+
+    // For logged-in users, refresh the backend cart first.
+    // PanierService constructor already syncs monCompteService.panier$ → itemsSubject,
+    // so items$ will reflect the backend state.
     if (this.authService.isLoggedIn()) {
-      // Use backend cart when authenticated
-      this.monCompteService.getPanier().subscribe();
-      this.sub = this.monCompteService.panier$.subscribe(panierResponse => {
-        if (panierResponse) {
-          this.items = panierResponse.items.map(item => ({
-            id: item.id,
-            produit: {
-              id: item.produit_id,
-              nom: item.produit_nom,
-              prix: item.prix,
-              image: item.image,
-              reference: (item as any).produit?.reference || ''
-            } as any,
-            nom: item.produit_nom,
-            prix: item.prix,
-            quantite: item.quantite,
-            stock: (item as any).stock,
-            sous_total: (item as any).sous_total,
-            favori: false,
-            fournisseur_id: item.fournisseur_id,
-            fournisseur_nom: item.fournisseur_nom,
-            magasin_id: item.magasin_id,
-            magasin_nom: item.magasin_nom,
-            magasin: (item as any).magasin || undefined,
-            mode_reception: (item.mode_reception as 'livraison' | 'retrait_magasin') || 'livraison'
-          }));
-          this.prefillAdresse();
-        } else {
-          this.items = [];
-        }
-      });
-    } else {
-      // Use localStorage when not authenticated
-      this.sub = this.panierService.items$.subscribe(items => {
-        this.items = items;
-        this.prefillAdresse();
+      this.monCompteService.getPanier().subscribe({
+        next: (panier) => console.log('[PANIER BACKEND] Items reçus:', panier.items?.length ?? 0, panier.items),
+        error: (err) => console.error('[PANIER BACKEND] Erreur:', err)
       });
     }
+
+    // Single source of truth: panierService.items$
+    // - Logged-in users: synced from backend via PanierService constructor subscription
+    // - Non-logged-in users: synced from localStorage
+    // - Fallback: if backend add fails, localStorage fallback still populates items$
+    this.sub = this.panierService.items$.subscribe(items => {
+      console.log('[PANIER COMPONENT] Items reçus:', items.length, items);
+      this.items = items;
+      this.prefillAdresse();
+    });
   }
 
   prefillAdresse(): void {
@@ -174,20 +172,86 @@ export class PanierComponent implements OnInit, OnDestroy {
 
   localiser(): void {
     if (!navigator.geolocation) {
-      this.geolocalisationMessage = 'Géolocalisation non supportée.';
+      this.geoError = true;
+      this.geoSuccess = false;
+      this.geoLoading = false;
+      this.geolocalisationMessage = 'Géolocalisation non supportée par votre navigateur.';
       return;
     }
+
+    this.geoLoading = true;
+    this.geoSuccess = false;
+    this.geoError = false;
+    this.geolocalisationMessage = '';
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        this.geoLoading = false;
+        this.geoSuccess = true;
+        this.geoError = false;
         this.adresseForm.latitude = pos.coords.latitude;
         this.adresseForm.longitude = pos.coords.longitude;
-        this.geolocalisationMessage = 'Position enregistrée.';
+        this.geoPrecision = Math.round(pos.coords.accuracy || 0);
+        this.geoTimestamp = new Date().toLocaleTimeString('fr-FR');
+        this.geoMapUrl = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+        this.geolocalisationMessage = `Position captée avec une précision de ${this.geoPrecision} m.`;
+
+        // Auto-remplir l'adresse si vide, via reverse geocoding léger (Nominatim)
+        if (!this.adresseForm.adresse || !this.adresseForm.ville) {
+          this.reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        }
       },
-      () => {
-        this.geolocalisationMessage = 'Position refusée. L\'adresse textuelle suffit.';
+      (err) => {
+        this.geoLoading = false;
+        this.geoSuccess = false;
+        this.geoError = true;
+        if (err.code === err.PERMISSION_DENIED) {
+          this.geolocalisationMessage = 'Géolocalisation refusée. Vous pouvez saisir l\'adresse manuellement.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          this.geolocalisationMessage = 'Position indisponible. Vérifiez votre GPS ou saisissez l\'adresse manuellement.';
+        } else if (err.code === err.TIMEOUT) {
+          this.geolocalisationMessage = 'Délai dépassé pour la géolocalisation. Réessayez ou saisissez l\'adresse manuellement.';
+        } else {
+          this.geolocalisationMessage = 'Erreur de géolocalisation. Saisissez l\'adresse manuellement.';
+        }
       },
-      { enableHighAccuracy: false, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
+  }
+
+  private reverseGeocode(lat: number, lng: number): void {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    fetch(url, { headers: { 'Accept-Language': 'fr' } })
+      .then(res => res.json())
+      .then(data => {
+        const a = data.address || {};
+        if (!this.adresseForm.adresse) {
+          const road = [a.road, a.house_number].filter(Boolean).join(' ');
+          this.adresseForm.adresse = road || a.neighbourhood || a.suburb || '';
+        }
+        if (!this.adresseForm.ville) {
+          this.adresseForm.ville = a.city || a.town || a.village || a.county || '';
+        }
+        if (!this.adresseForm.quartier) {
+          this.adresseForm.quartier = a.neighbourhood || a.suburb || a.quarter || '';
+        }
+        this.geolocalisationMessage = `Position captée et adresse pré-remplie (précision ${this.geoPrecision} m).`;
+      })
+      .catch(() => {
+        // Silencieux : on garde juste les coordonnées GPS
+      });
+  }
+
+  effacerLocalisation(): void {
+    this.adresseForm.latitude = null;
+    this.adresseForm.longitude = null;
+    this.geoSuccess = false;
+    this.geoError = false;
+    this.geoLoading = false;
+    this.geoPrecision = null;
+    this.geoTimestamp = null;
+    this.geoMapUrl = null;
+    this.geolocalisationMessage = '';
   }
 
   ngOnDestroy(): void {
@@ -253,6 +317,10 @@ export class PanierComponent implements OnInit, OnDestroy {
 
   get telephoneClient(): string {
     return this.adresseForm.telephone;
+  }
+
+  sousTotalMagasin(g: any): number {
+    return g.items.reduce((sum: number, i: any) => sum + (i.sous_total || i.prix * i.quantite), 0);
   }
 
   adresseValide(): boolean {

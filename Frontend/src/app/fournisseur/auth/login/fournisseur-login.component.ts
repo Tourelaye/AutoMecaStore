@@ -28,8 +28,8 @@ export class FournisseurLoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.authService.isAuthenticated() && this.authService.isFournisseurValidated()) {
-      this.router.navigateByUrl('/fournisseur/dashboard', { replaceUrl: true });
+    if (this.authService.isAuthenticated()) {
+      this.router.navigateByUrl(this.authService.homeRoute(), { replaceUrl: true });
     }
   }
 

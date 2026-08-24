@@ -4,6 +4,7 @@ import { ProduitsComponent } from './client/pages/produits/produits.component';
 import { RechercheComponent } from './client/pages/recherche/recherche.component';
 import { LoginComponent } from './client/pages/login/login.component';
 import { RegisterComponent } from './client/pages/register/register.component';
+import { ClientMotDePasseOublieComponent } from './client/pages/mot-de-passe-oublie/mot-de-passe-oublie.component';
 import { AutoListComponent } from './client/pages/catalog/auto/auto-list/auto-list.component';
 import { MotoListComponent } from './client/pages/catalog/moto/moto-list/moto-list.component';
 import { PoidLourdsListComponent } from './client/pages/catalog/poidLourds/poid-lourds-list/poid-lourds-list.component';
@@ -26,6 +27,7 @@ export const routes: Routes = [
   { path: 'catalog/poidLourds',  component: PoidLourdsListComponent },
   { path: 'catalog/velo',        component: VeloListComponent },
   { path: 'login',               component: LoginComponent },
+  { path: 'mot-de-passe-oublie', component: ClientMotDePasseOublieComponent },
   { path: 'register',            component: RegisterComponent },
   { path: 'aide',                component: AideComponent },
   { path: 'faq',                 component: FaqComponent },

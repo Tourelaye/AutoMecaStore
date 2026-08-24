@@ -34,6 +34,7 @@ export class PanierService {
     // Garde le panier local synchronisé avec le backend pour les utilisateurs connectés
     this.monCompteService.panier$.subscribe(panier => {
       if (this.authService.isLoggedIn() && panier && panier.items) {
+        console.log('[PANIER] Sync backend → itemsSubject:', panier.items.length, 'items');
         const localItems: PanierItem[] = panier.items.map(item => ({
           id: item.id,
           produit: {
@@ -101,8 +102,10 @@ export class PanierService {
   // ADD PRODUCT
   // =========================
   ajouterAuPanier(item: PanierItem): void {
-    console.log('🛒 Ajout au panier:', item);
-    console.log('🔑 Utilisateur authentifié:', this.authService.isLoggedIn());
+    console.log('[PANIER] Produit avant ajout:', item);
+    console.log('[PANIER] fournisseur_id:', item.fournisseur_id);
+    console.log('[PANIER] magasin_id:', item.magasin_id);
+    console.log('[PANIER] Utilisateur authentifié:', this.authService.isLoggedIn());
 
     // Sync with backend if user is authenticated
     if (this.authService.isLoggedIn()) {
@@ -114,19 +117,25 @@ export class PanierService {
         item.mode_reception ?? 'livraison'
       ).subscribe({
         next: (response) => {
-          console.log('✅ Backend response:', response);
+          console.log('[PANIER] Backend response:', response);
+          console.log('[PANIER] Nombre d\'items après ajout (itemsSubject):', this.items.length);
+          console.log('[PANIER] localStorage:', localStorage.getItem('panier_items'));
           // Synchronise le state et notifie
           this.lastAddedSubject.next(item.nom);
         },
         error: (error) => {
-          console.error('❌ Backend error, using localStorage fallback:', error);
+          console.error('[PANIER] Backend error, using localStorage fallback:', error);
           this.ajouterAuPanierLocal(item);
+          console.log('[PANIER] Nombre d\'items après fallback:', this.items.length);
+          console.log('[PANIER] localStorage:', localStorage.getItem('panier_items'));
         }
       });
     } else {
       // Fallback to localStorage for non-authenticated users
-      console.log('📦 Using localStorage (not authenticated)');
+      console.log('[PANIER] Using localStorage (not authenticated)');
       this.ajouterAuPanierLocal(item);
+      console.log('[PANIER] Nombre d\'items après ajout:', this.items.length);
+      console.log('[PANIER] localStorage:', localStorage.getItem('panier_items'));
     }
   }
 
@@ -185,9 +194,9 @@ export class PanierService {
     item: { produit: { id?: number } | null | undefined; fournisseur_id?: number | null; magasin_id?: number | null }
   ): string | null {
     const p = item?.produit?.id;
-    const f = item?.fournisseur_id;
-    const m = item?.magasin_id;
-    if (p == null || f == null || m == null) return null;
+    if (p == null) return null;
+    const f = item?.fournisseur_id ?? 0;
+    const m = item?.magasin_id ?? 0;
     return `${p}#${f}#${m}`;
   }
 
@@ -266,7 +275,29 @@ export class PanierService {
       };
     }
 
-    return null;
+    // 5) Aucune offre trouvée : utiliser les infos du produit telles quelles.
+    //    Le backend se chargera de trouver/l'inférer le fournisseur et le magasin.
+    if (data.fournisseur_id != null && data.magasin_id != null) {
+      return {
+        fournisseur_id: data.fournisseur_id,
+        fournisseur_nom: data.fournisseur_nom,
+        magasin_id: data.magasin_id,
+        magasin_nom: data.magasin_nom,
+        prix: data.prix,
+        stock: data.stock
+      };
+    }
+
+    // 6) Aucune info fournisseur/magasin : on ajoute quand même avec un prix par défaut.
+    //    Le backend gère les cas sans fournisseur/magasin (produit.stock est utilisé).
+    return {
+      fournisseur_id: data.fournisseur_id ?? 0,
+      fournisseur_nom: data.fournisseur_nom ?? 'AutoMecaStore',
+      magasin_id: data.magasin_id ?? 0,
+      magasin_nom: data.magasin_nom ?? 'Magasin principal',
+      prix: data.prix,
+      stock: data.stock
+    };
   }
 
   // =========================
@@ -283,6 +314,7 @@ export class PanierService {
   }): void {
 
     const offre = this.resoudreOffreParDefaut(data);
+    console.log('[PANIER] Offre sélectionnée:', offre);
     if (!offre) {
       this.notificationService.warning(
         'Veuillez sélectionner un magasin/fournisseur pour ce produit.',
