@@ -138,14 +138,12 @@ export class PanierComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('[PANIER COMPONENT] Initialisation, logged in:', this.authService.isLoggedIn());
-
     // For logged-in users, refresh the backend cart first.
     // PanierService constructor already syncs monCompteService.panier$ → itemsSubject,
     // so items$ will reflect the backend state.
     if (this.authService.isLoggedIn()) {
       this.monCompteService.getPanier().subscribe({
-        next: (panier) => console.log('[PANIER BACKEND] Items reçus:', panier.items?.length ?? 0, panier.items),
+        next: () => {},
         error: (err) => console.error('[PANIER BACKEND] Erreur:', err)
       });
     }
@@ -155,7 +153,6 @@ export class PanierComponent implements OnInit, OnDestroy {
     // - Non-logged-in users: synced from localStorage
     // - Fallback: if backend add fails, localStorage fallback still populates items$
     this.sub = this.panierService.items$.subscribe(items => {
-      console.log('[PANIER COMPONENT] Items reçus:', items.length, items);
       this.items = items;
       this.prefillAdresse();
     });
@@ -519,10 +516,6 @@ export class PanierComponent implements OnInit, OnDestroy {
   // Commande
   // -------------------------------------------------------
   passerCommande(): void {
-    console.log('🔍 passerCommande appelé');
-    console.log('📦 Items:', this.items);
-    console.log('🔐 Authentifié:', this.authService.isLoggedIn());
-
     if (this.items.length === 0) {
       this.commandeErreur = 'Votre panier est vide';
       return;
@@ -544,7 +537,6 @@ export class PanierComponent implements OnInit, OnDestroy {
 
     this.commandeService.creerCommandeDepuisPanier(this.items, options).subscribe({
       next: (commande) => {
-        console.log('✅ Commande créée avec succès:', commande);
         this.commandeSucces = true;
         this.isCommandeEnCours = false;
         this.commandeConfirmee = false;

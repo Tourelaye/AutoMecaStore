@@ -6,7 +6,6 @@ import { AdminLayoutComponent } from './layouts/admin-layout.component';
 import { AdminDashboardComponent } from './component/dashboard/dashboard.component';
 import { ProduitComponent } from './component/produit/produit.component';
 import { LivraisonComponent } from './component/livraison/livraison.component';
-import { AvisComponent } from './component/avis-reclamation/avis.component';
 import { ParametresComponent } from './component/parametre/parametre.component';
 import { CommandeAdminComponent } from './component/commande/commande-admin.component';
 import { UtilisateurAdminComponent } from './component/utilisateur/utilisateur-admin.component';
@@ -43,7 +42,6 @@ const routes: Routes = [
       { path: 'utilisateurs', component: UtilisateurAdminComponent },
       { path: 'paiements', component: PaiementComponent },
       { path: 'livraisons', component: LivraisonComponent },
-      { path: 'avis', component: AvisComponent },
       { path: 'reclamations', component: ReclamationComponent },
       { path: 'demandes', component: AdminDemandesComponent },
       { path: 'journal', component: JournalComponent },

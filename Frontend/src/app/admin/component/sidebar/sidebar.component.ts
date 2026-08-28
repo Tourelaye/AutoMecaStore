@@ -43,7 +43,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Utilisateurs', icon: 'bi-people-fill', route: '/admin/utilisateurs' },
     { label: 'Paiements & Factures',           icon: 'bi-credit-card',    route: '/admin/paiements'  },
     { label: 'Livraisons',          icon: 'bi-truck',          route: '/admin/livraisons' },
-    { label: 'Avis & Réclamations', icon: 'bi-chat-left-text', route: '/admin/avis'       },
     { label: 'Réclamations & Litiges', icon: 'bi-shield-exclamation', route: '/admin/reclamations' },
   ];
 
@@ -90,14 +89,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.notificationSub?.unsubscribe();
   }
 
-  // ── Met à jour les badges Commandes & Avis ──────────────────────────────
+  // ── Met à jour les badges Commandes ──────────────────────────────
   private updateNavItemsBadges(counts: { commandes: number; avis: number; total: number }): void {
     const applyBadges = (item: NavItem): NavItem => {
       if (item.label === 'Commandes') {
         return { ...item, badge: counts.commandes > 0 ? counts.commandes : undefined };
-      }
-      if (item.label === 'Avis & Réclamations') {
-        return { ...item, badge: counts.avis > 0 ? counts.avis : undefined };
       }
       return item;
     };

@@ -65,8 +65,6 @@ export class AppComponent {
 
   isAdminPage(): boolean{
     const isAdmin = this.router.url.startsWith('/admin');
-    console.log('URL actuelle:', this.router.url);
-    console.log('Est admin page?', isAdmin);
     return isAdmin;
   }
 

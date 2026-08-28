@@ -1,17 +1,5 @@
 <div class="approbation-page">
 
-  <!-- PAGE HEADER -->
-  <div class="page-header fade-up">
-    <div class="page-title">
-      <div class="page-tag">
-        <i class="bi bi-patch-check-fill"></i>
-        Approbations
-      </div>
-      <h2>Approbation des produits</h2>
-      <p>Gérez les produits soumis par les fournisseurs avant publication</p>
-    </div>
-  </div>
-
   <!-- STATS CARDS -->
   <div class="stats-grid fade-up delay-1">
     <div class="stat-card">
@@ -29,14 +17,14 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon stat-icon--green"><i class="bi bi-patch-check-fill"></i></div>
+      <div class="stat-icon stat-icon--green"><i class="bi bi-patch-check"></i></div>
       <div class="stat-info">
         <span class="stat-value">{{ getStats().approuves }}</span>
         <span class="stat-label">Approuvés</span>
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon stat-icon--red"><i class="bi bi-x-octagon-fill"></i></div>
+      <div class="stat-icon stat-icon--red"><i class="bi bi-x-octagon"></i></div>
       <div class="stat-info">
         <span class="stat-value">{{ getStats().rejetes }}</span>
         <span class="stat-label">Rejetés</span>
@@ -136,16 +124,6 @@
       <!-- ======================= VUE TABLEAU ======================= -->
       <div class="table-wrap view-table" *ngIf="!loading || produits.length > 0">
 
-        <div class="table-head">
-          <span class="th">Produit</span>
-          <span class="th">Fournisseur</span>
-          <span class="th text-right">Prix</span>
-          <span class="th text-center">Stock</span>
-          <span class="th">Date</span>
-          <span class="th">Statut</span>
-          <span class="th text-right">Actions</span>
-        </div>
-
         <div
           class="table-row"
           *ngFor="let p of produitsFiltres; let i = index; trackBy: trackByProduitId"
@@ -198,16 +176,16 @@
 
           <div class="td text-right" data-label="Actions">
             <div class="action-btns">
-              <button class="btn-icon btn-info" (click)="ouvrirModalDetails(p)" title="Détails">
+              <button class="btn-icon" (click)="ouvrirModalDetails(p)" title="Détails">
                 <i class="bi bi-eye"></i>
               </button>
-              <button class="btn-icon btn-approve" (click)="approuverProduit(p)" [disabled]="updatingId === p.id" title="Approuver">
-                <i class="bi" [ngClass]="updatingId === p.id ? 'bi-arrow-repeat spin' : 'bi-check-lg'"></i>
+              <button class="btn-icon btn-icon--success" (click)="approuverProduit(p)" [disabled]="updatingId === p.id" title="Approuver">
+                <i class="bi" [ngClass]="updatingId === p.id ? 'bi-arrow-repeat spin' : 'bi-check-circle'"></i>
               </button>
-              <button class="btn-icon btn-reject" (click)="ouvrirModalRejet(p)" [disabled]="updatingId === p.id" title="Rejeter">
-                <i class="bi bi-x-lg"></i>
+              <button class="btn-icon btn-icon--danger" (click)="ouvrirModalRejet(p)" [disabled]="updatingId === p.id" title="Rejeter">
+                <i class="bi bi-x-circle"></i>
               </button>
-              <button class="btn-icon btn-delete" (click)="supprimerProduit(p)" [disabled]="updatingId === p.id" title="Supprimer">
+              <button class="btn-icon btn-icon--danger" (click)="supprimerProduit(p)" [disabled]="updatingId === p.id" title="Supprimer">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -264,16 +242,16 @@
             </div>
 
             <div class="product-card__actions">
-              <button class="btn-icon btn-info" (click)="ouvrirModalDetails(p)" title="Détails">
+              <button class="btn-icon" (click)="ouvrirModalDetails(p)" title="Détails">
                 <i class="bi bi-eye"></i>
               </button>
-              <button class="btn-icon btn-approve" (click)="approuverProduit(p)" [disabled]="updatingId === p.id" title="Approuver">
-                <i class="bi" [ngClass]="updatingId === p.id ? 'bi-arrow-repeat spin' : 'bi-check-lg'"></i>
+              <button class="btn-icon btn-icon--success" (click)="approuverProduit(p)" [disabled]="updatingId === p.id" title="Approuver">
+                <i class="bi" [ngClass]="updatingId === p.id ? 'bi-arrow-repeat spin' : 'bi-check-circle'"></i>
               </button>
-              <button class="btn-icon btn-reject" (click)="ouvrirModalRejet(p)" [disabled]="updatingId === p.id" title="Rejeter">
-                <i class="bi bi-x-lg"></i>
+              <button class="btn-icon btn-icon--danger" (click)="ouvrirModalRejet(p)" [disabled]="updatingId === p.id" title="Rejeter">
+                <i class="bi bi-x-circle"></i>
               </button>
-              <button class="btn-icon btn-delete" (click)="supprimerProduit(p)" [disabled]="updatingId === p.id" title="Supprimer">
+              <button class="btn-icon btn-icon--danger" (click)="supprimerProduit(p)" [disabled]="updatingId === p.id" title="Supprimer">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -360,64 +338,88 @@
   </div>
 </div>
 
-<!-- MODAL DETAILS -->
-<div *ngIf="showDetailModal" class="modal-overlay" (click)="fermerModalDetails()">
-  <div class="modal-content modal-content--detail" (click)="$event.stopPropagation()">
-    <button class="close-btn close-btn--floating" (click)="fermerModalDetails()">
+<!-- DRAWER DETAILS -->
+<div *ngIf="showDetailModal" class="detail-overlay" (click)="fermerModalDetails()">
+  <div class="detail-drawer" (click)="$event.stopPropagation()">
+
+    <!-- Bouton fermer flottant -->
+    <button class="detail-drawer__close-float" (click)="fermerModalDetails()">
       <i class="bi bi-x-lg"></i>
     </button>
 
-    <div class="modal-body modal-body--flush" *ngIf="produitDetail">
-      <div class="detail-image" *ngIf="produitDetail.image">
-        <img [src]="getImageUrl(produitDetail.image)" [alt]="produitDetail.nom" (error)="onImageError($event)">
-        <span class="status-badge status-badge--floating" [ngClass]="getStatutClass(produitDetail.statut_approbation)">
-          <i class="bi" [ngClass]="getStatutIcon(produitDetail.statut_approbation)"></i>
-          {{ getStatutLabel(produitDetail.statut_approbation) }}
-        </span>
+    <!-- Contenu scrollable -->
+    <div class="detail-content" *ngIf="produitDetail">
+
+      <!-- Nom + statut -->
+      <div class="info-section">
+        <div class="product-title-row">
+          <h3>{{ produitDetail.nom }}</h3>
+          <span class="status-badge" [ngClass]="getStatutClass(produitDetail.statut_approbation)">
+            <i class="bi" [ngClass]="getStatutIcon(produitDetail.statut_approbation)"></i>
+            {{ getStatutLabel(produitDetail.statut_approbation) }}
+          </span>
+        </div>
       </div>
 
-      <div class="detail-content">
-        <h4>{{ produitDetail.nom }}</h4>
-        <p class="detail-description">{{ produitDetail.description }}</p>
+      <!-- Description -->
+      <div class="info-section">
+        <h4><i class="bi bi-file-text"></i> Description</h4>
+        <p class="detail-description">{{ produitDetail.description || 'Aucune description fournie.' }}</p>
+      </div>
 
-        <div class="detail-grid">
-          <div class="detail-tile">
-            <span class="detail-tile__label"><i class="bi bi-cash-coin"></i> Prix</span>
-            <span class="detail-tile__value">{{ produitDetail.prix | currency:'XOF' }}</span>
+      <!-- Informations produit -->
+      <div class="info-section">
+        <h4><i class="bi bi-info-circle"></i> Informations</h4>
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="label"><i class="bi bi-cash-coin"></i> Prix</span>
+            <span class="value">{{ produitDetail.prix | currency:'XOF' }}</span>
           </div>
-          <div class="detail-tile">
-            <span class="detail-tile__label"><i class="bi bi-boxes"></i> Stock</span>
-            <span class="detail-tile__value">{{ produitDetail.stock }}</span>
+          <div class="info-row">
+            <span class="label"><i class="bi bi-boxes"></i> Stock</span>
+            <span class="value">{{ produitDetail.stock }}</span>
           </div>
-          <div class="detail-tile">
-            <span class="detail-tile__label"><i class="bi bi-tag"></i> Catégorie</span>
-            <span class="detail-tile__value">{{ produitDetail.categorie_nom || 'Non renseignée' }}</span>
+          <div class="info-row">
+            <span class="label"><i class="bi bi-tag"></i> Catégorie</span>
+            <span class="value">{{ produitDetail.categorie_nom || '—' }}</span>
           </div>
-          <div class="detail-tile">
-            <span class="detail-tile__label"><i class="bi bi-award"></i> Marque</span>
-            <span class="detail-tile__value">{{ produitDetail.marque || 'Non renseignée' }}</span>
+          <div class="info-row">
+            <span class="label"><i class="bi bi-award"></i> Marque</span>
+            <span class="value">{{ produitDetail.marque || '—' }}</span>
           </div>
-          <div class="detail-tile">
-            <span class="detail-tile__label"><i class="bi bi-person-badge"></i> Fournisseur</span>
-            <span class="detail-tile__value">{{ produitDetail.fournisseur_nom || 'Non renseigné' }}</span>
+          <div class="info-row">
+            <span class="label"><i class="bi bi-person-badge"></i> Fournisseur</span>
+            <span class="value">{{ produitDetail.fournisseur_nom || '—' }}</span>
           </div>
-          <div class="detail-tile">
-            <span class="detail-tile__label"><i class="bi bi-upc-scan"></i> Référence</span>
-            <span class="detail-tile__value">{{ produitDetail.reference || 'Non renseignée' }}</span>
+          <div class="info-row">
+            <span class="label"><i class="bi bi-upc-scan"></i> Référence</span>
+            <span class="value">{{ produitDetail.reference || '—' }}</span>
           </div>
         </div>
       </div>
+
+      <!-- Image agrandie -->
+      <div class="info-section" *ngIf="produitDetail.image">
+        <h4><i class="bi bi-image"></i> Image du produit</h4>
+        <div class="product-image-large">
+          <img [src]="getImageUrl(produitDetail.image)" [alt]="produitDetail.nom" (error)="onImageError($event)">
+        </div>
+      </div>
+
     </div>
-    <div class="modal-footer">
+
+    <!-- Footer contextuel -->
+    <div class="detail-drawer__footer" *ngIf="produitDetail">
+      <button class="btn btn-secondary" (click)="fermerModalDetails()">Fermer</button>
       <button
         class="btn btn-approve-solid"
         *ngIf="produitDetail?.statut_approbation === 'en_attente'"
         (click)="approuverProduit(produitDetail); fermerModalDetails()"
       >
-        <i class="bi bi-check-lg"></i> Approuver
+        <i class="bi bi-check-circle"></i> Approuver
       </button>
-      <button class="btn btn-secondary" (click)="fermerModalDetails()">Fermer</button>
     </div>
+
   </div>
 </div>
 

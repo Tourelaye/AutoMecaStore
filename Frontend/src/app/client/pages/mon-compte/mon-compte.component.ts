@@ -108,11 +108,9 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 MON COMPTE COMPONENT INIT');
     this.sub = this.authService.utilisateur$.subscribe(u => {
       this.utilisateur = u;
       if (u) {
-        console.log('👤 Utilisateur disponible:', u);
         this.initProfilForm(u);
         this.initAdresseForm();
         this.loadClientData();
@@ -700,31 +698,24 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   }
 
   private setupDataSubscriptions(): void {
-    console.log('🔧 SETUP DATA SUBSCRIPTIONS APPELE');
-    
     // S'abonner aux mises à jour automatiques
     const clientSub = this.monCompteService.clientInfo$.subscribe(info => {
-      console.log('👤 CLIENT INFO UPDATE:', info);
       this.clientInfo = info;
     });
 
     const commandesSub = this.monCompteService.commandes$.subscribe(commandes => {
-      console.log('📦 COMMANDES UPDATE:', commandes);
       this.commandesResponse = commandes;
     });
 
     const favorisSub = this.monCompteService.favoris$.subscribe(favoris => {
-      console.log('❤️ FAVORIS UPDATE:', favoris);
       this.favorisResponse = favoris;
     });
 
     const panierSub = this.monCompteService.panier$.subscribe(panier => {
-      console.log('🛒 PANIER UPDATE:', panier);
       this.panierResponse = panier;
     });
 
     const adressesSub = this.monCompteService.adresses$.subscribe(adresses => {
-      console.log('📍 ADRESSES UPDATE:', adresses);
       this.adresses = adresses;
     });
 

@@ -59,8 +59,7 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
     { key: 'infos', label: 'Informations', icon: 'bi-info-circle' },
     { key: 'articles', label: 'Articles', icon: 'bi-box-seam' },
     { key: 'livraison', label: 'Livraison', icon: 'bi-truck' },
-    { key: 'historique', label: 'Historique', icon: 'bi-clock-history' },
-    { key: 'reclamations', label: 'Réclamations', icon: 'bi-shield-exclamation' }
+    { key: 'historique', label: 'Historique', icon: 'bi-clock-history' }
   ];
 
   activeModal: 'contact_fournisseur' | 'contact_client' | 'note' | 'intervention' | 'exception_status' | null = null;

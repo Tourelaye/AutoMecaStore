@@ -83,7 +83,7 @@ class NotificationListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Notification.objects.filter(
-            destinataire_id__in=[self.request.user.id, self.request.user.fournisseur.id],
+            destinataire_id__in=[self.request.user.id, self.request.user.fournisseur.user_id],
             destinataire_type='fournisseur'
         )
 
@@ -97,7 +97,7 @@ class NotificationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Notification.objects.filter(
-            destinataire_id__in=[self.request.user.id, self.request.user.fournisseur.id],
+            destinataire_id__in=[self.request.user.id, self.request.user.fournisseur.user_id],
             destinataire_type='fournisseur'
         )
 
@@ -110,7 +110,7 @@ class NotificationCountView(APIView):
 
     def get(self, request):
         count = Notification.objects.filter(
-            destinataire_id__in=[request.user.id, request.user.fournisseur.id],
+            destinataire_id__in=[request.user.id, request.user.fournisseur.user_id],
             destinataire_type='fournisseur',
             lu=False
         ).count()
@@ -125,7 +125,7 @@ class NotificationMarkAllReadView(APIView):
 
     def post(self, request):
         count = Notification.objects.filter(
-            destinataire_id__in=[request.user.id, request.user.fournisseur.id],
+            destinataire_id__in=[request.user.id, request.user.fournisseur.user_id],
             destinataire_type='fournisseur',
             lu=False
         ).update(lu=True)

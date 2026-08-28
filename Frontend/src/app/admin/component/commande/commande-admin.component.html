@@ -292,7 +292,6 @@
           <i class="bi" [ngClass]="t.icon"></i> {{ t.label }}
           <span class="tab-count" *ngIf="t.key === 'articles' && selectedCommande.lignes?.length">{{ selectedCommande.lignes.length }}</span>
           <span class="tab-count" *ngIf="t.key === 'historique' && selectedCommande.historique?.length">{{ selectedCommande.historique.length }}</span>
-          <span class="tab-count" *ngIf="t.key === 'reclamations' && selectedCommande.reclamations?.length">{{ selectedCommande.reclamations.length }}</span>
         </button>
       </div>
 
@@ -416,24 +415,6 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- RECLAMATIONS -->
-        <div class="tab-pane" *ngIf="detailTab === 4">
-          <div class="documents-grid" *ngIf="selectedCommande.reclamations?.length; else noReclamation">
-            <div class="document-card" *ngFor="let r of selectedCommande.reclamations">
-              <i class="bi doc-icon bi-shield-exclamation"></i>
-              <span class="doc-name">{{ r.objet }}</span>
-              <span class="doc-date">{{ formatDate(r.date) }}</span>
-              <span class="doc-status" [ngClass]="'status-' + (r.statut.toLowerCase() || 'gray')">{{ r.statut }}</span>
-            </div>
-          </div>
-          <ng-template #noReclamation>
-            <div class="empty-state small">
-              <div class="empty-icon"><i class="bi bi-shield-check"></i></div>
-              <h4>Aucune réclamation</h4>
-            </div>
-          </ng-template>
         </div>
 
       </div>

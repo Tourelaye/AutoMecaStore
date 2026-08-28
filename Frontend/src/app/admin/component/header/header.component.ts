@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+import { AdminNotificationBellComponent } from '../admin-notification-bell/admin-notification-bell.component';
 
 interface AdminInfo {
   nom: string;
@@ -15,7 +15,7 @@ interface AdminInfo {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NotificationBellComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AdminNotificationBellComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })

@@ -96,6 +96,7 @@ export class PromotionsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('PromotionsComponent - ngOnInit called');
     this.loadProduits();
     this.loadPromotions();
     this.loadStats();
@@ -219,23 +220,28 @@ export class PromotionsComponent implements OnInit {
   // CHARGEMENT
   // =============================================
   private loadProduits(): void {
+    console.log('PromotionsComponent - loadProduits called');
     this.produitService.getProduits().subscribe({
       next: produits => {
+        console.log('Produits loaded:', produits.length);
         this.produits = produits.map(p => ({
           ...p,
           image: p.image_url || p.image || undefined
         })) as Produit[];
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading produits:', err);
         this.showToast('Impossible de charger les produits', 'error');
       }
     });
   }
 
   private loadPromotions(): void {
+    console.log('PromotionsComponent - loadPromotions called');
     this.isLoading = true;
     this.promotionService.getPromotions().subscribe({
       next: promotions => {
+        console.log('Promotions loaded:', promotions.length);
         this.promotions = promotions.map(p => ({
           ...p,
           prix_original: p.prix_original ? Number(p.prix_original) : undefined,
@@ -243,7 +249,8 @@ export class PromotionsComponent implements OnInit {
         }));
         this.isLoading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading promotions:', err);
         this.showToast('Impossible de charger les promotions', 'error');
         this.isLoading = false;
       }
@@ -251,15 +258,18 @@ export class PromotionsComponent implements OnInit {
   }
 
   private loadStats(): void {
+    console.log('PromotionsComponent - loadStats called');
     this.promotionService.getStats().subscribe({
       next: stats => {
+        console.log('Stats loaded:', stats);
         if (stats.meilleure_promotion) {
           stats.meilleure_promotion.prix_original = stats.meilleure_promotion.prix_original ? Number(stats.meilleure_promotion.prix_original) : undefined;
           stats.meilleure_promotion.prix_promo = stats.meilleure_promotion.prix_promo ? Number(stats.meilleure_promotion.prix_promo) : undefined;
         }
         this.stats = stats;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading stats:', err);
         this.showToast('Impossible de charger les statistiques', 'error');
       }
     });

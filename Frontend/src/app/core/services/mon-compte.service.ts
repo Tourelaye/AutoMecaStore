@@ -208,11 +208,9 @@ export class MonCompteService {
   
   getMesCommandes(): Observable<CommandesResponse> {
     const headers = this.getAuthHeaders();
-    console.log('📡 GET /mes-commandes/ - Headers:', headers);
-    
+
     return this.http.get<CommandesResponse>(`${this.API_URL}/mes-commandes/`, { headers }).pipe(
       tap(commandes => {
-        console.log('📦 COMMANDES API RESPONSE:', commandes);
         this.commandesSubject.next(commandes);
       }),
       catchError(error => {
@@ -245,16 +243,10 @@ export class MonCompteService {
   
   getFavoris(): Observable<FavorisResponse> {
     const headers = this.getAuthHeaders();
-    console.log('📡 GET /favoris/ - Headers:', headers);
-    
+
     return this.http.get<FavorisResponse>(`${this.API_URL}/favoris/`, { headers }).pipe(
       tap(favoris => {
-        console.log('❤️ FAVORIS API RAW RESPONSE:', favoris);
-        console.log('❤️ FAVORIS ARRAY:', favoris.favoris);
-        console.log('❤️ FAVORIS TOTAL:', favoris.total);
-        console.log('❤️ FAVORIS LENGTH:', favoris.favoris?.length || 0);
         this.favorisSubject.next(favoris);
-        console.log('❤️ FAVORIS SUBJECT UPDATED');
       }),
       catchError(error => {
         console.error('❌ Erreur lors de la récupération des favoris:', error);
@@ -268,16 +260,11 @@ export class MonCompteService {
 
   ajouterFavori(produitId: number): Observable<any> {
     const headers = this.getAuthHeaders();
-    console.log('📡 POST /favoris/ - produit_id:', produitId);
-    console.log('📡 POST /favoris/ - Headers:', headers);
-    
+
     return this.http.post(`${this.API_URL}/favoris/`, { produit_id: produitId }, { headers }).pipe(
       tap(response => {
-        console.log('✅ FAVORI POST RESPONSE:', response);
         // Rafraîchir la liste des favoris après ajout
-        console.log('🔄 Refreshing favoris after add...');
         this.getFavoris().subscribe({
-          next: (data) => console.log('✅ Favoris refreshed after add:', data),
           error: (err) => console.error('❌ Error refreshing favoris:', err)
         });
       }),
@@ -291,19 +278,14 @@ export class MonCompteService {
 
   retirerFavori(produitId: number): Observable<any> {
     const headers = this.getAuthHeaders();
-    console.log('📡 DELETE /favoris/ - produit_id:', produitId);
-    console.log('📡 DELETE /favoris/ - Headers:', headers);
 
     return this.http.delete(`${this.API_URL}/favoris/`, {
       headers,
       body: { produit_id: produitId }
     }).pipe(
       tap(response => {
-        console.log('✅ FAVORI DELETE RESPONSE:', response);
         // Rafraîchir la liste des favoris après suppression
-        console.log('🔄 Refreshing favoris after remove...');
         this.getFavoris().subscribe({
-          next: (data) => console.log('✅ Favoris refreshed after remove:', data),
           error: (err) => console.error('❌ Error refreshing favoris:', err)
         });
       }),
@@ -321,11 +303,9 @@ export class MonCompteService {
   
   getPanier(): Observable<PanierResponse> {
     const headers = this.getAuthHeaders();
-    console.log('📡 GET /panier/ - Headers:', headers);
-    
+
     return this.http.get<PanierResponse>(`${this.API_URL}/panier/`, { headers }).pipe(
       tap(panier => {
-        console.log('🛒 PANIER API RESPONSE:', panier);
         this.panierSubject.next(panier);
       }),
       catchError(error => {
@@ -418,12 +398,10 @@ export class MonCompteService {
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.authService.getToken();
-    console.log('🔑 TOKEN:', token ? 'PRÉSENT' : 'ABSENT');
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    console.log('📋 HEADERS:', headers);
     return headers;
   }
 
@@ -432,25 +410,19 @@ export class MonCompteService {
   // ==============================
   
   refreshAllData(): void {
-    console.log('🔄 REFRESH ALL DATA APPELE');
     this.getClientInfo().subscribe({
-      next: (data) => console.log('✅ Client info chargée:', data),
       error: (err) => console.error('❌ Erreur client info:', err)
     });
     this.getMesCommandes().subscribe({
-      next: (data) => console.log('✅ Commandes chargées:', data),
       error: (err) => console.error('❌ Erreur commandes:', err)
     });
     this.getFavoris().subscribe({
-      next: (data) => console.log('✅ Favoris chargés:', data),
       error: (err) => console.error('❌ Erreur favoris:', err)
     });
     this.getPanier().subscribe({
-      next: (data) => console.log('✅ Panier chargé:', data),
       error: (err) => console.error('❌ Erreur panier:', err)
     });
     this.getAdresses().subscribe({
-      next: (data) => console.log('✅ Adresses chargées:', data),
       error: (err) => console.error('❌ Erreur adresses:', err)
     });
   }

@@ -34,7 +34,6 @@ export class PanierService {
     // Garde le panier local synchronisé avec le backend pour les utilisateurs connectés
     this.monCompteService.panier$.subscribe(panier => {
       if (this.authService.isLoggedIn() && panier && panier.items) {
-        console.log('[PANIER] Sync backend → itemsSubject:', panier.items.length, 'items');
         const localItems: PanierItem[] = panier.items.map(item => ({
           id: item.id,
           produit: {
@@ -102,11 +101,6 @@ export class PanierService {
   // ADD PRODUCT
   // =========================
   ajouterAuPanier(item: PanierItem): void {
-    console.log('[PANIER] Produit avant ajout:', item);
-    console.log('[PANIER] fournisseur_id:', item.fournisseur_id);
-    console.log('[PANIER] magasin_id:', item.magasin_id);
-    console.log('[PANIER] Utilisateur authentifié:', this.authService.isLoggedIn());
-
     // Sync with backend if user is authenticated
     if (this.authService.isLoggedIn()) {
       this.ajouterAuPanierBackend(
@@ -117,25 +111,17 @@ export class PanierService {
         item.mode_reception ?? 'livraison'
       ).subscribe({
         next: (response) => {
-          console.log('[PANIER] Backend response:', response);
-          console.log('[PANIER] Nombre d\'items après ajout (itemsSubject):', this.items.length);
-          console.log('[PANIER] localStorage:', localStorage.getItem('panier_items'));
           // Synchronise le state et notifie
           this.lastAddedSubject.next(item.nom);
         },
         error: (error) => {
           console.error('[PANIER] Backend error, using localStorage fallback:', error);
           this.ajouterAuPanierLocal(item);
-          console.log('[PANIER] Nombre d\'items après fallback:', this.items.length);
-          console.log('[PANIER] localStorage:', localStorage.getItem('panier_items'));
         }
       });
     } else {
       // Fallback to localStorage for non-authenticated users
-      console.log('[PANIER] Using localStorage (not authenticated)');
       this.ajouterAuPanierLocal(item);
-      console.log('[PANIER] Nombre d\'items après ajout:', this.items.length);
-      console.log('[PANIER] localStorage:', localStorage.getItem('panier_items'));
     }
   }
 
@@ -314,7 +300,6 @@ export class PanierService {
   }): void {
 
     const offre = this.resoudreOffreParDefaut(data);
-    console.log('[PANIER] Offre sélectionnée:', offre);
     if (!offre) {
       this.notificationService.warning(
         'Veuillez sélectionner un magasin/fournisseur pour ce produit.',
@@ -499,15 +484,12 @@ export class PanierService {
       return;
     }
 
-    console.log('🔄 Syncing localStorage cart to backend:', localItems);
-
     // Add each item to backend sequentially, then clear localStorage
     from(localItems).pipe(
       concatMap(item => this.ajouterAuPanierBackend(item.produit.id, item.quantite, item.fournisseur_id, item.magasin_id, item.mode_reception)),
       toArray()
     ).subscribe({
       next: () => {
-        console.log('✅ All items synced to backend');
         this.viderPanier();
       },
       error: (error) => {
@@ -548,7 +530,6 @@ export class PanierService {
           mode_reception: (item.mode_reception as 'livraison' | 'retrait_magasin') || 'livraison'
         }));
         this.save(localItems);
-        console.log('🔄 Backend cart synced to localStorage:', localItems);
       }
     });
   }

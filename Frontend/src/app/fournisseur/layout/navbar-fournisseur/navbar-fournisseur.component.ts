@@ -5,12 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { Subject, interval, takeUntil } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { FournisseurService, FournisseurProfile } from '../../services/fournisseur.service';
-import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+import { FournisseurNotificationBellComponent } from '../fournisseur-notification-bell/fournisseur-notification-bell.component';
 
 @Component({
   selector: 'app-navbar-fournisseur',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NotificationBellComponent],
+  imports: [CommonModule, FormsModule, RouterLink, FournisseurNotificationBellComponent],
   templateUrl: './navbar-fournisseur.component.html',
   styleUrls: ['./navbar-fournisseur.component.css']
 })
@@ -111,6 +111,6 @@ export class NavbarFournisseurComponent implements OnInit, OnDestroy {
     if (!target.closest('.user-menu-wrapper')) {
       this.isDropdownOpen = false;
     }
-    // Dropdowns du composant notification-bell gérés en interne
+    // Dropdowns du composant fournisseur-notification-bell gérés en interne
   }
 }
