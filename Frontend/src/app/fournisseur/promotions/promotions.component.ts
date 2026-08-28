@@ -152,7 +152,8 @@ export class PromotionsComponent implements OnInit {
   discountValidator(group: AbstractControl): ValidationErrors | null {
     const type = group.get('type_promotion')?.value as TypePromotion;
     const valeur = Number(group.get('valeur')?.value);
-    const produit = this.produitSelectionne;
+    const produitId = group.get('produit')?.value;
+    const produit = this.produits.find(p => p.id === produitId);
 
     if (!['pourcentage', 'montant_fixe', 'vente_flash', 'offre_speciale'].includes(type)) return null;
 
