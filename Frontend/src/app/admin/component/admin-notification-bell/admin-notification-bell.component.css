@@ -218,3 +218,25 @@
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }
+
+.dropdown-footer {
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.dropdown-footer .view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #38bdf8;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.dropdown-footer .view-all:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ClientNotificationsService, NotificationClient } from '../../../core/services/client-notifications.service';
@@ -10,11 +10,12 @@ import { ClientNotificationsService, NotificationClient } from '../../../core/se
   templateUrl: './notification-bell.component.html',
   styleUrls: ['./notification-bell.component.css']
 })
-export class NotificationBellComponent implements OnInit {
+export class NotificationBellComponent implements OnInit, OnDestroy {
   notifications: NotificationClient[] = [];
   unreadCount = 0;
   open = false;
   loading = false;
+  private refreshInterval: any;
 
   constructor(
     private clientNotifications: ClientNotificationsService,
@@ -85,8 +86,15 @@ export class NotificationBellComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
   private refreshEveryMinute(): void {
-    setInterval(() => this.clientNotifications.getCount().subscribe(), 60000);
+    this.refreshInterval = setInterval(() => this.clientNotifications.getCount().subscribe(), 60000);
   }
 
   @HostListener('document:click', ['$event'])

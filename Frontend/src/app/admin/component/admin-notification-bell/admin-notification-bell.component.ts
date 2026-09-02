@@ -1,20 +1,21 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AdminNotificationsService, AdminNotification } from '../../service/admin-notifications.service';
 
 @Component({
   selector: 'app-admin-notification-bell',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './admin-notification-bell.component.html',
   styleUrls: ['./admin-notification-bell.component.css']
 })
-export class AdminNotificationBellComponent implements OnInit {
+export class AdminNotificationBellComponent implements OnInit, OnDestroy {
   notifications: AdminNotification[] = [];
   unreadCount = 0;
   open = false;
   loading = false;
+  private refreshInterval: any;
 
   constructor(
     private adminNotifications: AdminNotificationsService,
@@ -98,8 +99,15 @@ export class AdminNotificationBellComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
   private refreshEveryMinute(): void {
-    setInterval(() => this.loadNotifications(), 60000);
+    this.refreshInterval = setInterval(() => this.loadNotifications(), 60000);
   }
 
   @HostListener('document:click', ['$event'])

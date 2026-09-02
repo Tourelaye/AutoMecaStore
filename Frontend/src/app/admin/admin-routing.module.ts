@@ -17,7 +17,6 @@ import { FournisseurComponent } from './component/fournisseur/fournisseur.compon
 import { PaiementComponent } from './component/paiement/paiement.component';
 import { AdminDemandesComponent } from './component/demandes/admin-demandes.component';
 import { JournalComponent } from './component/journal/journal.component';
-import { ApprobationProduitComponent } from './component/approbation-produit/approbation-produit.component';
 import { NotificationsComponent } from './component/notifications/notifications.component';
 import { SecuriteComponent } from './component/securite/securite.component';
 import { ProfilComponent } from './component/profil/profil.component';
@@ -46,7 +45,6 @@ const routes: Routes = [
       { path: 'demandes', component: AdminDemandesComponent },
       { path: 'journal', component: JournalComponent },
       { path: 'parametres', component: ParametresComponent },
-      { path: 'approbation-produits', component: ApprobationProduitComponent },
       { path: 'notifications', component: NotificationsComponent },
       { path: 'securite', component: SecuriteComponent },
       { path: 'profil', component: ProfilComponent },

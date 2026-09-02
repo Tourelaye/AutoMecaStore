@@ -10,11 +10,31 @@
         <div class="hero-info">
           <h1>{{ utilisateur?.prenom }} {{ utilisateur?.nom }}</h1>
           <p class="hero-email">{{ utilisateur?.email }}</p>
-          <span class="hero-role" [class.admin]="utilisateur?.role === 'admin'">
-            <i class="bi" [class.bi-shield-fill]="utilisateur?.role === 'admin'"
-               [class.bi-person-fill]="utilisateur?.role !== 'admin'"></i>
-            {{ getRoleLabel() }}
-          </span>
+          <div class="hero-meta">
+            <span class="hero-role" [class.admin]="utilisateur?.role === 'admin'">
+              <i class="bi" [class.bi-shield-fill]="utilisateur?.role === 'admin'"
+                 [class.bi-person-fill]="utilisateur?.role !== 'admin'"></i>
+              {{ getRoleLabel() }}
+            </span>
+            <span class="hero-since" *ngIf="getMemberSince()">
+              <i class="bi bi-calendar3"></i> Membre depuis {{ getMemberSince() }}
+            </span>
+            <span class="hero-status" *ngIf="utilisateur?.is_active !== false">
+              <i class="bi bi-check-circle-fill"></i> Compte actif
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile completeness bar -->
+      <div class="hero-completeness">
+        <div class="completeness-top">
+          <span class="completeness-label"><i class="bi bi-clipboard-check-fill"></i> {{ getProfileCompletenessLabel() }}</span>
+          <span class="completeness-pct">{{ getProfileCompleteness() }}%</span>
+        </div>
+        <div class="completeness-bar">
+          <div class="completeness-fill" [style.width.%]="getProfileCompleteness()"
+               [class.is-complete]="getProfileCompleteness() === 100"></div>
         </div>
       </div>
     </div>
@@ -37,11 +57,11 @@
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
-          <a class="nav-item" routerLink="/mes-vehicules" (click)="setOnglet('accueil')">
+          <button class="nav-item" [class.active]="ongletActif === 'vehicules'" (click)="setOnglet('vehicules')">
             <div class="nav-icon icon-green"><i class="bi bi-car-front-fill"></i></div>
             <div class="nav-text"><span>Mes véhicules</span><small>Véhicules enregistrés</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
-          </a>
+          </button>
 
           <button class="nav-item" [class.active]="ongletActif === 'commandes'" (click)="setOnglet('commandes')">
             <div class="nav-icon icon-blue"><i class="bi bi-box-seam-fill"></i></div>
@@ -49,11 +69,11 @@
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
-          <a class="nav-item" routerLink="/mes-demandes" (click)="setOnglet('accueil')">
+          <button class="nav-item" [class.active]="ongletActif === 'demandes'" (click)="setOnglet('demandes')">
             <div class="nav-icon icon-cyan"><i class="bi bi-chat-left-text-fill"></i></div>
             <div class="nav-text"><span>Mes demandes</span><small>Demandes de pièces</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
-          </a>
+          </button>
 
           <button class="nav-item" [class.active]="ongletActif === 'favoris'" (click)="setOnglet('favoris')">
             <div class="nav-icon icon-red"><i class="bi bi-heart-fill"></i></div>
@@ -73,11 +93,11 @@
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
 
-          <a class="nav-item" routerLink="/notifications" (click)="setOnglet('accueil')">
+          <button class="nav-item" [class.active]="ongletActif === 'notifications'" (click)="setOnglet('notifications')">
             <div class="nav-icon icon-pink"><i class="bi bi-bell-fill"></i></div>
             <div class="nav-text"><span>Notifications</span><small>Centre de notifications</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
-          </a>
+          </button>
 
           <div class="nav-separator"></div>
 
@@ -113,21 +133,61 @@
             <p>Retrouvez l'ensemble de votre espace client</p>
           </div>
 
+          <!-- Welcome banner -->
+          <div class="welcome-banner">
+            <div class="welcome-text">
+              <h3><i class="bi bi-stars"></i> Bienvenue dans votre espace</h3>
+              <p>Gérez vos commandes, véhicules, adresses et préférences en un seul endroit.</p>
+            </div>
+            <div class="welcome-actions">
+              <button class="welcome-btn" (click)="setOnglet('commandes')">
+                <i class="bi bi-box-seam"></i> Mes commandes
+              </button>
+              <button class="welcome-btn" (click)="setOnglet('profil')">
+                <i class="bi bi-person-gear"></i> Compléter mon profil
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats summary -->
+          <div class="dashboard-stats">
+            <div class="stat-pill" (click)="setOnglet('commandes')">
+              <i class="bi bi-box-seam-fill"></i>
+              <span class="stat-num">{{ getCommandes().length }}</span>
+              <span class="stat-label">Commandes</span>
+            </div>
+            <div class="stat-pill" (click)="setOnglet('vehicules')">
+              <i class="bi bi-car-front-fill"></i>
+              <span class="stat-num">{{ vehicules.length }}</span>
+              <span class="stat-label">Véhicules</span>
+            </div>
+            <div class="stat-pill" (click)="setOnglet('favoris')">
+              <i class="bi bi-heart-fill"></i>
+              <span class="stat-num">{{ getFavoris().length }}</span>
+              <span class="stat-label">Favoris</span>
+            </div>
+            <div class="stat-pill" (click)="setOnglet('notifications')">
+              <i class="bi bi-bell-fill"></i>
+              <span class="stat-num">{{ unreadNotifCount }}</span>
+              <span class="stat-label">Non lues</span>
+            </div>
+          </div>
+
           <div class="dashboard-grid">
             <button class="dashboard-card" (click)="setOnglet('commandes')">
               <div class="dash-icon icon-blue"><i class="bi bi-box-seam-fill"></i></div>
               <div class="dash-text"><span>Mes commandes</span><strong>{{ getCommandes().length }}</strong></div>
             </button>
 
-            <a class="dashboard-card" routerLink="/mes-vehicules">
+            <button class="dashboard-card" (click)="setOnglet('vehicules')">
               <div class="dash-icon icon-green"><i class="bi bi-car-front-fill"></i></div>
-              <div class="dash-text"><span>Mes véhicules</span><strong>—</strong></div>
-            </a>
+              <div class="dash-text"><span>Mes véhicules</span><strong>{{ vehicules.length }}</strong></div>
+            </button>
 
-            <a class="dashboard-card" routerLink="/mes-demandes">
+            <button class="dashboard-card" (click)="setOnglet('demandes')">
               <div class="dash-icon icon-cyan"><i class="bi bi-chat-left-text-fill"></i></div>
-              <div class="dash-text"><span>Mes demandes</span><strong>—</strong></div>
-            </a>
+              <div class="dash-text"><span>Mes demandes</span><strong>{{ demandes.length }}</strong></div>
+            </button>
 
             <button class="dashboard-card" (click)="setOnglet('favoris')">
               <div class="dash-icon icon-red"><i class="bi bi-heart-fill"></i></div>
@@ -139,10 +199,10 @@
               <div class="dash-text"><span>Mes adresses</span><strong>{{ adresses.length }}</strong></div>
             </button>
 
-            <a class="dashboard-card" routerLink="/notifications">
+            <button class="dashboard-card" (click)="setOnglet('notifications')">
               <div class="dash-icon icon-pink"><i class="bi bi-bell-fill"></i></div>
-              <div class="dash-text"><span>Notifications</span><strong>—</strong></div>
-            </a>
+              <div class="dash-text"><span>Notifications</span><strong>{{ unreadNotifCount }}</strong></div>
+            </button>
 
             <button class="dashboard-card" (click)="setOnglet('profil')">
               <div class="dash-icon icon-orange"><i class="bi bi-person-fill"></i></div>
@@ -175,7 +235,34 @@
             <i class="bi bi-exclamation-triangle-fill"></i> {{ profilError }}
           </div>
 
+          <!-- Profil summary card -->
+          <div class="profil-summary">
+            <div class="profil-summary-avatar" [style.background]="getAvatarColor()">
+              {{ getInitiales() }}
+            </div>
+            <div class="profil-summary-info">
+              <h3>{{ profilForm.get('prenom')?.value }} {{ profilForm.get('nom')?.value }}</h3>
+              <p>{{ profilForm.get('email')?.value }}</p>
+              <div class="profil-summary-badges">
+                <span class="ps-badge" *ngIf="profilForm.get('telephone')?.value">
+                  <i class="bi bi-telephone-fill"></i> {{ profilForm.get('telephone')?.value }}
+                </span>
+                <span class="ps-badge" *ngIf="profilForm.get('adresse')?.value">
+                  <i class="bi bi-geo-alt-fill"></i> {{ profilForm.get('adresse')?.value }}
+                </span>
+                <span class="ps-badge ps-badge-warn" *ngIf="!profilForm.get('telephone')?.value">
+                  <i class="bi bi-exclamation-triangle"></i> Téléphone manquant
+                </span>
+                <span class="ps-badge ps-badge-warn" *ngIf="!profilForm.get('adresse')?.value">
+                  <i class="bi bi-exclamation-triangle"></i> Adresse manquante
+                </span>
+              </div>
+            </div>
+          </div>
+
           <form [formGroup]="profilForm" (ngSubmit)="saveProfil()" *ngIf="profilForm">
+            <!-- Section : Identité -->
+            <div class="form-section-label"><i class="bi bi-person-vcard"></i> Identité</div>
             <div class="form-row">
               <div class="form-group">
                 <label>Prénom <span class="req">*</span></label>
@@ -183,6 +270,9 @@
                   <i class="bi bi-person"></i>
                   <input type="text" formControlName="prenom" placeholder="Votre prénom">
                 </div>
+                <small class="form-error" *ngIf="profilForm.get('prenom')?.invalid && profilForm.get('prenom')?.touched">
+                  <i class="bi bi-exclamation-circle"></i> Le prénom doit contenir au moins 2 caractères
+                </small>
               </div>
               <div class="form-group">
                 <label>Nom <span class="req">*</span></label>
@@ -190,24 +280,35 @@
                   <i class="bi bi-person-badge"></i>
                   <input type="text" formControlName="nom" placeholder="Votre nom">
                 </div>
+                <small class="form-error" *ngIf="profilForm.get('nom')?.invalid && profilForm.get('nom')?.touched">
+                  <i class="bi bi-exclamation-circle"></i> Le nom doit contenir au moins 2 caractères
+                </small>
               </div>
             </div>
 
+            <!-- Section : Contact -->
+            <div class="form-section-label"><i class="bi bi-envelope-paper"></i> Contact</div>
             <div class="form-group">
               <label>Email <span class="req">*</span></label>
               <div class="field-wrap" [class.invalid]="profilForm.get('email')?.invalid && profilForm.get('email')?.touched">
                 <i class="bi bi-envelope"></i>
                 <input type="email" formControlName="email" placeholder="votre@email.com">
               </div>
+              <small class="form-error" *ngIf="profilForm.get('email')?.invalid && profilForm.get('email')?.touched">
+                <i class="bi bi-exclamation-circle"></i> Veuillez saisir un email valide
+              </small>
             </div>
 
             <div class="form-row">
               <div class="form-group">
                 <label>Téléphone</label>
-                <div class="field-wrap">
+                <div class="field-wrap" [class.invalid]="profilForm.get('telephone')?.invalid && profilForm.get('telephone')?.touched">
                   <i class="bi bi-telephone"></i>
                   <input type="tel" formControlName="telephone" placeholder="+221 7X XXX XX XX">
                 </div>
+                <small class="form-error" *ngIf="profilForm.get('telephone')?.invalid && profilForm.get('telephone')?.touched">
+                  <i class="bi bi-exclamation-circle"></i> Format invalide (ex: +221 77 123 45 67)
+                </small>
               </div>
               <div class="form-group">
                 <label>Adresse</label>
@@ -219,6 +320,9 @@
             </div>
 
             <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="initProfilForm(utilisateur!)" *ngIf="profilForm.dirty">
+                <i class="bi bi-arrow-counterclockwise"></i> Annuler
+              </button>
               <button type="submit" class="btn-save" [disabled]="profilSaving">
                 <span *ngIf="!profilSaving"><i class="bi bi-check-lg"></i> Enregistrer</span>
                 <span *ngIf="profilSaving"><i class="bi bi-hourglass-split spin"></i> Sauvegarde...</span>
@@ -403,6 +507,175 @@
             <button class="btn-save" (click)="saveConfidentialite()">
               <i class="bi bi-check-lg"></i> Sauvegarder les préférences
             </button>
+          </div>
+        </div>
+
+        <!-- ====== VÉHICULES ====== -->
+        <div class="panel panel-vehicules" *ngIf="ongletActif === 'vehicules'">
+          <div class="panel-header">
+            <h2><i class="bi bi-car-front-fill"></i> Mes véhicules</h2>
+            <p>Gérez vos véhicules pour faciliter la recherche de pièces</p>
+          </div>
+
+          <div class="success-banner" *ngIf="vehiculeSuccess">
+            <i class="bi bi-check-circle-fill"></i> Véhicule enregistré avec succès !
+          </div>
+          <div class="error-banner" *ngIf="vehiculeError">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ vehiculeError }}
+          </div>
+
+          <!-- État de chargement -->
+          <div class="loading-state" *ngIf="isLoadingVehicules">
+            <div class="spinner"></div>
+            <p>Chargement de vos véhicules...</p>
+          </div>
+
+          <div *ngIf="!isLoadingVehicules">
+            <!-- Liste des véhicules -->
+            <div class="vehicules-grid" *ngIf="vehicules.length > 0">
+              <div class="vehicule-card" *ngFor="let v of vehicules; let i = index" [class.is-active]="v.actif" [style.animation-delay]="(i * 0.06) + 's'">
+                <div class="vehicule-card-top">
+                  <div class="vehicule-card-icon">
+                    <i class="bi bi-car-front-fill"></i>
+                  </div>
+                  <div class="vehicule-card-info">
+                    <h3>{{ v.marque }} {{ v.modele }}</h3>
+                    <span class="vehicule-year">{{ v.annee }}</span>
+                  </div>
+                  <span class="badge-principal" *ngIf="v.actif">Actif</span>
+                </div>
+                <div class="vehicule-card-details">
+                  <div class="vehicule-detail-item" *ngIf="v.motorisation">
+                    <i class="bi bi-gear-fill"></i><span>{{ v.motorisation }}</span>
+                  </div>
+                  <div class="vehicule-detail-item" *ngIf="v.carburant">
+                    <i class="bi bi-fuel-pump-fill"></i><span>{{ v.carburant }}</span>
+                  </div>
+                  <div class="vehicule-detail-item" *ngIf="v.version">
+                    <i class="bi bi-tag-fill"></i><span>{{ v.version }}</span>
+                  </div>
+                  <div class="vehicule-detail-item" *ngIf="v.immatriculation">
+                    <i class="bi bi-upc-scan"></i><span>{{ v.immatriculation }}</span>
+                  </div>
+                </div>
+                <div class="vehicule-card-actions">
+                  <button class="btn-sm btn-outline-green" (click)="setVehiculeActif(v.id)" *ngIf="!v.actif">
+                    <i class="bi bi-check-circle"></i> Utiliser
+                  </button>
+                  <button class="btn-sm btn-secondary" (click)="editVehicule(v)">
+                    <i class="bi bi-pencil"></i> Modifier
+                  </button>
+                  <button class="btn-sm btn-danger" (click)="deleteVehicule(v.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- État vide -->
+            <div class="empty-state" *ngIf="vehicules.length === 0">
+              <i class="bi bi-car-front"></i>
+              <h3>Aucun véhicule enregistré</h3>
+              <p>Ajoutez votre véhicule pour trouver plus facilement les pièces compatibles.</p>
+            </div>
+          </div>
+
+          <!-- Formulaire -->
+          <div class="adresse-form-card" style="margin-top: 28px;">
+            <div class="adresse-form-header">
+              <div class="adresse-form-icon" style="background: linear-gradient(135deg, #22c55e, #4ade80); box-shadow: 0 6px 16px rgba(34,197,94,0.25);">
+                <i class="bi" [class.bi-pencil-square]="vehiculeEditingId" [class.bi-plus-circle]="!vehiculeEditingId"></i>
+              </div>
+              <div>
+                <h4>{{ vehiculeEditingId ? 'Modifier le véhicule' : 'Ajouter un nouveau véhicule' }}</h4>
+                <p>Les champs marqués <span class="req">*</span> sont obligatoires</p>
+              </div>
+            </div>
+
+            <form [formGroup]="vehiculeForm" (ngSubmit)="saveVehicule()" novalidate>
+              <!-- Section : Identification -->
+              <div class="form-section-label"><i class="bi bi-car-front"></i> Identification</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Marque <span class="req">*</span></label>
+                  <div class="field-wrap" [class.invalid]="vehiculeForm.get('marque')?.invalid && vehiculeForm.get('marque')?.touched">
+                    <i class="bi bi-truck"></i>
+                    <input type="text" formControlName="marque" placeholder="Toyota">
+                  </div>
+                  <small class="form-error" *ngIf="vehiculeForm.get('marque')?.invalid && vehiculeForm.get('marque')?.touched">La marque est requise</small>
+                </div>
+                <div class="form-group">
+                  <label>Modèle <span class="req">*</span></label>
+                  <div class="field-wrap" [class.invalid]="vehiculeForm.get('modele')?.invalid && vehiculeForm.get('modele')?.touched">
+                    <i class="bi bi-card-text"></i>
+                    <input type="text" formControlName="modele" placeholder="Hilux">
+                  </div>
+                  <small class="form-error" *ngIf="vehiculeForm.get('modele')?.invalid && vehiculeForm.get('modele')?.touched">Le modèle est requis</small>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Année <span class="req">*</span></label>
+                  <div class="field-wrap" [class.invalid]="vehiculeForm.get('annee')?.invalid && vehiculeForm.get('annee')?.touched">
+                    <i class="bi bi-calendar3"></i>
+                    <input type="number" formControlName="annee" placeholder="2018">
+                  </div>
+                  <small class="form-error" *ngIf="vehiculeForm.get('annee')?.invalid && vehiculeForm.get('annee')?.touched">Année invalide (1900–2100)</small>
+                </div>
+                <div class="form-group">
+                  <label>Immatriculation</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-upc-scan"></i>
+                    <input type="text" formControlName="immatriculation" placeholder="AB-123-CD">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section : Technique -->
+              <div class="form-section-label"><i class="bi bi-gear"></i> Technique (optionnel)</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Motorisation</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-gear-fill"></i>
+                    <input type="text" formControlName="motorisation" placeholder="2.4 D-4D">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Carburant</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-fuel-pump"></i>
+                    <input type="text" formControlName="carburant" placeholder="Diesel">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group form-group-full">
+                  <label>Version</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-tag"></i>
+                    <input type="text" formControlName="version" placeholder="SR">
+                  </div>
+                </div>
+              </div>
+
+              <label class="checkbox-row" style="background: #f0fdf4; border-color: #bbf7d0; color: #15803d;">
+                <input type="checkbox" formControlName="actif">
+                <span><i class="bi bi-star-fill" style="color: #22c55e;"></i> Définir comme véhicule actif</span>
+              </label>
+
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" (click)="nouveauVehicule()" *ngIf="vehiculeEditingId">
+                  <i class="bi bi-x-lg"></i> Annuler
+                </button>
+                <button type="submit" class="btn-save" [disabled]="vehiculeSaving">
+                  <span *ngIf="!vehiculeSaving"><i class="bi bi-check-lg"></i> {{ vehiculeEditingId ? 'Mettre à jour' : 'Ajouter le véhicule' }}</span>
+                  <span *ngIf="vehiculeSaving"><i class="bi bi-hourglass-split spin"></i> Enregistrement...</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
@@ -604,10 +877,164 @@
           </div>
         </div>
 
-        <div class="panel" *ngIf="ongletActif === 'favoris'">
+        <!-- ====== DEMANDES DE PIÈCES ====== -->
+        <div class="panel panel-demandes" *ngIf="ongletActif === 'demandes'">
+          <div class="panel-header">
+            <h2><i class="bi bi-chat-left-text-fill"></i> Mes demandes de pièces</h2>
+            <p>Suivez vos demandes et les offres reçues des fournisseurs</p>
+          </div>
+
+          <!-- État de chargement -->
+          <div class="loading-state" *ngIf="isLoadingDemandes">
+            <div class="spinner"></div>
+            <p>Chargement de vos demandes...</p>
+          </div>
+
+          <div *ngIf="!isLoadingDemandes && !demandeSelectionnee">
+            <!-- État vide -->
+            <div class="empty-state" *ngIf="demandes.length === 0">
+              <i class="bi bi-search"></i>
+              <h3>Aucune demande pour le moment</h3>
+              <p>Vous n'avez encore fait aucune demande de pièce.</p>
+              <a routerLink="/recherche" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                <i class="bi bi-search"></i> Faire une demande
+              </a>
+            </div>
+
+            <!-- Liste des demandes -->
+            <div class="notif-cards-list" *ngIf="demandes.length > 0">
+              <div
+                class="notif-card"
+                *ngFor="let d of demandes; let i = index"
+                [ngClass]="statutDemandeClass(d.statut)"
+                [style.animation-delay]="(i * 0.06) + 's'"
+                (click)="selectDemande(d)"
+              >
+                <div class="notif-card-icon" [ngClass]="statutDemandeClass(d.statut)">
+                  <i class="bi bi-chat-left-text-fill"></i>
+                </div>
+                <div class="notif-card-body">
+                  <div class="notif-card-header-row">
+                    <strong class="notif-card-title">{{ d.piece_recherchee }}</strong>
+                  </div>
+                  <p class="notif-card-message" *ngIf="d.marque_vehicule || d.modele_vehicule">
+                    {{ d.marque_vehicule }} {{ d.modele_vehicule }} {{ d.annee_vehicule }}
+                  </p>
+                  <div class="notif-card-meta">
+                    <span class="notif-card-type-badge" [ngClass]="statutDemandeClass(d.statut)">{{ libelleStatutDemande(d.statut) }}</span>
+                    <span class="notif-card-date" *ngIf="d.ville"><i class="bi bi-geo-alt"></i> {{ d.ville }}</span>
+                    <span class="notif-card-date" *ngIf="d.offres_count !== undefined && d.offres_count > 0">
+                      <i class="bi bi-tags"></i> {{ d.offres_count }} offre{{ d.offres_count > 1 ? 's' : '' }}
+                    </span>
+                  </div>
+                </div>
+                <span class="demande-ref-tag">{{ d.reference }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DÉTAIL DE LA DEMANDE -->
+          <div *ngIf="demandeSelectionnee" class="demande-detail">
+            <button class="btn-back" (click)="backDemandes()">
+              <i class="bi bi-arrow-left"></i> Retour à la liste
+            </button>
+
+            <div class="detail-header">
+              <h3>{{ demandeSelectionnee.piece_recherchee }}</h3>
+              <span class="notif-card-type-badge" [ngClass]="statutDemandeClass(demandeSelectionnee.statut)">
+                {{ libelleStatutDemande(demandeSelectionnee.statut) }}
+              </span>
+            </div>
+
+            <p class="detail-ref">Référence : {{ demandeSelectionnee.reference }}</p>
+
+            <div class="detail-grid">
+              <div class="detail-item" *ngIf="demandeSelectionnee.marque_vehicule">
+                <span class="label">Marque</span><span>{{ demandeSelectionnee.marque_vehicule }}</span>
+              </div>
+              <div class="detail-item" *ngIf="demandeSelectionnee.modele_vehicule">
+                <span class="label">Modèle</span><span>{{ demandeSelectionnee.modele_vehicule }}</span>
+              </div>
+              <div class="detail-item" *ngIf="demandeSelectionnee.annee_vehicule">
+                <span class="label">Année</span><span>{{ demandeSelectionnee.annee_vehicule }}</span>
+              </div>
+              <div class="detail-item" *ngIf="demandeSelectionnee.motorisation">
+                <span class="label">Motorisation</span><span>{{ demandeSelectionnee.motorisation }}</span>
+              </div>
+              <div class="detail-item" *ngIf="demandeSelectionnee.quantite">
+                <span class="label">Quantité</span><span>{{ demandeSelectionnee.quantite }}</span>
+              </div>
+              <div class="detail-item" *ngIf="demandeSelectionnee.ville">
+                <span class="label">Localisation</span><span>{{ demandeSelectionnee.quartier }}{{ demandeSelectionnee.quartier && demandeSelectionnee.ville ? ', ' : '' }}{{ demandeSelectionnee.ville }}</span>
+              </div>
+            </div>
+
+            <div class="detail-description" *ngIf="demandeSelectionnee.description">
+              <h4>Description</h4>
+              <p>{{ demandeSelectionnee.description }}</p>
+            </div>
+
+            <div class="offres-section" *ngIf="demandeSelectionnee.offres?.length">
+              <h4><i class="bi bi-shop"></i> Offres reçues</h4>
+
+              <div class="offre-card" *ngFor="let o of demandeSelectionnee.offres">
+                <div class="offre-header">
+                  <strong>{{ o.fournisseur_detail?.nom_entreprise }}</strong>
+                  <span class="offre-prix">{{ o.prix | number:'1.0-0' }} FCFA</span>
+                </div>
+                <div class="offre-detail">
+                  <span class="badge" *ngIf="o.etat_libelle">{{ o.etat_libelle }}</span>
+                  <span class="badge" *ngIf="o.disponibilite_libelle">{{ o.disponibilite_libelle }}</span>
+                  <span class="badge" *ngIf="o.mode_reception_libelle">{{ o.mode_reception_libelle }}</span>
+                  <span class="badge" *ngIf="o.garantie">{{ o.garantie }}</span>
+                </div>
+                <p *ngIf="o.description" class="offre-desc">{{ o.description }}</p>
+
+                <div class="offre-action" *ngIf="o.statut === 'en_attente' && demandeSelectionnee.statut !== 'commande_creee'">
+                  <label>Mode de réception</label>
+                  <select [(ngModel)]="modeReceptionDemande" class="form-select">
+                    <option value="livraison">Livraison</option>
+                    <option value="retrait_magasin">Retrait en magasin</option>
+                  </select>
+                  <button
+                    class="btn-accept"
+                    (click)="accepterOffreDemande(o)"
+                    [disabled]="acceptingOffreId === o.id"
+                  >
+                    <i class="bi bi-check2-circle"></i>
+                    {{ acceptingOffreId === o.id ? 'Validation...' : 'Accepter cette offre' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!demandeSelectionnee.offres?.length" class="empty-offres">
+              <p>Aucune offre pour le moment. Les magasins partenaires en sont informés.</p>
+            </div>
+
+            <div *ngIf="demandeSelectionnee.commande_reference" class="commande-link">
+              <i class="bi bi-bag-check"></i>
+              Commande créée : <a (click)="setOnglet('commandes')">{{ demandeSelectionnee.commande_reference }}</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-favoris" *ngIf="ongletActif === 'favoris'">
           <div class="panel-header">
             <h2><i class="bi bi-heart-fill"></i> Mes favoris</h2>
             <p>Les pièces que vous avez sauvegardées</p>
+          </div>
+
+          <!-- Stats header -->
+          <div class="favoris-stats" *ngIf="!isLoadingFavoris && hasFavoris()">
+            <div class="fs-stat">
+              <i class="bi bi-heart-fill"></i>
+              <div><strong>{{ getFavoris().length }}</strong><span>Favori{{ getFavoris().length > 1 ? 's' : '' }}</span></div>
+            </div>
+            <div class="fs-stat">
+              <i class="bi bi-cash-coin"></i>
+              <div><strong>{{ formatPrix(getFavorisTotalValue()) }}</strong><span>Valeur totale</span></div>
+            </div>
           </div>
 
           <!-- État de chargement -->
@@ -622,22 +1049,23 @@
           </div>
 
           <!-- Liste des favoris -->
-          <div class="favoris-grid" *ngIf="hasFavoris()">
-            <div class="favori-card" *ngFor="let favori of getFavoris()">
+          <div class="favoris-grid" *ngIf="!isLoadingFavoris && hasFavoris()">
+            <div class="favori-card" *ngFor="let favori of getFavoris(); let i = index" [style.animation-delay]="(i * 0.06) + 's'">
               <div class="favori-image">
                 <img [src]="favori.image" [alt]="favori.produit_nom" />
+                <div class="favori-heart-badge"><i class="bi bi-heart-fill"></i></div>
               </div>
-              
               <div class="favori-content">
                 <h4>{{ favori.produit_nom }}</h4>
-                <p class="favori-prix">{{ formatPrix(favori.prix) }}</p>
-                <p class="favori-date">Ajouté le {{ formatDate(favori.date_ajout) }}</p>
-                
+                <div class="favori-meta">
+                  <span class="favori-prix">{{ formatPrix(favori.prix) }}</span>
+                  <span class="favori-date"><i class="bi bi-clock"></i> {{ formatDate(favori.date_ajout) }}</span>
+                </div>
                 <div class="favori-actions">
-                  <button class="btn-primary" (click)="goToProduit(favori.produit_id)">
-                    <i class="bi bi-shop-window"></i> Choisir un magasin
+                  <button class="btn-sm btn-outline-red" (click)="goToProduit(favori.produit_id)">
+                    <i class="bi bi-shop-window"></i> Voir le produit
                   </button>
-                  <button class="btn-danger" (click)="retirerDesFavoris(favori)">
+                  <button class="btn-sm btn-danger" (click)="retirerDesFavoris(favori)">
                     <i class="bi bi-heart-break"></i> Retirer
                   </button>
                 </div>
@@ -647,17 +1075,9 @@
 
           <!-- État vide -->
           <div class="empty-state" *ngIf="!isLoadingFavoris && !hasFavoris()">
-            <!-- DEBUG OUTPUT -->
-            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-                <strong>DEBUG - Favoris:</strong>
-                <pre>{{ favorisResponse | json }}</pre>
-                <strong>hasFavoris():</strong> {{ hasFavoris() }}
-                <strong>getFavoris().length:</strong> {{ getFavoris().length }}
-            </div>
-
             <i class="bi bi-heart"></i>
             <h3>Aucun favori pour le moment</h3>
-            <p>Ajoutez des pièces à vos favoris depuis le catalogue.</p>
+            <p>Ajoutez des pièces à vos favoris depuis le catalogue pour les retrouver ici.</p>
             <a routerLink="/catalog/auto" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
               <i class="bi bi-grid"></i> Voir le catalogue
             </a>
@@ -702,61 +1122,128 @@
             </div>
           </div>
 
-          <h4 class="subsection-title" style="margin-top: 24px;">{{ adresseEditingId ? 'Modifier' : 'Ajouter' }} une adresse</h4>
+          <div class="adresse-form-card">
+            <div class="adresse-form-header">
+              <div class="adresse-form-icon">
+                <i class="bi" [class.bi-pencil-square]="adresseEditingId" [class.bi-plus-circle]="!adresseEditingId"></i>
+              </div>
+              <div>
+                <h4>{{ adresseEditingId ? 'Modifier l\'adresse' : 'Ajouter une nouvelle adresse' }}</h4>
+                <p>Les champs marqués <span class="req">*</span> sont obligatoires</p>
+              </div>
+            </div>
 
-          <form [formGroup]="adresseForm" (ngSubmit)="saveAdresse()" *ngIf="adresseForm">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Nom de l'adresse</label>
-                <input type="text" formControlName="nom" placeholder="Domicile, bureau...">
+            <form [formGroup]="adresseForm" (ngSubmit)="saveAdresse()" *ngIf="adresseForm" novalidate>
+
+              <!-- Section : Destinataire -->
+              <div class="form-section-label"><i class="bi bi-person-badge"></i> Destinataire</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nom de l'adresse</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-bookmark"></i>
+                    <input type="text" formControlName="nom" placeholder="Domicile, bureau...">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Nom du destinataire <span class="req">*</span></label>
+                  <div class="field-wrap" [class.invalid]="adresseForm.get('nom_destinataire')?.invalid && adresseForm.get('nom_destinataire')?.touched">
+                    <i class="bi bi-person"></i>
+                    <input type="text" formControlName="nom_destinataire" placeholder="Prénom et nom">
+                  </div>
+                  <small class="form-error" *ngIf="adresseForm.get('nom_destinataire')?.invalid && adresseForm.get('nom_destinataire')?.touched">
+                    Le nom du destinataire est requis (2 caractères min.)
+                  </small>
+                </div>
               </div>
-              <div class="form-group">
-                <label>Nom du destinataire <span class="req">*</span></label>
-                <input type="text" formControlName="nom_destinataire" placeholder="Prénom et nom">
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Téléphone</label>
+                  <div class="field-wrap" [class.invalid]="adresseForm.get('telephone')?.invalid && adresseForm.get('telephone')?.touched">
+                    <i class="bi bi-telephone"></i>
+                    <input type="tel" formControlName="telephone" placeholder="+221 7X XXX XX XX">
+                  </div>
+                  <small class="form-error" *ngIf="adresseForm.get('telephone')?.invalid && adresseForm.get('telephone')?.touched">
+                    Numéro de téléphone invalide
+                  </small>
+                </div>
               </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Téléphone</label>
-                <input type="tel" formControlName="telephone" placeholder="+221 7X XXX XX XX">
+
+              <!-- Section : Localisation -->
+              <div class="form-section-label"><i class="bi bi-geo-alt"></i> Localisation</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Ville <span class="req">*</span></label>
+                  <div class="field-wrap" [class.invalid]="adresseForm.get('ville')?.invalid && adresseForm.get('ville')?.touched">
+                    <i class="bi bi-signpost-2"></i>
+                    <input type="text" formControlName="ville" placeholder="Ville">
+                  </div>
+                  <small class="form-error" *ngIf="adresseForm.get('ville')?.invalid && adresseForm.get('ville')?.touched">
+                    La ville est requise
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label>Quartier</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-map"></i>
+                    <input type="text" formControlName="quartier" placeholder="Quartier">
+                  </div>
+                </div>
               </div>
-              <div class="form-group">
-                <label>Ville <span class="req">*</span></label>
-                <input type="text" formControlName="ville" placeholder="Ville">
+
+              <div class="form-row">
+                <div class="form-group form-group-full">
+                  <label>Adresse <span class="req">*</span></label>
+                  <div class="field-wrap" [class.invalid]="adresseForm.get('adresse')?.invalid && adresseForm.get('adresse')?.touched">
+                    <i class="bi bi-house-door"></i>
+                    <input type="text" formControlName="adresse" placeholder="Rue, lotissement...">
+                  </div>
+                  <small class="form-error" *ngIf="adresseForm.get('adresse')?.invalid && adresseForm.get('adresse')?.touched">
+                    L'adresse est requise (4 caractères min.)
+                  </small>
+                </div>
               </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Quartier</label>
-                <input type="text" formControlName="quartier" placeholder="Quartier">
+
+              <!-- Section : Compléments -->
+              <div class="form-section-label"><i class="bi bi-sticky"></i> Compléments (optionnel)</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Point de repère</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-signpost-split"></i>
+                    <input type="text" formControlName="point_de_repere" placeholder="Ex: près de la pharmacie">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Instructions au livreur</label>
+                  <div class="field-wrap">
+                    <i class="bi bi-chat-left-dots"></i>
+                    <input type="text" formControlName="instructions" placeholder="Ex: appeler avant d'arriver">
+                  </div>
+                </div>
               </div>
-              <div class="form-group">
-                <label>Adresse <span class="req">*</span></label>
-                <input type="text" formControlName="adresse" placeholder="Rue, lotissement...">
+
+              <label class="checkbox-row">
+                <input type="checkbox" formControlName="est_principale">
+                <span><i class="bi bi-star-fill"></i> Définir comme adresse principale</span>
+              </label>
+
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" (click)="nouvelleAdresse()" *ngIf="adresseEditingId">
+                  <i class="bi bi-x-lg"></i> Annuler
+                </button>
+                <button type="submit" class="btn-save" [disabled]="adresseSaving">
+                  <span *ngIf="!adresseSaving"><i class="bi bi-check-lg"></i> {{ adresseEditingId ? 'Mettre à jour' : 'Ajouter l\'adresse' }}</span>
+                  <span *ngIf="adresseSaving"><i class="bi bi-hourglass-split spin"></i> Enregistrement...</span>
+                </button>
               </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Point de repère</label>
-                <input type="text" formControlName="point_de_repere" placeholder="Point de repère">
-              </div>
-              <div class="form-group">
-                <label>Instructions</label>
-                <input type="text" formControlName="instructions" placeholder="Instructions au livreur">
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn-secondary" (click)="nouvelleAdresse()" *ngIf="adresseEditingId">Annuler</button>
-              <button type="submit" class="btn-save" [disabled]="adresseSaving">
-                <span *ngIf="!adresseSaving"><i class="bi bi-check-lg"></i> {{ adresseEditingId ? 'Mettre à jour' : 'Ajouter' }}</span>
-                <span *ngIf="adresseSaving"><i class="bi bi-hourglass-split spin"></i> Enregistrement...</span>
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
 
         <!-- ====== PANIER ====== -->
-        <div class="panel" *ngIf="ongletActif === 'panier'">
+        <div class="panel panel-panier" *ngIf="ongletActif === 'panier'">
           <div class="panel-header">
             <h2><i class="bi bi-cart-fill"></i> Mon panier</h2>
             <p>Les articles que vous avez ajoutés au panier</p>
@@ -774,69 +1261,160 @@
           </div>
 
           <!-- Liste du panier -->
-          <div class="panier-list" *ngIf="hasPanierItems()">
-            <div class="panier-item" *ngFor="let item of getPanierItems()">
-              <div class="panier-item-image">
-                <img [src]="item.image" [alt]="item.produit_nom" />
-              </div>
-              
-              <div class="panier-item-content">
-                <h4>{{ item.produit_nom }}</h4>
-                <p class="panier-item-prix">{{ formatPrix(item.prix) }}</p>
-                
-                <div class="panier-item-quantity">
-                  <button class="qty-btn" (click)="mettreAJourQuantite(item, item.quantite - 1)" [disabled]="item.quantite <= 1">
-                    <i class="bi bi-dash"></i>
-                  </button>
-                  <span class="qty-value">{{ item.quantite }}</span>
-                  <button class="qty-btn" (click)="mettreAJourQuantite(item, item.quantite + 1)">
-                    <i class="bi bi-plus"></i>
-                  </button>
+          <div class="panier-layout" *ngIf="!isLoadingPanier && hasPanierItems()">
+            <div class="panier-items">
+              <div class="panier-item" *ngFor="let item of getPanierItems(); let i = index" [style.animation-delay]="(i * 0.05) + 's'">
+                <div class="panier-item-image">
+                  <img [src]="item.image" [alt]="item.produit_nom" />
                 </div>
-                
-                <p class="panier-item-sous-total">Sous-total: {{ formatPrix(item.sous_total) }}</p>
-              </div>
-              
-              <div class="panier-item-actions">
-                <button class="btn-danger" (click)="supprimerDuPanier(item)">
-                  <i class="bi bi-trash"></i> Supprimer
+                <div class="panier-item-body">
+                  <div class="panier-item-main">
+                    <h4>{{ item.produit_nom }}</h4>
+                    <span class="panier-item-ref" *ngIf="item.reference"><i class="bi bi-upc-scan"></i> {{ item.reference }}</span>
+                    <div class="panier-item-tags">
+                      <span class="panier-tag" *ngIf="item.magasin_nom"><i class="bi bi-shop"></i> {{ item.magasin_nom }}</span>
+                      <span class="panier-tag" *ngIf="item.fournisseur_nom"><i class="bi bi-building"></i> {{ item.fournisseur_nom }}</span>
+                      <span class="panier-tag panier-tag-mode" *ngIf="item.mode_reception === 'livraison'"><i class="bi bi-truck"></i> Livraison</span>
+                      <span class="panier-tag panier-tag-mode" *ngIf="item.mode_reception === 'retrait_magasin'"><i class="bi bi-shop-window"></i> Retrait magasin</span>
+                    </div>
+                  </div>
+                  <div class="panier-item-controls">
+                    <div class="panier-qty">
+                      <button class="qty-btn" (click)="mettreAJourQuantite(item, item.quantite - 1)" [disabled]="item.quantite <= 1">
+                        <i class="bi bi-dash"></i>
+                      </button>
+                      <span class="qty-value">{{ item.quantite }}</span>
+                      <button class="qty-btn" (click)="mettreAJourQuantite(item, item.quantite + 1)">
+                        <i class="bi bi-plus"></i>
+                      </button>
+                    </div>
+                    <div class="panier-item-pricing">
+                      <span class="panier-unit-price">{{ formatPrix(item.prix) }} / unité</span>
+                      <span class="panier-sous-total">Sous-total: <strong>{{ formatPrix(item.sous_total) }}</strong></span>
+                    </div>
+                  </div>
+                </div>
+                <button class="panier-remove" (click)="supprimerDuPanier(item)" title="Supprimer">
+                  <i class="bi bi-trash"></i>
                 </button>
               </div>
             </div>
 
             <!-- Résumé du panier -->
-            <div class="panier-summary">
+            <div class="panier-summary-card">
+              <h3><i class="bi bi-receipt"></i> Récapitulatif</h3>
               <div class="summary-row">
-                <span>Nombre d'articles:</span>
+                <span><i class="bi bi-bag-check"></i> Articles</span>
                 <strong>{{ getPanierNombreItems() }}</strong>
               </div>
               <div class="summary-row total">
-                <span>Total:</span>
+                <span>Total</span>
                 <strong>{{ formatPrix(getPanierTotal()) }}</strong>
               </div>
-              
-              <button class="btn-primary btn-large" (click)="passerCommande()">
+              <div class="summary-info">
+                <i class="bi bi-info-circle"></i> Livraison calculée à l'étape suivante
+              </div>
+              <button class="btn-save btn-block" (click)="passerCommande()">
                 <i class="bi bi-credit-card"></i> Passer la commande
               </button>
+              <a routerLink="/catalog/auto" class="summary-continue">
+                <i class="bi bi-arrow-left"></i> Continuer mes achats
+              </a>
             </div>
           </div>
 
           <!-- État vide -->
           <div class="empty-state" *ngIf="!isLoadingPanier && !hasPanierItems()">
-            <!-- DEBUG OUTPUT -->
-            <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-                <strong>DEBUG - Panier:</strong>
-                <pre>{{ panierResponse | json }}</pre>
-                <strong>hasPanierItems():</strong> {{ hasPanierItems() }}
-                <strong>getPanierItems().length:</strong> {{ getPanierItems().length }}
-            </div>
-
             <i class="bi bi-cart"></i>
             <h3>Votre panier est vide</h3>
             <p>Ajoutez des pièces depuis le catalogue pour commencer vos achats.</p>
             <a routerLink="/catalog/auto" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
               <i class="bi bi-grid"></i> Voir le catalogue
             </a>
+          </div>
+        </div>
+
+        <!-- ====== NOTIFICATIONS ====== -->
+        <div class="panel panel-notifications" *ngIf="ongletActif === 'notifications'">
+          <div class="notif-hero">
+            <div class="notif-hero-content">
+              <div class="notif-hero-icon"><i class="bi bi-bell-fill"></i></div>
+              <div class="notif-hero-title">
+                <h2>Notifications</h2>
+                <p *ngIf="unreadNotifCount > 0">
+                  Vous avez <strong>{{ unreadNotifCount }}</strong> notification{{ unreadNotifCount > 1 ? 's' : '' }} non lue{{ unreadNotifCount > 1 ? 's' : '' }}
+                </p>
+                <p *ngIf="unreadNotifCount === 0 && notifications.length > 0">Toutes vos notifications sont à jour</p>
+                <p *ngIf="!isLoadingNotifications && notifications.length === 0">Aucune notification pour l'instant</p>
+              </div>
+            </div>
+            <button class="notif-mark-all-btn" (click)="markAllNotificationsRead()" *ngIf="unreadNotifCount > 0">
+              <i class="bi bi-check2-all"></i> Tout marquer comme lu
+            </button>
+          </div>
+
+          <!-- Loading skeleton -->
+          <div class="notif-skeleton-list" *ngIf="isLoadingNotifications">
+            <div class="notif-skeleton-item" *ngFor="let _ of [1,2,3,4,5]">
+              <div class="notif-skeleton-avatar"></div>
+              <div class="notif-skeleton-lines">
+                <div class="notif-skeleton-line short"></div>
+                <div class="notif-skeleton-line long"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="notif-empty-state" *ngIf="!isLoadingNotifications && notifications.length === 0">
+            <div class="notif-empty-illustration">
+              <div class="notif-empty-circle"></div>
+              <i class="bi bi-bell-slash"></i>
+            </div>
+            <h3>Vous n'avez aucune nouvelle notification pour le moment</h3>
+            <p>Vos notifications apparaîtront ici dès qu'il y aura du nouveau.</p>
+          </div>
+
+          <!-- Notification groups -->
+          <div class="notif-groups" *ngIf="!isLoadingNotifications && notifications.length > 0">
+            <div class="notif-group" *ngFor="let g of notifGroups; let gIndex = index">
+              <h4 class="notif-group-label">{{ g.label }}</h4>
+              <div class="notif-cards-list">
+                <div
+                  class="notif-card"
+                  *ngFor="let notif of g.notifications; let i = index"
+                  [class.unread]="!notif.lu"
+                  [ngClass]="'importance-' + notif.importance"
+                  [style.animation-delay]="((gIndex * 0.1) + (i * 0.06)) + 's'"
+                  (click)="onNotificationClick(notif)"
+                >
+                  <div class="notif-card-icon" [ngClass]="'importance-' + notif.importance">
+                    <i class="bi" [ngClass]="getNotifIconByType(notif.type)"></i>
+                  </div>
+                  <div class="notif-card-body">
+                    <div class="notif-card-header-row">
+                      <strong class="notif-card-title">{{ notif.titre || notif.type }}</strong>
+                      <span class="notif-unread-dot" *ngIf="!notif.lu"></span>
+                      <span class="notif-new-badge" *ngIf="!notif.lu">Nouveau</span>
+                    </div>
+                    <p class="notif-card-message">{{ notif.message }}</p>
+                    <div class="notif-card-meta">
+                      <span class="notif-card-type-badge" [ngClass]="'importance-' + notif.importance">{{ notif.type }}</span>
+                      <span class="notif-card-date"><i class="bi bi-clock"></i> {{ getNotifTimeAgo(notif.created_at) }}</span>
+                    </div>
+                  </div>
+                  <button class="notif-card-delete" (click)="deleteNotification(notif, $event)" aria-label="Supprimer">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Load more -->
+          <div class="notif-load-more" *ngIf="!isLoadingNotifications && notifications.length >= notifLimit">
+            <button (click)="loadMoreNotifications()">
+              <i class="bi bi-arrow-down-circle"></i> Charger plus
+            </button>
           </div>
         </div>
 

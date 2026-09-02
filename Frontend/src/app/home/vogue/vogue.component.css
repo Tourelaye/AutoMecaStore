@@ -138,7 +138,7 @@
   .product-image {
     position: relative;
     background: linear-gradient(135deg, #faf5ff, #ede9fe);
-    height: 190px;
+    height: 220px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -146,7 +146,9 @@
   }
   
   .product-image img {
-    max-width: 110px;
+    max-width: 165px;
+    max-height: 175px;
+    width: auto;
     height: auto;
     transition: transform 0.4s ease;
     object-fit: contain;

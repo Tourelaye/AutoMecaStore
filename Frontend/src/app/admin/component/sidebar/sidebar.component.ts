@@ -36,7 +36,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Dashboard',           icon: 'bi-speedometer2',   route: '/admin/dashboard' },
     { label: 'Fournisseurs',        icon: 'bi-building',       route: '/admin/fournisseurs' },
     { label: 'Produits',            icon: 'bi-box-seam',       route: '/admin/produits'  },
-    { label: 'Approbation Produits',icon: 'bi-check-circle',   route: '/admin/approbation-produits' },
     { label: 'Catégories',          icon: 'bi-grid-3x3-gap',   route: '/admin/categories' },
     { label: 'Marques',             icon: 'bi-tags',           route: '/admin/marques' },
     { label: 'Commandes',           icon: 'bi-cart-check',     route: '/admin/commandes'  },
@@ -49,7 +48,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   analyseMenuItems: NavItem[] = [
     { label: 'Centre d\'analyse',  icon: 'bi-graph-up-arrow', route: '/admin/analyse'  },
     { label: 'Journal d\'activités', icon: 'bi-journal-text', route: '/admin/journal'    },
-    { label: 'Notifications',       icon: 'bi-bell',           route: '/admin/notifications' },
+    { label: 'Notifications',       icon: 'bi-bell',           route: '/mon-compte/notifications' },
   ];
 
   compteMenuItems: NavItem[] = [

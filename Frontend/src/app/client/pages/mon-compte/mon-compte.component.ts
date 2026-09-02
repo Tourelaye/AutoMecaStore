@@ -7,8 +7,12 @@ import { AuthService, Utilisateur } from '../../../core/services/auth.service';
 import { MonCompteService, ClientInfo, CommandesResponse, FavorisResponse, Commande, LigneCommande, Favori, PanierResponse, PanierItem, AdresseClient } from '../../../core/services/mon-compte.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PanierService } from '../../../core/services/panier.service';
+import { ClientNotificationsService, NotificationClient } from '../../../core/services/client-notifications.service';
+import { DemandeService, Demande, Offre } from '../../../core/services/demande.service';
+import { VehiculeClientService } from '../../../core/services/vehicule-client.service';
+import { VehiculeClient } from '../../../models/vehicule-client.model';
 
-type OngletType = 'accueil' | 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris' | 'panier' | 'adresses';
+type OngletType = 'accueil' | 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris' | 'panier' | 'adresses' | 'notifications' | 'demandes' | 'vehicules';
 
 @Component({
   selector: 'app-mon-compte',
@@ -94,6 +98,28 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   partageData   = false;
   confidSuccess = false;
 
+  // Notifications
+  notifications: NotificationClient[] = [];
+  unreadNotifCount = 0;
+  isLoadingNotifications = false;
+  notifLimit = 50;
+
+  // Demandes de pièces
+  demandes: Demande[] = [];
+  isLoadingDemandes = false;
+  demandeSelectionnee: Demande | null = null;
+  modeReceptionDemande = 'livraison';
+  acceptingOffreId: number | null = null;
+
+  // Véhicules
+  vehicules: VehiculeClient[] = [];
+  isLoadingVehicules = false;
+  vehiculeForm!: FormGroup;
+  vehiculeEditingId: number | null = null;
+  vehiculeSaving = false;
+  vehiculeError = '';
+  vehiculeSuccess = false;
+
   private sub!: Subscription;
   private monCompteSubscriptions: Subscription[] = [];
 
@@ -104,7 +130,10 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     private router: Router,
     private monCompteService: MonCompteService,
     private notificationService: NotificationService,
-    private panierService: PanierService
+    private panierService: PanierService,
+    private clientNotificationsService: ClientNotificationsService,
+    private demandeService: DemandeService,
+    private vehiculeService: VehiculeClientService
   ) {}
 
   ngOnInit(): void {
@@ -113,9 +142,11 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       if (u) {
         this.initProfilForm(u);
         this.initAdresseForm();
-        this.loadClientData();
-        // Also refresh all data from MonCompteService to ensure synchronization
-        this.monCompteService.refreshAllData();
+        this.initVehiculeForm();
+        if (u.role === 'client') {
+          this.loadClientData();
+          this.monCompteService.refreshAllData();
+        }
       }
     });
 
@@ -128,11 +159,24 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       else if (last === 'favoris' || last === 'mes-favoris') this.ongletActif = 'favoris';
       else if (last === 'panier') this.ongletActif = 'panier';
       else if (last === 'adresses' || last === 'mes-adresses') this.ongletActif = 'adresses';
+      else if (last === 'notifications') {
+        this.ongletActif = 'notifications';
+        this.loadNotifications();
+      }
+      else if (last === 'demandes' || last === 'mes-demandes') {
+        this.ongletActif = 'demandes';
+        this.loadDemandes();
+      }
+      else if (last === 'vehicules' || last === 'mes-vehicules') {
+        this.ongletActif = 'vehicules';
+        this.loadVehicules();
+      }
       else                           this.ongletActif = 'accueil';
     });
 
     this.initSecuriteForm();
     this.setupDataSubscriptions();
+    this.clientNotificationsService.unreadCount$.subscribe(count => this.unreadNotifCount = count);
   }
 
   ngOnDestroy(): void { 
@@ -150,17 +194,289 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     this.confidSuccess  = false;
     this.adresseSuccess = false;
     this.adresseError = '';
+    if (onglet === 'notifications' && this.notifications.length === 0) {
+      this.loadNotifications();
+    }
+    if (onglet === 'demandes' && this.demandes.length === 0) {
+      this.loadDemandes();
+    }
+    if (onglet === 'vehicules' && this.vehicules.length === 0) {
+      this.loadVehicules();
+    }
+  }
+
+  // -------------------------------------------------------
+  // NOTIFICATIONS
+  // -------------------------------------------------------
+  loadNotifications(): void {
+    this.isLoadingNotifications = true;
+    this.clientNotificationsService.getNotifications(this.notifLimit).subscribe({
+      next: (res) => {
+        this.notifications = res.notifications || [];
+        this.isLoadingNotifications = false;
+      },
+      error: () => {
+        this.isLoadingNotifications = false;
+      }
+    });
+  }
+
+  loadMoreNotifications(): void {
+    this.notifLimit += 50;
+    this.loadNotifications();
+  }
+
+  onNotificationClick(notif: NotificationClient): void {
+    if (!notif.lu) {
+      this.clientNotificationsService.marquerCommeLue(notif.id).subscribe();
+    }
+    notif.lu = true;
+    if (notif.lien) {
+      this.router.navigateByUrl(notif.lien);
+    }
+  }
+
+  markAllNotificationsRead(): void {
+    this.clientNotificationsService.toutMarquerCommeLu().subscribe(() => {
+      this.notifications.forEach(n => n.lu = true);
+    });
+  }
+
+  deleteNotification(notif: NotificationClient, event: Event): void {
+    event.stopPropagation();
+    this.clientNotificationsService.supprimerNotification(notif.id).subscribe(() => {
+      this.notifications = this.notifications.filter(n => n.id !== notif.id);
+    });
+  }
+
+  getNotifIconClass(importance: string): string {
+    switch (importance) {
+      case 'success': return 'bi-check-circle-fill';
+      case 'warning': return 'bi-exclamation-triangle-fill';
+      case 'danger': return 'bi-x-octagon-fill';
+      default: return 'bi-bell-fill';
+    }
+  }
+
+  getNotifIconByType(type: string): string {
+    const t = (type || '').toLowerCase();
+    if (t.includes('commande'))  return 'bi-bag-check-fill';
+    if (t.includes('paiement'))  return 'bi-credit-card-fill';
+    if (t.includes('livraison')) return 'bi-truck';
+    if (t.includes('produit'))   return 'bi-box-seam-fill';
+    if (t.includes('promotion')) return 'bi-tag-fill';
+    if (t.includes('compte') || t.includes('sécurité')) return 'bi-shield-fill';
+    return 'bi-bell-fill';
+  }
+
+  get notifGroups(): { label: string; notifications: NotificationClient[] }[] {
+    const groups = new Map<string, NotificationClient[]>();
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const weekAgo = today - 7 * 24 * 60 * 60 * 1000;
+
+    for (const n of this.notifications) {
+      const d = new Date(n.created_at);
+      const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      let key = 'Plus anciennes';
+      if (dt === today) {
+        key = 'Aujourd\'hui';
+      } else if (dt >= weekAgo) {
+        key = 'Cette semaine';
+      }
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(n);
+    }
+
+    const order = ['Aujourd\'hui', 'Cette semaine', 'Plus anciennes'];
+    return order.filter(k => groups.has(k) && groups.get(k)!.length > 0)
+                .map(k => ({ label: k, notifications: groups.get(k)! }));
+  }
+
+  getNotifTimeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diff < 60) return 'À l\'instant';
+    const mins = Math.floor(diff / 60);
+    if (mins < 60) return `Il y a ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `Il y a ${hours} h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `Il y a ${days} j`;
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+  }
+
+  // -------------------------------------------------------
+  // DEMANDES DE PIÈCES
+  // -------------------------------------------------------
+  loadDemandes(): void {
+    this.isLoadingDemandes = true;
+    this.demandeService.getMesDemandes().subscribe({
+      next: (data) => {
+        this.demandes = data;
+        this.isLoadingDemandes = false;
+      },
+      error: () => {
+        this.notificationService.error('Impossible de charger vos demandes', 'Erreur');
+        this.isLoadingDemandes = false;
+      }
+    });
+  }
+
+  selectDemande(d: Demande): void {
+    this.demandeService.getMaDemande(d.id).subscribe({
+      next: (detail) => {
+        this.demandeSelectionnee = detail;
+      },
+      error: () => {
+        this.notificationService.error('Impossible de charger le détail', 'Erreur');
+      }
+    });
+  }
+
+  backDemandes(): void {
+    this.demandeSelectionnee = null;
+    this.acceptingOffreId = null;
+  }
+
+  accepterOffreDemande(offre: Offre): void {
+    if (!this.demandeSelectionnee) { return; }
+    this.acceptingOffreId = offre.id;
+    this.demandeService.accepterOffre(this.demandeSelectionnee.id, offre.id, this.modeReceptionDemande).subscribe({
+      next: (res: any) => {
+        this.notificationService.success(`Commande ${res.commande_reference} créée`, 'Offre acceptée');
+        this.loadDemandes();
+        this.demandeSelectionnee = null;
+        this.acceptingOffreId = null;
+      },
+      error: (err: any) => {
+        this.acceptingOffreId = null;
+        this.notificationService.error(err?.error?.error || 'Erreur', 'Acceptation impossible');
+      }
+    });
+  }
+
+  libelleStatutDemande(statut: string): string {
+    const map: Record<string, string> = {
+      nouvelle: 'Nouvelle',
+      en_recherche: 'En recherche',
+      offres_recues: 'Offres reçues',
+      acceptee: 'Acceptée',
+      commande_creee: 'Commande créée',
+      terminee: 'Terminée',
+      annulee: 'Annulée'
+    };
+    return map[statut] || statut;
+  }
+
+  statutDemandeClass(statut: string): string {
+    switch (statut) {
+      case 'nouvelle':
+      case 'en_recherche': return 'importance-info';
+      case 'offres_recues': return 'importance-warning';
+      case 'acceptee':
+      case 'commande_creee': return 'importance-success';
+      case 'annulee': return 'importance-danger';
+      default: return 'importance-info';
+    }
+  }
+
+  // -------------------------------------------------------
+  // VÉHICULES
+  // -------------------------------------------------------
+  private initVehiculeForm(): void {
+    this.vehiculeForm = this.fb.group({
+      marque: ['', Validators.required],
+      modele: ['', Validators.required],
+      annee: ['', [Validators.required, Validators.min(1900), Validators.max(2100)]],
+      motorisation: [''],
+      carburant: [''],
+      version: [''],
+      immatriculation: [''],
+      actif: [false]
+    });
+  }
+
+  loadVehicules(): void {
+    this.isLoadingVehicules = true;
+    this.vehiculeService.getVehicules().subscribe({
+      next: (data) => {
+        this.vehicules = data;
+        this.isLoadingVehicules = false;
+      },
+      error: () => {
+        this.vehiculeError = 'Impossible de charger vos véhicules';
+        this.isLoadingVehicules = false;
+      }
+    });
+  }
+
+  nouveauVehicule(): void {
+    this.vehiculeEditingId = null;
+    this.vehiculeForm.reset({ actif: false });
+    this.vehiculeSuccess = false;
+    this.vehiculeError = '';
+  }
+
+  editVehicule(v: VehiculeClient): void {
+    this.vehiculeEditingId = v.id ?? null;
+    this.vehiculeForm.patchValue(v);
+    this.vehiculeSuccess = false;
+    this.vehiculeError = '';
+  }
+
+  saveVehicule(): void {
+    if (this.vehiculeForm.invalid) { this.vehiculeForm.markAllAsTouched(); return; }
+    this.vehiculeSaving = true;
+    this.vehiculeError = '';
+    const data: VehiculeClient = this.vehiculeForm.value;
+    const req = this.vehiculeEditingId
+      ? this.vehiculeService.updateVehicule(this.vehiculeEditingId, data)
+      : this.vehiculeService.createVehicule(data);
+
+    req.subscribe({
+      next: () => {
+        this.vehiculeSaving = false;
+        this.vehiculeSuccess = true;
+        this.vehiculeEditingId = null;
+        this.vehiculeForm.reset({ actif: false });
+        this.loadVehicules();
+        setTimeout(() => this.vehiculeSuccess = false, 3000);
+      },
+      error: () => {
+        this.vehiculeSaving = false;
+        this.vehiculeError = this.vehiculeEditingId ? 'Erreur lors de la modification' : 'Erreur lors de l\'ajout';
+      }
+    });
+  }
+
+  deleteVehicule(id: number | undefined): void {
+    if (!id) return;
+    if (!confirm('Supprimer ce véhicule ?')) return;
+    this.vehiculeService.deleteVehicule(id).subscribe({
+      next: () => this.loadVehicules(),
+      error: () => this.notificationService.error('Impossible de supprimer le véhicule', 'Erreur')
+    });
+  }
+
+  setVehiculeActif(id: number | undefined): void {
+    if (!id) return;
+    this.vehiculeService.setActif(id).subscribe({
+      next: () => this.loadVehicules()
+    });
   }
 
   // -------------------------------------------------------
   // Formulaire profil
   // -------------------------------------------------------
-  private initProfilForm(u: Utilisateur): void {
+  initProfilForm(u: Utilisateur): void {
     this.profilForm = this.fb.group({
       prenom:    [u.prenom,    [Validators.required, Validators.minLength(2)]],
       nom:       [u.nom,       [Validators.required, Validators.minLength(2)]],
       email:     [u.email,     [Validators.required, Validators.email]],
-      telephone: [u.telephone ?? ''],
+      telephone: [u.telephone ?? '', [Validators.pattern(/^[+]?[0-9\s]{8,15}$/)]],
       adresse:   [u.adresse   ?? '']
     });
   }
@@ -170,20 +486,21 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   private initAdresseForm(): void {
     this.adresseForm = this.fb.group({
-      nom: [''],
-      nom_destinataire: ['', Validators.required],
-      telephone: [''],
+      nom: ['', Validators.maxLength(40)],
+      nom_destinataire: ['', [Validators.required, Validators.minLength(2)]],
+      telephone: ['', Validators.pattern(/^[+]?[0-9\s]{8,15}$/)],
       ville: ['', Validators.required],
       quartier: [''],
-      adresse: ['', Validators.required],
+      adresse: ['', [Validators.required, Validators.minLength(4)]],
       point_de_repere: [''],
-      instructions: ['']
+      instructions: [''],
+      est_principale: [false]
     });
   }
 
   nouvelleAdresse(): void {
     this.adresseEditingId = null;
-    this.adresseForm.reset();
+    this.adresseForm.reset({ est_principale: false });
     this.adresseSuccess = false;
     this.adresseError = '';
   }
@@ -198,7 +515,8 @@ export class MonCompteComponent implements OnInit, OnDestroy {
       quartier: a.quartier || '',
       adresse: a.adresse || '',
       point_de_repere: a.point_de_repere || '',
-      instructions: a.instructions || ''
+      instructions: a.instructions || '',
+      est_principale: a.est_principale || false
     });
   }
 
@@ -216,7 +534,7 @@ export class MonCompteComponent implements OnInit, OnDestroy {
         this.adresseSaving = false;
         this.adresseSuccess = true;
         this.adresseEditingId = null;
-        this.adresseForm.reset();
+        this.adresseForm.reset({ est_principale: false });
         setTimeout(() => this.adresseSuccess = false, 3000);
       },
       error: (err) => {
@@ -338,6 +656,35 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     return r.charAt(0).toUpperCase() + r.slice(1);
   }
 
+  getMemberSince(): string {
+    if (!this.utilisateur?.date_joined) return '';
+    const d = new Date(this.utilisateur.date_joined);
+    return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  }
+
+  getProfileCompleteness(): number {
+    if (!this.utilisateur) return 0;
+    const u = this.utilisateur;
+    const fields = [
+      u.prenom && u.prenom.length >= 2,
+      u.nom && u.nom.length >= 2,
+      u.email && /\S+@\S+\.\S+/.test(u.email),
+      u.telephone && u.telephone.length >= 8,
+      u.adresse && u.adresse.length >= 4
+    ];
+    const filled = fields.filter(Boolean).length;
+    return Math.round((filled / fields.length) * 100);
+  }
+
+  getProfileCompletenessLabel(): string {
+    const pct = this.getProfileCompleteness();
+    if (pct === 100) return 'Profil complet';
+    if (pct >= 80) return 'Presque complet';
+    if (pct >= 60) return 'Bien rempli';
+    if (pct >= 40) return 'À compléter';
+    return 'Profil incomplet';
+  }
+
   // -------------------------------------------------------
   // ACTIONS FAVORIS
   // -------------------------------------------------------
@@ -449,6 +796,10 @@ export class MonCompteComponent implements OnInit, OnDestroy {
 
   hasFavoris(): boolean {
     return this.getFavoris().length > 0;
+  }
+
+  getFavorisTotalValue(): number {
+    return this.getFavoris().reduce((sum, f) => sum + (f.prix || 0), 0);
   }
 
   getPanierItems(): PanierItem[] {

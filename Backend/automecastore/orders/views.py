@@ -4,7 +4,7 @@ from django.db import transaction, models
 from .models import Commande, LigneCommande, Panier, PanierItem, HistoriqueCommande, MODE_RECEPTION
 from .serializers import CommandeSerializer, LigneCommandeSerializer, PanierSerializer, PanierItemSerializer
 from catalog.models import Produit, FournisseurProduit, Fournisseur as CatalogFournisseur
-from fournisseur.models import creer_notification_fournisseur, creer_notification_client, Magasin
+from fournisseur.models import creer_notification_fournisseur, creer_notification_client, creer_notification_admin, Magasin
 from account.models import Fournisseur
 from account.permissions import IsClient, IsAdmin
 from delivery.models import Adresse, Livraison
@@ -356,6 +356,24 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
             frais_livraison=frais_livraison
         )
         # print(f"✅ Commande créée: ID={commande.id}, Reference={commande.reference}")
+
+        # Notifier les admins de la nouvelle commande
+        try:
+            from account.models import Utilisateur
+            admins = Utilisateur.objects.filter(role='admin', is_active=True)
+            for admin in admins:
+                creer_notification_admin(
+                    admin_id=admin.id,
+                    type_notif='ADMIN_ALERT',
+                    titre=f"Nouvelle commande créée",
+                    message=f"Le client {request.user.client.user.email} a passé une nouvelle commande (Réf: {commande.reference})",
+                    lien='/admin/commandes',
+                    importance='info',
+                    objet_type='Commande',
+                    objet_id=commande.id
+                )
+        except Exception:
+            pass
 
         HistoriqueCommande.objects.create(
             commande=commande,

@@ -484,7 +484,153 @@ export class AjouterProduitComponent implements OnInit {
     this.showPreview = !this.showPreview;
   }
 
-  // ── UTILITAIRES ──
+  // ── VALIDATION DÉTAILLÉE ──
+  private validerFormulaire(): string | null {
+    const form = this.produitForm;
+    const errors: string[] = [];
+
+    // Champs obligatoires de base
+    if (!form.get('categorieVehicule')?.value) {
+      errors.push('Catégorie de véhicule obligatoire');
+    }
+    if (!form.get('typePiece')?.value) {
+      errors.push('Type de pièce obligatoire');
+    }
+    if (!form.get('nom')?.value) {
+      errors.push('Nom du produit obligatoire');
+    } else if (form.get('nom')?.value.length < 3) {
+      errors.push('Le nom doit contenir au moins 3 caractères');
+    }
+    if (!form.get('reference')?.value) {
+      errors.push('Référence obligatoire');
+    }
+    if (!form.get('marque')?.value) {
+      errors.push('Marque obligatoire');
+    }
+    if (!form.get('prix')?.value || form.get('prix')?.value < 1) {
+      errors.push('Prix valide obligatoire (minimum 1 FCFA)');
+    }
+    if (form.get('stock')?.value === null || form.get('stock')?.value === undefined || form.get('stock')?.value < 0) {
+      errors.push('Stock obligatoire (minimum 0)');
+    }
+    if (!form.get('description')?.value) {
+      errors.push('Description obligatoire');
+    } else if (form.get('description')?.value.length < 20) {
+      errors.push('La description doit contenir au moins 20 caractères');
+    }
+
+    // Validation image principale
+    if (!this.imageSlots[this.mainImageIndex]?.preview) {
+      errors.push("L'image principale est obligatoire");
+    }
+
+    // Validation garantie si activée
+    if (form.get('garantie_disponible')?.value) {
+      if (!form.get('garantie_mois')?.value || form.get('garantie_mois')?.value < 1) {
+        errors.push('Durée de garantie obligatoire quand la garantie est activée');
+      }
+      if (!form.get('conditions_garantie')?.value || form.get('conditions_garantie')?.value.length < 3) {
+        errors.push('Conditions de garantie obligatoires quand la garantie est activée');
+      }
+    }
+
+    // Validation livraison si activée
+    if (form.get('livraison_disponible')?.value) {
+      if (!form.get('delai_livraison')?.value) {
+        errors.push('Délai de livraison obligatoire quand la livraison est activée');
+      }
+      if (!form.get('delai_preparation')?.value) {
+        errors.push('Délai de préparation obligatoire quand la livraison est activée');
+      }
+    }
+
+    // Validation quantité min
+    const stock = Number(form.get('stock')?.value ?? 0);
+    const qmin = form.get('quantite_min')?.value;
+    if (qmin !== null && qmin !== undefined && qmin !== '' && Number(qmin) > stock) {
+      errors.push('La quantité minimum ne peut pas dépasser le stock');
+    }
+
+    // Validation années
+    const anneeDebut = form.get('annee_debut')?.value;
+    const anneeFin = form.get('annee_fin')?.value;
+    if (anneeDebut && anneeFin && anneeDebut > anneeFin) {
+      errors.push("L'année de début doit être inférieure ou égale à l'année de fin");
+    }
+
+    return errors.length > 0 ? errors.join('. ') : null;
+  }
+
+  private formaterErreurBackend(err: any): string {
+    console.error('Erreur backend:', err);
+
+    // Erreur de permission
+    if (err?.status === 403) {
+      return "Vous n'avez pas les permissions nécessaires pour effectuer cette action.";
+    }
+
+    // Erreur d'authentification
+    if (err?.status === 401) {
+      return "Votre session a expiré. Veuillez vous reconnecter.";
+    }
+
+    // Erreur de validation du backend
+    if (err?.status === 400 && err?.error) {
+      if (typeof err.error === 'string') {
+        return err.error;
+      }
+
+      // Format Django REST Framework avec détails par champ
+      if (err.error.detail) {
+        return String(err.error.detail);
+      }
+
+      // Format avec champs spécifiques
+      if (typeof err.error === 'object') {
+        const messages: string[] = [];
+        const fieldLabels: { [key: string]: string } = {
+          nom: 'Nom',
+          reference: 'Référence',
+          marque: 'Marque',
+          prix: 'Prix',
+          stock: 'Stock',
+          description: 'Description',
+          categorie: 'Catégorie',
+          type_piece: 'Type de pièce',
+          image: 'Image',
+          fournisseur: 'Fournisseur',
+          statut_approbation: 'Statut d\'approbation'
+        };
+
+        for (const [field, errors] of Object.entries(err.error)) {
+          const label = fieldLabels[field] || field;
+          const errorArray = Array.isArray(errors) ? errors : [errors];
+          errorArray.forEach((e: any) => {
+            messages.push(`${label}: ${e}`);
+          });
+        }
+
+        return messages.length > 0 ? messages.join('. ') : "Erreur de validation du formulaire";
+      }
+    }
+
+    // Erreur serveur
+    if (err?.status >= 500) {
+      return "Erreur serveur. Veuillez réessayer ultérieurement.";
+    }
+
+    // Erreur réseau
+    if (err?.status === 0 || !err?.status) {
+      return "Erreur de connexion. Vérifiez votre connexion internet.";
+    }
+
+    // Message par défaut
+    return this.mode === 'create'
+      ? "Erreur lors de l'ajout du produit"
+      : "Erreur lors de la modification du produit";
+  }
+
+// ── UTILITAIRES ──
   private validerFichierImage(file: File): boolean {
     const maxSizeMo = 5;
     if (!file.type.startsWith('image/')) {
@@ -506,13 +652,11 @@ export class AjouterProduitComponent implements OnInit {
 
   // ── SOUMISSION ──
   enregistrer(): void {
-    if (this.produitForm.invalid) {
+    // Validation détaillée du formulaire
+    const validationError = this.validerFormulaire();
+    if (validationError) {
+      this.showToast(validationError, 'error');
       this.produitForm.markAllAsTouched();
-      this.showToast('Veuillez corriger les erreurs du formulaire.', 'error');
-      return;
-    }
-    if (!this.imageSlots[this.mainImageIndex]?.preview) {
-      this.showToast("L'image principale est obligatoire.", 'error');
       return;
     }
 
@@ -524,7 +668,7 @@ export class AjouterProduitComponent implements OnInit {
       typePieceId = this.typePiecesMap[typePieceName] || this.typePiecesMap[normalized] || null;
     }
     if (!categorieId || !typePieceId) {
-      this.showToast('Impossible de déterminer la catégorie ou le type (IDs manquants).', 'error');
+      this.showToast('Impossible de déterminer la catégorie ou le type de pièce.', 'error');
       return;
     }
 
@@ -547,15 +691,7 @@ export class AjouterProduitComponent implements OnInit {
       },
       error: (err) => {
         this.isSaving = false;
-        let msg = this.mode === 'create' ? "Erreur lors de l'ajout du produit" : "Erreur lors de la modification du produit";
-        if (err?.error?.detail) {
-          msg = String(err.error.detail);
-        } else if (err?.error && typeof err.error === 'object') {
-          const messages = Object.values(err.error).flat().filter(Boolean);
-          if (messages.length) msg = messages.join(' / ');
-        } else if (err?.message) {
-          msg = err.message;
-        }
+        const msg = this.formaterErreurBackend(err);
         this.showToast(msg, 'error');
         console.error('Erreur produit:', err);
       }

@@ -14,7 +14,7 @@ from account.permissions import IsAdmin
 from account.models import Utilisateur, Fournisseur, FournisseurStatusHistory, Administrateur, Client, SecurityActivity, UserSession
 from catalog.models import Produit, Categorie, Marque
 from support.models import Avis, Reclamation, SignalementAvis
-from fournisseur.models import Magasin, creer_notification_fournisseur
+from fournisseur.models import Magasin, creer_notification_fournisseur, creer_notification_client
 from fournisseur.serializers import MagasinSerializer
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -113,12 +113,6 @@ class AdminDashboardStatsView(APIView):
                 date_ajout__lt=this_month_start
             ).count()
 
-            attente_validation = Produit.objects.filter(statut_approbation='en_attente').count()
-            attente_validation_prev = Produit.objects.filter(
-                statut_approbation='en_attente',
-                date_ajout__lt=today_start
-            ).count()
-
             commandes_jour = Commande.objects.filter(date_commande__date=today).count()
             commandes_jour_prev = Commande.objects.filter(date_commande__date=yesterday).count()
             commandes_mois = Commande.objects.filter(date_commande__gte=this_month_start).count()
@@ -180,14 +174,6 @@ class AdminDashboardStatsView(APIView):
                     'label': 'Chiffre d\'affaires global',
                     'icon': 'bi-cash-coin',
                     'currency': True
-                },
-                {
-                    'key': 'produits_attente',
-                    'value': attente_validation,
-                    'variation': variation(attente_validation, attente_validation_prev),
-                    'label': 'Produits en attente',
-                    'icon': 'bi-hourglass-split',
-                    'currency': False
                 },
                 {
                     'key': 'magasins_attente',
@@ -828,6 +814,24 @@ class AdminProduitToggleActiveView(APIView):
             if produit.statut == 'actif':
                 produit.signale = False
                 produit.motif_rejet = ''
+
+                # Notifier tous les clients que le produit est maintenant disponible
+                try:
+                    clients = Client.objects.filter(user__is_active=True)
+                    for client in clients:
+                        creer_notification_client(
+                            client_id=client.user.id,
+                            type_notif='ADMIN_ALERT',
+                            titre='Nouveau produit disponible',
+                            message=f"Le produit {produit.nom} est maintenant disponible sur AutoMecaStore.",
+                            lien=f'/produits?id={produit.id}',
+                            importance='success',
+                            objet_type='Produit',
+                            objet_id=produit.id
+                        )
+                except Exception:
+                    pass
+
             produit.save()
             return Response(map_produit_to_admin(produit))
         except Produit.DoesNotExist:
@@ -944,6 +948,23 @@ class AdminProduitApprobationView(APIView):
                 produit.statut_approbation = 'approuve'
                 produit.statut = 'actif'
                 produit.motif_rejet = ''
+
+                # Notifier tous les clients que le produit est approuvé
+                try:
+                    clients = Client.objects.filter(user__is_active=True)
+                    for client in clients:
+                        creer_notification_client(
+                            client_id=client.user.id,
+                            type_notif='ADMIN_ALERT',
+                            titre='Nouveau produit disponible',
+                            message=f"Le produit {produit.nom} est maintenant disponible sur AutoMecaStore.",
+                            lien=f'/produits?id={produit.id}',
+                            importance='success',
+                            objet_type='Produit',
+                            objet_id=produit.id
+                        )
+                except Exception:
+                    pass
             elif statut == 'rejete':
                 produit.statut_approbation = 'rejete'
                 produit.statut = 'inactif'
@@ -986,6 +1007,23 @@ class AdminProduitValidationView(APIView):
                 produit.is_active = True
                 produit.date_suppression = None
                 _notify_fournisseur_produit(produit, 'Produit publié', f'Votre produit "{produit.nom}" a été publié.')
+
+                # Notifier tous les clients que le produit est publié
+                try:
+                    clients = Client.objects.filter(user__is_active=True)
+                    for client in clients:
+                        creer_notification_client(
+                            client_id=client.user.id,
+                            type_notif='ADMIN_ALERT',
+                            titre='Nouveau produit disponible',
+                            message=f"Le produit {produit.nom} est maintenant disponible sur AutoMecaStore.",
+                            lien=f'/produits?id={produit.id}',
+                            importance='success',
+                            objet_type='Produit',
+                            objet_id=produit.id
+                        )
+                except Exception:
+                    pass
 
             elif action == 'demander_correction':
                 if not motif:

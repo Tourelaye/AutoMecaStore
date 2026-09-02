@@ -11,14 +11,12 @@ import { PoidLourdsListComponent } from './client/pages/catalog/poidLourds/poid-
 import { VeloListComponent } from './client/pages/catalog/velo/velo-list/velo-list.component';
 import { AideComponent } from './client/pages/aide/aide.component';
 import { FaqComponent } from './client/pages/faq/faq.component';
-import { NotificationsPageComponent } from './client/pages/notifications/notifications-page.component';
 import { PanierComponent } from './client/pages/panier/panier.component';
 import { MagasinDetailComponent } from './client/pages/magasin-detail/magasin-detail.component';
 import { MonCompteComponent } from './client/pages/mon-compte/mon-compte.component';
-import { MesDemandesComponent } from './client/pages/mes-demandes/mes-demandes.component';
-import { MesVehiculesComponent } from './client/pages/mes-vehicules/mes-vehicules.component';
 import { fournisseurRoutes } from './fournisseur/fournisseur.routes';
-import { clientGuard } from './core/guards/client.guard'; 
+import { clientGuard } from './core/guards/client.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '',             component: HomeComponent },
@@ -34,7 +32,7 @@ export const routes: Routes = [
   { path: 'panier',              component: PanierComponent, canActivate: [clientGuard] },
   { path: 'produits',            component: ProduitsComponent },
   { path: 'recherche',           component: RechercheComponent },
-  { path: 'notifications',       component: NotificationsPageComponent },
+  { path: 'notifications', redirectTo: 'mon-compte/notifications', pathMatch: 'full' },
   { path: 'magasins/:id',        component: MagasinDetailComponent },
 
   // ===== ESPACE CLIENT =====
@@ -43,8 +41,10 @@ export const routes: Routes = [
   { path: 'mon-compte/confidentialite',  component: MonCompteComponent, canActivate: [clientGuard] },
   { path: 'mes-commandes',               component: MonCompteComponent, canActivate: [clientGuard] },
   { path: 'mes-favoris',                 component: MonCompteComponent, canActivate: [clientGuard] },
-  { path: 'mes-demandes',                component: MesDemandesComponent, canActivate: [clientGuard] },
-  { path: 'mes-vehicules',               component: MesVehiculesComponent, canActivate: [clientGuard] },
+  { path: 'mes-demandes',                component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mes-adresses',                component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mes-vehicules',               component: MonCompteComponent, canActivate: [clientGuard] },
+  { path: 'mon-compte/notifications',    component: MonCompteComponent, canActivate: [authGuard] },
 
   {
     path: 'admin',

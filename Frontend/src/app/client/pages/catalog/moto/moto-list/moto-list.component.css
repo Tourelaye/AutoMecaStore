@@ -535,7 +535,7 @@
   
   /* IMAGE */
   .product-img {
-    height: 150px;
+    height: 220px;
     background: linear-gradient(135deg, #f9fafb, #f3f4f6);
     border-radius: 10px;
     display: flex;
@@ -547,8 +547,10 @@
   }
   
   .product-img img {
-    max-width: 250px;
-    height: 250px;
+    max-width: 165px;
+    max-height: 180px;
+    width: auto;
+    height: auto;
     object-fit: contain;
     transition: transform 0.4s ease;
   }
@@ -744,14 +746,16 @@
   }
   
   .list-img {
-    width: 130px;
-    height: 120px;
+    width: 160px;
+    height: 140px;
     flex-shrink: 0;
     position: relative;
   }
   
   .list-img img {
-    max-width: 90px;
+    max-width: 120px;
+    max-height: 120px;
+    width: auto;
     height: auto;
     object-fit: contain;
     transition: transform 0.4s ease;

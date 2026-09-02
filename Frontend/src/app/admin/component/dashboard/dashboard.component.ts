@@ -72,7 +72,6 @@ export class AdminDashboardComponent implements OnInit {
 
   raccourcis = [
     { label: 'Valider magasins', icon: 'bi-shop-window', route: '/admin/fournisseurs', color: 'primary' },
-    { label: 'Valider produits', icon: 'bi-box-seam', route: '/admin/approbation-produits', color: 'accent' },
     { label: 'Voir commandes', icon: 'bi-cart-check', route: '/admin/commandes', color: '' },
     { label: 'Créer catégorie', icon: 'bi-tags', route: '/admin/categories', color: 'primary' },
     { label: 'Envoyer notification', icon: 'bi-bell', route: '/admin/notifications', color: 'accent' },

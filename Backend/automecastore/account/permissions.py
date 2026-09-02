@@ -2,12 +2,11 @@ from rest_framework import permissions
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        # Vérification stricte : doit être authentifié, actif, avoir le rôle 'admin' ET être staff
+        # Vérification : doit être authentifié, actif et avoir le rôle 'admin'
         return (
             request.user.is_authenticated and
             request.user.is_active and
-            request.user.role == 'admin' and
-            request.user.is_staff
+            request.user.role == 'admin'
         )
 
 class IsClient(permissions.BasePermission):

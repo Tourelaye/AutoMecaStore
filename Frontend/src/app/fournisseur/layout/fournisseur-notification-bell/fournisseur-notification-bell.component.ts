@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FournisseurNotificationsService, FournisseurNotification } from '../../services/fournisseur-notifications.service';
@@ -10,11 +10,12 @@ import { FournisseurNotificationsService, FournisseurNotification } from '../../
   templateUrl: './fournisseur-notification-bell.component.html',
   styleUrls: ['./fournisseur-notification-bell.component.css']
 })
-export class FournisseurNotificationBellComponent implements OnInit {
+export class FournisseurNotificationBellComponent implements OnInit, OnDestroy {
   notifications: FournisseurNotification[] = [];
   unreadCount = 0;
   open = false;
   loading = false;
+  private refreshInterval: any;
 
   constructor(
     private fournisseurNotifications: FournisseurNotificationsService,
@@ -117,8 +118,15 @@ export class FournisseurNotificationBellComponent implements OnInit {
     return `Il y a ${days} j`;
   }
 
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
   private refreshEveryMinute(): void {
-    setInterval(() => this.loadNotifications(), 60000);
+    this.refreshInterval = setInterval(() => this.loadNotifications(), 60000);
   }
 
   @HostListener('document:click', ['$event'])

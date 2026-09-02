@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from datetime import timedelta
 from account.permissions import IsFournisseur
-from .models import Transaction, HistoriqueActivite, Notification, Magasin, creer_notification_fournisseur, creer_notification_client
+from .models import Transaction, HistoriqueActivite, Notification, Magasin, creer_notification_fournisseur, creer_notification_client, creer_notification_admin
 from .serializers import TransactionSerializer, HistoriqueActiviteSerializer, NotificationSerializer, FournisseurSerializer, MagasinSerializer
 from catalog.models import Produit, MouvementStock, Promotion
 from catalog.serializers import ProduitSerializer, PromotionSerializer, MouvementStockSerializer
@@ -234,30 +234,27 @@ class FournisseurProduitListCreateView(generics.ListCreateAPIView):
         if 'is_active' not in data:
             defaults['is_active'] = True
         if 'statut_approbation' not in data:
-            defaults['statut_approbation'] = 'en_attente'
+            defaults['statut_approbation'] = 'approuve'
 
         produit = serializer.save(**defaults)
 
-        # Notifier les admins seulement si le produit est soumis à validation
-        if produit.statut == 'actif' and produit.statut_approbation == 'en_attente':
-            try:
-                notifications = cache.get('admin_notifications', [])
-                notifications.insert(0, {
-                    'type': 'produit',
-                    'message': f"Nouveau produit à approuver : {produit.nom} (fournisseur {fournisseur.nom_entreprise})",
-                    'produit_id': produit.id,
-                    'fournisseur_id': fournisseur.user_id,
-                    'timestamp': None,
-                    'data': {
-                        'produit_id': produit.id,
-                        'produit_nom': produit.nom,
-                        'fournisseur_nom': fournisseur.nom_entreprise,
-                        'lien': '/admin/approbation-produits'
-                    }
-                })
-                cache.set('admin_notifications', notifications[:50], timeout=3600)
-            except Exception:
-                pass
+        # Notifier les admins de la création du produit
+        try:
+            from account.models import Utilisateur
+            admins = Utilisateur.objects.filter(role='admin', is_active=True)
+            for admin in admins:
+                creer_notification_admin(
+                    admin_id=admin.id,
+                    type_notif='ADMIN_ALERT',
+                    titre=f"Nouveau produit ajouté",
+                    message=f"Le fournisseur {fournisseur.nom_entreprise} a ajouté un nouveau produit : {produit.nom}",
+                    lien='/admin/produits',
+                    importance='info',
+                    objet_type='Produit',
+                    objet_id=produit.id
+                )
+        except Exception:
+            pass
 
 
 class FournisseurProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -277,8 +274,47 @@ class FournisseurProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
             serializer.validated_data.pop(champ, None)
         serializer.save(fournisseur=self.request.user.fournisseur)
 
+        # Notifier les admins de la modification du produit
+        try:
+            from account.models import Utilisateur
+            admins = Utilisateur.objects.filter(role='admin', is_active=True)
+            produit = serializer.instance
+            fournisseur = self.request.user.fournisseur
+            for admin in admins:
+                creer_notification_admin(
+                    admin_id=admin.id,
+                    type_notif='ADMIN_ALERT',
+                    titre=f"Produit modifié",
+                    message=f"Le fournisseur {fournisseur.nom_entreprise} a modifié le produit : {produit.nom}",
+                    lien='/admin/produits',
+                    importance='info',
+                    objet_type='Produit',
+                    objet_id=produit.id
+                )
+        except Exception:
+            pass
+
     def perform_destroy(self, instance):
         instance.soft_delete()
+
+        # Notifier les admins de la suppression du produit
+        try:
+            from account.models import Utilisateur
+            admins = Utilisateur.objects.filter(role='admin', is_active=True)
+            fournisseur = self.request.user.fournisseur
+            for admin in admins:
+                creer_notification_admin(
+                    admin_id=admin.id,
+                    type_notif='ADMIN_ALERT',
+                    titre=f"Produit supprimé",
+                    message=f"Le fournisseur {fournisseur.nom_entreprise} a supprimé le produit : {instance.nom}",
+                    lien='/admin/produits',
+                    importance='warning',
+                    objet_type='Produit',
+                    objet_id=instance.id
+                )
+        except Exception:
+            pass
 
 
 # -----------------------------
@@ -708,6 +744,25 @@ class FournisseurPromotionListCreateView(generics.ListCreateAPIView):
             message=f"La promotion « {promotion.nom or promotion.type_promotion} » a été créée.",
             lien='/fournisseur/promotions'
         )
+
+        # Notifier les admins de la création de promotion
+        try:
+            from account.models import Utilisateur
+            admins = Utilisateur.objects.filter(role='admin', is_active=True)
+            fournisseur = self.request.user.fournisseur
+            for admin in admins:
+                creer_notification_admin(
+                    admin_id=admin.id,
+                    type_notif='ADMIN_ALERT',
+                    titre=f"Nouvelle promotion créée",
+                    message=f"Le fournisseur {fournisseur.nom_entreprise} a créé une promotion : {promotion.nom or promotion.type_promotion}",
+                    lien='/admin/produits',
+                    importance='info',
+                    objet_type='Promotion',
+                    objet_id=promotion.id
+                )
+        except Exception:
+            pass
 
 
 class FournisseurPromotionDetailView(generics.RetrieveUpdateDestroyAPIView):
