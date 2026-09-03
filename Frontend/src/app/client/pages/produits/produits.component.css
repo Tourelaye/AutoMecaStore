@@ -161,6 +161,7 @@
   flex-direction: column;
   gap: 20px;
   min-height: 0;
+  align-self: start;
 }
 
 .main-image-wrap {
@@ -169,8 +170,10 @@
   overflow: hidden;
   cursor: zoom-in;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  flex: 1 1 auto;
-  min-height: 480px;
+  flex: 0 0 auto;
+  aspect-ratio: 1 / 1;
+  min-height: 320px;
+  max-height: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -942,12 +945,12 @@
 ----------------------------- */
 .tab-intro { color: var(--p-muted); font-size: 14px; margin-bottom: 20px; }
 
-.offres-list { display: flex; flex-direction: column; gap: 18px; }
+.offres-list { display: flex; flex-direction: column; gap: 20px; }
 
 .offre-card {
   background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
   border: 1.5px solid #e2e8f0; border-radius: 18px;
-  padding: 22px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
+  padding: 22px 24px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative;
   overflow: hidden;
 }
 .offre-card::after {
@@ -970,19 +973,13 @@
   box-shadow: 0 0 0 2px #e0e7ff, 0 8px 24px rgba(37,99,235,0.1);
 }
 .offre-card.selected::after { transform: scaleX(1); }
-.offre-card.recommanded::before {
-  content: 'Offre recommandée';
-  position: absolute; top: -10px; right: 16px;
-  background: linear-gradient(135deg, var(--p-success), #4ade80);
-  color: white;
-  font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 99px;
-  box-shadow: 0 2px 8px rgba(34,197,94,0.3);
-}
+.offre-card.recommanded:not(.selected) { border-color: #bbf7d0; }
+.offre-card.recommanded:not(.selected)::after { background: linear-gradient(90deg, var(--p-success), #4ade80); transform: scaleX(1); }
 
 .offre-card-header {
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
+  display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #f1f5f9;
 }
 .offre-card-logo {
@@ -999,8 +996,8 @@
 }
 .offre-card-logo img { width: 100%; height: 100%; object-fit: cover; }
 .offre-card-logo i { font-size: 26px; color: var(--p-primary); }
-.offre-card-title { display: flex; flex-direction: column; flex: 1; }
-.offre-card-title strong { color: var(--p-text); font-size: 16px; }
+.offre-card-title { display: flex; flex-direction: column; flex: 1; min-width: 200px; gap: 4px; }
+.offre-card-title strong { color: var(--p-text); font-size: 17px; line-height: 1.25; }
 .offre-card-title strong.store-link {
   color: var(--p-primary);
   cursor: pointer;
@@ -1010,16 +1007,20 @@
   color: #1d4ed8;
   text-decoration: underline;
 }
+.offre-subtitle { font-size: 12px; color: var(--p-muted); font-weight: 600; }
+.offre-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
 .offre-card-title .offre-note {
-  color: #facc15; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px;
+  color: #ca8a04; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
+  background: #fef9c3; border: 1px solid #fef08a; padding: 3px 9px; border-radius: 99px;
 }
 .offre-card-title .offre-badge {
   font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 99px;
-  width: fit-content; margin-top: 4px;
+  width: fit-content;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 .offre-card-title .offre-badge.badge-principal { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 .offre-card-title .offre-badge.badge-partenaire { background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
@@ -1027,19 +1028,40 @@
 .offre-card-title .offre-badge.badge-proche { background: #ecfeff; color: #0891b2; border: 1px solid #cffafe; }
 .offre-card-title .offre-badge.badge-note { background: #fef9c3; color: #ca8a04; border: 1px solid #fef08a; }
 .offre-card-title .offre-badge.badge-default { background: #f0fdf4; color: var(--p-success); border: 1px solid #bbf7d0; }
-.offre-card-price { text-align: right; margin-left: auto; }
-.offre-card-price strong { font-size: 22px; color: var(--p-primary); display: block; font-weight: 800; letter-spacing: -0.02em; }
-.offre-card-price .offre-economie { font-size: 12px; color: var(--p-success); font-weight: 700; }
+.offre-card-title .offre-badge.badge-reco { background: linear-gradient(135deg, var(--p-success), #4ade80); color: white; border: 1px solid transparent; }
+.offre-card-price { text-align: right; margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.offre-card-price strong { font-size: 24px; color: var(--p-primary); display: block; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.offre-card-price .offre-economie {
+  font-size: 12px; color: var(--p-success); font-weight: 700;
+  display: inline-flex; align-items: center; gap: 2px;
+}
+.offre-dispo-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 99px;
+  background: #f1f5f9; color: var(--p-muted);
+}
+.offre-dispo-chip.ok { background: #ecfdf5; color: var(--p-success); }
+.offre-dispo-chip.out { background: #fef2f2; color: var(--p-danger); }
 
-.offre-card-body { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.offre-card-content { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.offre-card-content.has-map { grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr); align-items: start; }
+.offre-card-main { display: flex; flex-direction: column; min-width: 0; }
+
+.offre-card-body {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px; margin-bottom: 18px;
+}
 .offre-info-line {
   display: flex; align-items: center; gap: 10px;
-  font-size: 13px; color: var(--p-muted);
-  padding: 4px 0;
+  font-size: 13.5px; color: var(--p-text);
+  padding: 8px 12px; border-radius: 10px; background: #f8fafc;
+  min-width: 0;
 }
+.offre-info-line span { min-width: 0; overflow-wrap: anywhere; }
 .offre-info-line i { color: var(--p-primary); font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
 .offre-info-line span.ok { color: var(--p-success); font-weight: 700; }
 .offre-info-line span.out { color: var(--p-danger); font-weight: 700; }
+.offre-info-line span.muted { color: var(--p-muted); }
 
 .btn-select-offre {
   display: inline-flex; align-items: center; gap: 8px;
@@ -1048,6 +1070,7 @@
   color: var(--p-primary); font-weight: 700; cursor: pointer;
   transition: all 0.25s;
   font-size: 13px;
+  line-height: 1.2;
 }
 .btn-select-offre.selected { background: var(--p-primary); color: white; border-color: var(--p-primary); }
 .btn-select-offre:hover {
@@ -1058,10 +1081,14 @@
 .btn-select-offre:active { transform: translateY(0); }
 .btn-select-offre.selected:hover { background: #1d4ed8; }
 .btn-select-offre:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-select-offre.btn-whatsapp { border-color: #25d366; color: #128c7e; }
+.btn-select-offre.btn-whatsapp:hover { background: #ecfdf5; box-shadow: 0 3px 10px rgba(37,211,102,0.18); }
+.btn-select-offre.btn-ghost { border-color: #e2e8f0; color: var(--p-text); }
+.btn-select-offre.btn-ghost:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: none; }
 
 .offre-card-actions {
   display: flex; gap: 10px; flex-wrap: wrap;
-  align-items: center; margin-top: 8px;
+  align-items: center;
   padding-top: 16px;
   border-top: 1px solid #f1f5f9;
 }
@@ -1070,6 +1097,7 @@
 }
 
 .offre-localisation, .offre-horaires { margin-top: 20px; }
+.offre-card-content.has-map .offre-localisation { margin-top: 0; }
 .offre-localisation h6, .offre-horaires h6 {
   font-size: 14px; color: var(--p-text); margin: 0 0 10px;
   display: flex; align-items: center; gap: 8px;
@@ -1081,21 +1109,35 @@
   transition: border-color 0.25s;
 }
 .map-embed:hover { border-color: #c7d2fe; }
-.map-embed iframe { width: 100%; height: 100%; border: 0; }
+.map-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
 .map-placeholder {
   width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
   color: var(--p-muted); gap: 8px; font-weight: 600;
 }
+.map-open-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px; font-size: 12.5px; font-weight: 700;
+  color: var(--p-primary); text-decoration: none;
+}
+.map-open-link:hover { text-decoration: underline; }
 
-.horaires-list { display: flex; flex-direction: column; gap: 6px; }
+.horaires-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
 .horaire-row {
-  display: flex; justify-content: space-between;
- font-size: 13px; padding: 8px 12px; border-radius: 8px; background: #f8fafc;
+  display: flex; justify-content: space-between; gap: 10px;
+  font-size: 13px; padding: 8px 12px; border-radius: 8px; background: #f8fafc;
   transition: background 0.2s;
 }
 .horaire-row:hover { background: #f1f5f9; }
 .horaire-row span:first-child { font-weight: 600; color: var(--p-text); text-transform: capitalize; }
 .horaires-jours { font-size: 13px; color: var(--p-muted); margin: 0; }
+
+@media (max-width: 900px) {
+  .offre-card-content.has-map { grid-template-columns: 1fr; }
+  .offre-card-body { grid-template-columns: 1fr; }
+  .horaires-list { grid-template-columns: 1fr; }
+  .offre-card-price { margin-left: 0; align-items: flex-start; text-align: left; width: 100%; }
+  .map-embed { height: 220px; }
+}
 
 /* -----------------------------
    TABLE COMPATIBILITÉ
