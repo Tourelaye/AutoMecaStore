@@ -1097,17 +1097,125 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
 
+  private readonly mapUrlCache = new Map<string, SafeResourceUrl>();
+
+
+
+  /** Coordonnées "lat,lng" si connues, sinon l'adresse postale du magasin (pour Google Maps). */
+
+  getDestination(offre: Offre): string | null {
+
+    const magasin = offre.magasin;
+
+    if (!magasin) { return null; }
+
+    const lat = Number(magasin.latitude);
+
+    const lng = Number(magasin.longitude);
+
+    const hasCoords = magasin.latitude != null && magasin.longitude != null
+
+      && Number.isFinite(lat) && Number.isFinite(lng) && !(lat === 0 && lng === 0);
+
+    if (hasCoords) { return `${lat},${lng}`; }
+
+    const adresse = [magasin.adresse, magasin.ville, magasin.region]
+
+      .map(part => (part || '').trim())
+
+      .filter(Boolean)
+
+      .join(', ');
+
+    return adresse || null;
+
+  }
+
+
+
+  hasLocalisation(offre: Offre): boolean {
+
+    return this.getDestination(offre) !== null;
+
+  }
+
+
+
+  hasHoraires(offre: Offre): boolean {
+
+    const magasin = offre.magasin;
+
+    if (!magasin) { return false; }
+
+    const horaires = magasin.horaires_ouverture;
+
+    const hasPlages = !!horaires && typeof horaires === 'object' && Object.keys(horaires).length > 0;
+
+    return hasPlages || !!(magasin.jours_ouverture || '').trim();
+
+  }
+
+
+
+  getWhatsappHref(offre: Offre): string | null {
+
+    const digits = (offre.magasin?.whatsapp || '').replace(/\D/g, '');
+
+    return digits ? `https://wa.me/${digits}` : null;
+
+  }
+
+
+
+  getEconomie(offre: Offre): number {
+
+    const reference = this.produit?.prix ?? 0;
+
+    return reference > offre.prix ? reference - offre.prix : 0;
+
+  }
+
+
+
   getMapUrl(offre: Offre): SafeResourceUrl | null {
 
-    const lat = offre.magasin?.latitude;
+    const dest = this.getDestination(offre);
 
-    const lng = offre.magasin?.longitude;
+    if (!dest) { return null; }
 
-    if (!lat || !lng) { return null; }
+    const cached = this.mapUrlCache.get(dest);
 
-    const url = `https://www.google.com/maps?q=${lat},${lng}`;
+    if (cached) { return cached; }
 
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    const url = `https://maps.google.com/maps?q=${encodeURIComponent(dest)}&z=15&hl=fr&output=embed`;
+
+    const safe = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+
+    this.mapUrlCache.set(dest, safe);
+
+    return safe;
+
+  }
+
+
+
+  getItineraireHref(offre: Offre): string | null {
+
+    const dest = this.getDestination(offre);
+
+    if (!dest) { return null; }
+
+    const params = new URLSearchParams({ api: '1', destination: dest, travelmode: 'driving' });
+
+    const client = this.clientPosition;
+
+    if (client) {
+
+      params.set('origin', `${client.lat},${client.lng}`);
+
+    }
+
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
 
   }
 
@@ -1115,23 +1223,9 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   getItineraireUrl(offre: Offre): SafeResourceUrl | null {
 
-    const destLat = offre.magasin?.latitude;
+    const url = this.getItineraireHref(offre);
 
-    const destLng = offre.magasin?.longitude;
-
-    if (!destLat || !destLng) { return null; }
-
-
-
-    const client = this.clientPosition;
-
-    const url = client
-
-      ? `https://www.google.com/maps/dir/?api=1&origin=${client.lat},${client.lng}&destination=${destLat},${destLng}&travelmode=driving`
-
-      : `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
-
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
 
   }
 
@@ -1139,19 +1233,9 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   openItineraire(offre: Offre): void {
 
-    const destLat = offre.magasin?.latitude;
+    const url = this.getItineraireHref(offre);
 
-    const destLng = offre.magasin?.longitude;
-
-    if (!destLat || !destLng) { return; }
-
-    const client = this.clientPosition;
-
-    const url = client
-
-      ? `https://www.google.com/maps/dir/?api=1&origin=${client.lat},${client.lng}&destination=${destLat},${destLng}&travelmode=driving`
-
-      : `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+    if (!url) { return; }
 
     window.open(url, '_blank', 'noopener,noreferrer');
 

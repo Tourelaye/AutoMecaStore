@@ -167,8 +167,11 @@
               <i *ngIf="!selectedOffre.magasin?.logo_url" class="bi bi-shop offre-logo-placeholder"></i>
               <div>
                 <strong>{{ selectedOffre.magasin?.nom_magasin || selectedOffre.fournisseur.nom_entreprise }}</strong>
-                <span class="offre-status" [class.ouvert]="isMagasinOuvert(selectedOffre)" [class.ferme]="!isMagasinOuvert(selectedOffre)">
+                <span *ngIf="hasHoraires(selectedOffre)" class="offre-status" [class.ouvert]="isMagasinOuvert(selectedOffre)" [class.ferme]="!isMagasinOuvert(selectedOffre)">
                   {{ isMagasinOuvert(selectedOffre) ? 'Ouvert' : 'Fermé' }}
+                </span>
+                <span *ngIf="!hasHoraires(selectedOffre)" class="offre-status">
+                  {{ selectedOffre.magasin?.adresse || 'Horaires non communiqués' }}
                 </span>
                 <span class="offre-distance" *ngIf="selectedOffre.distance_km !== null && selectedOffre.distance_km !== undefined">
                   <i class="bi bi-geo-alt"></i> {{ selectedOffre.distance_km }} km
@@ -492,114 +495,169 @@
                 <i *ngIf="!offre.magasin?.logo_url" class="bi bi-shop"></i>
               </div>
               <div class="offre-card-title">
-                <strong [routerLink]="['/magasins', offre.magasin?.id]" class="store-link">{{ offre.magasin?.nom_magasin || offre.fournisseur.nom_entreprise }}</strong>
-                <span *ngIf="offre.fournisseur.note" class="offre-note">
-                  <i class="bi bi-star-fill"></i> {{ offre.fournisseur.note | number:'1.1-1' }}
+                <strong *ngIf="offre.magasin?.id" [routerLink]="['/magasins', offre.magasin?.id]" class="store-link">{{ offre.magasin?.nom_magasin || offre.fournisseur.nom_entreprise }}</strong>
+                <strong *ngIf="!offre.magasin?.id">{{ offre.magasin?.nom_magasin || offre.fournisseur.nom_entreprise }}</strong>
+                <span class="offre-subtitle" *ngIf="offre.magasin?.nom_magasin && offre.fournisseur.nom_entreprise && offre.magasin?.nom_magasin !== offre.fournisseur.nom_entreprise">
+                  {{ offre.fournisseur.nom_entreprise }}
                 </span>
-                <span
-                  *ngFor="let b of (offre.badges || [offre.badge || 'principal'])"
-                  class="offre-badge"
-                  [ngClass]="badgeClass(b)"
-                >{{ badgeLabel(b) }}</span>
+                <div class="offre-badges">
+                  <span *ngIf="offre.fournisseur.note" class="offre-note">
+                    <i class="bi bi-star-fill"></i> {{ offre.fournisseur.note | number:'1.1-1' }}
+                  </span>
+                  <span *ngIf="offres.length > 1 && isOffreRecommandee(offre)" class="offre-badge badge-reco">
+                    <i class="bi bi-award-fill"></i> Recommandée
+                  </span>
+                  <span
+                    *ngFor="let b of (offre.badges || [offre.badge || 'principal'])"
+                    class="offre-badge"
+                    [ngClass]="badgeClass(b)"
+                  >{{ badgeLabel(b) }}</span>
+                </div>
               </div>
               <div class="offre-card-price">
                 <strong>{{ offre.prix | number:'1.2-2' }} FCFA</strong>
-                <span *ngIf="offre.prix < (produit?.prix ?? offre.prix)" class="offre-economie">-</span>
-              </div>
-            </div>
-
-            <div class="offre-card-body">
-              <div class="offre-info-line" *ngIf="offre.magasin?.adresse || offre.magasin?.ville">
-                <i class="bi bi-geo-alt"></i>
-                <span>{{ offre.magasin?.adresse || offre.magasin?.ville }}{{ offre.magasin?.region ? ', ' + offre.magasin?.region : '' }}</span>
-              </div>
-              <div class="offre-info-line" *ngIf="offre.magasin?.telephone">
-                <i class="bi bi-telephone"></i>
-                <span>{{ offre.magasin?.telephone }}</span>
-              </div>
-              <div class="offre-info-line" *ngIf="offre.magasin?.horaires_ouverture || offre.magasin?.jours_ouverture">
-                <i class="bi bi-clock"></i>
-                <span [class.ok]="isMagasinOuvert(offre)" [class.out]="!isMagasinOuvert(offre)">
-                  {{ isMagasinOuvert(offre) ? 'Ouvert' : 'Fermé' }}
+                <span *ngIf="getEconomie(offre) > 0" class="offre-economie">
+                  <i class="bi bi-arrow-down-short"></i> Économisez {{ getEconomie(offre) | number:'1.0-0' }} FCFA
+                </span>
+                <span class="offre-dispo-chip" [class.ok]="offre.stock > 0" [class.out]="offre.stock === 0">
+                  <i class="bi" [class.bi-check-circle-fill]="offre.stock > 0" [class.bi-x-circle-fill]="offre.stock === 0"></i>
+                  {{ offre.stock > 0 ? 'En stock · ' + offre.stock + ' unité' + (offre.stock > 1 ? 's' : '') : 'Rupture de stock' }}
                 </span>
               </div>
-              <div class="offre-info-line">
-                <i class="bi bi-box-seam"></i>
-                <span [class.ok]="offre.stock > 0" [class.out]="offre.stock === 0">
-                  {{ offre.stock > 0 ? 'En stock (' + offre.stock + ')' : 'Rupture' }}
-                </span>
-              </div>
-              <div class="offre-info-line" *ngIf="offre.livraison_disponible">
-                <i class="bi bi-truck"></i>
-                <span>Livraison {{ getDelaiLivraisonLabel(offre.delai_livraison) }}</span>
-              </div>
-              <div class="offre-info-line" *ngIf="offre.retrait_magasin">
-                <i class="bi bi-shop"></i>
-                <span>Retrait en magasin</span>
-              </div>
-              <div class="offre-info-line">
-                <i class="bi bi-signpost-2"></i>
-                <span *ngIf="offre.distance_km !== null && offre.distance_km !== undefined">à {{ offre.distance_km }} km</span>
-                <span *ngIf="offre.distance_km === null || offre.distance_km === undefined" class="muted">Distance indisponible</span>
-              </div>
             </div>
 
-            <div class="offre-card-actions">
-              <button
-                class="btn-select-offre"
-                [class.selected]="offre === selectedOffre"
-                (click)="onSelectOffre(offre)"
-                type="button"
-              >
-                <i class="bi" [class.bi-check-circle-fill]="offre === selectedOffre" [class.bi-circle]="offre !== selectedOffre"></i>
-                {{ offre === selectedOffre ? 'Sélectionné' : 'Choisir ce vendeur' }}
-              </button>
-              <button
-                class="btn-select-offre"
-                (click)="openItineraire(offre)"
-                [disabled]="!offre.magasin?.latitude || !offre.magasin?.longitude"
-                type="button"
-              >
-                <i class="bi bi-signpost-split"></i> Itinéraire
-              </button>
-              <a
-                *ngIf="offre.magasin?.telephone"
-                class="btn-select-offre"
-                [href]="'tel:' + offre.magasin?.telephone"
-              >
-                <i class="bi bi-telephone"></i> Appeler
-              </a>
-            </div>
+            <div class="offre-card-content" [class.has-map]="hasLocalisation(offre)">
+              <div class="offre-card-main">
+                <div class="offre-card-body">
+                  <div class="offre-info-line" *ngIf="offre.magasin?.adresse || offre.magasin?.ville">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>{{ offre.magasin?.adresse || offre.magasin?.ville }}{{ offre.magasin?.region ? ', ' + offre.magasin?.region : '' }}</span>
+                  </div>
+                  <div class="offre-info-line" *ngIf="!offre.magasin?.adresse && !offre.magasin?.ville">
+                    <i class="bi bi-geo-alt"></i>
+                    <span class="muted">Adresse non renseignée</span>
+                  </div>
+                  <div class="offre-info-line">
+                    <i class="bi bi-signpost-2"></i>
+                    <span *ngIf="offre.distance_km !== null && offre.distance_km !== undefined">À {{ offre.distance_km }} km de vous</span>
+                    <span *ngIf="offre.distance_km === null || offre.distance_km === undefined" class="muted">
+                      {{ geoError ? 'Distance non calculée (' + geoError.toLowerCase() + ')' : 'Distance indisponible' }}
+                    </span>
+                  </div>
+                  <div class="offre-info-line" *ngIf="offre.magasin?.telephone">
+                    <i class="bi bi-telephone"></i>
+                    <span>{{ offre.magasin?.telephone }}</span>
+                  </div>
+                  <div class="offre-info-line">
+                    <i class="bi bi-clock"></i>
+                    <span *ngIf="hasHoraires(offre)" [class.ok]="isMagasinOuvert(offre)" [class.out]="!isMagasinOuvert(offre)">
+                      {{ isMagasinOuvert(offre) ? 'Ouvert actuellement' : 'Fermé actuellement' }}
+                    </span>
+                    <span *ngIf="!hasHoraires(offre)" class="muted">Horaires non communiqués</span>
+                  </div>
+                  <div class="offre-info-line">
+                    <i class="bi bi-truck"></i>
+                    <span *ngIf="offre.livraison_disponible">Livraison {{ getDelaiLivraisonLabel(offre.delai_livraison) }}</span>
+                    <span *ngIf="!offre.livraison_disponible" class="muted">Livraison non proposée</span>
+                  </div>
+                  <div class="offre-info-line">
+                    <i class="bi bi-shop"></i>
+                    <span *ngIf="offre.retrait_magasin">Retrait en magasin possible</span>
+                    <span *ngIf="!offre.retrait_magasin" class="muted">Pas de retrait en magasin</span>
+                  </div>
+                </div>
 
-            <!-- Localisation du magasin -->
-            <div class="offre-localisation" *ngIf="offre.magasin?.latitude && offre.magasin?.longitude">
-              <h6><i class="bi bi-map"></i> Localisation</h6>
-              <div class="map-embed">
-                <iframe
-                  *ngIf="getMapUrl(offre)"
-                  [src]="getMapUrl(offre)"
-                  loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"
-                  title="Carte du magasin">
-                </iframe>
-                <div *ngIf="!getMapUrl(offre)" class="map-placeholder">
-                  <i class="bi bi-map"></i> Carte indisponible
+                <div class="offre-card-actions">
+                  <button
+                    class="btn-select-offre"
+                    [class.selected]="offre === selectedOffre"
+                    (click)="onSelectOffre(offre)"
+                    type="button"
+                  >
+                    <i class="bi" [class.bi-check-circle-fill]="offre === selectedOffre" [class.bi-circle]="offre !== selectedOffre"></i>
+                    {{ offre === selectedOffre ? 'Sélectionné' : 'Choisir ce vendeur' }}
+                  </button>
+                  <a
+                    *ngIf="getItineraireHref(offre) as itineraire"
+                    class="btn-select-offre"
+                    [href]="itineraire"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Ouvrir l'itinéraire dans Google Maps"
+                  >
+                    <i class="bi bi-signpost-split"></i> Itinéraire
+                  </a>
+                  <button
+                    *ngIf="!getItineraireHref(offre)"
+                    class="btn-select-offre"
+                    type="button"
+                    disabled
+                    title="Adresse du magasin non renseignée"
+                  >
+                    <i class="bi bi-signpost-split"></i> Itinéraire
+                  </button>
+                  <a
+                    *ngIf="offre.magasin?.telephone"
+                    class="btn-select-offre"
+                    [href]="'tel:' + offre.magasin?.telephone"
+                  >
+                    <i class="bi bi-telephone"></i> Appeler
+                  </a>
+                  <a
+                    *ngIf="offre.magasin?.whatsapp"
+                    class="btn-select-offre btn-whatsapp"
+                    [href]="getWhatsappHref(offre)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                  </a>
+                  <a
+                    *ngIf="offre.magasin?.id"
+                    class="btn-select-offre btn-ghost"
+                    [routerLink]="['/magasins', offre.magasin?.id]"
+                  >
+                    <i class="bi bi-shop-window"></i> Voir la boutique
+                  </a>
+                </div>
+
+                <!-- Horaires d'ouverture -->
+                <div class="offre-horaires" *ngIf="hasHoraires(offre)">
+                  <h6><i class="bi bi-clock"></i> Horaires</h6>
+                  <div class="horaires-list" *ngIf="offre.magasin?.horaires_ouverture as horaires">
+                    <div class="horaire-row" *ngFor="let jour of getHorairesJours(offre.magasin?.jours_ouverture)">
+                      <span>{{ jour }}</span>
+                      <span>{{ horaires[jour] || 'Fermé' }}</span>
+                    </div>
+                  </div>
+                  <p *ngIf="!offre.magasin?.horaires_ouverture && offre.magasin?.jours_ouverture" class="horaires-jours">
+                    <i class="bi bi-calendar-check"></i> {{ offre.magasin?.jours_ouverture }}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            <!-- Horaires d'ouverture -->
-            <div class="offre-horaires" *ngIf="offre.magasin?.horaires_ouverture || offre.magasin?.jours_ouverture">
-              <h6><i class="bi bi-clock"></i> Horaires</h6>
-              <div class="horaires-list" *ngIf="offre.magasin?.horaires_ouverture as horaires">
-                <div class="horaire-row" *ngFor="let jour of getHorairesJours(offre.magasin?.jours_ouverture)">
-                  <span>{{ jour }}</span>
-                  <span>{{ horaires[jour] || 'Fermé' }}</span>
+              <!-- Localisation du magasin -->
+              <div class="offre-localisation" *ngIf="hasLocalisation(offre)">
+                <h6><i class="bi bi-map"></i> Localisation</h6>
+                <div class="map-embed">
+                  <iframe
+                    *ngIf="getMapUrl(offre)"
+                    [src]="getMapUrl(offre)"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Carte du magasin">
+                  </iframe>
                 </div>
+                <a
+                  *ngIf="getItineraireHref(offre) as itineraire"
+                  class="map-open-link"
+                  [href]="itineraire"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i class="bi bi-box-arrow-up-right"></i> Ouvrir dans Google Maps
+                </a>
               </div>
-              <p *ngIf="!offre.magasin?.horaires_ouverture && offre.magasin?.jours_ouverture" class="horaires-jours">
-                <i class="bi bi-calendar-check"></i> {{ offre.magasin?.jours_ouverture }}
-              </p>
             </div>
           </div>
         </div>
