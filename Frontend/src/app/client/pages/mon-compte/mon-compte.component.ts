@@ -631,6 +631,50 @@ export class MonCompteComponent implements OnInit, OnDestroy {
     return ['', 'weak', 'medium', 'good', 'strong'][this.pwdStrength];
   }
 
+  getSecurityChecklist(): { label: string; done: boolean; icon: string }[] {
+    const u = this.utilisateur;
+    return [
+      { label: 'Email vérifié', done: !!u?.email, icon: 'bi-envelope-check-fill' },
+      { label: 'Mot de passe configuré', done: true, icon: 'bi-key-fill' },
+      { label: 'Téléphone renseigné', done: !!u?.telephone, icon: 'bi-telephone-fill' },
+      { label: 'Adresse renseignée', done: !!u?.adresse, icon: 'bi-geo-alt-fill' },
+      { label: 'Profil complet', done: this.getProfileCompleteness() === 100, icon: 'bi-person-check-fill' }
+    ];
+  }
+
+  getSecurityScore(): number {
+    const items = this.getSecurityChecklist();
+    return Math.round((items.filter(i => i.done).length / items.length) * 100);
+  }
+
+  getSecurityScoreClass(): string {
+    const s = this.getSecurityScore();
+    if (s >= 80) return 'score-good';
+    if (s >= 60) return 'score-medium';
+    return 'score-weak';
+  }
+
+  getSecurityScoreLabel(): string {
+    const s = this.getSecurityScore();
+    if (s >= 80) return 'Sécurisé';
+    if (s >= 60) return 'Moyennement sécurisé';
+    return 'À renforcer';
+  }
+
+  hasPwdError(field: string): boolean {
+    const c = this.securiteForm?.get(field);
+    return !!c && c.invalid && c.touched;
+  }
+
+  getPwdError(field: string): string {
+    const c = this.securiteForm?.get(field);
+    if (!c || !c.errors) return '';
+    if (c.errors['required']) return 'Ce champ est obligatoire';
+    if (c.errors['minlength']) return `Minimum ${c.errors['minlength'].requiredLength} caractères`;
+    if (c.errors['pattern']) return 'Doit contenir 1 majuscule, 1 minuscule et 1 chiffre';
+    return '';
+  }
+
   // -------------------------------------------------------
   // Confidentialité
   // -------------------------------------------------------
@@ -688,6 +732,9 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   // ACTIONS FAVORIS
   // -------------------------------------------------------
+  favorisRecherche = '';
+  favorisTri = 'recent';
+
   goToProduit(id: number): void {
     this.router.navigate(['/produits'], { queryParams: { id } });
   }
@@ -695,6 +742,53 @@ export class MonCompteComponent implements OnInit, OnDestroy {
   ajouterAuPanierDepuisFavori(favori: Favori): void {
     // Les favoris ne stockent pas l'offre : redirige vers la fiche pour choisir le magasin
     this.goToProduit(favori.produit_id);
+  }
+
+  ajouterFavoriAuPanier(favori: Favori): void {
+    this.goToProduit(favori.produit_id);
+  }
+
+  getFavorisFiltres(): Favori[] {
+    let favoris = this.getFavoris();
+    const q = this.favorisRecherche.trim().toLowerCase();
+    if (q) {
+      favoris = favoris.filter(f => (f.produit_nom || '').toLowerCase().includes(q));
+    }
+    const sorted = [...favoris];
+    switch (this.favorisTri) {
+      case 'recent':
+        sorted.sort((a, b) => new Date(b.date_ajout || 0).getTime() - new Date(a.date_ajout || 0).getTime());
+        break;
+      case 'ancien':
+        sorted.sort((a, b) => new Date(a.date_ajout || 0).getTime() - new Date(b.date_ajout || 0).getTime());
+        break;
+      case 'prix_asc':
+        sorted.sort((a, b) => (a.prix || 0) - (b.prix || 0));
+        break;
+      case 'prix_desc':
+        sorted.sort((a, b) => (b.prix || 0) - (a.prix || 0));
+        break;
+      case 'nom':
+        sorted.sort((a, b) => (a.produit_nom || '').localeCompare(b.produit_nom || ''));
+        break;
+    }
+    return sorted;
+  }
+
+  getFavorisMoyenne(): number {
+    const favoris = this.getFavoris();
+    if (favoris.length === 0) return 0;
+    return this.getFavorisTotalValue() / favoris.length;
+  }
+
+  viderTousFavoris(): void {
+    if (!confirm(`Retirer tous vos ${this.getFavoris().length} favoris ?`)) return;
+    const favoris = this.getFavoris();
+    favoris.forEach(f => {
+      this.monCompteService.retirerFavori(f.produit_id).subscribe();
+    });
+    this.notificationService.warning('Tous les favoris ont été retirés', 'Favoris vidés');
+    this.refreshFavoris();
   }
 
   retirerDesFavoris(favori: Favori): void {

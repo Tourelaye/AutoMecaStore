@@ -158,6 +158,8 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   lightboxOpen: boolean = false;
 
+  imageLoading: boolean = true;
+
 
 
   /** Offres (magasins) */
@@ -282,11 +284,15 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
 
-  private loadProduit(id: number, lat?: number, lng?: number): void {
+  private loadProduit(id: number, lat?: number, lng?: number, skipLoading: boolean = false): void {
 
-    this.isLoading = true;
+    if (!skipLoading) {
 
-    this.erreur = false;
+      this.isLoading = true;
+
+      this.erreur = false;
+
+    }
 
 
 
@@ -298,59 +304,65 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         
 
-        // Incrémenter les vues du produit
+        // Incrémenter les vues du produit (uniquement au premier chargement)
 
-        this.homeService.incrementProductViews(id).subscribe({
+        if (!skipLoading) {
 
-          next: () => {
+          this.homeService.incrementProductViews(id).subscribe({
 
-            console.log('Vues incrémentées pour le produit', id);
+            next: () => {
 
-          },
+              console.log('Vues incrémentées pour le produit', id);
 
-          error: (err) => {
+            },
 
-            console.error('Erreur lors de l\'incrémentation des vues:', err);
+            error: (err) => {
+
+              console.error('Erreur lors de l\'incrémentation des vues:', err);
+
+            }
+
+          });
+
+        }
+
+
+
+        // Construire la liste des images avec les URLs complètes (uniquement au premier chargement)
+
+        if (!skipLoading) {
+
+          const allImages = [];
+
+          if (produit.image_url) allImages.push(produit.image_url);
+
+          if (produit.image_2_url) allImages.push(produit.image_2_url);
+
+          if (produit.image_3_url) allImages.push(produit.image_3_url);
+
+          if (produit.image_4_url) allImages.push(produit.image_4_url);
+
+          // Placer l'image principale sélectionnée en premier
+
+          const mainIndex = (produit.image_principale_index || 1) - 1;
+
+          if (allImages.length > 0 && mainIndex >= 0 && mainIndex < allImages.length) {
+
+            this.images = [
+
+              allImages[mainIndex],
+
+              ...allImages.slice(0, mainIndex),
+
+              ...allImages.slice(mainIndex + 1)
+
+            ];
+
+          } else {
+
+            this.images = allImages;
 
           }
-
-        });
-
-
-
-        // Construire la liste des images avec les URLs complètes
-
-        const allImages = [];
-
-        if (produit.image_url) allImages.push(produit.image_url);
-
-        if (produit.image_2_url) allImages.push(produit.image_2_url);
-
-        if (produit.image_3_url) allImages.push(produit.image_3_url);
-
-        if (produit.image_4_url) allImages.push(produit.image_4_url);
-
-
-
-        // Placer l'image principale sélectionnée en premier
-
-        const mainIndex = (produit.image_principale_index || 1) - 1;
-
-        if (allImages.length > 0 && mainIndex >= 0 && mainIndex < allImages.length) {
-
-          this.images = [
-
-            allImages[mainIndex],
-
-            ...allImages.slice(0, mainIndex),
-
-            ...allImages.slice(mainIndex + 1)
-
-          ];
-
-        } else {
-
-          this.images = allImages;
 
         }
 
@@ -362,9 +374,18 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
 
-        // Selection automatique uniquement si une seule offre
+        // Préserver la sélection d'offre lors d'un rechargement géolocalisé
 
-        this.selectedOffre = this.offres.length === 1 ? this.offres[0] : null;
+        if (skipLoading && this.selectedOffre) {
+
+          const preserved = this.offres.find(o =>
+            o.fournisseur?.id === this.selectedOffre?.fournisseur?.id &&
+            o.magasin?.id === this.selectedOffre?.magasin?.id
+          );
+          if (preserved) { this.selectedOffre = preserved; }
+        } else {
+          this.selectedOffre = this.offres.length === 1 ? this.offres[0] : null;
+        }
 
 
 
@@ -386,7 +407,23 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         if (this.images.length === 0) {
 
-          this.images = ['https://via.placeholder.com/600x400?text=Produit'];
+          const svg = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+
+            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">' +
+
+            '<rect width="600" height="400" fill="#f1f5f9"/>' +
+
+            '<circle cx="300" cy="160" r="50" fill="#cbd5e1"/>' +
+
+            '<text x="300" y="250" font-size="20" fill="#94a3b8" text-anchor="middle" font-family="sans-serif">Aucune image</text>' +
+
+            '<text x="300" y="280" font-size="14" fill="#cbd5e1" text-anchor="middle" font-family="sans-serif">AutoMecaStore</text>' +
+
+            '</svg>'
+
+          );
+
+          this.images = [svg];
 
         }
 
@@ -662,6 +699,8 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         : this.currentImageIndex - 1;
 
+      this.imageLoading = true;
+
     }
 
   }
@@ -678,6 +717,8 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         : this.currentImageIndex + 1;
 
+      this.imageLoading = true;
+
     }
 
   }
@@ -686,7 +727,21 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   setImage(index: number): void {
 
-    this.currentImageIndex = index;
+    if (this.currentImageIndex !== index) {
+
+      this.currentImageIndex = index;
+
+      this.imageLoading = true;
+
+    }
+
+  }
+
+
+
+  onImageLoad(): void {
+
+    this.imageLoading = false;
 
   }
 
@@ -700,7 +755,23 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
       img.onerror = null;
 
-      img.src = 'https://via.placeholder.com/600x400/f8fafc/64748b?text=Image+indisponible';
+      const svg = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+
+        '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">' +
+
+        '<rect width="600" height="400" fill="#f1f5f9"/>' +
+
+        '<text x="300" y="180" font-size="48" fill="#cbd5e1" text-anchor="middle" font-family="sans-serif">Image indisponible</text>' +
+
+        '<text x="300" y="220" font-size="16" fill="#94a3b8" text-anchor="middle" font-family="sans-serif">AutoMecaStore</text>' +
+
+        '</svg>'
+
+      );
+
+      img.src = svg;
+
+      this.imageLoading = false;
 
     }
 
@@ -786,11 +857,11 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         if (this.produit) {
 
-          this.loadProduit(this.produit.id, this.clientPosition.lat, this.clientPosition.lng);
+          this.loadProduit(this.produit.id, this.clientPosition.lat, this.clientPosition.lng, true);
 
         } else {
 
-          this.loadProduit(id, this.clientPosition.lat, this.clientPosition.lng);
+          this.loadProduit(id, this.clientPosition.lat, this.clientPosition.lng, true);
 
         }
 
@@ -1068,13 +1139,21 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   openItineraire(offre: Offre): void {
 
-    const url = this.getItineraireUrl(offre);
+    const destLat = offre.magasin?.latitude;
 
-    if (url) {
+    const destLng = offre.magasin?.longitude;
 
-      window.open(url as string, '_blank', 'noopener,noreferrer');
+    if (!destLat || !destLng) { return; }
 
-    }
+    const client = this.clientPosition;
+
+    const url = client
+
+      ? `https://www.google.com/maps/dir/?api=1&origin=${client.lat},${client.lng}&destination=${destLat},${destLng}&travelmode=driving`
+
+      : `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`;
+
+    window.open(url, '_blank', 'noopener,noreferrer');
 
   }
 

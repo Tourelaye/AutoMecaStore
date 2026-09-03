@@ -1,0 +1,18 @@
+<section class="services-bar">
+  <div class="container">
+    <div class="services-grid">
+      <div
+        class="service-item"
+        *ngFor="let s of services"
+      >
+        <div class="service-icon" [style.--c]="s.color">
+          <i class="bi" [class]="s.icon"></i>
+        </div>
+        <div class="service-text">
+          <strong>{{ s.title }}</strong>
+          <span>{{ s.desc }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

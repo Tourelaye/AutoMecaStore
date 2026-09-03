@@ -4,7 +4,28 @@
 
    .vogue {
     padding: 70px 0;
-    background: #d7d9db25;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 30%, #6d28d9 60%, #4c1d95 100%);
+    color: #f1f5f9;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vogue::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(167,139,250,0.10) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(124,58,237,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .vogue::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #a78bfa, #7c3aed, #a78bfa, transparent);
   }
   
   /* ---------------------------------
@@ -22,10 +43,11 @@
     font-size: 30px;
     font-weight: 700;
     margin-bottom: 5px;
+    color: #f8fafc;
   }
   
   .offers-header p {
-    color: #6b7280;
+    color: #c4b5fd;
     font-size: 14px;
   }
   
@@ -33,34 +55,35 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(90deg, #fce7f3, #ede9fe);
-    color: #7c3aed;
+    background: rgba(167,139,250,0.12);
+    color: #c4b5fd;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     padding: 5px 14px;
     border-radius: 20px;
     margin-bottom: 10px;
-    border: 1px solid #ddd6fe;
+    border: 1px solid rgba(167,139,250,0.25);
   }
   
   .see-all {
-    color: #fa5807;
+    color: #c4b5fd;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     padding: 8px 18px;
-    border: 1.5px solid #fa5807;
+    border: 1.5px solid rgba(167,139,250,0.4);
     border-radius: 20px;
     font-size: 14px;
-    background: #f8c49f49;
+    background: rgba(167,139,250,0.08);
     transition: all 0.2s;
     white-space: nowrap;
   }
   
   .see-all:hover {
-    background: #fa5807;
-    color: white;
+    background: rgba(167,139,250,0.18);
+    border-color: #a78bfa;
+    color: #ddd6fe;
   }
   
   /* ---------------------------------
@@ -76,26 +99,27 @@
   .filter-btn {
     padding: 7px 18px;
     border-radius: 20px;
-    border: 1.5px solid #e5e7eb;
-    background: white;
+    border: 1.5px solid rgba(167,139,250,0.2);
+    background: rgba(255,255,255,0.05);
     font-size: 13px;
     font-weight: 500;
-    color: #6b7280;
+    color: #c4b5fd;
     cursor: pointer;
     transition: all 0.2s ease;
   }
   
   .filter-btn:hover {
-    border-color: #f97316;
-    color: #f97316;
+    border-color: #a78bfa;
+    color: #ddd6fe;
+    background: rgba(167,139,250,0.1);
   }
   
   .filter-btn.active {
-    background: linear-gradient(90deg, #f97316, #ea580c);
+    background: linear-gradient(90deg, #7c3aed, #a78bfa);
     border-color: transparent;
     color: white;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
   }
   
   /* ---------------------------------
@@ -111,20 +135,21 @@
      CARD
   --------------------------------- */
   .product-card {
-    background: white;
+    background: #ffffff;
     border-radius: 14px;
     overflow: hidden;
-    border: 1.5px solid #e5e7eb;
+    border: 1px solid rgba(255,255,255,0.1);
     transition: all 0.35s ease;
     cursor: pointer;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
   }
   
   .product-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.11);
-    border-color: #a78bfa;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(167,139,250,0.3);
+    border-color: rgba(167,139,250,0.4);
   }
   
   .product-card.out-of-stock {
@@ -146,16 +171,15 @@
   }
   
   .product-image img {
-    max-width: 165px;
-    max-height: 175px;
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     transition: transform 0.4s ease;
-    object-fit: contain;
   }
   
   .product-card:hover img {
-    transform: scale(1.15);
+    transform: scale(1.08);
   }
   
   .img-placeholder {
@@ -476,9 +500,9 @@
      ERREUR & EMPTY
   --------------------------------- */
   .error-state {
-    background: #fff5f5;
-    border: 1px solid #fecaca;
-    color: #dc2626;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
     border-radius: 10px;
     padding: 16px 20px;
     font-size: 14px;
@@ -490,7 +514,7 @@
   .empty-state {
     text-align: center;
     padding: 60px 0;
-    color: #9ca3af;
+    color: #a78bfa;
   }
   
   .empty-state i {

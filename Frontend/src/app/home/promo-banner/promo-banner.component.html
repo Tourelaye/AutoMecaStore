@@ -1,0 +1,31 @@
+<section class="promo-banners">
+  <div class="container">
+    <div class="banners-grid">
+      <a
+        *ngFor="let b of banners; let i = index"
+        class="banner-card"
+        [routerLink]="b.route"
+        [style.--gradient]="b.gradient"
+        [style.animation-delay]="(i * 0.1) + 's'"
+      >
+        <div class="banner-bg"></div>
+        <div class="banner-overlay"></div>
+
+        <div class="banner-content">
+          <span class="banner-badge">{{ b.badge }}</span>
+          <div class="banner-icon">
+            <i class="bi" [class]="b.icon"></i>
+          </div>
+          <h3>{{ b.title }}</h3>
+          <p>{{ b.subtitle }}</p>
+          <div class="banner-features">
+            <span *ngFor="let f of b.features">{{ f }}</span>
+          </div>
+          <div class="banner-cta">
+            Explorer <i class="bi bi-arrow-right"></i>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>

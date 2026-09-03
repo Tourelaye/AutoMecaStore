@@ -279,7 +279,7 @@ export class ProduitComponent implements OnInit {
     this.validationAction = null;
     this.validationConfig = null;
     this.validationMotif = '';
-    this.sectionsForm = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
+    this.sectionsForm = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false, featured: false, recommended: false };
   }
 
   confirmValidation(): void {
@@ -342,7 +342,7 @@ export class ProduitComponent implements OnInit {
     this.validationAction = null;
     this.validationConfig = null;
     this.validationMotif = '';
-    this.sectionsForm = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
+    this.sectionsForm = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false, featured: false, recommended: false };
   }
 
   private replace(updated: Produit): void {
@@ -402,5 +402,5 @@ export class ProduitComponent implements OnInit {
     return (this.selectedProduit?.alerts ?? []).filter(a => a.severity === severity).length;
   }
 
-  sectionsForm: ProductSections = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
+  sectionsForm: ProductSections = { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false, featured: false, recommended: false };
 }

@@ -73,22 +73,9 @@
           <!-- BADGE RÉDUCTION -->
           <span class="badge badge-discount">-{{ produit.discount }}%</span>
 
-          <!-- TIMER INDIVIDUEL -->
-          <div
-            class="timer-chip"
-            [class.timer-urgence]="timers[i].urgence"
-            *ngIf="timers[i] && !timers[i].expired"
-          >
-            <i class="bi bi-clock-fill"></i>
-            {{ timers[i].heures }}h {{ timers[i].minutes }}m {{ timers[i].secondes }}s
-          </div>
-          <div class="timer-chip timer-expired" *ngIf="timers[i].expired">
-            <i class="bi bi-x-circle"></i> Offre expirée
-          </div>
-
           <!-- STOCK CRITIQUE -->
           <div class="stock-critique" *ngIf="isStockCritique(produit) && !timers[i].expired">
-            <i class="bi bi-fire"></i> Dernières pièces !
+            <i class="bi bi-fire"></i> Dernières pièces
           </div>
 
           <!-- RUPTURE -->
@@ -113,12 +100,30 @@
         <!-- INFOS -->
         <div class="product-info">
 
-          <span class="brand">{{ produit.marque }}</span>
+          <div class="info-top">
+            <span class="brand">{{ produit.marque }}</span>
+            <!-- TIMER INDIVIDUEL -->
+            <div
+              class="timer-chip"
+              [class.timer-urgence]="timers[i].urgence"
+              *ngIf="timers[i] && !timers[i].expired"
+            >
+              <i class="bi bi-clock-fill"></i>
+              {{ timers[i].heures }}:{{ timers[i].minutes }}:{{ timers[i].secondes }}
+            </div>
+            <div class="timer-chip timer-expired" *ngIf="timers[i].expired">
+              <i class="bi bi-x-circle"></i> Expiré
+            </div>
+          </div>
+
           <h3>{{ produit.nom }}</h3>
 
           <!-- PRIX -->
           <div class="price">
-            <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
+            <div class="price-main">
+              <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }}</span>
+              <span class="currency">FCFA</span>
+            </div>
             <span class="old-price">{{ produit.prixAncien | number:'1.2-2' }} FCFA</span>
           </div>
 
@@ -126,7 +131,7 @@
           <div class="stock-section">
             <div class="stock-labels">
               <span>
-                <i class="bi bi-people-fill"></i>
+                <i class="bi bi-fire"></i>
                 {{ getStockVenduPct(produit) }}% vendu
               </span>
               <span [class.text-danger]="isStockCritique(produit)">
@@ -142,22 +147,22 @@
             </div>
           </div>
 
-          <!-- LIVRAISON -->
-          <p class="delivery" *ngIf="produit.livraison">
-            <i class="bi bi-truck"></i> Livraison gratuite
-          </p>
-
-          <!-- BOUTON -->
-          <button
-            class="button-r"
-            [class.btn-urgence]="timers[i].urgence"
-            [disabled]="produit.stock === 0 || timers[i].expired"
-            (click)="goToProduit(produit.id); $event.stopPropagation()"
-            type="button"
-          >
-            <i class="bi bi-shop-window"></i>
-            {{ 'Choisir' }}
-          </button>
+          <!-- LIVRAISON + BOUTON -->
+          <div class="card-footer">
+            <p class="delivery" *ngIf="produit.livraison">
+              <i class="bi bi-truck"></i> Livraison gratuite
+            </p>
+            <button
+              class="button-r"
+              [class.btn-urgence]="timers[i].urgence"
+              [disabled]="produit.stock === 0 || timers[i].expired"
+              (click)="goToProduit(produit.id); $event.stopPropagation()"
+              type="button"
+            >
+              <i class="bi bi-cart-plus"></i>
+              <span>Choisir</span>
+            </button>
+          </div>
 
         </div>
       </div>

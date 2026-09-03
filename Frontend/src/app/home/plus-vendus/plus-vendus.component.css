@@ -5,7 +5,28 @@
 
    .plus-vendus {
     padding: 70px 0;
-    background: #fff;
+    background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+    color: #1e293b;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .plus-vendus::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(249,115,22,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(251,146,60,0.04) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .plus-vendus::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #f97316, #fb923c, #f97316, transparent);
   }
   
   /* ---------------------------------
@@ -23,10 +44,11 @@
     font-size: 30px;
     font-weight: 700;
     margin-bottom: 5px;
+    color: #0f172a;
   }
   
   .offers-header p {
-    color: #6b7280;
+    color: #64748b;
     font-size: 14px;
   }
   
@@ -54,7 +76,7 @@
     border: 1.5px solid #fa5807;
     border-radius: 20px;
     font-size: 14px;
-    background: #f8c49f49;
+    background: rgba(248,196,159,0.29);
     transition: all 0.2s;
     white-space: nowrap;
   }
@@ -77,7 +99,7 @@
      CARD
   --------------------------------- */
   .product-card {
-    background: white;
+    background: #ffffff;
     border-radius: 14px;
     overflow: hidden;
     border: 1.5px solid #e5e7eb;
@@ -86,11 +108,12 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   }
   
   .product-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.11);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(249,115,22,0.2);
     border-color: #f97316;
   }
   
@@ -125,16 +148,15 @@
   }
   
   .product-image img {
-    max-width: 165px;
-    max-height: 175px;
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     transition: transform 0.4s ease;
-    object-fit: contain;
   }
   
   .product-card:hover img {
-    transform: scale(1.15);
+    transform: scale(1.08);
   }
   
   .img-placeholder {
@@ -143,16 +165,63 @@
   }
   
   /* ---------------------------------
-     MÉDAILLE RANG
+     RANG BADGE
   --------------------------------- */
-  .medaille {
+  .rang-badge {
     position: absolute;
     top: 10px;
-    right: 12px;
-    font-size: 26px;
-    line-height: 1;
+    right: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 2;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    background: linear-gradient(135deg, #64748b, #475569);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    border: 2px solid rgba(255,255,255,0.9);
+  }
+
+  .rang-num {
+    font-size: 16px;
+    font-weight: 800;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    line-height: 1;
+  }
+
+  .rang-badge.rang-1 {
+    background: linear-gradient(135deg, #fde047, #f59e0b);
+    box-shadow: 0 3px 12px rgba(245,158,11,0.5);
+    border-color: rgba(255,255,255,0.95);
+  }
+
+  .rang-badge.rang-1 .rang-num {
+    color: #78350f;
+    font-size: 18px;
+  }
+
+  .rang-badge.rang-2 {
+    background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+    box-shadow: 0 3px 12px rgba(156,163,175,0.35);
+    border-color: rgba(255,255,255,0.95);
+  }
+
+  .rang-badge.rang-2 .rang-num {
+    color: #374151;
+    font-size: 17px;
+  }
+
+  .rang-badge.rang-3 {
+    background: linear-gradient(135deg, #fdba74, #c2410c);
+    box-shadow: 0 3px 12px rgba(194,65,12,0.35);
+    border-color: rgba(255,255,255,0.95);
+  }
+
+  .rang-badge.rang-3 .rang-num {
+    color: #fff7ed;
+    font-size: 17px;
   }
   
   /* ---------------------------------
@@ -318,7 +387,19 @@
     width: fit-content;
     border: 1px solid #bbf7d0;
   }
-  
+
+  .error-state {
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
   /* ---------------------------------
      PRIX
   --------------------------------- */
@@ -446,18 +527,6 @@
   /* ---------------------------------
      ERREUR & EMPTY
   --------------------------------- */
-  .error-state {
-    background: #fff5f5;
-    border: 1px solid #fecaca;
-    color: #dc2626;
-    border-radius: 10px;
-    padding: 16px 20px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
   .empty-state {
     text-align: center;
     padding: 60px 0;

@@ -1,0 +1,52 @@
+<section class="categories-populaires">
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="offers-header">
+      <div>
+        <span class="section-tag">
+          <i class="bi bi-grid-fill"></i> EXPLORER
+        </span>
+        <h2>Catégories populaires</h2>
+        <p>Parcourez nos catégories et trouvez ce dont vous avez besoin</p>
+      </div>
+    </div>
+
+    <!-- SKELETON -->
+    <div class="cat-grid" *ngIf="isLoading">
+      <div class="cat-card skeleton" *ngFor="let i of [1,2,3,4]">
+        <div class="skeleton-icon"></div>
+        <div class="skeleton-line"></div>
+      </div>
+    </div>
+
+    <!-- ERREUR -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    </div>
+
+    <!-- GRILLE -->
+    <div class="cat-grid" *ngIf="!isLoading && !errorMessage">
+
+      <a
+        class="cat-card"
+        *ngFor="let cat of categories"
+        [routerLink]="cat.routerLink"
+        [style.background]="cat.gradient"
+      >
+        <div class="cat-icon">
+          <i class="bi" [class]="cat.icon"></i>
+        </div>
+        <div class="cat-info">
+          <h3>{{ cat.nom }}</h3>
+          <span class="cat-count">{{ cat.nombre_produits }} produits</span>
+        </div>
+        <div class="cat-arrow">
+          <i class="bi bi-arrow-right"></i>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+</section>

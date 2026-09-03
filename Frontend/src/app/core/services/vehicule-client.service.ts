@@ -8,7 +8,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class VehiculeClientService {
-  private apiUrl = 'http://127.0.0.1:8000/api/account/vehicules';
+  private apiUrl = 'http://127.0.0.1:8000/api/vehicules';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

@@ -77,6 +77,13 @@ export interface Produit {
   date_ajout?: string;
   date_derniere_maj_stock?: string;
   statut_stock?: 'en_stock' | 'faible' | 'rupture';
+  // Sections (visibles côté admin, lecture seule côté fournisseur)
+  est_vedette?: boolean;
+  est_recommande?: boolean;
+  est_tendance?: boolean;
+  est_bestseller?: boolean;
+  est_meilleure_offre?: boolean;
+  vente_eclair?: boolean;
 }
 
 export interface ProduitCompatibilite {

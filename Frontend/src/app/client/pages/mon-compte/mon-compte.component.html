@@ -108,7 +108,7 @@
           </button>
 
           <button class="nav-item" [class.active]="ongletActif === 'confidentialite'" (click)="setOnglet('confidentialite')">
-            <div class="nav-icon icon-purple"><i class="bi bi-eye-slash-fill"></i></div>
+            <div class="nav-icon icon-purple"><i class="bi bi-gear-fill"></i></div>
             <div class="nav-text"><span>Paramètres</span><small>Confidentialité & notifications</small></div>
             <i class="bi bi-chevron-right nav-arrow"></i>
           </button>
@@ -332,29 +332,31 @@
         </div>
 
         <!-- ====== SÉCURITÉ ====== -->
-        <div class="panel" *ngIf="ongletActif === 'securite'">
+        <div class="panel panel-securite" *ngIf="ongletActif === 'securite'">
           <div class="panel-header">
             <h2><i class="bi bi-shield-lock-fill"></i> Sécurité du compte</h2>
             <p>Gérez votre mot de passe et la sécurité de votre compte</p>
           </div>
 
-          <!-- STATUT SÉCURITÉ -->
-          <div class="security-status">
-            <div class="sec-item">
-              <div class="sec-icon green"><i class="bi bi-check-circle-fill"></i></div>
-              <div class="sec-text">
-                <strong>Email vérifié</strong>
-                <small>{{ utilisateur?.email }}</small>
-              </div>
-              <span class="sec-badge green-badge">Vérifié</span>
+          <!-- Security score card -->
+          <div class="sec-score-card" [class]="getSecurityScoreClass()">
+            <div class="sec-score-ring">
+              <div class="sec-score-value">{{ getSecurityScore() }}<small>%</small></div>
             </div>
-            <div class="sec-item">
-              <div class="sec-icon orange"><i class="bi bi-key-fill"></i></div>
-              <div class="sec-text">
-                <strong>Mot de passe</strong>
-                <small>Dernière modification : inconnue</small>
+            <div class="sec-score-info">
+              <h3>{{ getSecurityScoreLabel() }}</h3>
+              <p>Niveau de sécurité de votre compte</p>
+            </div>
+          </div>
+
+          <!-- Security checklist -->
+          <div class="sec-checklist">
+            <div class="checklist-item" *ngFor="let item of getSecurityChecklist()">
+              <div class="checklist-icon" [class.done]="item.done" [class.todo]="!item.done">
+                <i class="bi" [class.bi-check-circle-fill]="item.done" [class.bi-circle]="!item.done"></i>
               </div>
-              <span class="sec-badge orange-badge">À jour</span>
+              <span class="checklist-label">{{ item.label }}</span>
+              <span class="checklist-status" [class.done]="item.done">{{ item.done ? 'OK' : 'À faire' }}</span>
             </div>
           </div>
 
@@ -365,29 +367,35 @@
             <i class="bi bi-exclamation-triangle-fill"></i> {{ securiteError }}
           </div>
 
-          <h4 class="subsection-title">Changer le mot de passe</h4>
+          <h4 class="subsection-title"><i class="bi bi-key-fill"></i> Changer le mot de passe</h4>
 
           <form [formGroup]="securiteForm" (ngSubmit)="saveSecurite()">
             <div class="form-group">
               <label>Mot de passe actuel <span class="req">*</span></label>
-              <div class="field-wrap pwd-wrap">
+              <div class="field-wrap pwd-wrap" [class.invalid]="hasPwdError('currentPassword')">
                 <i class="bi bi-lock"></i>
                 <input [type]="showCurrentPwd ? 'text' : 'password'" formControlName="currentPassword" placeholder="••••••••">
                 <button type="button" class="toggle-eye" (click)="showCurrentPwd = !showCurrentPwd">
                   <i class="bi" [class.bi-eye]="!showCurrentPwd" [class.bi-eye-slash]="showCurrentPwd"></i>
                 </button>
               </div>
+              <small class="form-error" *ngIf="hasPwdError('currentPassword')">
+                <i class="bi bi-exclamation-circle"></i> {{ getPwdError('currentPassword') }}
+              </small>
             </div>
 
             <div class="form-group">
               <label>Nouveau mot de passe <span class="req">*</span></label>
-              <div class="field-wrap pwd-wrap">
+              <div class="field-wrap pwd-wrap" [class.invalid]="hasPwdError('newPassword')">
                 <i class="bi bi-lock-fill"></i>
                 <input [type]="showNewPwd ? 'text' : 'password'" formControlName="newPassword" placeholder="••••••••">
                 <button type="button" class="toggle-eye" (click)="showNewPwd = !showNewPwd">
                   <i class="bi" [class.bi-eye]="!showNewPwd" [class.bi-eye-slash]="showNewPwd"></i>
                 </button>
               </div>
+              <small class="form-error" *ngIf="hasPwdError('newPassword')">
+                <i class="bi bi-exclamation-circle"></i> {{ getPwdError('newPassword') }}
+              </small>
               <!-- Jauge force -->
               <div class="pwd-strength" *ngIf="securiteForm.get('newPassword')?.value">
                 <div class="strength-bars">
@@ -397,24 +405,30 @@
                 </div>
                 <span class="strength-label" [class]="pwdStrengthClass">{{ pwdStrengthLabel }}</span>
               </div>
-              <small class="hint">8 car. min, 1 majuscule, 1 minuscule, 1 chiffre</small>
+              <small class="hint"><i class="bi bi-info-circle"></i> 8 car. min, 1 majuscule, 1 minuscule, 1 chiffre</small>
             </div>
 
             <div class="form-group">
               <label>Confirmer le nouveau mot de passe <span class="req">*</span></label>
-              <div class="field-wrap pwd-wrap" [class.invalid]="securiteForm.errors?.['mismatch'] && securiteForm.get('confirmPassword')?.touched">
+              <div class="field-wrap pwd-wrap" [class.invalid]="(securiteForm.errors?.['mismatch'] && securiteForm.get('confirmPassword')?.touched) || hasPwdError('confirmPassword')">
                 <i class="bi bi-shield-lock"></i>
                 <input [type]="showConfirmPwd ? 'text' : 'password'" formControlName="confirmPassword" placeholder="••••••••">
                 <button type="button" class="toggle-eye" (click)="showConfirmPwd = !showConfirmPwd">
                   <i class="bi" [class.bi-eye]="!showConfirmPwd" [class.bi-eye-slash]="showConfirmPwd"></i>
                 </button>
               </div>
-              <small class="field-err" *ngIf="securiteForm.errors?.['mismatch'] && securiteForm.get('confirmPassword')?.touched">
+              <small class="form-error" *ngIf="securiteForm.errors?.['mismatch'] && securiteForm.get('confirmPassword')?.touched">
                 <i class="bi bi-exclamation-circle"></i> Les mots de passe ne correspondent pas
+              </small>
+              <small class="form-error" *ngIf="hasPwdError('confirmPassword') && !securiteForm.errors?.['mismatch']">
+                <i class="bi bi-exclamation-circle"></i> {{ getPwdError('confirmPassword') }}
               </small>
             </div>
 
             <div class="form-actions">
+              <button type="button" class="btn-secondary" (click)="securiteForm.reset()" *ngIf="securiteForm.dirty">
+                <i class="bi bi-arrow-counterclockwise"></i> Annuler
+              </button>
               <button type="submit" class="btn-save" [disabled]="securiteSaving">
                 <span *ngIf="!securiteSaving"><i class="bi bi-key-fill"></i> Modifier le mot de passe</span>
                 <span *ngIf="securiteSaving"><i class="bi bi-hourglass-split spin"></i> Modification...</span>
@@ -424,9 +438,9 @@
         </div>
 
         <!-- ====== CONFIDENTIALITÉ ====== -->
-        <div class="panel" *ngIf="ongletActif === 'confidentialite'">
+        <div class="panel panel-confidentialite" *ngIf="ongletActif === 'confidentialite'">
           <div class="panel-header">
-            <h2><i class="bi bi-eye-slash-fill"></i> Confidentialité & Notifications</h2>
+            <h2><i class="bi bi-gear-fill"></i> Paramètres & Confidentialité</h2>
             <p>Contrôlez vos préférences de confidentialité et de communication</p>
           </div>
 
@@ -435,13 +449,16 @@
           </div>
 
           <!-- NOTIFICATIONS -->
-          <h4 class="subsection-title">Notifications</h4>
+          <h4 class="subsection-title"><i class="bi bi-bell-fill"></i> Notifications</h4>
           <div class="toggle-list">
 
             <div class="toggle-item">
               <div class="toggle-info">
-                <strong><i class="bi bi-envelope-fill"></i> Notifications par email</strong>
-                <small>Recevez vos confirmations de commande et mises à jour</small>
+                <div class="toggle-icon icon-blue"><i class="bi bi-envelope-fill"></i></div>
+                <div>
+                  <strong>Notifications par email</strong>
+                  <small>Recevez vos confirmations de commande et mises à jour</small>
+                </div>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" [(ngModel)]="notifEmail">
@@ -451,8 +468,11 @@
 
             <div class="toggle-item">
               <div class="toggle-info">
-                <strong><i class="bi bi-phone-fill"></i> Notifications SMS</strong>
-                <small>Recevez des alertes de livraison par SMS</small>
+                <div class="toggle-icon icon-green"><i class="bi bi-phone-fill"></i></div>
+                <div>
+                  <strong>Notifications SMS</strong>
+                  <small>Recevez des alertes de livraison par SMS</small>
+                </div>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" [(ngModel)]="notifSms">
@@ -462,8 +482,11 @@
 
             <div class="toggle-item">
               <div class="toggle-info">
-                <strong><i class="bi bi-megaphone-fill"></i> Offres promotionnelles</strong>
-                <small>Restez informé de nos meilleures offres et promotions</small>
+                <div class="toggle-icon icon-orange"><i class="bi bi-megaphone-fill"></i></div>
+                <div>
+                  <strong>Offres promotionnelles</strong>
+                  <small>Restez informé de nos meilleures offres et promotions</small>
+                </div>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" [(ngModel)]="notifPromo">
@@ -473,13 +496,16 @@
 
           </div>
 
-          <!-- DONNÉES -->
-          <h4 class="subsection-title" style="margin-top: 28px;">Données personnelles</h4>
+          <!-- DONNÉES PERSONNELLES -->
+          <h4 class="subsection-title" style="margin-top: 28px;"><i class="bi bi-shield-fill-check"></i> Données personnelles</h4>
           <div class="toggle-list">
             <div class="toggle-item">
               <div class="toggle-info">
-                <strong><i class="bi bi-bar-chart-fill"></i> Partage des données d'utilisation</strong>
-                <small>Aidez-nous à améliorer nos services en partageant des données anonymisées</small>
+                <div class="toggle-icon icon-violet"><i class="bi bi-bar-chart-fill"></i></div>
+                <div>
+                  <strong>Partage des données d'utilisation</strong>
+                  <small>Aidez-nous à améliorer nos services en partageant des données anonymisées</small>
+                </div>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" [(ngModel)]="partageData">
@@ -488,17 +514,31 @@
             </div>
           </div>
 
-          <!-- ZONE DANGER -->
-          <h4 class="subsection-title danger-title" style="margin-top: 28px;">Zone critique</h4>
-          <div class="danger-zone">
-            <div class="danger-info">
-              <i class="bi bi-exclamation-triangle-fill"></i>
+          <!-- Export données -->
+          <div class="data-export-card">
+            <div class="export-info">
+              <div class="export-icon"><i class="bi bi-download"></i></div>
               <div>
-                <strong>Supprimer mon compte</strong>
-                <p>Cette action est irréversible. Toutes vos données seront définitivement supprimées.</p>
+                <strong>Exporter mes données</strong>
+                <p>Téléchargez une copie de vos données personnelles (RGPD)</p>
               </div>
             </div>
-            <button class="btn-danger">
+            <button class="btn-secondary" (click)="saveConfidentialite()">
+              <i class="bi bi-download"></i> Exporter
+            </button>
+          </div>
+
+          <!-- ZONE DANGER -->
+          <h4 class="subsection-title danger-title" style="margin-top: 28px;"><i class="bi bi-exclamation-triangle-fill"></i> Zone critique</h4>
+          <div class="danger-zone">
+            <div class="danger-info">
+              <div class="danger-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+              <div>
+                <strong>Supprimer mon compte</strong>
+                <p>Cette action est irréversible. Toutes vos données (commandes, véhicules, favoris) seront définitivement supprimées.</p>
+              </div>
+            </div>
+            <button class="btn-danger btn-danger-lg">
               <i class="bi bi-trash3-fill"></i> Supprimer mon compte
             </button>
           </div>
@@ -1035,6 +1075,10 @@
               <i class="bi bi-cash-coin"></i>
               <div><strong>{{ formatPrix(getFavorisTotalValue()) }}</strong><span>Valeur totale</span></div>
             </div>
+            <div class="fs-stat">
+              <i class="bi bi-graph-up"></i>
+              <div><strong>{{ formatPrix(getFavorisMoyenne()) }}</strong><span>Prix moyen</span></div>
+            </div>
           </div>
 
           <!-- État de chargement -->
@@ -1048,34 +1092,81 @@
             <i class="bi bi-exclamation-triangle-fill"></i> {{ favorisError }}
           </div>
 
+          <!-- Toolbar : recherche + tri -->
+          <div class="favoris-toolbar" *ngIf="!isLoadingFavoris && hasFavoris()">
+            <div class="favoris-search">
+              <i class="bi bi-search"></i>
+              <input type="text" [(ngModel)]="favorisRecherche" placeholder="Rechercher dans mes favoris..." />
+            </div>
+            <div class="favoris-sort">
+              <i class="bi bi-sort-down"></i>
+              <select [(ngModel)]="favorisTri">
+                <option value="recent">Plus récents</option>
+                <option value="ancien">Plus anciens</option>
+                <option value="prix_asc">Prix croissant</option>
+                <option value="prix_desc">Prix décroissant</option>
+                <option value="nom">Nom (A-Z)</option>
+              </select>
+            </div>
+            <button class="favoris-clear-btn" (click)="viderTousFavoris()" *ngIf="getFavoris().length > 1">
+              <i class="bi bi-trash3"></i> Tout retirer
+            </button>
+          </div>
+
+          <!-- Compteur de résultats -->
+          <div class="favoris-count" *ngIf="!isLoadingFavoris && hasFavoris()">
+            {{ getFavorisFiltres().length }} favori{{ getFavorisFiltres().length > 1 ? 's' : '' }} affiché{{ getFavorisFiltres().length > 1 ? 's' : '' }}
+            <span *ngIf="favorisRecherche && getFavorisFiltres().length !== getFavoris().length">
+              sur {{ getFavoris().length }}
+            </span>
+          </div>
+
           <!-- Liste des favoris -->
-          <div class="favoris-grid" *ngIf="!isLoadingFavoris && hasFavoris()">
-            <div class="favori-card" *ngFor="let favori of getFavoris(); let i = index" [style.animation-delay]="(i * 0.06) + 's'">
-              <div class="favori-image">
+          <div class="favoris-grid" *ngIf="!isLoadingFavoris && getFavorisFiltres().length > 0">
+            <div class="favori-card" *ngFor="let favori of getFavorisFiltres(); let i = index" [style.animation-delay]="(i * 0.06) + 's'">
+              <div class="favori-image" (click)="goToProduit(favori.produit_id)">
                 <img [src]="favori.image" [alt]="favori.produit_nom" />
+                <div class="favori-image-overlay">
+                  <span><i class="bi bi-eye"></i> Voir le produit</span>
+                </div>
                 <div class="favori-heart-badge"><i class="bi bi-heart-fill"></i></div>
               </div>
               <div class="favori-content">
-                <h4>{{ favori.produit_nom }}</h4>
+                <h4 (click)="goToProduit(favori.produit_id)">{{ favori.produit_nom }}</h4>
                 <div class="favori-meta">
                   <span class="favori-prix">{{ formatPrix(favori.prix) }}</span>
                   <span class="favori-date"><i class="bi bi-clock"></i> {{ formatDate(favori.date_ajout) }}</span>
                 </div>
                 <div class="favori-actions">
                   <button class="btn-sm btn-outline-red" (click)="goToProduit(favori.produit_id)">
-                    <i class="bi bi-shop-window"></i> Voir le produit
+                    <i class="bi bi-shop-window"></i> Voir
                   </button>
-                  <button class="btn-sm btn-danger" (click)="retirerDesFavoris(favori)">
-                    <i class="bi bi-heart-break"></i> Retirer
+                  <button class="btn-sm btn-favori-cart" (click)="ajouterFavoriAuPanier(favori)">
+                    <i class="bi bi-cart-plus"></i> Panier
+                  </button>
+                  <button class="btn-sm btn-favori-remove" (click)="retirerDesFavoris(favori)" title="Retirer des favoris">
+                    <i class="bi bi-heart-break"></i>
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Aucun résultat de recherche -->
+          <div class="empty-state favoris-no-result" *ngIf="!isLoadingFavoris && hasFavoris() && getFavorisFiltres().length === 0">
+            <i class="bi bi-search"></i>
+            <h3>Aucun favori trouvé</h3>
+            <p>Aucun favori ne correspond à votre recherche « {{ favorisRecherche }} ».</p>
+            <button class="btn-save" (click)="favorisRecherche = ''">
+              <i class="bi bi-arrow-clockwise"></i> Réinitialiser la recherche
+            </button>
+          </div>
+
           <!-- État vide -->
-          <div class="empty-state" *ngIf="!isLoadingFavoris && !hasFavoris()">
-            <i class="bi bi-heart"></i>
+          <div class="empty-state favoris-empty" *ngIf="!isLoadingFavoris && !hasFavoris()">
+            <div class="favoris-empty-icon">
+              <i class="bi bi-heart"></i>
+            </div>
             <h3>Aucun favori pour le moment</h3>
             <p>Ajoutez des pièces à vos favoris depuis le catalogue pour les retrouver ici.</p>
             <a routerLink="/catalog/auto" class="btn-save" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">

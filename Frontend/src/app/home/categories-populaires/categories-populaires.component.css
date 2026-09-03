@@ -1,0 +1,178 @@
+/* ================================================
+   CATÉGORIES POPULAIRES — AutoMecaStore
+   ================================================ */
+
+   .categories-populaires {
+    padding: 70px 0;
+    background: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .categories-populaires::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #6366f1, #8b5cf6, #6366f1, transparent);
+  }
+
+  .offers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    text-align: left;
+  }
+
+  .offers-header h2 {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #0f172a;
+  }
+
+  .offers-header p {
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(90deg, #e0e7ff, #ede9fe);
+    color: #6366f1;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    border: 1px solid #c7d2fe;
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+  }
+
+  .cat-card {
+    border-radius: 16px;
+    padding: 28px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.35s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+  }
+
+  .cat-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+  }
+
+  .cat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
+  }
+
+  .cat-icon i {
+    font-size: 28px;
+    color: white;
+  }
+
+  .cat-info {
+    flex: 1;
+  }
+
+  .cat-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: white;
+  }
+
+  .cat-count {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+  }
+
+  .cat-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .cat-card:hover .cat-arrow {
+    background: rgba(255,255,255,0.35);
+    transform: translateX(4px);
+  }
+
+  .cat-arrow i {
+    font-size: 16px;
+    color: white;
+  }
+
+  /* SKELETON */
+  .cat-card.skeleton {
+    background: #e5e7eb;
+    box-shadow: none;
+  }
+  .skeleton-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(90deg, #e0e0e0 25%, #d0d0d0 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .skeleton-line {
+    height: 16px; border-radius: 6px; flex: 1;
+    background: linear-gradient(90deg, #e0e0e0 25%, #d0d0d0 50%, #e0e0e0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .error-state {
+    background: #fff5f5; border: 1px solid #fecaca; color: #dc2626;
+    border-radius: 10px; padding: 16px 20px; font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .categories-populaires { padding: 44px 0; }
+    .offers-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .offers-header h2 { font-size: 22px; }
+  }
+
+  @media (max-width: 576px) {
+    .cat-grid { gap: 14px; }
+    .cat-card { padding: 20px 18px; }
+  }

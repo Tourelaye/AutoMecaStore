@@ -150,6 +150,15 @@
               <span class="product-nom" [title]="p.nom">
                 {{ p.nom | slice:0:35 }}{{ p.nom.length > 35 ? '...' : '' }}
               </span>
+              <div class="section-badges" *ngIf="p.est_vedette || p.est_recommande || p.est_tendance || p.est_bestseller || p.est_meilleure_offre || p.vente_eclair || p.est_en_promo">
+                <span class="sec-badge sec-badge--featured" *ngIf="p.est_vedette" title="Produit vedette"><i class="bi bi-star"></i> Vedette</span>
+                <span class="sec-badge sec-badge--recommended" *ngIf="p.est_recommande" title="Recommandé"><i class="bi bi-hand-thumbs-up"></i> Recommandé</span>
+                <span class="sec-badge sec-badge--trending" *ngIf="p.est_tendance" title="En vogue"><i class="bi bi-fire"></i> Vogue</span>
+                <span class="sec-badge sec-badge--bestseller" *ngIf="p.est_bestseller" title="Best-seller"><i class="bi bi-trophy"></i> Top vente</span>
+                <span class="sec-badge sec-badge--bestoffer" *ngIf="p.est_meilleure_offre" title="Meilleure offre"><i class="bi bi-award"></i> Offre</span>
+                <span class="sec-badge sec-badge--flash" *ngIf="p.est_en_promo" title="Vente flash"><i class="bi bi-lightning"></i> Flash</span>
+                <span class="sec-badge sec-badge--eclair" *ngIf="p.vente_eclair" title="Vente éclair"><i class="bi bi-stopwatch"></i> Éclair</span>
+              </div>
             </td>
 
             <!-- Référence -->

@@ -24,6 +24,8 @@ export interface ProductSections {
   bestSeller: boolean;
   trending: boolean;
   lightningSale: boolean;
+  featured: boolean;
+  recommended: boolean;
 }
 
 export interface QualityAlert {
@@ -124,7 +126,7 @@ export class ProduitService {
   }
 
   private defaultSections(): ProductSections {
-    return { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false };
+    return { bestOffer: false, flashSale: false, bestSeller: false, trending: false, lightningSale: false, featured: false, recommended: false };
   }
 
   private normalizeProduit(p: Produit): Produit {

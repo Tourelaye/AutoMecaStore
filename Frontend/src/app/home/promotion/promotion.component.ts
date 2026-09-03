@@ -86,6 +86,9 @@ export class PromotionComponent implements OnInit, OnDestroy {
       ? new Date(p.date_fin_promo)
       : this.addHours(24, 0); // 24h par défaut si pas de date
 
+    const nombreVentes = p.nombre_ventes || 0;
+    const stockRestant = Math.max(0, p.stock - nombreVentes);
+
     return {
       id: p.id,
       nom: p.nom,
@@ -94,7 +97,7 @@ export class PromotionComponent implements OnInit, OnDestroy {
       prixNouveau,
       discount,
       stock: p.stock,
-      stockRestant: Math.floor(p.stock * 0.5), // Simulation pour la barre de progression
+      stockRestant,
       expirationDate,
       categorie: p.categorie_nom || 'Pièce'
     };

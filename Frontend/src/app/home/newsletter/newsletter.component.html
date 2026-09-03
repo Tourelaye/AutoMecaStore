@@ -1,0 +1,44 @@
+<section class="newsletter">
+  <div class="container">
+    <div class="newsletter-card">
+      <div class="nl-bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+      </div>
+
+      <div class="nl-content">
+        <div class="nl-icon">
+          <i class="bi bi-envelope-paper-heart-fill"></i>
+        </div>
+        <h2>Restez informé de nos meilleures offres</h2>
+        <p>Recevez nos promotions exclusives, nouveaux arrivages et conseils mécaniques directement dans votre boîte mail</p>
+
+        <form class="nl-form" (ngSubmit)="subscribe()">
+          <div class="nl-input-wrap">
+            <i class="bi bi-envelope"></i>
+            <input
+              type="email"
+              placeholder="Entrez votre adresse email"
+              [(ngModel)]="email"
+              name="email"
+              required
+            >
+          </div>
+          <button type="submit" class="nl-btn" [disabled]="loading || !email">
+            <span *ngIf="!loading"><i class="bi bi-send-fill"></i> S'abonner</span>
+            <span *ngIf="loading"><i class="bi bi-hourglass-split spin"></i> Inscription...</span>
+          </button>
+        </form>
+
+        <div class="nl-success" *ngIf="subscribed">
+          <i class="bi bi-check-circle-fill"></i> Merci ! Vous êtes maintenant abonné à notre newsletter.
+        </div>
+
+        <div class="nl-trust">
+          <span><i class="bi bi-lock-fill"></i> Vos données sont protégées</span>
+          <span><i class="bi bi-x-circle"></i> Désabonnement à tout moment</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

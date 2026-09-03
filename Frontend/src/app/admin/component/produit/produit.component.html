@@ -225,6 +225,8 @@
               <span class="section-tag" *ngIf="p.sections.bestSeller" title="Top ventes"><i class="bi bi-trophy"></i></span>
               <span class="section-tag" *ngIf="p.sections.trending" title="En vogue"><i class="bi bi-fire"></i></span>
               <span class="section-tag" *ngIf="p.sections.lightningSale" title="Vente éclair"><i class="bi bi-stopwatch"></i></span>
+              <span class="section-tag" *ngIf="p.sections.featured" title="Produit vedette"><i class="bi bi-star"></i></span>
+              <span class="section-tag" *ngIf="p.sections.recommended" title="Recommandé"><i class="bi bi-hand-thumbs-up"></i></span>
             </div>
           </div>
 
@@ -430,6 +432,14 @@
           <label class="section-row">
             <input type="checkbox" [(ngModel)]="sectionsForm.lightningSale" />
             <span><i class="bi bi-stopwatch"></i> Vente éclair</span>
+          </label>
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.featured" />
+            <span><i class="bi bi-star"></i> Produit vedette</span>
+          </label>
+          <label class="section-row">
+            <input type="checkbox" [(ngModel)]="sectionsForm.recommended" />
+            <span><i class="bi bi-hand-thumbs-up"></i> Recommandé pour vous</span>
           </label>
         </div>
       </ng-container>

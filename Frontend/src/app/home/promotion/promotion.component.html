@@ -22,7 +22,7 @@
   
       <!-- LOADING -->
       <div class="loading-state" *ngIf="isLoading">
-        <div class="skeleton-card" *ngFor="let i of [1,2,3]">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3,4]">
           <div class="skeleton-img"></div>
           <div class="skeleton-lines">
             <div class="skeleton-line"></div>
@@ -43,16 +43,16 @@
           class="product-card"
           *ngFor="let produit of produits; let i = index"
         >
-          <!-- BADGE REDUCTION -->
-          <span class="discount">-{{ produit.discount }}%</span>
-  
-          <!-- BADGE EXPIRÉ -->
-          <span class="expired-badge" *ngIf="timers[i]?.expired">
-            <i class="bi bi-x-circle"></i> Expiré
-          </span>
-  
           <!-- IMAGE -->
           <div class="product-image">
+            <!-- BADGE REDUCTION -->
+            <span class="discount">-{{ produit.discount }}%</span>
+
+            <!-- BADGE EXPIRÉ -->
+            <span class="expired-badge" *ngIf="timers[i]?.expired">
+              <i class="bi bi-x-circle"></i> Expiré
+            </span>
+
             <img
               *ngIf="produit.image; else noImage"
               [src]="produit.image"
@@ -89,16 +89,32 @@
             </div>
   
             <!-- BARRE DE STOCK -->
-            <div class="stock-info">
-              <span>{{ getStockVendu(produit) }} vendus sur {{ produit.stock }}</span>
-              <span class="stock-restant">{{ produit.stockRestant }} restants</span>
-            </div>
-            <div class="progress">
-              <div
-                class="progress-bar"
-                [style.width.%]="getProgressPercent(produit)"
-                [class.progress-danger]="produit.stockRestant <= 3"
-              ></div>
+            <div class="stock-section">
+              <div class="stock-info">
+                <span class="stock-sold">
+                  <i class="bi bi-fire"></i>
+                  {{ getStockVendu(produit) }} vendus
+                  <span class="stock-percent">({{ getProgressPercent(produit) }}%)</span>
+                </span>
+                <span class="stock-restant" [class.danger]="produit.stockRestant <= 3">
+                  <i class="bi bi-box-seam"></i>
+                  {{ produit.stockRestant }} restants
+                </span>
+              </div>
+              <div class="progress">
+                <div
+                  class="progress-bar"
+                  [style.width.%]="getProgressPercent(produit)"
+                  [class.progress-danger]="produit.stockRestant <= 3"
+                  [class.progress-warning]="produit.stockRestant > 3 && produit.stockRestant <= 6"
+                ></div>
+              </div>
+              <span class="stock-urgency" *ngIf="produit.stockRestant <= 3 && produit.stockRestant > 0">
+                <i class="bi bi-exclamation-triangle-fill"></i> Plus que {{ produit.stockRestant }} en stock !
+              </span>
+              <span class="stock-hot" *ngIf="getProgressPercent(produit) >= 70">
+                <i class="bi bi-trend-up"></i> Très demandé
+              </span>
             </div>
   
             <!-- BOUTON -->

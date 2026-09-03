@@ -701,6 +701,8 @@ def build_produit_admin_data(produit, duplicate_ids=None):
             'bestSeller': produit.est_bestseller,
             'trending': produit.est_tendance,
             'lightningSale': produit.vente_eclair,
+            'featured': produit.est_vedette,
+            'recommended': produit.est_recommande,
         },
         'alerts': _quality_alerts(produit, duplicate_ids),
         'compatibility': {
@@ -896,6 +898,8 @@ class AdminProduitSectionsView(APIView):
             produit.est_bestseller = bool(data.get('bestSeller', produit.est_bestseller))
             produit.est_tendance = bool(data.get('trending', produit.est_tendance))
             produit.vente_eclair = bool(data.get('lightningSale', produit.vente_eclair))
+            produit.est_vedette = bool(data.get('featured', produit.est_vedette))
+            produit.est_recommande = bool(data.get('recommended', produit.est_recommande))
             produit.save()
             return Response(map_produit_to_admin(produit))
         except Produit.DoesNotExist:

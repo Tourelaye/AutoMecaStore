@@ -1,0 +1,139 @@
+.promo-banners {
+  padding: 30px 0;
+}
+
+.banners-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.banner-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  align-items: flex-end;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+  animation: bannerFadeIn 0.5s ease both;
+}
+
+@keyframes bannerFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.banner-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+}
+
+.banner-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient);
+  transition: transform 0.4s ease;
+}
+
+.banner-card:hover .banner-bg {
+  transform: scale(1.08);
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
+}
+
+.banner-content {
+  position: relative;
+  z-index: 1;
+  padding: 18px 20px;
+  width: 100%;
+}
+
+.banner-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.banner-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.banner-content h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: white;
+}
+
+.banner-content p {
+  font-size: 12.5px;
+  margin: 0 0 10px;
+  opacity: 0.9;
+}
+
+.banner-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.banner-features span {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+}
+
+.banner-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  transition: gap 0.2s ease;
+}
+
+.banner-card:hover .banner-cta {
+  gap: 12px;
+}
+
+@media (max-width: 1000px) {
+  .banners-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .banners-grid {
+    grid-template-columns: 1fr;
+  }
+}

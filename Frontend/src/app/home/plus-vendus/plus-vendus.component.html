@@ -49,7 +49,9 @@
         <div class="product-image">
 
           <!-- MÉDAILLE RANG -->
-          <div class="medaille">{{ getMedaille(produit.rang) }}</div>
+          <div class="rang-badge" [class.rang-1]="produit.rang === 1" [class.rang-2]="produit.rang === 2" [class.rang-3]="produit.rang === 3">
+            <span class="rang-num">{{ produit.rang }}</span>
+          </div>
 
           <!-- BADGES -->
           <div class="badges-top">
