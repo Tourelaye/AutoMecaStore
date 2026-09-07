@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
+import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
 
 export interface OffreProduit {
   id: number;
@@ -17,12 +18,24 @@ export interface OffreProduit {
   livraison: boolean;
   badge: { label: string; type: 'orange' | 'green' | 'blue' } | null;
   stock: number;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 @Component({
   selector: 'app-offre',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent],
   templateUrl: './offre.component.html',
   styleUrls: ['./offre.component.css']
 })
@@ -87,7 +100,19 @@ export class OffreComponent implements OnInit {
       avis: p.nombre_avis ?? 0,
       livraison: true,
       badge,
-      stock: p.stock
+      stock: p.stock,
+      badges: p.badges || [],
+      prix: p.prix,
+      prix_promo: p.prix_promo ?? null,
+      est_en_promo: p.est_en_promo,
+      seuil_alerte: p.seuil_alerte,
+      date_ajout: p.date_ajout,
+      nombre_ventes: p.nombre_ventes,
+      vente_eclair: p.vente_eclair,
+      est_recommande: p.est_recommande,
+      statut_approbation: p.statut_approbation,
+      livraison_disponible: p.livraison_disponible,
+      retrait_magasin: p.retrait_magasin
     };
   }
 
@@ -125,5 +150,13 @@ export class OffreComponent implements OnInit {
   // -------------------------------------------------------
   isStockFaible(produit: OffreProduit): boolean {
     return produit.stock > 0 && produit.stock <= 5;
+  }
+
+  getDiscountPct(produit: OffreProduit): number {
+    if (produit.discount) return produit.discount;
+    if (produit.prixAncien && produit.prixNouveau) {
+      return Math.round((1 - produit.prixNouveau / produit.prixAncien) * 100);
+    }
+    return 0;
   }
 }

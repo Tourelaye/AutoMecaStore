@@ -54,9 +54,7 @@
           </div>
 
           <!-- BADGES -->
-          <div class="badges-top">
-            <span class="badge badge-orange">{{ produit.badge }}</span>
-          </div>
+          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
 
           <!-- TIMER -->
           <div class="timer-badge" *ngIf="timers[i] && !timers[i].expired">
@@ -65,11 +63,6 @@
           </div>
           <div class="timer-badge expired" *ngIf="timers[i]?.expired">
             <i class="bi bi-clock-history"></i> Expiré
-          </div>
-
-          <!-- STOCK FAIBLE -->
-          <div class="stock-faible" *ngIf="isStockFaible(produit)">
-            <i class="bi bi-fire"></i> Plus que {{ produit.stock }} en stock !
           </div>
 
           <!-- RUPTURE -->
@@ -132,6 +125,8 @@
           <p class="delivery" *ngIf="produit.livraison">
             <i class="bi bi-truck"></i> Livraison gratuite
           </p>
+
+          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
 
           <!-- BOUTON PANIER -->
           <button

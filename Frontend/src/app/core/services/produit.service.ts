@@ -117,6 +117,7 @@ export interface Produit {
   offres?: Offre[];
   avis?: AvisProduit[];
   distribution_etoiles?: DistributionEtoiles;
+  badges?: any[];
 }
 
 export interface ProduitCompatibilite {
@@ -166,6 +167,7 @@ export interface Offre {
   distance_km?: number | null;
   badge?: string | null;
   badges?: string[];
+  offer_badges?: any[];
 }
 
 export interface AvisProduit {
@@ -206,6 +208,17 @@ export class ProduitService {
   // ---------------------------------
   // Magasin
   // ---------------------------------
+  getMagasins(params?: { search?: string; livraison?: boolean; retrait?: boolean; sort?: string; lat?: number | null; lng?: number | null }): Observable<MagasinDetail[]> {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set('search', params.search);
+    if (params?.livraison) httpParams = httpParams.set('livraison', 'true');
+    if (params?.retrait) httpParams = httpParams.set('retrait', 'true');
+    if (params?.sort) httpParams = httpParams.set('sort', params.sort);
+    if (params?.lat != null) httpParams = httpParams.set('lat', params.lat.toString());
+    if (params?.lng != null) httpParams = httpParams.set('lng', params.lng.toString());
+    return this.http.get<MagasinDetail[]>(`${this.apiUrl}/magasins/`, { params: httpParams });
+  }
+
   getMagasin(id: number, lat?: number | null, lng?: number | null): Observable<MagasinDetail> {
     let params = new HttpParams();
     if (lat != null) params = params.set('lat', lat.toString());

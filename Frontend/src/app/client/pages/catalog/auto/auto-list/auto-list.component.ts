@@ -7,6 +7,7 @@ import { ProduitService } from '../../../../../core/services/produit.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { MonCompteService } from '../../../../../core/services/mon-compte.service';
 import { Produit } from '../../../../../models/produit.model';
+import { ProductBadgesComponent } from '../../../../../shared/components/product-badges/product-badges.component';
 
 export interface AutoProduit {
   id: number;
@@ -23,13 +24,25 @@ export interface AutoProduit {
   livraison: boolean;
   isFavori: boolean;
   isNew: boolean;
-  categorie: string; // sous-catégorie auto
+  categorie: string;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 @Component({
   selector: 'app-auto-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ProductBadgesComponent],
   templateUrl: './auto-list.component.html',
   styleUrls: ['./auto-list.component.css']
 })
@@ -52,13 +65,13 @@ export class AutoListComponent implements OnInit {
   categorieActive = 'tous';
 
   sousCategoriesAuto = [
-    { key: 'tous',        label: 'Toutes' },
-    { key: 'freinage',    label: '🔴 Freinage' },
-    { key: 'moteur',      label: '⚙️ Moteur' },
-    { key: 'filtration',  label: '🌀 Filtration' },
-    { key: 'suspension',  label: '🔧 Suspension' },
-    { key: 'transmission',label: '⛓️ Transmission' },
-    { key: 'eclairage',   label: '💡 Éclairage' },
+    { key: 'tous',        label: 'Toutes',         icon: 'bi-grid' },
+    { key: 'freinage',    label: 'Freinage',       icon: 'bi-disc' },
+    { key: 'moteur',      label: 'Moteur',         icon: 'bi-gear-fill' },
+    { key: 'filtration',  label: 'Filtration',     icon: 'bi-funnel-fill' },
+    { key: 'suspension',  label: 'Suspension',     icon: 'bi-arrows-expand' },
+    { key: 'transmission',label: 'Transmission',   icon: 'bi-link-45deg' },
+    { key: 'eclairage',   label: 'Éclairage',      icon: 'bi-lightbulb-fill' },
   ];
 
   // Mapping des types de pièce (nom -> ID)
@@ -159,7 +172,19 @@ export class AutoListComponent implements OnInit {
           livraison: true,
           isFavori: false,
           isNew: p.is_new ?? this.isProduitNouveau(p.date_ajout),
-          categorie: this.mapCategorieToAuto(p.type_piece_nom || '')
+          categorie: this.mapCategorieToAuto(p.type_piece_nom || ''),
+          badges: p.badges || [],
+          prix: parseFloat(p.prix),
+          prix_promo: p.prix_promo ? parseFloat(p.prix_promo) : null,
+          est_en_promo: p.est_en_promo,
+          seuil_alerte: p.seuil_alerte,
+          date_ajout: p.date_ajout,
+          nombre_ventes: p.nombre_ventes,
+          vente_eclair: p.vente_eclair,
+          est_recommande: p.est_recommande,
+          statut_approbation: p.statut_approbation,
+          livraison_disponible: p.livraison_disponible,
+          retrait_magasin: p.retrait_magasin
         }));
 
         console.log('Produits mappés:', this.tousLesProduits);

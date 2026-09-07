@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
+import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
 
 export interface PlusVenduProduit {
   id: number;
@@ -18,7 +19,19 @@ export interface PlusVenduProduit {
   stock: number;
   livraison: boolean;
   rang: number;
-  ventesSemaine: number; // nombre de ventes cette semaine
+  ventesSemaine: number;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 interface TimerDisplay {
@@ -31,7 +44,7 @@ interface TimerDisplay {
 @Component({
   selector: 'app-plus-vendus',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent],
   templateUrl: './plus-vendus.component.html',
   styleUrls: ['./plus-vendus.component.css']
 })
@@ -97,7 +110,19 @@ export class PlusVendusComponent implements OnInit, OnDestroy {
       stock: p.stock,
       livraison: true,
       rang: index + 1,
-      ventesSemaine: p.nombre_ventes || 0
+      ventesSemaine: p.nombre_ventes || 0,
+      badges: p.badges || [],
+      prix: p.prix,
+      prix_promo: p.prix_promo ?? null,
+      est_en_promo: p.est_en_promo,
+      seuil_alerte: p.seuil_alerte,
+      date_ajout: p.date_ajout,
+      nombre_ventes: p.nombre_ventes,
+      vente_eclair: p.vente_eclair,
+      est_recommande: p.est_recommande,
+      statut_approbation: p.statut_approbation,
+      livraison_disponible: p.livraison_disponible,
+      retrait_magasin: p.retrait_magasin
     };
   }
 

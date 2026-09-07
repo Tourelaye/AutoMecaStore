@@ -414,6 +414,10 @@ class ProduitSerializer(serializers.ModelSerializer):
 
     compatibilite_vehicule = serializers.SerializerMethodField()
 
+    # Badges automatiques
+
+    badges = serializers.SerializerMethodField()
+
 
 
     class Meta:
@@ -490,11 +494,15 @@ class ProduitSerializer(serializers.ModelSerializer):
 
             # Compatibilité dynamique
 
-            'compatibilite_vehicule'
+            'compatibilite_vehicule',
+
+            # Badges automatiques
+
+            'badges',
 
         ]
 
-        read_only_fields = ['date_suppression', 'categorie_detail', 'categorie_nom', 'type_piece_detail', 'type_piece_nom', 'image_url', 'image_2_url', 'image_3_url', 'image_4_url', 'nombre_vues', 'nombre_favoris', 'nombre_ventes', 'note_moyenne', 'nombre_avis', 'nombre_magasins', 'date_ajout', 'is_new', 'date_derniere_maj_stock', 'statut_stock', 'compatibilite_vehicule']
+        read_only_fields = ['date_suppression', 'categorie_detail', 'categorie_nom', 'type_piece_detail', 'type_piece_nom', 'image_url', 'image_2_url', 'image_3_url', 'image_4_url', 'nombre_vues', 'nombre_favoris', 'nombre_ventes', 'note_moyenne', 'nombre_avis', 'nombre_magasins', 'date_ajout', 'is_new', 'date_derniere_maj_stock', 'statut_stock', 'compatibilite_vehicule', 'badges']
 
         extra_kwargs = {
 
@@ -743,6 +751,175 @@ class ProduitSerializer(serializers.ModelSerializer):
             return None
 
         return evaluer_compatibilite(obj, vehicule)
+
+
+
+    def get_badges(self, obj):
+        """Calcule automatiquement les badges du produit à partir des données réelles."""
+        from decimal import Decimal
+        badges = []
+
+        stock = obj.stock or 0
+        seuil = obj.seuil_alerte if obj.seuil_alerte is not None else 5
+        now = timezone.now()
+
+        # 1. RUPTURE DE STOCK (priorité 1)
+        if stock == 0:
+            badges.append({
+                'type': 'out_of_stock',
+                'label': 'Rupture',
+                'icon': 'bi-x-circle-fill',
+                'priority': 1,
+                'color': '#dc2626',
+                'position': 'top_right',
+            })
+
+        # 2. PROMO (priorité 2)
+        if obj.est_en_promo and obj.prix_promo and obj.prix_promo < obj.prix:
+            pct = obj.pourcentage_reduction
+            if not pct:
+                try:
+                    pct = int(round((1 - float(obj.prix_promo) / float(obj.prix)) * 100))
+                except (ZeroDivisionError, TypeError):
+                    pct = 0
+            badges.append({
+                'type': 'promo',
+                'label': f'-{pct}%' if pct > 0 else 'PROMO',
+                'icon': 'bi-fire',
+                'priority': 2,
+                'color': '#ff5a00',
+                'position': 'top_left',
+            })
+
+        # 3. NOUVEAU (priorité 3) — 72 heures
+        if obj.date_ajout and (now - obj.date_ajout) <= timedelta(hours=72):
+            badges.append({
+                'type': 'new',
+                'label': 'Nouveau',
+                'icon': 'bi-stars',
+                'priority': 3,
+                'color': '#1d4ed8',
+                'position': 'top_left',
+            })
+
+        # 4. DERNIÈRES PIÈCES (priorité 4) — stock entre 1 et 5
+        if 0 < stock <= 5:
+            badges.append({
+                'type': 'last_items',
+                'label': f'Plus que {stock}',
+                'icon': 'bi-fire',
+                'priority': 4,
+                'color': '#f59e0b',
+                'position': 'top_right',
+            })
+        # 4b. STOCK LIMITÉ (priorité 4) — stock <= seuil mais > 5
+        elif 0 < stock <= seuil:
+            badges.append({
+                'type': 'low_stock',
+                'label': 'Stock limité',
+                'icon': 'bi-exclamation-triangle-fill',
+                'priority': 4,
+                'color': '#f59e0b',
+                'position': 'top_right',
+            })
+
+        # 5. MEILLEUR PRIX (priorité 5) — si plusieurs offres et ce produit a le prix le plus bas
+        fps = FournisseurProduit.objects.filter(produit=obj)
+        if fps.count() > 1:
+            prices = []
+            for fp in fps:
+                p = fp.prix_vente if fp.prix_vente is not None else obj.prix
+                prices.append(float(p))
+            min_price = min(prices)
+            product_price = float(obj.prix_promo) if (obj.est_en_promo and obj.prix_promo) else float(obj.prix)
+            if product_price == min_price:
+                badges.append({
+                    'type': 'best_price',
+                    'label': 'Meilleur prix',
+                    'icon': 'bi-cash-coin',
+                    'priority': 5,
+                    'color': '#059669',
+                    'position': 'bottom_left',
+                })
+
+        # 6. PLUS VENDU (priorité 6) — basé sur nombre_ventes ou LigneCommande
+        ventes = obj.nombre_ventes or 0
+        if ventes == 0:
+            try:
+                from orders.models import LigneCommande
+                ventes = LigneCommande.objects.filter(produit=obj).aggregate(
+                    total=Count('id')
+                )['total'] or 0
+            except Exception:
+                pass
+        if ventes >= 10:
+            badges.append({
+                'type': 'best_seller',
+                'label': 'Plus vendu',
+                'icon': 'bi-trophy-fill',
+                'priority': 6,
+                'color': '#7c3aed',
+                'position': 'bottom_left',
+            })
+
+        # 7. LIVRAISON DISPONIBLE (priorité 7)
+        if obj.livraison_disponible:
+            badges.append({
+                'type': 'delivery',
+                'label': 'Livraison',
+                'icon': 'bi-truck',
+                'priority': 7,
+                'color': '#059669',
+                'position': 'bottom_right',
+            })
+
+        # 8. RETRAIT EN MAGASIN (priorité 7)
+        if obj.retrait_magasin:
+            badges.append({
+                'type': 'pickup',
+                'label': 'Retrait',
+                'icon': 'bi-shop',
+                'priority': 7,
+                'color': '#1d4ed8',
+                'position': 'bottom_right',
+            })
+
+        # 9. OFFRE SPÉCIALE / VENTE ÉCLAIR (priorité 5)
+        if obj.vente_eclair:
+            badges.append({
+                'type': 'special_offer',
+                'label': 'Offre spéciale',
+                'icon': 'bi-lightning-charge-fill',
+                'priority': 5,
+                'color': '#f59e0b',
+                'position': 'top_left',
+            })
+
+        # 10. RECOMMANDÉ (priorité 6)
+        if obj.est_recommande:
+            badges.append({
+                'type': 'recommended',
+                'label': 'Recommandé',
+                'icon': 'bi-hand-thumbs-up-fill',
+                'priority': 6,
+                'color': '#059669',
+                'position': 'bottom_left',
+            })
+
+        # 11. VÉRIFIÉ (priorité 8) — statut_approbation == approuve
+        if obj.statut_approbation == 'approuve':
+            badges.append({
+                'type': 'verified',
+                'label': 'Vérifié',
+                'icon': 'bi-patch-check-fill',
+                'priority': 8,
+                'color': '#059669',
+                'position': 'bottom_right',
+            })
+
+        # Trier par priorité
+        badges.sort(key=lambda b: b['priority'])
+        return badges
 
 
 
@@ -1624,15 +1801,23 @@ class ProduitDetailSerializer(ProduitSerializer):
 
     def _build_offre(self, fournisseur, produit, distance_km=None, badge=None, fp=None, badges=None):
 
+        # fournisseur est un catalog.Fournisseur ; on résout l'account.Fournisseur
+
+        account_fournisseur = None
+
         magasin = None
 
         if fournisseur and fournisseur.administrateur:
 
             try:
 
-                magasin = fournisseur.administrateur.magasin
+                account_fournisseur = fournisseur.administrateur.fournisseur
 
-            except (Magasin.DoesNotExist, AttributeError):
+                magasin = account_fournisseur.magasin
+
+            except (Fournisseur.DoesNotExist, Magasin.DoesNotExist, AttributeError):
+
+                account_fournisseur = None
 
                 magasin = None
 
@@ -1660,9 +1845,27 @@ class ProduitDetailSerializer(ProduitSerializer):
 
 
 
+        # Calculer les badges de l'offre
+        offer_badges = []
+        if stock == 0:
+            offer_badges.append({'type': 'out_of_stock', 'label': 'Rupture', 'icon': 'bi-x-circle-fill', 'priority': 1, 'color': '#dc2626'})
+        elif 0 < stock <= 5:
+            offer_badges.append({'type': 'last_items', 'label': f'Plus que {stock}', 'icon': 'bi-fire', 'priority': 4, 'color': '#f59e0b'})
+        elif 0 < stock <= (produit.seuil_alerte or 5):
+            offer_badges.append({'type': 'low_stock', 'label': 'Stock limité', 'icon': 'bi-exclamation-triangle-fill', 'priority': 4, 'color': '#f59e0b'})
+
+        livraison = magasin.livraison_disponible if magasin else produit.livraison_disponible
+        retrait = magasin.retrait_magasin if magasin else produit.retrait_magasin
+        if livraison:
+            offer_badges.append({'type': 'delivery', 'label': 'Livraison', 'icon': 'bi-truck', 'priority': 7, 'color': '#059669'})
+        if retrait:
+            offer_badges.append({'type': 'pickup', 'label': 'Retrait', 'icon': 'bi-shop', 'priority': 7, 'color': '#1d4ed8'})
+
+        offer_badges.sort(key=lambda b: b['priority'])
+
         return {
 
-            'fournisseur': FournisseurSimpleSerializer(fournisseur).data if fournisseur else None,
+            'fournisseur': FournisseurSimpleSerializer(account_fournisseur).data if account_fournisseur else None,
 
             'magasin': MagasinSimpleSerializer(magasin, context=self.context).data if magasin else None,
 
@@ -1670,9 +1873,9 @@ class ProduitDetailSerializer(ProduitSerializer):
 
             'stock': stock,
 
-            'livraison_disponible': magasin.livraison_disponible if magasin else produit.livraison_disponible,
+            'livraison_disponible': livraison,
 
-            'retrait_magasin': magasin.retrait_magasin if magasin else produit.retrait_magasin,
+            'retrait_magasin': retrait,
 
             'delai_livraison': produit.delai_livraison or '2_5j',
 
@@ -1680,7 +1883,9 @@ class ProduitDetailSerializer(ProduitSerializer):
 
             'badge': badge,
 
-            'badges': badges or [badge]
+            'badges': badges or [badge],
+
+            'offer_badges': offer_badges,
 
         }
 
@@ -1704,7 +1909,7 @@ class ProduitDetailSerializer(ProduitSerializer):
 
                 continue
 
-            is_principal = bool(obj.fournisseur and obj.fournisseur.user == f.administrateur)
+            is_principal = bool(obj.fournisseur and f.administrateur and obj.fournisseur.user_id == f.administrateur_id)
 
             badge = 'principal' if is_principal else 'partenaire'
 
@@ -1740,6 +1945,9 @@ class ProduitDetailSerializer(ProduitSerializer):
 
                     badges.append('meilleur_prix')
 
+                    # Also add structured badge to offer_badges
+                    offre['offer_badges'].append({'type': 'best_price', 'label': 'Meilleur prix', 'icon': 'bi-cash-coin', 'priority': 5, 'color': '#059669'})
+
                 if min_dist is not None and offre['distance_km'] is not None and offre['distance_km'] == min_dist:
 
                     badges.append('plus_proche')
@@ -1753,6 +1961,9 @@ class ProduitDetailSerializer(ProduitSerializer):
                     badges.append(offre['badge'])
 
                 offre['badges'] = badges
+
+                # Re-sort offer_badges by priority
+                offre['offer_badges'].sort(key=lambda b: b['priority'])
 
 
 

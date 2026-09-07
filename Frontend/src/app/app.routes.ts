@@ -13,6 +13,7 @@ import { AideComponent } from './client/pages/aide/aide.component';
 import { FaqComponent } from './client/pages/faq/faq.component';
 import { PanierComponent } from './client/pages/panier/panier.component';
 import { MagasinDetailComponent } from './client/pages/magasin-detail/magasin-detail.component';
+import { MagasinsListComponent } from './client/pages/magasins-list/magasins-list.component';
 import { MonCompteComponent } from './client/pages/mon-compte/mon-compte.component';
 import { fournisseurRoutes } from './fournisseur/fournisseur.routes';
 import { clientGuard } from './core/guards/client.guard';
@@ -33,6 +34,7 @@ export const routes: Routes = [
   { path: 'produits',            component: ProduitsComponent },
   { path: 'recherche',           component: RechercheComponent },
   { path: 'notifications', redirectTo: 'mon-compte/notifications', pathMatch: 'full' },
+  { path: 'magasins',             component: MagasinsListComponent },
   { path: 'magasins/:id',        component: MagasinDetailComponent },
 
   // ===== ESPACE CLIENT =====

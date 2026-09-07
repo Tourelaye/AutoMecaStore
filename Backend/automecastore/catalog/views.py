@@ -377,9 +377,14 @@ class ProduitListCreateView(generics.ListCreateAPIView):
                     distances = {}
                     fps = FournisseurProduit.objects.filter(
                         produit_id__in=produit_ids
-                    ).select_related('fournisseur__administrateur__magasin')
+                    ).select_related('fournisseur__administrateur')
                     for fp in fps:
-                        m = getattr(fp.fournisseur.administrateur, 'magasin', None) if fp.fournisseur.administrateur else None
+                        m = None
+                        if fp.fournisseur and fp.fournisseur.administrateur:
+                            try:
+                                m = fp.fournisseur.administrateur.fournisseur.magasin
+                            except (AttributeError, Exception):
+                                m = None
                         if m and m.latitude is not None and m.longitude is not None:
                             d = _haversine_distance(lat_val, lng_val, float(m.latitude), float(m.longitude))
                             if d < distances.get(fp.produit_id, float('inf')):
@@ -1330,6 +1335,40 @@ class DemandePieceDetailView(APIView):
 # -----------------------------
 # Magasin
 # -----------------------------
+class MagasinListView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        queryset = Magasin.objects.select_related('fournisseur').all()
+
+        # Filtre recherche (nom, ville, region)
+        search = request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(nom_magasin__icontains=search) |
+                Q(ville__icontains=search) |
+                Q(region__icontains=search)
+            )
+
+        # Filtre livraison
+        if request.query_params.get('livraison') == 'true':
+            queryset = queryset.filter(livraison_disponible=True)
+
+        # Filtre retrait
+        if request.query_params.get('retrait') == 'true':
+            queryset = queryset.filter(retrait_magasin=True)
+
+        # Tri
+        sort = request.query_params.get('sort', 'nom')
+        if sort == 'nom':
+            queryset = queryset.order_by('nom_magasin')
+        elif sort == 'note':
+            queryset = queryset.order_by('-note_moyenne', 'nom_magasin')
+
+        serializer = MagasinSimpleSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
 class MagasinDetailView(APIView):
     permission_classes = [permissions.AllowAny]
 

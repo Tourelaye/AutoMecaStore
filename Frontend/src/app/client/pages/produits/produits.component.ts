@@ -24,6 +24,8 @@ import { HomeService } from '../../../core/services/home.service';
 
 import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 
+import { ProductBadgesComponent } from '../../../shared/components/product-badges/product-badges.component';
+
 import { AuthService } from '../../../core/services/auth.service';
 
 import { Subscription } from 'rxjs';
@@ -52,7 +54,7 @@ import {
 
   standalone: true,
 
-  imports: [CommonModule, DecimalPipe, TitleCasePipe, RouterLink, ScrollRevealDirective, ReactiveFormsModule],
+  imports: [CommonModule, DecimalPipe, TitleCasePipe, RouterLink, ScrollRevealDirective, ReactiveFormsModule, ProductBadgesComponent],
 
   templateUrl: './produits.component.html',
 

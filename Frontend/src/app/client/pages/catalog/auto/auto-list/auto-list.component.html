@@ -72,7 +72,7 @@
       [class.active]="categorieActive === cat.key"
       (click)="setCategorieActive(cat.key)"
     >
-      {{ cat.label }}
+      <i class="bi {{ cat.icon }}"></i> {{ cat.label }}
     </button>
   </div>
 
@@ -201,24 +201,9 @@
           (click)="goToProduit(p.id)"
         >
 
-          <!-- BADGES -->
-          <div class="badges-row">
-            <span class="badge-discount" *ngIf="p.discount">-{{ p.discount }}%</span>
-            <span class="badge-new" *ngIf="p.isNew">✨ Nouveau</span>
-          </div>
-
-          <!-- STOCK FAIBLE -->
-          <div class="stock-faible" *ngIf="isStockFaible(p)">
-            <i class="bi bi-fire"></i> {{ p.stock }} restants
-          </div>
-
-          <!-- RUPTURE -->
-          <div class="stock-out" *ngIf="p.stock === 0">
-            <i class="bi bi-x-circle"></i> Rupture
-          </div>
-
-          <!-- IMAGE -->
+          <!-- IMAGE + OVERLAY BADGES -->
           <div class="product-img">
+            <app-product-badges [product]="p" [maxBadges]="3" placement="overlay"></app-product-badges>
             <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
             <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
           </div>
@@ -259,6 +244,8 @@
             <span class="old-price" *ngIf="p.prixAncien">{{ p.prixAncien | number:'1.2-2' }} FCFA</span>
           </div>
 
+          <app-product-badges [product]="p" [maxBadges]="5" placement="info"></app-product-badges>
+
           <button
             class="btn-cart"
             (click)="goToProduit(p.id); $event.stopPropagation()"
@@ -283,18 +270,17 @@
           (click)="goToProduit(p.id)"
         >
 
-          <!-- IMAGE -->
+          <!-- IMAGE + BADGES -->
           <div class="product-img list-img">
+            <app-product-badges [product]="p" [maxBadges]="2" placement="overlay"></app-product-badges>
             <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
             <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>
-            <span class="badge-discount list-badge" *ngIf="p.discount">-{{ p.discount }}%</span>
           </div>
 
           <!-- MILIEU -->
           <div class="product-middle">
             <div class="brand-row-list">
               <h6 class="brand">{{ p.marque }}</h6>
-              <span class="badge-new-sm" *ngIf="p.isNew">Nouveau</span>
             </div>
             <h5 class="product-title">{{ p.nom }}</h5>
             <p class="product-desc">{{ p.description }}</p>
@@ -309,17 +295,7 @@
               <span class="avis-count" *ngIf="p.avis > 0">({{ p.avis }} avis)</span>
               <span class="avis-count" *ngIf="p.avis === 0">Aucune évaluation</span>
             </div>
-            <div class="list-tags">
-              <span class="tag-livraison" *ngIf="p.livraison">
-                <i class="bi bi-truck"></i> Livraison gratuite
-              </span>
-              <span class="tag-stock-faible" *ngIf="isStockFaible(p)">
-                <i class="bi bi-fire"></i> {{ p.stock }} en stock
-              </span>
-              <span class="tag-rupture" *ngIf="p.stock === 0">
-                <i class="bi bi-x-circle"></i> Rupture
-              </span>
-            </div>
+            <app-product-badges [product]="p" [maxBadges]="5" placement="info"></app-product-badges>
           </div>
 
           <!-- DROITE -->

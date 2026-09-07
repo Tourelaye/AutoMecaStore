@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
+import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
 
 export interface VenteEclairProduit {
   id: number;
@@ -15,8 +16,20 @@ export interface VenteEclairProduit {
   stock: number;
   stockTotal: number;
   livraison: boolean;
-  expirationDate: Date;  // timer individuel par produit
-  heureFin: string;      // heure de fin de la vente éclair
+  expirationDate: Date;
+  heureFin: string;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 interface TimerDisplay {
@@ -30,7 +43,7 @@ interface TimerDisplay {
 @Component({
   selector: 'app-vente-eclair',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent],
   templateUrl: './vente-eclair.component.html',
   styleUrls: ['./vente-eclair.component.css']
 })
@@ -114,10 +127,22 @@ export class VenteEclairComponent implements OnInit, OnDestroy {
       prixAncien,
       discount,
       stock: p.stock,
-      stockTotal: p.stock + Math.floor(Math.random() * 10), // Simulation
+      stockTotal: p.stock + Math.floor(Math.random() * 10),
       livraison: true,
       expirationDate,
-      heureFin
+      heureFin,
+      badges: p.badges || [],
+      prix: p.prix,
+      prix_promo: p.prix_promo ?? null,
+      est_en_promo: p.est_en_promo,
+      seuil_alerte: p.seuil_alerte,
+      date_ajout: p.date_ajout,
+      nombre_ventes: p.nombre_ventes,
+      vente_eclair: p.vente_eclair,
+      est_recommande: p.est_recommande,
+      statut_approbation: p.statut_approbation,
+      livraison_disponible: p.livraison_disponible,
+      retrait_magasin: p.retrait_magasin
     };
   }
 

@@ -7,6 +7,7 @@ import { ProduitService } from '../../../../../core/services/produit.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 import { MonCompteService } from '../../../../../core/services/mon-compte.service';
 import { Produit } from '../../../../../models/produit.model';
+import { ProductBadgesComponent } from '../../../../../shared/components/product-badges/product-badges.component';
 
 export interface VeloProduit {
   id: number;
@@ -23,13 +24,25 @@ export interface VeloProduit {
   livraison: boolean;
   isFavori: boolean;
   isNew: boolean;
-  categorie: string; // sous-catégorie velo
+  categorie: string;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 @Component({
   selector: 'app-velo-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ProductBadgesComponent],
   templateUrl: './velo-list.component.html',
   styleUrls: ['./velo-list.component.css']
 })
@@ -52,11 +65,11 @@ export class VeloListComponent implements OnInit {
   categorieActive = 'tous';
 
   sousCategoriesVelo = [
-    { key: 'tous',        label: 'Toutes' },
-    { key: 'freinage',    label: '🔴 Freinage' },
-    { key: 'transmission',label: '⛓️ Transmission' },
-    { key: 'roues',      label: '🛞 Roues' },
-    { key: 'eclairage',   label: '💡 Éclairage' },
+    { key: 'tous',        label: 'Toutes',         icon: 'bi-grid' },
+    { key: 'freinage',    label: 'Freinage',       icon: 'bi-disc' },
+    { key: 'transmission',label: 'Transmission',   icon: 'bi-link-45deg' },
+    { key: 'roues',      label: 'Roues',          icon: 'bi-circle' },
+    { key: 'eclairage',   label: 'Éclairage',      icon: 'bi-lightbulb-fill' },
   ];
 
   // Tous les produits (source)
@@ -99,7 +112,19 @@ export class VeloListComponent implements OnInit {
           livraison: true,
           isFavori: false,
           isNew: p.is_new ?? this.isProduitNouveau(p.date_ajout),
-          categorie: this.mapCategorieToVelo(p.type_piece_nom || '')
+          categorie: this.mapCategorieToVelo(p.type_piece_nom || ''),
+          badges: p.badges || [],
+          prix: parseFloat(p.prix),
+          prix_promo: p.prix_promo ? parseFloat(p.prix_promo) : null,
+          est_en_promo: p.est_en_promo,
+          seuil_alerte: p.seuil_alerte,
+          date_ajout: p.date_ajout,
+          nombre_ventes: p.nombre_ventes,
+          vente_eclair: p.vente_eclair,
+          est_recommande: p.est_recommande,
+          statut_approbation: p.statut_approbation,
+          livraison_disponible: p.livraison_disponible,
+          retrait_magasin: p.retrait_magasin
         }));
 
         this.appliquerFiltres();

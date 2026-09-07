@@ -47,9 +47,7 @@
           <span class="badge-heart">
             <i class="bi bi-heart-fill"></i>
           </span>
-          <div class="stock-faible" *ngIf="isStockFaible(produit)">
-            <i class="bi bi-fire"></i> {{ produit.stock }} restants !
-          </div>
+          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
           <div class="rupture-overlay" *ngIf="produit.stock === 0">
             <i class="bi bi-x-circle"></i> Rupture
           </div>
@@ -88,6 +86,8 @@
               {{ produit.prixAncien | number:'1.2-2' }} FCFA
             </span>
           </div>
+
+          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
 
           <!-- BOUTON -->
           <button

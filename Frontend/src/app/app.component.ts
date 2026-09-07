@@ -63,6 +63,11 @@ export class AppComponent {
     return this.router.url.startsWith('/produits');
   }
 
+  isMagasinsListPage(): boolean {
+    const url = this.router.url.split('?')[0];
+    return url === '/magasins' || url.startsWith('/magasins/');
+  }
+
   isAdminPage(): boolean{
     const isAdmin = this.router.url.startsWith('/admin');
     return isAdmin;

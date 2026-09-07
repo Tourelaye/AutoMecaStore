@@ -52,6 +52,9 @@
             </div>
           </div>
 
+          <!-- BADGES DYNAMIQUES -->
+          <app-product-badges [product]="produit" [maxBadges]="4" placement="info"></app-product-badges>
+
           <!-- BADGE STOCK -->
           <div class="stock-badge" [class.out]="produit.stock === 0">
             <i class="bi" [class.bi-check-circle-fill]="produit.stock > 0" [class.bi-x-circle-fill]="produit.stock === 0"></i>
@@ -92,24 +95,7 @@
         <!-- MARQUE & BADGES -->
         <div class="product-meta">
           <span class="brand-tag">{{ produit.marque || 'AutoMecaStore' }}</span>
-          <span class="verified-badge">
-            <i class="bi bi-patch-check-fill"></i> Certifié OEM
-          </span>
-          <span class="badge-admin" *ngIf="produit.est_vedette">
-            <i class="bi bi-star-fill"></i> Vedette
-          </span>
-          <span class="badge-admin badge-trending" *ngIf="produit.est_tendance">
-            <i class="bi bi-fire"></i> Tendance
-          </span>
-          <span class="badge-admin badge-bestseller" *ngIf="produit.est_bestseller">
-            <i class="bi bi-trophy-fill"></i> Bestseller
-          </span>
-          <span class="badge-admin badge-recommande" *ngIf="produit.est_recommande">
-            <i class="bi bi-heart-fill"></i> Recommandé
-          </span>
-          <span class="badge-admin badge-eclair" *ngIf="produit.vente_eclair">
-            <i class="bi bi-lightning-fill"></i> Vente Éclair
-          </span>
+          <app-product-badges [product]="produit" [maxBadges]="6" placement="info"></app-product-badges>
         </div>
 
         <!-- NOM -->
@@ -513,6 +499,14 @@
                     [ngClass]="badgeClass(b)"
                   >{{ badgeLabel(b) }}</span>
                 </div>
+                <app-product-badges
+                  *ngIf="offre.offer_badges && offre.offer_badges.length > 0"
+                  [product]="produit"
+                  [offer]="offre"
+                  mode="offer"
+                  [maxBadges]="5"
+                  placement="info"
+                ></app-product-badges>
               </div>
               <div class="offre-card-price">
                 <strong>{{ offre.prix | number:'1.2-2' }} FCFA</strong>
@@ -813,6 +807,9 @@
               </button>
             </div>
           </div>
+
+          <!-- BADGES -->
+          <app-product-badges [product]="p" [maxBadges]="2" placement="info"></app-product-badges>
 
           <!-- INFO -->
           <div class="sim-info">

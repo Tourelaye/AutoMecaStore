@@ -70,13 +70,8 @@
         <!-- IMAGE -->
         <div class="product-image">
 
-          <!-- BADGE RÉDUCTION -->
-          <span class="badge badge-discount">-{{ produit.discount }}%</span>
-
-          <!-- STOCK CRITIQUE -->
-          <div class="stock-critique" *ngIf="isStockCritique(produit) && !timers[i].expired">
-            <i class="bi bi-fire"></i> Dernières pièces
-          </div>
+          <!-- BADGES -->
+          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
 
           <!-- RUPTURE -->
           <div class="rupture-overlay" *ngIf="produit.stock === 0">
@@ -146,6 +141,8 @@
               ></div>
             </div>
           </div>
+
+          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
 
           <!-- LIVRAISON + BOUTON -->
           <div class="card-footer">

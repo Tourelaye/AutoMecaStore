@@ -45,29 +45,11 @@
         <div class="product-image">
 
           <!-- BADGES -->
-          <div class="badges-top">
-            <span
-              class="badge"
-              [class.badge-orange]="produit.badge.type === 'orange'"
-              [class.badge-green]="produit.badge.type === 'green'"
-              [class.badge-blue]="produit.badge.type === 'blue'"
-              *ngIf="produit.badge"
-            >
-              {{ produit.badge!.label }}
-            </span>
-            <span class="badge badge-red" *ngIf="produit.discount">
-              -{{ produit.discount }}%
-            </span>
-          </div>
+          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
 
           <!-- RUPTURE -->
           <div class="rupture-overlay" *ngIf="produit.stock === 0">
             <i class="bi bi-x-circle"></i> Rupture de stock
-          </div>
-
-          <!-- STOCK FAIBLE -->
-          <div class="stock-faible" *ngIf="isStockFaible(produit)">
-            <i class="bi bi-fire"></i> Plus que {{ produit.stock }} en stock !
           </div>
 
           <!-- IMAGE ou PLACEHOLDER -->
@@ -123,12 +105,17 @@
             <span class="old-price" *ngIf="produit.prixAncien">
               {{ produit.prixAncien | number:'1.2-2' }} FCFA
             </span>
+            <span class="discount-badge" *ngIf="produit.prixAncien && produit.prixNouveau">
+              -{{ getDiscountPct(produit) }}%
+            </span>
           </div>
 
           <!-- LIVRAISON -->
           <p class="delivery" *ngIf="produit.livraison">
             <i class="bi bi-truck"></i> Livraison gratuite
           </p>
+
+          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
 
         </div>
 

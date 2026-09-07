@@ -100,7 +100,7 @@
   .product-image {
     position: relative;
     background: linear-gradient(135deg, #fdf2f8, #fce7f3);
-    height: 220px;
+    height: 190px;
     overflow: hidden;
   }
 
@@ -307,5 +307,5 @@
   @media (max-width: 576px) {
     .offers-grid { gap: 14px; }
     .product-info { padding: 14px; }
-    .product-image { height: 160px; }
+    .product-image { height: 150px; }
   }

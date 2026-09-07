@@ -60,20 +60,7 @@
         <div class="product-image">
 
           <!-- BADGES -->
-          <div class="badges-top">
-            <span class="badge badge-trend">{{ produit.badge }}</span>
-            <span class="badge badge-new" *ngIf="produit.isNew">✨ Nouveau</span>
-          </div>
-
-          <!-- RÉDUCTION -->
-          <span class="badge badge-discount" *ngIf="produit.discount">
-            -{{ produit.discount }}%
-          </span>
-
-          <!-- STOCK FAIBLE -->
-          <div class="stock-faible" *ngIf="isStockFaible(produit)">
-            <i class="bi bi-fire"></i> {{ produit.stock }} restants !
-          </div>
+          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
 
           <!-- RUPTURE -->
           <div class="rupture-overlay" *ngIf="produit.stock === 0">
@@ -151,6 +138,8 @@
           <p class="delivery" *ngIf="produit.livraison">
             <i class="bi bi-truck"></i> Livraison gratuite
           </p>
+
+          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
 
           <!-- BOUTON -->
           <button

@@ -14,7 +14,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #22c55e, #16a34a, #22c55e, transparent);
+    background: linear-gradient(90deg, transparent, #166534, #14532d, #166534, transparent);
   }
 
   .offers-header {
@@ -41,34 +41,36 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(90deg, #dcfce7, #bbf7d0);
-    color: #16a34a;
+    background: linear-gradient(90deg, #14532d, #166534);
+    color: #bbf7d0;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     padding: 5px 14px;
     border-radius: 20px;
     margin-bottom: 10px;
-    border: 1px solid #86efac;
+    border: 1px solid #166534;
   }
 
   .see-all {
-    color: #16a34a;
+    color: #166534;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     padding: 8px 18px;
-    border: 1.5px solid #16a34a;
+    border: 1.5px solid #166534;
     border-radius: 20px;
     font-size: 14px;
-    background: rgba(187,247,208,0.3);
-    transition: all 0.2s;
+    background: rgba(22, 101, 52, 0.08);
+    transition: all 0.25s;
     white-space: nowrap;
   }
 
   .see-all:hover {
-    background: #16a34a;
+    background: linear-gradient(135deg, #14532d, #166534);
     color: white;
+    box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35);
+    transform: translateY(-2px);
   }
 
   .offers-grid {
@@ -91,16 +93,16 @@
 
   .product-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(34,197,94,0.2);
-    border-color: #22c55e;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(22, 101, 52, 0.2);
+    border-color: #166534;
   }
 
   .product-card.out-of-stock { opacity: 0.65; cursor: not-allowed; }
 
   .product-image {
     position: relative;
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    height: 220px;
+    background: linear-gradient(135deg, #052e16, #14532d);
+    height: 190px;
     overflow: hidden;
   }
 
@@ -121,7 +123,7 @@
     width: 100%;
     height: 100%;
     font-size: 52px;
-    color: #86efac;
+    color: #4ade80;
   }
 
   .badge-new {
@@ -146,7 +148,7 @@
     top: 12px;
     right: 12px;
     background: rgba(255,255,255,0.9);
-    color: #16a34a;
+    color: #166534;
     font-size: 10px;
     font-weight: 600;
     padding: 3px 8px;
@@ -201,7 +203,7 @@
   .brand {
     font-size: 11px;
     letter-spacing: 1px;
-    color: #22c55e;
+    color: #166534;
     font-weight: 700;
     text-transform: uppercase;
   }
@@ -209,8 +211,8 @@
   .categorie-pill {
     font-size: 10px;
     font-weight: 600;
-    background: #dcfce7;
-    color: #16a34a;
+    background: linear-gradient(135deg, #14532d, #166534);
+    color: #bbf7d0;
     padding: 2px 8px;
     border-radius: 20px;
   }
@@ -238,11 +240,11 @@
     gap: 8px;
   }
 
-  .new-price { font-size: 18px; font-weight: 800; color: #16a34a; }
+  .new-price { font-size: 18px; font-weight: 800; color: #14532d; }
 
   .button-r {
     width: 100%;
-    background: linear-gradient(90deg, #22c55e, #16a34a, #22c55e);
+    background: linear-gradient(90deg, #14532d, #166534, #14532d);
     background-size: 200% 200%;
     color: white;
     border: none;
@@ -320,5 +322,40 @@
   @media (max-width: 576px) {
     .offers-grid { gap: 14px; }
     .product-info { padding: 14px; }
-    .product-image { height: 160px; }
+    .product-image { height: 150px; }
   }
+/* ================================================================ */
+/* AJOUTS — prix barré en promo, badge de réduction                  */
+/* À coller à la fin de nouveaute.component.css                      */
+/* ================================================================ */
+
+.price {
+  flex-wrap: wrap;
+}
+
+.old-price {
+  font-size: 13px;
+  color: #9ca3af;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+}
+
+/* Quand le badge "Nouveau" ET le badge de réduction sont tous les deux
+   présents, on décale le badge "Nouveau" pour ne pas les superposer. */
+.discount-badge ~ .badge-new {
+  top: 42px;
+}

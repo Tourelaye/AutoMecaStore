@@ -1,86 +1,157 @@
-<section class="magasin-detail-page" *ngIf="!loading && !error">
-  <header class="magasin-hero" *ngIf="magasin">
-    <div class="hero-logo">
-      <img *ngIf="magasin.logo_url" [src]="magasin.logo_url" alt="logo magasin">
-      <i *ngIf="!magasin.logo_url" class="bi bi-shop"></i>
-    </div>
-    <div class="hero-info">
-      <h1>{{ magasin.nom_magasin }}</h1>
-      <p *ngIf="adresseComplete" class="adresse"><i class="bi bi-geo-alt"></i> {{ adresseComplete }}</p>
-      <p *ngIf="magasin.telephone" class="telephone"><i class="bi bi-telephone"></i> {{ magasin.telephone }}</p>
-      <div class="tags">
-        <span *ngIf="magasin.note" class="tag-note"><i class="bi bi-star-fill"></i> {{ magasin.note | number:'1.1-1' }}</span>
-        <span *ngIf="magasin.distance_km != null" class="tag-distance"><i class="bi bi-geo"></i> {{ magasin.distance_km }} km</span>
-        <span *ngIf="magasin.livraison_disponible" class="tag-livraison"><i class="bi bi-truck"></i> Livraison</span>
-        <span *ngIf="magasin.retrait_magasin" class="tag-retrait"><i class="bi bi-shop"></i> Retrait</span>
-        <span class="tag-ouverture" [class.ouvert]="isOpen">{{ isOpen ? 'Ouvert' : 'Fermé' }}</span>
+<div class="md-page" *ngIf="!loading && !error && magasin">
+  <!-- HERO -->
+  <header class="md-hero">
+    <div class="md-hero-bg"></div>
+    <div class="md-hero-content">
+      <div class="md-hero-logo">
+        <img *ngIf="magasin.logo_url" [src]="magasin.logo_url" [alt]="magasin.nom_magasin || 'Magasin'" />
+        <i *ngIf="!magasin.logo_url" class="bi bi-shop"></i>
+      </div>
+      <div class="md-hero-info">
+        <h1>{{ magasin.nom_magasin || 'Magasin' }}</h1>
+        <p *ngIf="adresseComplete" class="md-hero-addr"><i class="bi bi-geo-alt"></i> {{ adresseComplete }}</p>
+        <div class="md-hero-badges">
+          <span class="md-badge" [class.open]="isOpen" [class.closed]="!isOpen">
+            <i class="bi" [class.bi-door-open]="isOpen" [class.bi-door-closed]="!isOpen"></i>
+            {{ isOpen ? 'Ouvert' : 'Fermé' }}
+          </span>
+          <span class="md-badge md-badge-note" *ngIf="magasin.note">
+            <i class="bi bi-star-fill"></i> {{ magasin.note | number:'1.1-1' }}
+          </span>
+          <span class="md-badge md-badge-distance" *ngIf="magasin.distance_km != null">
+            <i class="bi bi-signpost-2"></i> {{ magasin.distance_km }} km
+          </span>
+          <span class="md-badge md-badge-livraison" *ngIf="magasin.livraison_disponible">
+            <i class="bi bi-truck"></i> Livraison
+          </span>
+          <span class="md-badge md-badge-retrait" *ngIf="magasin.retrait_magasin">
+            <i class="bi bi-shop"></i> Retrait
+          </span>
+        </div>
       </div>
     </div>
   </header>
 
-  <div class="magasin-actions" *ngIf="magasin">
-    <button class="btn-primary" (click)="openItineraire()">
+  <!-- ACTIONS -->
+  <div class="md-actions">
+    <button class="md-btn md-btn-primary" (click)="openItineraire()" type="button">
       <i class="bi bi-signpost-split"></i> Itinéraire
     </button>
-    <button class="btn-secondary" *ngIf="magasin.telephone" (click)="callMagasin()">
+    <a class="md-btn md-btn-call" *ngIf="magasin.telephone" [href]="'tel:' + magasin.telephone">
       <i class="bi bi-telephone"></i> Appeler
-    </button>
-    <button class="btn-link" [routerLink]="['/produits']" [queryParams]="{ magasin: magasin.nom_magasin }">
+    </a>
+    <a class="md-btn md-btn-products" [routerLink]="['/produits']" [queryParams]="{ magasin: magasin.nom_magasin }">
       <i class="bi bi-search"></i> Voir les produits
-    </button>
+    </a>
+    <a class="md-btn md-btn-whatsapp" *ngIf="magasin.whatsapp" [href]="'https://wa.me/' + magasin.whatsapp" target="_blank" rel="noopener">
+      <i class="bi bi-whatsapp"></i> WhatsApp
+    </a>
   </div>
 
-  <div class="magasin-grid" *ngIf="magasin">
-    <div class="carte-bloc">
-      <h2><i class="bi bi-map"></i> Localisation</h2>
+  <!-- GRID -->
+  <div class="md-grid">
+    <!-- MAP -->
+    <div class="md-card md-card-map">
+      <div class="md-card-header">
+        <i class="bi bi-map"></i>
+        <h2>Localisation</h2>
+      </div>
       <iframe
         *ngIf="getMapUrl() as url"
         [src]="url"
         width="100%"
-        height="320"
+        height="360"
         style="border:0; border-radius: 16px;"
         loading="lazy"
         allowfullscreen
       ></iframe>
-      <div *ngIf="!getMapUrl()" class="carte-placeholder">
-        <p><i class="bi bi-geo-alt"></i> Aucune coordonnée GPS disponible.</p>
+      <div *ngIf="!getMapUrl()" class="md-map-placeholder">
+        <i class="bi bi-geo-alt"></i>
+        <p>Aucune coordonnée GPS disponible</p>
       </div>
     </div>
 
-    <div class="infos-bloc">
-      <div class="info-card" *ngIf="magasin.horaires_ouverture || magasin.jours_ouverture">
-        <h3><i class="bi bi-clock"></i> Horaires</h3>
-        <p *ngIf="magasin.jours_ouverture"><strong>Jours :</strong> {{ magasin.jours_ouverture }}</p>
-        <p *ngIf="magasin.horaires_ouverture as h">
-          <strong>Horaires :</strong> {{ h.ouverture || h.debut }} – {{ h.fermeture || h.fin }}
-        </p>
+    <!-- INFOS -->
+    <div class="md-infos">
+      <!-- Horaires -->
+      <div class="md-card" *ngIf="magasin.horaires_ouverture || magasin.jours_ouverture">
+        <div class="md-card-header">
+          <i class="bi bi-clock"></i>
+          <h3>Horaires d'ouverture</h3>
+        </div>
+        <div class="md-card-body">
+          <div class="md-info-row" *ngIf="magasin.jours_ouverture">
+            <span class="md-info-label">Jours</span>
+            <span class="md-info-value">{{ magasin.jours_ouverture }}</span>
+          </div>
+          <div class="md-info-row" *ngIf="magasin.horaires_ouverture as h">
+            <span class="md-info-label">Horaires</span>
+            <span class="md-info-value">{{ h.ouverture || h.debut }} – {{ h.fermeture || h.fin }}</span>
+          </div>
+          <div class="md-status-row">
+            <span class="md-status-dot" [class.open]="isOpen" [class.closed]="!isOpen"></span>
+            {{ isOpen ? 'Ouvert actuellement' : 'Fermé actuellement' }}
+          </div>
+        </div>
       </div>
-      <div class="info-card" *ngIf="magasin.email || magasin.whatsapp">
-        <h3><i class="bi bi-envelope"></i> Contact</h3>
-        <p *ngIf="magasin.email"><strong>Email :</strong> {{ magasin.email }}</p>
-        <p *ngIf="magasin.whatsapp"><strong>WhatsApp :</strong> {{ magasin.whatsapp }}</p>
+
+      <!-- Contact -->
+      <div class="md-card" *ngIf="magasin.email || magasin.whatsapp || magasin.telephone">
+        <div class="md-card-header">
+          <i class="bi bi-envelope"></i>
+          <h3>Contact</h3>
+        </div>
+        <div class="md-card-body">
+          <div class="md-info-row" *ngIf="magasin.telephone">
+            <span class="md-info-label"><i class="bi bi-telephone"></i> Téléphone</span>
+            <span class="md-info-value">{{ magasin.telephone }}</span>
+          </div>
+          <div class="md-info-row" *ngIf="magasin.email">
+            <span class="md-info-label"><i class="bi bi-envelope"></i> Email</span>
+            <span class="md-info-value">{{ magasin.email }}</span>
+          </div>
+          <div class="md-info-row" *ngIf="magasin.whatsapp">
+            <span class="md-info-label"><i class="bi bi-whatsapp"></i> WhatsApp</span>
+            <span class="md-info-value">{{ magasin.whatsapp }}</span>
+          </div>
+        </div>
       </div>
-      <div class="info-card" *ngIf="magasin.rayon_livraison_km != null">
-        <h3><i class="bi bi-bullseye"></i> Zone de livraison</h3>
-        <p>{{ magasin.rayon_livraison_km }} km autour du magasin</p>
+
+      <!-- Zone de livraison -->
+      <div class="md-card" *ngIf="magasin.rayon_livraison_km != null">
+        <div class="md-card-header">
+          <i class="bi bi-bullseye"></i>
+          <h3>Zone de livraison</h3>
+        </div>
+        <div class="md-card-body">
+          <div class="md-zone-info">
+            <i class="bi bi-geo-fill"></i>
+            <span>Livraison dans un rayon de <strong>{{ magasin.rayon_livraison_km }} km</strong> autour du magasin</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="magasin-retour">
-    <button class="btn-link" (click)="router.navigateByUrl('/produits')">
-      <i class="bi bi-arrow-left"></i> Retour aux produits
-    </button>
+  <!-- BACK -->
+  <div class="md-back">
+    <a routerLink="/magasins">
+      <i class="bi bi-arrow-left"></i> Retour aux magasins
+    </a>
   </div>
-</section>
+</div>
 
-<div class="loading-state" *ngIf="loading">
-  <i class="bi bi-arrow-repeat spin"></i>
+<!-- LOADING -->
+<div class="md-loading" *ngIf="loading">
+  <div class="md-spinner"></div>
   <p>Chargement du magasin…</p>
 </div>
 
-<div class="error-state" *ngIf="error">
+<!-- ERROR -->
+<div class="md-error" *ngIf="error && !loading">
   <i class="bi bi-exclamation-triangle"></i>
   <p>{{ error }}</p>
-  <button class="btn-link" (click)="router.navigateByUrl('/produits')">Retour</button>
+  <a class="md-btn md-btn-primary" routerLink="/magasins">
+    <i class="bi bi-arrow-left"></i> Retour aux magasins
+  </a>
 </div>

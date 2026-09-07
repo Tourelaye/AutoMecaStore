@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
+import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
 
 export interface VogueProduit {
   id: number;
@@ -11,21 +12,33 @@ export interface VogueProduit {
   image: string | null;
   prixNouveau: number;
   prixAncien: number | null;
-  discount: number | null;       // réduction en %
-  tendance: number;              // hausse des ventes en % cette semaine
+  discount: number | null;
+  tendance: number;
   note: number;
   avis: number;
   livraison: boolean;
   badge: string;
   stock: number;
   categorie: string;
-  isNew: boolean;                // nouveau produit
+  isNew: boolean;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 @Component({
   selector: 'app-vogue',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent],
   templateUrl: './vogue.component.html',
   styleUrls: ['./vogue.component.css']
 })
@@ -108,7 +121,19 @@ export class VogueComponent implements OnInit, OnDestroy {
       badge,
       stock: p.stock,
       categorie,
-      isNew: index < 2 // Les 2 premiers sont considérés comme nouveaux
+      isNew: index < 2,
+      badges: p.badges || [],
+      prix: p.prix,
+      prix_promo: p.prix_promo ?? null,
+      est_en_promo: p.est_en_promo,
+      seuil_alerte: p.seuil_alerte,
+      date_ajout: p.date_ajout,
+      nombre_ventes: p.nombre_ventes,
+      vente_eclair: p.vente_eclair,
+      est_recommande: p.est_recommande,
+      statut_approbation: p.statut_approbation,
+      livraison_disponible: p.livraison_disponible,
+      retrait_magasin: p.retrait_magasin
     };
   }
 

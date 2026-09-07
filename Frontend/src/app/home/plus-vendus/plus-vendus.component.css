@@ -140,7 +140,7 @@
   .product-image {
     position: relative;
     background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-    height: 220px;
+    height: 190px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -551,5 +551,5 @@
   @media (max-width: 576px) {
     .offers-grid { gap: 14px; }
     .product-info { padding: 14px; }
-    .product-image { height: 160px; }
+    .product-image { height: 150px; }
   }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
+import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
 
 export interface RecommandeProduit {
   id: number;
@@ -15,12 +16,24 @@ export interface RecommandeProduit {
   stock: number;
   categorie: string;
   raison: string;
+  badges?: any[];
+  prix?: number;
+  prix_promo?: number | null;
+  est_en_promo?: boolean;
+  seuil_alerte?: number | null;
+  date_ajout?: string;
+  nombre_ventes?: number;
+  vente_eclair?: boolean;
+  est_recommande?: boolean;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 @Component({
   selector: 'app-recommande',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent],
   templateUrl: './recommande.component.html',
   styleUrls: ['./recommande.component.css']
 })
@@ -79,7 +92,19 @@ export class RecommandeComponent implements OnInit {
       avis: p.nombre_avis ?? 0,
       stock: p.stock,
       categorie: p.categorie_nom || 'Pièce',
-      raison: raisons[index % raisons.length]
+      raison: raisons[index % raisons.length],
+      badges: p.badges || [],
+      prix: p.prix,
+      prix_promo: p.prix_promo ?? null,
+      est_en_promo: p.est_en_promo,
+      seuil_alerte: p.seuil_alerte,
+      date_ajout: p.date_ajout,
+      nombre_ventes: p.nombre_ventes,
+      vente_eclair: p.vente_eclair,
+      est_recommande: p.est_recommande,
+      statut_approbation: p.statut_approbation,
+      livraison_disponible: p.livraison_disponible,
+      retrait_magasin: p.retrait_magasin
     };
   }
 

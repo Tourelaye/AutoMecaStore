@@ -238,6 +238,24 @@ class FournisseurProduitListCreateView(generics.ListCreateAPIView):
 
         produit = serializer.save(**defaults)
 
+        # Créer une entrée FournisseurProduit pour que le produit apparaisse dans les offres
+        try:
+            from catalog.models import Fournisseur as CatalogFournisseur, FournisseurProduit
+            catalog_f, _ = CatalogFournisseur.objects.get_or_create(
+                administrateur=self.request.user,
+                defaults={'nom_entreprise': fournisseur.nom_entreprise}
+            )
+            FournisseurProduit.objects.create(
+                fournisseur=catalog_f,
+                produit=produit,
+                prix_achat=produit.prix,
+                prix_vente=produit.prix,
+                stock_disponible=produit.stock
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"FournisseurProduit not created for produit {produit.id}: {e}")
+
         # Notifier les admins de la création du produit
         try:
             from account.models import Utilisateur

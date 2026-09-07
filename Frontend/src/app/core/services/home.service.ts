@@ -52,6 +52,12 @@ export interface Produit {
   reference?: string;
   marque?: string;
   is_active: boolean;
+  badges?: any[];
+  seuil_alerte?: number;
+  date_ajout?: string;
+  statut_approbation?: string;
+  livraison_disponible?: boolean;
+  retrait_magasin?: boolean;
 }
 
 @Injectable({

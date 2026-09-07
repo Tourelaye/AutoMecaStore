@@ -7,7 +7,7 @@
         <span class="section-tag">
           <i class="bi bi-bag-plus-fill"></i> NOUVEAUTÉS
         </span>
-        <h2>Frais sur le catalogue</h2>
+        <h2>Tout juste arrivées dans notre catalogue</h2>
         <p>Les derniers produits ajoutés à notre boutique</p>
       </div>
       <a class="see-all" routerLink="/produits">
@@ -44,13 +44,21 @@
       >
         <!-- IMAGE -->
         <div class="product-image">
-          <span class="badge-new">
-            <i class="bi bi-sparkles"></i> NOUVEAU
+          <span class="discount-badge" *ngIf="produit.est_en_promo && produit.prix && produit.prix_promo">
+            -{{ ((produit.prix - produit.prix_promo) / produit.prix * 100) | number:'1.0-0' }}%
+          </span>
+
+          <span class="badge-new" *ngIf="produit.joursDepuisAjout <= 3">
+            <i class="bi bi-stars"></i> Nouveau
           </span>
           <span class="badge-jours">{{ getNouveauteLabel(produit.joursDepuisAjout) }}</span>
+
+          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
+
           <div class="stock-faible" *ngIf="isStockFaible(produit)">
-            <i class="bi bi-fire"></i> {{ produit.stock }} restants !
+            <i class="bi bi-exclamation-triangle-fill"></i> Plus que {{ produit.stock }} en stock !
           </div>
+
           <div class="rupture-overlay" *ngIf="produit.stock === 0">
             <i class="bi bi-x-circle"></i> Rupture
           </div>
@@ -77,13 +85,17 @@
                 [class]="isPleine(star, produit.note) ? 'bi bi-star-fill'
                   : isDemi(star, produit.note) ? 'bi bi-star-half' : 'bi bi-star'"></i>
             </span>
+            <span class="avis-count" *ngIf="produit.avis > 0">({{ produit.avis }} avis)</span>
             <span class="avis-count" *ngIf="produit.avis === 0">Pas encore noté</span>
           </div>
 
           <!-- PRIX -->
           <div class="price">
+            <span class="old-price" *ngIf="produit.est_en_promo && produit.prix_promo">{{ produit.prix | number:'1.2-2' }} FCFA</span>
             <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
           </div>
+
+          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
 
           <!-- BOUTON -->
           <button
