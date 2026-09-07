@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HomeRailComponent } from '../shared/home-rail/home-rail.component';
 import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
@@ -35,7 +36,7 @@ export interface OffreProduit {
 @Component({
   selector: 'app-offre',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductBadgesComponent],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent, HomeRailComponent],
   templateUrl: './offre.component.html',
   styleUrls: ['./offre.component.css']
 })

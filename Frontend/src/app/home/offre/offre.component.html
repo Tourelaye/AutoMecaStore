@@ -1,4 +1,4 @@
-<section class="offers">
+<section class="offers" *ngIf="isLoading || produits.length > 0">
   <div class="container">
 
     <!-- HEADER -->
@@ -31,7 +31,7 @@
     </div>
 
     <!-- GRILLE PRODUITS -->
-    <div class="offers-grid" *ngIf="!isLoading && !errorMessage">
+    <app-home-rail *ngIf="!isLoading && !errorMessage" ariaLabel="Meilleures offres">
 
       <div
         class="product-card"
@@ -121,7 +121,7 @@
 
       </div>
 
-    </div>
+    </app-home-rail>
 
     <!-- EMPTY STATE -->
     <div class="empty-state" *ngIf="!isLoading && !errorMessage && produits.length === 0">

@@ -160,6 +160,16 @@ export class RechercheComponent implements OnInit, OnDestroy {
       if (params['veh_modele']) {
         this.vehModele = params['veh_modele'];
       }
+      if (params['demande'] === '1') {
+        this.ouvrirDemandeForm();
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { demande: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        return;
+      }
       this.loadResults();
     });
 

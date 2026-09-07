@@ -36,6 +36,7 @@
         class="card {{ cat.visuel.cssClass }}"
         *ngFor="let cat of categories; let i = index"
         [routerLink]="cat.visuel.route"
+        [queryParams]="cat.visuel.queryParams || null"
         [style.--delay]="(i * 0.1) + 's'"
       >
         <!-- GLOW BG -->

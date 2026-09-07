@@ -1,18 +1,86 @@
 .promo-banners {
-  padding: 30px 0;
+  padding: 56px 0 40px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* ---------------------------------
+   HEADER
+--------------------------------- */
+.banners-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.banners-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  background: rgba(250, 88, 7, 0.1);
+  color: #ea580c;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin-bottom: 12px;
+}
+
+.banners-header h2 {
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px;
+  line-height: 1.15;
+}
+
+.banners-header h2 .accent {
+  background: linear-gradient(90deg, #fa5807, #f97316);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.banners-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.banners-all {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all .25s ease;
+}
+.banners-all:hover {
+  border-color: #fa5807;
+  color: #fa5807;
+  box-shadow: 0 8px 20px rgba(250, 88, 7, .15);
 }
 
 .banners-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
 .banner-card {
   position: relative;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  min-height: 200px;
+  min-height: 250px;
   display: flex;
   align-items: flex-end;
   text-decoration: none;
@@ -42,6 +110,22 @@
   transform: scale(1.08);
 }
 
+.banner-watermark {
+  position: absolute;
+  right: -18px;
+  top: -6px;
+  font-size: 128px;
+  color: rgba(255, 255, 255, 0.16);
+  transform: rotate(-12deg);
+  transition: transform .45s ease, color .3s ease;
+  pointer-events: none;
+}
+
+.banner-card:hover .banner-watermark {
+  transform: rotate(-4deg) translate(-8px, 6px) scale(1.06);
+  color: rgba(255, 255, 255, 0.24);
+}
+
 .banner-overlay {
   position: absolute;
   inset: 0;
@@ -51,7 +135,7 @@
 .banner-content {
   position: relative;
   z-index: 1;
-  padding: 18px 20px;
+  padding: 22px 22px 20px;
   width: 100%;
 }
 
@@ -83,7 +167,7 @@
 }
 
 .banner-content h3 {
-  font-size: 18px;
+  font-size: 21px;
   font-weight: 800;
   margin: 0 0 4px;
   color: white;
@@ -132,8 +216,17 @@
   }
 }
 
+@media (max-width: 768px) {
+  .promo-banners { padding: 40px 0 28px; }
+  .banners-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 500px) {
   .banners-grid {
     grid-template-columns: 1fr;
   }
+  .banner-card { min-height: 210px; }
 }
