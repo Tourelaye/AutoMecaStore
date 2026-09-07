@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HomeRailComponent } from '../shared/home-rail/home-rail.component';
 import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
@@ -44,7 +45,7 @@ interface TimerDisplay {
 @Component({
   selector: 'app-plus-vendus',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductBadgesComponent],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent, HomeRailComponent],
   templateUrl: './plus-vendus.component.html',
   styleUrls: ['./plus-vendus.component.css']
 })

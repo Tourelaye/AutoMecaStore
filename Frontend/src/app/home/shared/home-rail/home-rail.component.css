@@ -1,0 +1,128 @@
+/* =========================================================
+   RAIL PRODUITS (styles globaux : ViewEncapsulation.None)
+   Préfixe .ams-rail pour éviter toute collision.
+   ========================================================= */
+.ams-rail {
+  position: relative;
+  --ams-card-w: 264px;
+  --ams-gap: 22px;
+}
+
+.ams-rail-track {
+  display: flex;
+  gap: var(--ams-gap);
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 6px 4px 18px;
+  margin: -6px -4px 0;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 4px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.ams-rail-track::-webkit-scrollbar { display: none; }
+
+.ams-rail-track > * {
+  flex: 0 0 var(--ams-card-w);
+  width: var(--ams-card-w);
+  max-width: 88vw;
+  scroll-snap-align: start;
+}
+
+/* dégradés de bord signalant le contenu masqué */
+.ams-rail::before,
+.ams-rail::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 18px;
+  width: 56px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s ease;
+  z-index: 2;
+}
+.ams-rail::before {
+  left: -4px;
+  background: linear-gradient(90deg, var(--ams-rail-bg, #f4f6f9) 0%, transparent 100%);
+}
+.ams-rail::after {
+  right: -4px;
+  background: linear-gradient(270deg, var(--ams-rail-bg, #f4f6f9) 0%, transparent 100%);
+}
+.ams-rail.has-prev::before,
+.ams-rail.has-next::after { opacity: 1; }
+
+/* flèches */
+.ams-rail-arrow {
+  position: absolute;
+  top: 40%;
+  z-index: 3;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .16);
+  transition: transform .2s ease, background .2s ease, color .2s ease, opacity .2s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+.ams-rail-arrow.prev { left: -23px; }
+.ams-rail-arrow.next { right: -23px; }
+.ams-rail.has-prev .ams-rail-arrow.prev,
+.ams-rail.has-next .ams-rail-arrow.next { opacity: 1; visibility: visible; }
+
+.ams-rail-arrow:hover:not(:disabled) {
+  background: #fa5807;
+  color: #fff;
+  border-color: #fa5807;
+  transform: scale(1.06);
+}
+.ams-rail-arrow:disabled { cursor: default; }
+
+/* Placeholder image commun aux cartes de l'accueil */
+.ams-rail .img-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #b45309;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(250, 88, 7, .16), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(37, 99, 235, .10), transparent 50%),
+    linear-gradient(135deg, #fff7ed, #f8fafc);
+}
+.ams-rail .img-placeholder i {
+  font-size: 46px;
+  color: #fa5807;
+  opacity: .85;
+}
+.ams-rail .img-placeholder::after {
+  content: 'Photo à venir';
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+@media (max-width: 1100px) {
+  .ams-rail-arrow.prev { left: 6px; }
+  .ams-rail-arrow.next { right: 6px; }
+}
+@media (max-width: 768px) {
+  .ams-rail { --ams-card-w: 236px; --ams-gap: 16px; }
+  .ams-rail-arrow { display: none; }
+  .ams-rail::before, .ams-rail::after { width: 32px; }
+}

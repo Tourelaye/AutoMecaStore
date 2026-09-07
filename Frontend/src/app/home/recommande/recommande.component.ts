@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HomeRailComponent } from '../shared/home-rail/home-rail.component';
 import { RouterModule, Router } from '@angular/router';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
 import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
@@ -33,7 +34,7 @@ export interface RecommandeProduit {
 @Component({
   selector: 'app-recommande',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductBadgesComponent],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent, HomeRailComponent],
   templateUrl: './recommande.component.html',
   styleUrls: ['./recommande.component.css']
 })

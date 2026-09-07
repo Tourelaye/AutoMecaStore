@@ -106,14 +106,36 @@ export class SlideComponent implements OnInit, OnDestroy {
   private readonly AUTOPLAY_DELAY = 5500;
   private readonly TRANSITION_DURATION = 700;
 
-  constructor(private el: ElementRef) {}
+  private navResizeObserver?: ResizeObserver;
+
+  constructor(private el: ElementRef<HTMLElement>) {}
 
   ngOnInit(): void {
     this.startAutoplay();
+    this.observeNavbarHeight();
   }
 
   ngOnDestroy(): void {
     this.stopAutoplay();
+    this.navResizeObserver?.disconnect();
+  }
+
+  /**
+   * Le header global est fixe et sa hauteur varie selon la largeur d'écran :
+   * on expose sa hauteur réelle au CSS pour que le hero démarre juste en dessous.
+   */
+  private observeNavbarHeight(): void {
+    const nav = document.querySelector<HTMLElement>('app-navbar');
+    if (!nav) return;
+
+    const apply = () =>
+      this.el.nativeElement.style.setProperty('--nav-offset', `${nav.offsetHeight}px`);
+    apply();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this.navResizeObserver = new ResizeObserver(apply);
+      this.navResizeObserver.observe(nav);
+    }
   }
 
   // -------------------------------------------------------

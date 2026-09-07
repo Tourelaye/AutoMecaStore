@@ -8,6 +8,7 @@ interface CategorieVisuelle {
   icon: string;       // Classe Font Awesome
   cssClass: string;   // Classe CSS de la card
   route: string;      // Route Angular
+  queryParams?: Record<string, string>;
   sousTitre: string;  // Sous-titre affiché
   badge?: string;     // Badge optionnel
 }
@@ -53,11 +54,11 @@ const VISUEL_MAP: { keywords: string[]; config: CategorieVisuelle }[] = [
   }
 ];
 
-// Config par défaut si aucun mot-clé ne correspond
+// Config par défaut si aucun mot-clé ne correspond : recherche filtrée sur le nom de la catégorie
 const VISUEL_DEFAULT: CategorieVisuelle = {
   icon: 'fa-solid fa-gears',
   cssClass: 'auto',
-  route: '/produits',
+  route: '/recherche',
   sousTitre: 'Pièces & Accessoires'
 };
 
@@ -110,9 +111,12 @@ export class CategorieComponent implements OnInit {
       entry.keywords.some(kw => nomLower.includes(kw))
     );
 
+    if (match) {
+      return { ...cat, visuel: match.config };
+    }
     return {
       ...cat,
-      visuel: match ? match.config : VISUEL_DEFAULT
+      visuel: { ...VISUEL_DEFAULT, queryParams: { search: cat.nom } }
     };
   }
 }

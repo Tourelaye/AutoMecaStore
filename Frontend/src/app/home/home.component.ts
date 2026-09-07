@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { PromotionComponent } from './promotion/promotion.component';
 import { CategorieComponent } from './categorie/categorie.component';
 import { OffreComponent } from './offre/offre.component';
@@ -17,50 +18,138 @@ import { SlideComponent } from './slide/slide.component';
 import { ServicesBarComponent } from './services-bar/services-bar.component';
 import { PromoBannerComponent } from './promo-banner/promo-banner.component';
 import { NewsletterComponent } from './newsletter/newsletter.component';
+import { VehiculeFinderComponent } from './vehicule-finder/vehicule-finder.component';
+import { CommentCaMarcheComponent } from './comment-ca-marche/comment-ca-marche.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [
+    CommonModule,
     SlideComponent,
+    VehiculeFinderComponent,
     ServicesBarComponent,
-    CategorieComponent,
     PromoBannerComponent,
+    CategorieComponent,
     OffreComponent,
     PromotionComponent,
+    VenteEclairComponent,
     PlusVendusComponent,
     VogueComponent,
+    NouveauteComponent,
     VedetteComponent,
     RecommandeComponent,
-    NouveauteComponent,
-    VenteEclairComponent,
+    CommentCaMarcheComponent,
+    ChooceComponent,
     AvisClientComponent,
     PartenaireComponent,
-    ChooceComponent,
-    NewsletterComponent,
     RechercheComponent,
+    NewsletterComponent,
     FaqsComponent
   ],
   template: `
+    <!-- Accroche -->
     <app-slide></app-slide>
+    <app-vehicule-finder></app-vehicule-finder>
     <app-services-bar></app-services-bar>
-    <app-categorie></app-categorie>
+
+    <!-- Catalogues & catégories -->
     <app-promo-banner></app-promo-banner>
+    <app-categorie></app-categorie>
+
+    <!-- Offres (masquées automatiquement si aucune donnée) -->
     <app-offre></app-offre>
     <app-promotion></app-promotion>
+    <app-vente-eclair></app-vente-eclair>
+
+    <!-- Produits -->
     <app-plus-vendus></app-plus-vendus>
     <app-vogue></app-vogue>
-    <app-recommande></app-recommande>
-    <app-vedette></app-vedette>
     <app-nouveaute></app-nouveaute>
-    <app-vente-eclair></app-vente-eclair>
+    <app-vedette></app-vedette>
+    <app-recommande></app-recommande>
+
+    <!-- Confiance -->
+    <app-comment-ca-marche></app-comment-ca-marche>
+    <app-chooce></app-chooce>
     <app-avis-client></app-avis-client>
     <app-partenaire></app-partenaire>
-    <app-chooce></app-chooce>
-    <app-newsletter></app-newsletter>
-    <app-recherche></app-recherche>
-    <app-faqs></app-faqs>
-  `
-})
-export class HomeComponent {}
 
+    <!-- Engagement -->
+    <app-recherche></app-recherche>
+    <app-newsletter></app-newsletter>
+    <app-faqs></app-faqs>
+
+    <button
+      type="button"
+      class="back-to-top"
+      [class.visible]="showBackToTop"
+      (click)="scrollToTop()"
+      aria-label="Revenir en haut de la page"
+    >
+      <i class="bi bi-arrow-up"></i>
+    </button>
+  `,
+  styles: [`
+    .back-to-top {
+      position: fixed;
+      right: 22px;
+      bottom: 26px;
+      z-index: 900;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #fa5807, #f97316);
+      color: #fff;
+      font-size: 20px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(250, 88, 7, .38);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(14px);
+      transition: opacity .25s ease, transform .25s ease, visibility .25s;
+    }
+    .back-to-top.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+    .back-to-top:hover { transform: translateY(-3px); }
+    @media (max-width: 576px) {
+      .back-to-top { right: 14px; bottom: 16px; width: 42px; height: 42px; }
+    }
+  `]
+})
+export class HomeComponent implements OnInit, OnDestroy {
+
+  showBackToTop = false;
+
+  // Le défilement se fait sur <body> (overflow: auto) et non sur window :
+  // on écoute donc le scroll en phase de capture au niveau du document.
+  private readonly onScroll = () => {
+    const visible = this.scrollPosition() > 700;
+    if (visible !== this.showBackToTop) {
+      this.showBackToTop = visible;
+      this.cdr.markForCheck();
+    }
+  };
+
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    document.addEventListener('scroll', this.onScroll, { capture: true, passive: true });
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('scroll', this.onScroll, { capture: true });
+  }
+
+  scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private scrollPosition(): number {
+    return Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop);
+  }
+}

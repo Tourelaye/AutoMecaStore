@@ -1,0 +1,69 @@
+<section class="finder">
+  <div class="container">
+    <div class="finder-card">
+
+      <div class="finder-intro">
+        <span class="finder-tag"><i class="bi bi-search-heart"></i> RECHERCHE RAPIDE</span>
+        <h2>Trouvez la pièce <span class="accent">adaptée à votre véhicule</span></h2>
+        <p>Indiquez la marque, le modèle ou la pièce recherchée : nous comparons les vendeurs pour vous.</p>
+
+        <ul class="finder-points">
+          <li><i class="bi bi-check-circle-fill"></i> Compatibilité vérifiée</li>
+          <li><i class="bi bi-check-circle-fill"></i> Prix comparés entre vendeurs</li>
+          <li><i class="bi bi-check-circle-fill"></i> Livraison ou retrait en magasin</li>
+        </ul>
+      </div>
+
+      <form class="finder-form" (ngSubmit)="rechercher()">
+
+        <div class="univers-tabs" role="tablist">
+          <button
+            *ngFor="let u of univers"
+            type="button"
+            role="tab"
+            class="univers-tab"
+            [class.active]="u.key === universActif.key"
+            [attr.aria-selected]="u.key === universActif.key"
+            (click)="choisirUnivers(u)"
+          >
+            <i class="bi" [class]="u.icon"></i> {{ u.label }}
+          </button>
+        </div>
+
+        <div class="fields">
+          <label class="field">
+            <span><i class="bi bi-tag"></i> Marque du véhicule</span>
+            <input type="text" name="marque" [(ngModel)]="marque" placeholder="Ex : Toyota, Peugeot…" autocomplete="off">
+          </label>
+          <label class="field">
+            <span><i class="bi bi-car-front"></i> Modèle</span>
+            <input type="text" name="modele" [(ngModel)]="modele" placeholder="Ex : Corolla, 308…" autocomplete="off">
+          </label>
+          <label class="field field-wide">
+            <span><i class="bi bi-gear"></i> Pièce recherchée</span>
+            <input type="text" name="piece" [(ngModel)]="piece" placeholder="Ex : plaquettes de frein, filtre à huile…" autocomplete="off">
+          </label>
+        </div>
+
+        <div class="finder-actions">
+          <button type="submit" class="btn-search">
+            <i class="bi bi-search"></i>
+            {{ peutRechercher ? 'Rechercher la pièce' : 'Parcourir le catalogue ' + universActif.label }}
+          </button>
+        </div>
+
+        <div class="quick-pieces">
+          <span class="quick-label">Populaires :</span>
+          <button
+            *ngFor="let s of suggestionsPieces"
+            type="button"
+            class="chip"
+            (click)="rechercherPiece(s)"
+          >{{ s }}</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</section>

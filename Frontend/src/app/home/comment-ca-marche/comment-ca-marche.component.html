@@ -1,0 +1,44 @@
+<section class="how">
+  <div class="container">
+
+    <div class="how-header">
+      <span class="how-tag"><i class="bi bi-signpost-2-fill"></i> COMMENT ÇA MARCHE</span>
+      <h2>Votre pièce en <span class="accent">3 étapes</span></h2>
+      <p>Un parcours simple, de la recherche à la réception de votre commande.</p>
+    </div>
+
+    <div class="steps">
+      <article
+        class="step"
+        *ngFor="let e of etapes; let i = index"
+        [style.--c]="e.couleur"
+        [style.--delay]="(i * 0.12) + 's'"
+      >
+        <div class="step-num">0{{ i + 1 }}</div>
+        <div class="step-icon"><i class="bi" [class]="e.icon"></i></div>
+        <h3>{{ e.titre }}</h3>
+        <p>{{ e.texte }}</p>
+        <i class="bi bi-arrow-right step-link" *ngIf="i < etapes.length - 1" aria-hidden="true"></i>
+      </article>
+    </div>
+
+    <div class="how-cta">
+      <div class="cta-text">
+        <div class="cta-icon"><i class="bi bi-chat-square-dots-fill"></i></div>
+        <div>
+          <h3>Vous ne trouvez pas votre pièce ?</h3>
+          <p>Décrivez-la et nos fournisseurs partenaires vous font une offre personnalisée.</p>
+        </div>
+      </div>
+      <div class="cta-actions">
+        <a class="btn-primary" routerLink="/recherche" [queryParams]="{ demande: '1' }">
+          <i class="bi bi-send-fill"></i> Faire une demande de pièce
+        </a>
+        <a class="btn-ghost" routerLink="/recherche">
+          Parcourir le catalogue <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
