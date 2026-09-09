@@ -31,7 +31,22 @@
     <div class="product-main" *ngIf="produit">
 
       <!-- GALERIE -->
-      <div class="gallery-col">
+      <div class="gallery-col" [class.single]="images.length <= 1">
+
+        <!-- THUMBNAILS (verticales sur desktop) -->
+        <div class="thumbs" *ngIf="images.length > 1" role="tablist" aria-label="Vues du produit">
+          <button
+            class="thumb"
+            type="button"
+            *ngFor="let img of images; let i = index"
+            [class.active]="i === currentImageIndex"
+            [attr.aria-label]="'Vue ' + (i+1)"
+            [attr.aria-selected]="i === currentImageIndex"
+            (click)="setImage(i)"
+          >
+            <img *ngIf="img" [src]="img" [alt]="'Vue ' + (i+1)" (error)="onImageError($event)">
+          </button>
+        </div>
 
         <!-- IMAGE PRINCIPALE -->
         <div class="main-image-wrap" (click)="openLightbox()">
@@ -52,39 +67,32 @@
             </div>
           </div>
 
-          <!-- BADGES DYNAMIQUES -->
-          <app-product-badges [product]="produit" [maxBadges]="4" placement="info"></app-product-badges>
-
-          <!-- BADGE STOCK -->
-          <div class="stock-badge" [class.out]="produit.stock === 0">
-            <i class="bi" [class.bi-check-circle-fill]="produit.stock > 0" [class.bi-x-circle-fill]="produit.stock === 0"></i>
-            {{ produit.stock > 0 ? 'En stock' : 'Rupture' }}
+          <!-- BADGES SUPERPOSÉS : promo / nouveauté à gauche, disponibilité à droite -->
+          <div class="hero-badges left" *ngIf="heroBadges.length">
+            <span class="hero-badge" *ngFor="let b of heroBadges" [style.background]="b.color">
+              <i class="bi {{ b.icon }}"></i>{{ b.label }}
+            </span>
+          </div>
+          <div class="hero-badges right">
+            <span class="hero-badge stock" [class.out]="produit.stock === 0" [class.low]="produit.stock > 0 && produit.stock <= 5">
+              <i class="bi" [class.bi-check-circle-fill]="produit.stock > 5" [class.bi-fire]="produit.stock > 0 && produit.stock <= 5" [class.bi-x-circle-fill]="produit.stock === 0"></i>
+              {{ produit.stock === 0 ? 'Rupture' : (produit.stock <= 5 ? 'Plus que ' + produit.stock : 'En stock') }}
+            </span>
           </div>
 
-          <!-- LOUPE -->
+          <!-- COMPTEUR + LOUPE -->
+          <div class="img-counter" *ngIf="images.length > 1">{{ currentImageIndex + 1 }} / {{ images.length }}</div>
           <div class="zoom-hint">
-            <i class="bi bi-zoom-in"></i> Agrandir
+            <i class="bi bi-arrows-fullscreen"></i> Agrandir
           </div>
 
           <!-- NAVIGATION IMAGE -->
-          <button class="img-nav prev" (click)="prevImage(); $event.stopPropagation()" *ngIf="images.length > 1">
+          <button class="img-nav prev" type="button" aria-label="Image précédente" (click)="prevImage(); $event.stopPropagation()" *ngIf="images.length > 1">
             <i class="bi bi-chevron-left"></i>
           </button>
-          <button class="img-nav next" (click)="nextImage(); $event.stopPropagation()" *ngIf="images.length > 1">
+          <button class="img-nav next" type="button" aria-label="Image suivante" (click)="nextImage(); $event.stopPropagation()" *ngIf="images.length > 1">
             <i class="bi bi-chevron-right"></i>
           </button>
-        </div>
-
-        <!-- THUMBNAILS -->
-        <div class="thumbs" *ngIf="images.length > 1">
-          <div
-            class="thumb"
-            *ngFor="let img of images; let i = index"
-            [class.active]="i === currentImageIndex"
-            (click)="setImage(i)"
-          >
-            <img *ngIf="img" [src]="img" [alt]="'Vue ' + (i+1)" (error)="onImageError($event)">
-          </div>
         </div>
 
       </div>
@@ -92,10 +100,11 @@
       <!-- INFO PRODUIT -->
       <div class="info-col">
 
-        <!-- MARQUE & BADGES -->
+        <!-- MARQUE & RÉFÉRENCE -->
         <div class="product-meta">
-          <span class="brand-tag">{{ produit.marque || 'AutoMecaStore' }}</span>
-          <app-product-badges [product]="produit" [maxBadges]="6" placement="info"></app-product-badges>
+          <span class="brand-tag"><i class="bi bi-patch-check-fill"></i>{{ produit.marque || 'AutoMecaStore' }}</span>
+          <span class="ref-tag" *ngIf="produit.reference">Réf. {{ produit.reference }}</span>
+          <span class="ref-tag" *ngIf="produit.etat && produit.etat !== 'neuf'">{{ produit.etat === 'occasion' ? 'Occasion' : 'Reconditionné' }}</span>
         </div>
 
         <!-- NOM -->
@@ -110,7 +119,7 @@
                        : 'bi bi-star'"></i>
           </div>
           <span class="rating-val" *ngIf="getNombreAvis() > 0">{{ getNoteMoyenne() | number:'1.1-1' }}</span>
-          <span class="rating-count" *ngIf="getNombreAvis() > 0">({{ getNombreAvis() }} avis)</span>
+          <a class="rating-count" *ngIf="getNombreAvis() > 0" (click)="setTab('avis')">({{ getNombreAvis() }} avis)</a>
           <span class="rating-count" *ngIf="getNombreAvis() === 0">Aucune évaluation</span>
           <span class="sep">·</span>
           <span class="sold-count"><i class="bi bi-bag-check-fill"></i> {{ produit.nombre_ventes || 0 }} vendus</span>
@@ -118,23 +127,36 @@
           <span class="fav-count"><i class="bi bi-heart-fill"></i> {{ produit.nombre_favoris || 0 }} favoris</span>
         </div>
 
+        <!-- BADGES SERVICES -->
+        <div class="service-badges" *ngIf="infoBadges.length">
+          <span class="service-badge" *ngFor="let b of infoBadges" [style.color]="b.color" [style.border-color]="b.color">
+            <i class="bi {{ b.icon }}"></i>{{ b.label }}
+          </span>
+        </div>
+
         <!-- PRIX -->
-        <div class="price-block">
-          <div class="price-main" *ngIf="!produit.est_en_promo || !produit.prix_promo">
-            {{ produit.prix | number:'1.2-2' }} FCFA
+        <div class="price-block" [class.promo]="produit.est_en_promo && produit.prix_promo">
+          <div class="price-main-col">
+            <span class="price-label">{{ produit.est_en_promo && produit.prix_promo ? 'Prix promo' : 'Prix' }}</span>
+            <div class="price-main">
+              {{ (produit.est_en_promo && produit.prix_promo ? produit.prix_promo : produit.prix) | number:'1.0-0' }}
+              <small>FCFA</small>
+            </div>
+            <div class="price-saving" *ngIf="economieProduit > 0">
+              <i class="bi bi-arrow-down-circle-fill"></i> Vous économisez {{ economieProduit | number:'1.0-0' }} FCFA
+            </div>
           </div>
-          <div class="price-main" *ngIf="produit.est_en_promo && produit.prix_promo">
-            {{ produit.prix_promo | number:'1.2-2' }} FCFA
+          <div class="price-side" *ngIf="produit.est_en_promo && produit.prix_promo">
+            <span class="price-discount" *ngIf="produit.pourcentage_reduction">-{{ produit.pourcentage_reduction }}%</span>
+            <span class="price-discount" *ngIf="!produit.pourcentage_reduction">-{{ calculerPourcentageReduction() }}%</span>
+            <span class="price-old">{{ produit.prix | number:'1.0-0' }} FCFA</span>
           </div>
-          <div class="price-old" *ngIf="produit.est_en_promo && produit.prix_promo">
-            {{ produit.prix | number:'1.2-2' }} FCFA
-          </div>
-          <div class="price-discount" *ngIf="produit.est_en_promo && produit.pourcentage_reduction">
-            -{{ produit.pourcentage_reduction }}%
-          </div>
-          <div class="price-discount" *ngIf="produit.est_en_promo && !produit.pourcentage_reduction && produit.prix_promo">
-            -{{ calculerPourcentageReduction() }}%
-          </div>
+        </div>
+
+        <!-- INFO PROMO -->
+        <div class="promo-info" *ngIf="produit.est_en_promo && produit.date_fin_promo">
+          <i class="bi bi-clock-fill"></i>
+          Offre valable jusqu'au {{ produit.date_fin_promo | date:'dd/MM/yyyy' }}
         </div>
 
         <!-- GÉOLOCALISATION -->
@@ -145,170 +167,195 @@
           </span>
         </div>
 
-        <!-- OFFRES / VENDEURS -->
-        <div class="offres-box" *ngIf="offres.length" (click)="setTab('offres')">
-          <div class="offre-selected" *ngIf="selectedOffre">
-            <div class="offre-magasin">
-              <img *ngIf="selectedOffre.magasin?.logo_url" [src]="selectedOffre.magasin?.logo_url" alt="logo" class="offre-logo">
-              <i *ngIf="!selectedOffre.magasin?.logo_url" class="bi bi-shop offre-logo-placeholder"></i>
-              <div>
-                <strong>{{ selectedOffre.magasin?.nom_magasin || selectedOffre.fournisseur.nom_entreprise }}</strong>
-                <span *ngIf="hasHoraires(selectedOffre)" class="offre-status" [class.ouvert]="isMagasinOuvert(selectedOffre)" [class.ferme]="!isMagasinOuvert(selectedOffre)">
-                  {{ isMagasinOuvert(selectedOffre) ? 'Ouvert' : 'Fermé' }}
+        <!-- SÉLECTEUR DE MAGASIN -->
+        <div class="store-picker" *ngIf="offres.length" [class.pending]="!selectedOffre && offres.length > 1" id="product-buy">
+          <div class="store-picker-head">
+            <span class="store-picker-title"><i class="bi bi-shop-window"></i> Magasin</span>
+            <span class="store-picker-count">{{ storeCountLabel }}</span>
+          </div>
+
+          <!-- Magasin choisi -->
+          <div class="store-selected" *ngIf="selectedOffre">
+            <div class="store-logo">
+              <img *ngIf="selectedOffre.magasin?.logo_url" [src]="selectedOffre.magasin?.logo_url" alt="logo">
+              <i *ngIf="!selectedOffre.magasin?.logo_url" class="bi bi-shop"></i>
+            </div>
+            <div class="store-body">
+              <div class="store-name-row">
+                <strong class="store-name">{{ selectedStoreName }}</strong>
+                <span class="store-chip ok" *ngIf="selectedOffre.stock > 0"><i class="bi bi-check-circle-fill"></i> Disponible</span>
+                <span class="store-chip out" *ngIf="selectedOffre.stock === 0"><i class="bi bi-x-circle-fill"></i> Rupture</span>
+              </div>
+              <div class="store-details">
+                <span *ngIf="hasHoraires(selectedOffre)" class="store-open" [class.ouvert]="isMagasinOuvert(selectedOffre)" [class.ferme]="!isMagasinOuvert(selectedOffre)">
+                  <i class="bi bi-circle-fill"></i>{{ isMagasinOuvert(selectedOffre) ? 'Ouvert' : 'Fermé' }}
                 </span>
-                <span *ngIf="!hasHoraires(selectedOffre)" class="offre-status">
-                  {{ selectedOffre.magasin?.adresse || 'Horaires non communiqués' }}
+                <span *ngIf="selectedOffre.distance_km !== null && selectedOffre.distance_km !== undefined">
+                  <i class="bi bi-geo-alt-fill"></i>{{ selectedOffre.distance_km }} km
                 </span>
-                <span class="offre-distance" *ngIf="selectedOffre.distance_km !== null && selectedOffre.distance_km !== undefined">
-                  <i class="bi bi-geo-alt"></i> {{ selectedOffre.distance_km }} km
+                <span *ngIf="(selectedOffre.distance_km === null || selectedOffre.distance_km === undefined) && (selectedOffre.magasin?.ville || selectedOffre.magasin?.adresse)">
+                  <i class="bi bi-geo-alt-fill"></i>{{ selectedOffre.magasin?.ville || selectedOffre.magasin?.adresse }}
                 </span>
-                <span class="offre-distance" *ngIf="selectedOffre.distance_km === null || selectedOffre.distance_km === undefined">
-                  <i class="bi bi-geo-alt"></i> {{ selectedOffre.magasin?.ville || 'Distance indisponible' }}
-                </span>
+                <span *ngIf="selectedOffre.livraison_disponible"><i class="bi bi-truck"></i>Livraison</span>
+                <span *ngIf="selectedOffre.retrait_magasin"><i class="bi bi-bag-check"></i>Retrait</span>
               </div>
             </div>
-            <span class="offre-dispo" [class.ok]="selectedOffre.stock > 0" [class.out]="selectedOffre.stock === 0">
-              <i class="bi" [class.bi-check-circle-fill]="selectedOffre.stock > 0" [class.bi-x-circle-fill]="selectedOffre.stock === 0"></i>
-              {{ selectedOffre.stock > 0 ? 'Disponible' : 'Rupture' }}
-            </span>
-          </div>
-
-          <div class="offre-selected offre-not-selected" *ngIf="!selectedOffre && offres.length > 1" (click)="setTab('offres'); $event.stopPropagation()">
-            <i class="bi bi-shop offre-logo-placeholder"></i>
-            <div>
-              <strong>Veuillez choisir un magasin</strong>
-              <span>{{ offres.length }} offres disponibles</span>
+            <div class="store-price">
+              <strong>{{ selectedOffre.prix | number:'1.0-0' }} <small>FCFA</small></strong>
+              <span *ngIf="offres.length > 1 && (selectedOffre.badges || []).includes('meilleur_prix')" class="store-best"><i class="bi bi-trophy-fill"></i> Meilleur prix</span>
             </div>
-            <i class="bi bi-chevron-right"></i>
           </div>
 
-          <div class="offre-toggle">
-            <span *ngIf="offres.length === 1"><i class="bi bi-shop-window"></i> Disponible chez 1 magasin</span>
-            <span *ngIf="offres.length > 1"><i class="bi bi-shop-window"></i> Disponible chez {{ offres.length }} magasins</span>
-            <i class="bi bi-chevron-right"></i>
+          <!-- Aucun magasin choisi -->
+          <div class="store-empty" *ngIf="!selectedOffre && offres.length > 1">
+            <div class="store-empty-icon"><i class="bi bi-geo-alt"></i></div>
+            <div class="store-empty-text">
+              <strong>Choisissez votre magasin</strong>
+              <span>Comparez le prix, la distance et la disponibilité de {{ offres.length }} vendeurs.</span>
+            </div>
+          </div>
+
+          <div class="store-picker-actions">
+            <button type="button" class="btn-store" [class.primary]="!selectedOffre" (click)="goToOffres($event)">
+              <i class="bi" [class.bi-shop]="!selectedOffre" [class.bi-arrow-left-right]="selectedOffre"></i>
+              {{ selectedOffre ? (offres.length > 1 ? 'Changer de magasin' : 'Voir les détails du magasin') : 'Choisir un magasin' }}
+            </button>
+            <a *ngIf="selectedOffre?.magasin?.id" class="btn-store ghost" [routerLink]="['/magasins', selectedOffre?.magasin?.id]">
+              <i class="bi bi-box-arrow-up-right"></i> Boutique
+            </a>
           </div>
         </div>
 
         <!-- STOCK -->
-        <div class="stock-info" [class.out-of-stock]="produit.stock === 0">
-          <i class="bi" [class.bi-check-circle-fill]="produit.stock > 0" [class.bi-x-circle-fill]="produit.stock === 0"></i>
-          <span *ngIf="produit.stock > 0">En stock — <strong>{{ produit.stock }} unités</strong> disponibles</span>
+        <div class="stock-info" [class.out-of-stock]="produit.stock === 0" [class.low]="produit.stock > 0 && produit.stock <= 5">
+          <i class="bi" [class.bi-check-circle-fill]="produit.stock > 5" [class.bi-fire]="produit.stock > 0 && produit.stock <= 5" [class.bi-x-circle-fill]="produit.stock === 0"></i>
+          <span *ngIf="produit.stock > 5">En stock — <strong>{{ produit.stock }} unités</strong> disponibles</span>
+          <span *ngIf="produit.stock > 0 && produit.stock <= 5">Plus que <strong>{{ produit.stock }} en stock</strong> — commandez vite !</span>
           <span *ngIf="produit.stock === 0">Rupture de stock</span>
         </div>
 
-        <!-- STOCK FAIBLE -->
-        <div class="low-stock-warn" *ngIf="produit.stock > 0 && produit.stock <= 5">
-          <i class="bi bi-fire"></i>
-          Plus que {{ produit.stock }} en stock — commandez vite !
+        <!-- MODE DE RÉCEPTION -->
+        <div class="reception-block" *ngIf="selectedOffre">
+          <span class="block-label">Mode de réception</span>
+          <div class="reception-toggle">
+            <button
+              class="reception-btn"
+              [class.active]="modeReception === 'livraison'"
+              (click)="setModeReception('livraison')"
+              [disabled]="!selectedOffre.livraison_disponible"
+              type="button"
+            >
+              <span class="reception-icon"><i class="bi bi-truck"></i></span>
+              <span class="reception-text">
+                <span>Livraison</span>
+                <small *ngIf="selectedOffre.livraison_disponible && selectedOffre.delai_livraison">{{ getDelaiLivraisonLabel(selectedOffre.delai_livraison) }}</small>
+                <small *ngIf="!selectedOffre.livraison_disponible">Non proposée</small>
+              </span>
+              <i class="bi bi-check-circle-fill reception-check"></i>
+            </button>
+            <button
+              class="reception-btn"
+              [class.active]="modeReception === 'retrait_magasin'"
+              (click)="setModeReception('retrait_magasin')"
+              [disabled]="!selectedOffre.retrait_magasin"
+              type="button"
+            >
+              <span class="reception-icon"><i class="bi bi-shop"></i></span>
+              <span class="reception-text">
+                <span>Retrait en magasin</span>
+                <small *ngIf="selectedOffre.retrait_magasin">{{ selectedOffre.magasin?.ville || 'Gratuit' }}</small>
+                <small *ngIf="!selectedOffre.retrait_magasin">Non proposé</small>
+              </span>
+              <i class="bi bi-check-circle-fill reception-check"></i>
+            </button>
+          </div>
         </div>
 
-        <!-- INFO PROMO -->
-        <div class="promo-info" *ngIf="produit.est_en_promo && produit.date_fin_promo">
-          <i class="bi bi-clock-fill"></i>
-          Offre valable jusqu'au {{ produit.date_fin_promo | date:'dd/MM/yyyy' }}
+        <!-- QUANTITÉ + ACTIONS -->
+        <div class="buy-row">
+          <div class="qty-row">
+            <span class="qty-label">Quantité</span>
+            <div class="qty-control">
+              <button class="qty-btn" type="button" aria-label="Diminuer" (click)="decrease()" [disabled]="quantity <= 1">
+                <i class="bi bi-dash"></i>
+              </button>
+              <span class="qty-val">{{ quantity }}</span>
+              <button class="qty-btn" type="button" aria-label="Augmenter" (click)="increase()" [disabled]="produit.stock <= quantity">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+            <span class="qty-min" *ngIf="produit.quantite_min">min. {{ produit.quantite_min }}</span>
+          </div>
+
+          <div class="action-btns">
+            <button
+              class="btn-cart"
+              [class.added]="produitAjoute"
+              [disabled]="produit.stock === 0 || (!selectedOffre && offres.length > 1)"
+              (click)="addToCart(produit, true)"
+              type="button"
+            >
+              <i class="bi" [class.bi-truck]="!produitAjoute && selectedOffre && modeReception === 'livraison'" [class.bi-shop]="!produitAjoute && selectedOffre && modeReception === 'retrait_magasin'" [class.bi-shop-window]="!produitAjoute && !selectedOffre && offres.length > 1" [class.bi-check-lg]="produitAjoute"></i>
+              {{ produitAjoute ? 'Ajouté au panier !' : (!selectedOffre && offres.length > 1 ? 'Choisir un magasin' : (modeReception === 'retrait_magasin' ? 'Retirer en magasin' : 'Commander en ligne')) }}
+            </button>
+
+            <button class="btn-wishlist" (click)="toggleWishlist()" [class.wishlisted]="isWishlisted" type="button" [attr.aria-label]="isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+              <i class="bi" [class.bi-heart-fill]="isWishlisted" [class.bi-heart]="!isWishlisted"></i>
+            </button>
+          </div>
         </div>
 
-        <!-- LIVRAISON -->
-        <div class="delivery-info">
-          <div class="delivery-item">
+        <div class="select-offer-hint" *ngIf="!selectedOffre && offres.length > 1">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>Sélectionnez un magasin pour connaître le prix final et activer la commande.</span>
+          <button type="button" class="hint-link" (click)="goToOffres($event)">Voir les {{ offres.length }} offres</button>
+        </div>
+
+        <!-- RÉASSURANCE -->
+        <div class="reassurance">
+          <div class="reassurance-item">
             <i class="bi bi-truck-front-fill"></i>
             <div>
               <strong>Livraison gratuite</strong>
               <span>Dakar & régions — 24 à 48h</span>
             </div>
           </div>
-          <div class="delivery-item">
+          <div class="reassurance-item">
             <i class="bi bi-arrow-return-left"></i>
             <div>
               <strong>Retour 30 jours</strong>
               <span>Satisfait ou remboursé</span>
             </div>
           </div>
-        </div>
-
-        <!-- DIVIDER -->
-        <div class="divider"></div>
-
-        <!-- MODE DE RÉCEPTION -->
-        <div class="reception-toggle" *ngIf="selectedOffre">
-          <button
-            class="reception-btn"
-            [class.active]="modeReception === 'livraison'"
-            (click)="setModeReception('livraison')"
-            [disabled]="!selectedOffre.livraison_disponible"
-            type="button"
-          >
-            <i class="bi bi-truck"></i>
-            <span>Livraison</span>
-            <small *ngIf="selectedOffre.delai_livraison">{{ getDelaiLivraisonLabel(selectedOffre.delai_livraison) }}</small>
-          </button>
-          <button
-            class="reception-btn"
-            [class.active]="modeReception === 'retrait_magasin'"
-            (click)="setModeReception('retrait_magasin')"
-            [disabled]="!selectedOffre.retrait_magasin"
-            type="button"
-          >
-            <i class="bi bi-shop"></i>
-            <span>Retrait</span>
-            <small *ngIf="selectedOffre.magasin?.ville">{{ selectedOffre.magasin?.ville }}</small>
-          </button>
-        </div>
-
-        <!-- QUANTITÉ -->
-        <div class="qty-row">
-          <span class="qty-label">Quantité</span>
-          <div class="qty-control">
-            <button class="qty-btn" (click)="decrease()" [disabled]="quantity <= 1">
-              <i class="bi bi-dash"></i>
-            </button>
-            <span class="qty-val">{{ quantity }}</span>
-            <button class="qty-btn" (click)="increase()" [disabled]="produit.stock <= quantity">
-              <i class="bi bi-plus"></i>
-            </button>
+          <div class="reassurance-item" *ngIf="produit.garantie_mois">
+            <i class="bi bi-shield-fill-check"></i>
+            <div>
+              <strong>Garantie {{ getGarantieLabel(produit.garantie_mois) }}</strong>
+              <span>Pièce garantie constructeur</span>
+            </div>
           </div>
-          <span class="qty-min" *ngIf="produit.quantite_min">min. {{ produit.quantite_min }}</span>
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="action-btns">
-          <button
-            class="btn-cart"
-            [class.added]="produitAjoute"
-            [disabled]="produit.stock === 0 || (!selectedOffre && offres.length > 1)"
-            (click)="addToCart(produit, true)"
-            type="button"
-          >
-            <i class="bi" [class.bi-truck]="!produitAjoute && selectedOffre && modeReception === 'livraison'" [class.bi-shop]="!produitAjoute && selectedOffre && modeReception === 'retrait_magasin'" [class.bi-shop-window]="!produitAjoute && !selectedOffre && offres.length > 1" [class.bi-check-lg]="produitAjoute"></i>
-            {{ produitAjoute ? 'Ajouté au panier !' : (!selectedOffre && offres.length > 1 ? 'Choisir un magasin' : (modeReception === 'retrait_magasin' ? 'Retirer en magasin' : 'Commander en ligne')) }}
-          </button>
-
-          <button class="btn-wishlist" (click)="toggleWishlist()" [class.wishlisted]="isWishlisted" type="button">
-            <i class="bi" [class.bi-heart-fill]="isWishlisted" [class.bi-heart]="!isWishlisted"></i>
-          </button>
-        </div>
-
-        <div class="select-offer-hint" *ngIf="!selectedOffre && offres.length > 1">
-          <i class="bi bi-info-circle"></i> Veuillez sélectionner un magasin dans l'onglet "Offres" avant d'ajouter au panier.
+          <div class="reassurance-item">
+            <i class="bi bi-lock-fill"></i>
+            <div>
+              <strong>Paiement sécurisé</strong>
+              <span>Wave, Orange Money, carte</span>
+            </div>
+          </div>
         </div>
 
         <!-- INFOS RAPIDES -->
-        <div class="quick-info">
-          <div class="qi-item" *ngIf="produit.garantie_mois">
-            <i class="bi bi-shield-fill-check"></i>
-            <span>{{ getGarantieLabel(produit.garantie_mois) }}</span>
-          </div>
-          <div class="qi-item" *ngIf="produit.pays_origine">
-            <i class="bi bi-patch-check-fill"></i>
+        <div class="quick-info" *ngIf="produit.pays_origine || produit.delai_livraison || produit.reference_oem">
+          <div class="qi-item" *ngIf="produit.pays_origine && getPaysLabel(produit.pays_origine) !== 'Non spécifié'">
+            <i class="bi bi-flag-fill"></i>
             <span>Origine {{ getPaysLabel(produit.pays_origine) }}</span>
           </div>
           <div class="qi-item" *ngIf="produit.delai_livraison">
-            <i class="bi bi-truck-front-fill"></i>
-            <span>{{ getDelaiLivraisonLabel(produit.delai_livraison) }}</span>
+            <i class="bi bi-clock-history"></i>
+            <span>Expédition {{ getDelaiLivraisonLabel(produit.delai_livraison) }}</span>
           </div>
-          <div class="qi-item">
-            <i class="bi bi-lock-fill"></i>
-            <span>Paiement sécurisé</span>
+          <div class="qi-item" *ngIf="produit.reference_oem">
+            <i class="bi bi-upc-scan"></i>
+            <span>OEM {{ produit.reference_oem }}</span>
           </div>
         </div>
 
@@ -316,7 +363,7 @@
     </div>
 
     <!-- ============ TABS ============ -->
-    <div class="tabs-section" *ngIf="produit" appScrollReveal [revealDelay]="120">
+    <div class="tabs-section" id="product-tabs" *ngIf="produit" appScrollReveal [revealDelay]="120">
 
       <!-- TAB BUTTONS -->
       <div class="tabs-bar">
@@ -563,13 +610,13 @@
 
                 <div class="offre-card-actions">
                   <button
-                    class="btn-select-offre"
+                    class="btn-select-offre btn-choose"
                     [class.selected]="offre === selectedOffre"
                     (click)="onSelectOffre(offre)"
                     type="button"
                   >
-                    <i class="bi" [class.bi-check-circle-fill]="offre === selectedOffre" [class.bi-circle]="offre !== selectedOffre"></i>
-                    {{ offre === selectedOffre ? 'Sélectionné' : 'Choisir ce vendeur' }}
+                    <i class="bi" [class.bi-check-circle-fill]="offre === selectedOffre" [class.bi-cart-check]="offre !== selectedOffre"></i>
+                    {{ offre === selectedOffre ? 'Magasin sélectionné' : 'Choisir ce vendeur' }}
                   </button>
                   <a
                     *ngIf="getItineraireHref(offre) as itineraire"
@@ -849,6 +896,16 @@
     </span>
   </div>
   <button
+    *ngIf="!selectedOffre && offres.length > 1"
+    class="btn-cart btn-mobile-cart"
+    (click)="goToOffres($event)"
+    type="button"
+  >
+    <i class="bi bi-shop"></i>
+    Choisir un magasin
+  </button>
+  <button
+    *ngIf="selectedOffre || offres.length <= 1"
     class="btn-cart btn-mobile-cart"
     [class.added]="produitAjoute"
     [disabled]="produit.stock === 0"
