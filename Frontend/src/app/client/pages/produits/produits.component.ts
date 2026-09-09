@@ -26,6 +26,8 @@ import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.
 
 import { ProductBadgesComponent } from '../../../shared/components/product-badges/product-badges.component';
 
+import { ProductBadge, ProductBadgeService } from '../../../core/services/product-badge.service';
+
 import { AuthService } from '../../../core/services/auth.service';
 
 import { Subscription } from 'rxjs';
@@ -174,6 +176,14 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
 
+  /** Badges produit : superposés à l'image (promo, nouveauté) et informatifs (services) */
+
+  heroBadges: ProductBadge[] = [];
+
+  infoBadges: ProductBadge[] = [];
+
+
+
   /** Géolocalisation client */
 
   clientPosition: { lat: number; lng: number } | null = null;
@@ -223,6 +233,8 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     private homeService: HomeService,
 
     private authService: AuthService,
+
+    private badgeService: ProductBadgeService,
 
     private route: ActivatedRoute,
 
@@ -304,7 +316,7 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         this.produit = produit;
 
-        
+        this.computeBadges(produit);
 
         // Incrémenter les vues du produit (uniquement au premier chargement)
 
@@ -562,6 +574,78 @@ export class ProduitsComponent implements OnInit, OnDestroy {
   setTab(tab: string): void {
 
     this.activeTab = tab;
+
+  }
+
+
+
+  /** Ouvre l'onglet Offres et y amène l'utilisateur */
+
+  goToOffres(event?: Event): void {
+
+    event?.stopPropagation();
+
+    this.setTab('offres');
+
+    this.scrollToElement('product-tabs');
+
+  }
+
+
+
+  private scrollToElement(id: string): void {
+
+    setTimeout(() => {
+
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    }, 60);
+
+  }
+
+
+
+  private computeBadges(produit: Produit): void {
+
+    const all = this.badgeService.getProductBadges(produit, 6);
+
+    const isHero = (b: ProductBadge) => b.position === 'top_left' || b.position === 'top_right';
+
+    this.heroBadges = all.filter(b => isHero(b) && b.type !== 'out_of_stock' && b.type !== 'low_stock' && b.type !== 'last_items');
+
+    this.infoBadges = all.filter(b => !isHero(b));
+
+  }
+
+
+
+  get selectedStoreName(): string {
+
+    const o = this.selectedOffre;
+
+    return o?.magasin?.nom_magasin || o?.fournisseur?.nom_entreprise || 'Magasin';
+
+  }
+
+
+
+  get economieProduit(): number {
+
+    const p = this.produit;
+
+    if (!p?.est_en_promo || !p.prix_promo) { return 0; }
+
+    return Math.max(0, p.prix - p.prix_promo);
+
+  }
+
+
+
+  get storeCountLabel(): string {
+
+    const n = this.offres.length;
+
+    return n > 1 ? `${n} magasins proposent cette pièce` : 'Vendu par 1 magasin';
 
   }
 
@@ -987,7 +1071,11 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   onSelectOffre(offre: Offre): void {
 
+    const changed = this.selectedOffre !== offre;
+
     this.selectedOffre = offre;
+
+    if (changed) { this.scrollToElement('product-buy'); }
 
     // Adapter le mode de réception aux capacités du magasin
 
