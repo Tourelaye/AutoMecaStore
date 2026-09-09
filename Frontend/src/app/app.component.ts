@@ -68,6 +68,10 @@ export class AppComponent {
     return url === '/magasins' || url.startsWith('/magasins/');
   }
 
+  isRecherchePage(): boolean {
+    return this.router.url.startsWith('/recherche');
+  }
+
   isAdminPage(): boolean{
     const isAdmin = this.router.url.startsWith('/admin');
     return isAdmin;

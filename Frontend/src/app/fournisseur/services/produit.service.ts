@@ -125,4 +125,8 @@ export class ProduitService {
   deleteProduit(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}/`);
   }
+
+  matchProduit(params: { oem?: string; marque?: string; reference_fabricant?: string; type_piece?: number; nom?: string }): Observable<any> {
+    return this.http.get(`${this.apiUrl}/match/`, { params });
+  }
 }

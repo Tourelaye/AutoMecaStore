@@ -55,7 +55,7 @@
     </div>
 
     <!-- GRILLE -->
-    <div class="offers-grid" *ngIf="!isLoading && !errorMessage">
+    <app-home-rail *ngIf="!isLoading && !errorMessage" ariaLabel="Vente éclair">
 
       <div
         class="product-card"
@@ -164,7 +164,7 @@
         </div>
       </div>
 
-    </div>
+    </app-home-rail>
 
   </div>
 </section>

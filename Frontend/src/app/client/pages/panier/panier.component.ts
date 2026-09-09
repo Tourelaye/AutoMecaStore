@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
 
 import { PanierService } from '../../../core/services/panier.service';
+import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 import { CommandeClientService } from '../../../core/services/commande-client.service';
 import { MonCompteService, PanierItem as BackendPanierItem } from '../../../core/services/mon-compte.service';
 import { PanierItem } from '../../../models/panier.model';
@@ -17,7 +18,7 @@ type ModeLivraison = 'standard' | 'express' | 'retrait';
 @Component({
   selector: 'app-panier',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, ScrollRevealDirective],
   templateUrl: './panier.component.html',
   styleUrls: ['./panier.component.css'],
   animations: [

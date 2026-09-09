@@ -2,11 +2,13 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .models import Ticket, MessageSupport, Reclamation, Avis, SignalementAvis
+from django.utils import timezone
+from .models import Ticket, MessageSupport, Reclamation, Avis, SignalementAvis, DemandePartenariat
 from .serializers import (
     TicketSerializer, MessageSupportSerializer, ReclamationSerializer,
     ReclamationCreateSerializer, AvisSerializer, AvisCreateSerializer,
-    SignalementAvisSerializer
+    SignalementAvisSerializer,
+    DemandePartenariatCreateSerializer, DemandePartenariatListSerializer, DemandePartenariatDetailSerializer
 )
 from account.permissions import IsAdmin
 from django_filters.rest_framework import DjangoFilterBackend
@@ -31,6 +33,10 @@ class TicketCreateView(generics.CreateAPIView):
 class MessageCreateView(generics.CreateAPIView):
     serializer_class = MessageSupportSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        client = getattr(self.request.user, 'client', None)
+        serializer.save(client=client)
 
 
 # -----------------------------
@@ -298,3 +304,94 @@ class AdminAvisActionView(APIView):
         else:
             return Response({'error': 'Action inconnue.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(AvisSerializer(avis).data)
+
+
+# ------------------------------
+# DemandePartenariat — Public
+# ------------------------------
+class DemandePartenariatCreateView(generics.CreateAPIView):
+    """Soumettre une demande de partenariat (public ou authentifié)."""
+    serializer_class = DemandePartenariatCreateSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+# ------------------------------
+# DemandePartenariat — Admin
+# ------------------------------
+class AdminDemandePartenariatListView(generics.ListAPIView):
+    """Liste paginée des demandes de partenariat pour l'admin."""
+    serializer_class = DemandePartenariatListSerializer
+    permission_classes = [IsAdmin]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['nom_entreprise', 'marque', 'email_contact', 'message']
+    ordering_fields = ['date_soumission', 'statut']
+    ordering = ['-date_soumission']
+
+    def get_queryset(self):
+        qs = DemandePartenariat.objects.all()
+        statut = self.request.query_params.get('statut')
+        if statut and statut != 'tous':
+            qs = qs.filter(statut=statut)
+        return qs
+
+
+class AdminDemandePartenariatDetailView(APIView):
+    """Détail d'une demande de partenariat."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        demande = get_object_or_404(DemandePartenariat, pk=pk)
+        return Response(DemandePartenariatDetailSerializer(demande).data)
+
+
+class AdminDemandePartenariatActionView(APIView):
+    """Actions admin sur une demande de partenariat."""
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        demande = get_object_or_404(DemandePartenariat, pk=pk)
+        action = request.data.get('action')
+
+        if action == 'changer_statut':
+            nouveau = request.data.get('statut')
+            if nouveau not in ['nouvelle', 'en_cours', 'acceptee', 'rejetee']:
+                return Response({'error': 'Statut invalide'}, status=400)
+            demande.statut = nouveau
+            if nouveau in ['acceptee', 'rejetee']:
+                demande.date_traitement = timezone.now()
+                demande.traitee_par = request.user
+            demande.save()
+            return Response({'message': 'Statut mis à jour', 'demande': DemandePartenariatDetailSerializer(demande).data})
+
+        elif action == 'repondre':
+            reponse = request.data.get('reponse_admin', '').strip()
+            if not reponse:
+                return Response({'error': 'Réponse requise'}, status=400)
+            demande.reponse_admin = reponse
+            demande.save()
+            return Response({'message': 'Réponse enregistrée', 'demande': DemandePartenariatDetailSerializer(demande).data})
+
+        elif action == 'supprimer':
+            demande.delete()
+            return Response({'message': 'Demande supprimée'}, status=status.HTTP_204_NO_CONTENT)
+
+        return Response({'error': 'Action inconnue'}, status=400)
+
+
+class AdminDemandePartenariatStatsView(APIView):
+    """Statistiques des demandes de partenariat."""
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        total = DemandePartenariat.objects.count()
+        nouvelles = DemandePartenariat.objects.filter(statut='nouvelle').count()
+        en_cours = DemandePartenariat.objects.filter(statut='en_cours').count()
+        acceptees = DemandePartenariat.objects.filter(statut='acceptee').count()
+        rejetees = DemandePartenariat.objects.filter(statut='rejetee').count()
+        return Response({
+            'total': total,
+            'nouvelles': nouvelles,
+            'en_cours': en_cours,
+            'acceptees': acceptees,
+            'rejetees': rejetees,
+        })

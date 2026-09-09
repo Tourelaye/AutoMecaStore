@@ -8,6 +8,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
 import { MonCompteService } from '../../../../../core/services/mon-compte.service';
 import { Produit } from '../../../../../models/produit.model';
 import { ProductBadgesComponent } from '../../../../../shared/components/product-badges/product-badges.component';
+import { ScrollRevealDirective } from '../../../../../shared/directives/scroll-reveal.directive';
 
 export interface AutoProduit {
   id: number;
@@ -42,7 +43,7 @@ export interface AutoProduit {
 @Component({
   selector: 'app-auto-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProductBadgesComponent],
+  imports: [CommonModule, FormsModule, ProductBadgesComponent, ScrollRevealDirective],
   templateUrl: './auto-list.component.html',
   styleUrls: ['./auto-list.component.css']
 })

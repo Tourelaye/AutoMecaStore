@@ -37,6 +37,12 @@ export class AjouterProduitComponent implements OnInit {
   private toastTimeout: any;
   showPreview = false;
 
+  // Matching produit existant
+  matchLoading = false;
+  matchResult: any = null;
+  showMatchModal = false;
+  pendingFormData: { categorieId: number; typePieceId: number } | null = null;
+
   produitForm!: FormGroup;
 
   categoriesVehicule: { value: CategorieVehicule; label: string; icon: string }[] = [
@@ -672,6 +678,65 @@ export class AjouterProduitComponent implements OnInit {
       return;
     }
 
+    // En mode édition, pas de matching
+    if (this.mode === 'edit') {
+      this.proceedToSave(categorieId, typePieceId);
+      return;
+    }
+
+    // En mode création, vérifier si un produit existe déjà
+    this.matchLoading = true;
+    const oem = this.produitForm.get('reference_oem')?.value || '';
+    const marque = this.produitForm.get('marque')?.value || '';
+    const reference = this.produitForm.get('reference')?.value || '';
+    const nom = this.produitForm.get('nom')?.value || '';
+
+    this.produitService.matchProduit({
+      oem: oem,
+      marque: marque,
+      reference_fabricant: reference,
+      type_piece: typePieceId,
+      nom: nom
+    }).subscribe({
+      next: (result) => {
+        this.matchLoading = false;
+        this.matchResult = result;
+
+        if (result.found && !result.ambiguous && result.confidence === 'high') {
+          // Match fort → proposer le rattachement
+          this.showMatchModal = true;
+          this.pendingFormData = { categorieId, typePieceId };
+        } else if (result.found && !result.ambiguous && result.confidence === 'medium') {
+          // Match moyen → proposer aussi
+          this.showMatchModal = true;
+          this.pendingFormData = { categorieId, typePieceId };
+        } else {
+          // Pas de match ou ambigu → créer un nouveau produit
+          this.proceedToSave(categorieId, typePieceId);
+        }
+      },
+      error: () => {
+        this.matchLoading = false;
+        // En cas d'erreur du match, on continue la création
+        this.proceedToSave(categorieId, typePieceId);
+      }
+    });
+  }
+
+  confirmerRattachement(): void {
+    this.showMatchModal = false;
+    if (this.pendingFormData) {
+      this.proceedToSave(this.pendingFormData.categorieId, this.pendingFormData.typePieceId);
+    }
+  }
+
+  annulerRattachement(): void {
+    this.showMatchModal = false;
+    this.matchResult = null;
+    this.pendingFormData = null;
+  }
+
+  private proceedToSave(categorieId: number, typePieceId: number): void {
     this.isSaving = true;
     const formData = this.buildFormData(categorieId, typePieceId);
 

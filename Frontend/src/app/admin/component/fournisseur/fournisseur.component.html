@@ -349,18 +349,18 @@
       <div class="detail-header" *ngIf="selectedFournisseur">
         <div class="detail-identity">
           <div class="user-avatar-wrap">
-            <img [src]="selectedFournisseur?.magasin?.logo || ''" class="detail-avatar" alt="" *ngIf="selectedFournisseur?.magasin?.logo; else noLogoDetail" (error)="$any($event.target).style.display='none'">
+            <img [src]="selectedFournisseur.magasin?.logo || ''" class="detail-avatar" alt="" *ngIf="selectedFournisseur.magasin?.logo; else noLogoDetail" (error)="$any($event.target).style.display='none'">
             <ng-template #noLogoDetail>
-              <span class="detail-avatar user-avatar--fallback">{{ initials(selectedFournisseur?.magasin?.nom_magasin || selectedFournisseur?.nom_complet || '?') }}</span>
+              <span class="detail-avatar user-avatar--fallback">{{ initials(selectedFournisseur.magasin?.nom_magasin || selectedFournisseur.nom_complet || '?') }}</span>
             </ng-template>
           </div>
           <div>
-            <h3>{{ selectedFournisseur?.magasin?.nom_magasin || selectedFournisseur?.nom_entreprise || selectedFournisseur?.nom_complet }}</h3>
+            <h3>{{ selectedFournisseur.magasin?.nom_magasin || selectedFournisseur.nom_entreprise || selectedFournisseur.nom_complet }}</h3>
             <span class="detail-meta">
-              <span class="badge" [ngClass]="statusClass(selectedFournisseur?.statut!)">
-                <i class="bi" [class]="statusIcon(selectedFournisseur?.statut!)"></i> {{ statusLabel(selectedFournisseur?.statut!) }}
+              <span class="badge" [ngClass]="statusClass(selectedFournisseur.statut)">
+                <i class="bi" [class]="statusIcon(selectedFournisseur.statut)"></i> {{ statusLabel(selectedFournisseur.statut) }}
               </span>
-              · {{ selectedFournisseur?.user?.email }}
+              · {{ selectedFournisseur.user.email }}
             </span>
           </div>
         </div>
@@ -400,38 +400,38 @@
           <div class="info-section">
             <h4><i class="bi bi-building"></i> Informations générales</h4>
             <div class="info-grid">
-              <div class="info-row"><span class="label"><i class="bi bi-shop"></i> Nom du magasin</span><span class="value">{{ selectedFournisseur?.magasin?.nom_magasin || selectedFournisseur?.nom_entreprise }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-card-text"></i> Entreprise / SIRET</span><span class="value">{{ selectedFournisseur?.nom_entreprise }} · {{ selectedFournisseur?.siret || 'N/A' }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-person"></i> Responsable</span><span class="value">{{ selectedFournisseur?.nom_complet }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-calendar-plus"></i> Inscription</span><span class="value">{{ selectedFournisseur?.date_inscription | date:'dd/MM/yyyy' }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-shield"></i> Statut</span><span class="value"><span class="badge" [ngClass]="statusClass(selectedFournisseur?.statut!)"><i class="bi" [class]="statusIcon(selectedFournisseur?.statut!)"></i> {{ statusLabel(selectedFournisseur?.statut!) }}</span></span></div>
-              <div class="info-row" *ngIf="selectedFournisseur?.raison_refus"><span class="label"><i class="bi bi-exclamation-triangle"></i> Motif refus / suspension</span><span class="value">{{ selectedFournisseur?.raison_refus }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-shop"></i> Nom du magasin</span><span class="value">{{ selectedFournisseur.magasin?.nom_magasin || selectedFournisseur.nom_entreprise }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-card-text"></i> Entreprise / SIRET</span><span class="value">{{ selectedFournisseur.nom_entreprise }} · {{ selectedFournisseur.siret || 'N/A' }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-person"></i> Responsable</span><span class="value">{{ selectedFournisseur.nom_complet }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-calendar-plus"></i> Inscription</span><span class="value">{{ selectedFournisseur.date_inscription | date:'dd/MM/yyyy' }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-shield"></i> Statut</span><span class="value"><span class="badge" [ngClass]="statusClass(selectedFournisseur.statut)"><i class="bi" [class]="statusIcon(selectedFournisseur.statut)"></i> {{ statusLabel(selectedFournisseur.statut) }}</span></span></div>
+              <div class="info-row" *ngIf="selectedFournisseur.raison_refus"><span class="label"><i class="bi bi-exclamation-triangle"></i> Motif refus / suspension</span><span class="value">{{ selectedFournisseur.raison_refus }}</span></div>
             </div>
           </div>
 
           <div class="info-section">
             <h4><i class="bi bi-telephone"></i> Coordonnées</h4>
             <div class="info-grid">
-              <div class="info-row"><span class="label"><i class="bi bi-envelope"></i> E-mail</span><span class="value">{{ selectedFournisseur?.magasin?.email || selectedFournisseur?.user?.email }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-telephone"></i> Téléphone</span><span class="value">{{ selectedFournisseur?.magasin?.telephone || 'N/A' }}</span></div>
-              <div class="info-row" *ngIf="selectedFournisseur?.magasin?.whatsapp"><span class="label"><i class="bi bi-whatsapp"></i> WhatsApp</span><span class="value">{{ selectedFournisseur?.magasin?.whatsapp }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-envelope"></i> E-mail</span><span class="value">{{ selectedFournisseur.magasin?.email || selectedFournisseur.user.email }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-telephone"></i> Téléphone</span><span class="value">{{ selectedFournisseur.magasin?.telephone || 'N/A' }}</span></div>
+              <div class="info-row" *ngIf="selectedFournisseur.magasin?.whatsapp"><span class="label"><i class="bi bi-whatsapp"></i> WhatsApp</span><span class="value">{{ selectedFournisseur.magasin?.whatsapp }}</span></div>
             </div>
           </div>
 
           <div class="info-section">
             <h4><i class="bi bi-geo-alt"></i> Localisation</h4>
             <div class="info-grid">
-              <div class="info-row"><span class="label"><i class="bi bi-map"></i> Adresse</span><span class="value">{{ selectedFournisseur?.magasin?.adresse_complete || 'N/A' }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-geo"></i> Ville</span><span class="value">{{ selectedFournisseur?.magasin?.ville || 'N/A' }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-geo-alt"></i> Région</span><span class="value">{{ selectedFournisseur?.magasin?.region || 'N/A' }}</span></div>
-              <div class="info-row" *ngIf="selectedFournisseur?.magasin?.latitude"><span class="label"><i class="bi bi-compass"></i> GPS</span><span class="value">{{ selectedFournisseur?.magasin?.latitude }}, {{ selectedFournisseur?.magasin?.longitude }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-map"></i> Adresse</span><span class="value">{{ selectedFournisseur.magasin?.adresse_complete || 'N/A' }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-geo"></i> Ville</span><span class="value">{{ selectedFournisseur.magasin?.ville || 'N/A' }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-geo-alt"></i> Région</span><span class="value">{{ selectedFournisseur.magasin?.region || 'N/A' }}</span></div>
+              <div class="info-row" *ngIf="selectedFournisseur.magasin?.latitude"><span class="label"><i class="bi bi-compass"></i> GPS</span><span class="value">{{ selectedFournisseur.magasin?.latitude }}, {{ selectedFournisseur.magasin?.longitude }}</span></div>
             </div>
           </div>
 
-          <div class="info-section" *ngIf="selectedFournisseur?.magasin?.horaires_ouverture">
+          <div class="info-section" *ngIf="selectedFournisseur.magasin?.horaires_ouverture">
             <h4><i class="bi bi-clock"></i> Horaires d'ouverture</h4>
             <div class="info-grid">
-              <div class="info-row" *ngFor="let day of selectedFournisseur?.magasin?.horaires_ouverture | keyvalue">
+              <div class="info-row" *ngFor="let day of selectedFournisseur.magasin?.horaires_ouverture | keyvalue">
                 <span class="label">{{ day.key }}</span>
                 <span class="value">{{ day.value }}</span>
               </div>
@@ -440,7 +440,7 @@
 
           <div class="info-section">
             <h4><i class="bi bi-info-circle"></i> Description</h4>
-            <p class="info-text">{{ selectedFournisseur?.description || 'Aucune description' }}</p>
+            <p class="info-text">{{ selectedFournisseur.description || 'Aucune description' }}</p>
           </div>
         </div>
 
@@ -591,16 +591,16 @@
 
       <!-- Footer avec actions -->
       <div class="detail-footer" *ngIf="selectedFournisseur">
-        <button class="btn-action" (click)="openValidation(selectedFournisseur!, 'valider')" *ngIf="selectedFournisseur?.statut === 'attente'">
+        <button class="btn-action" (click)="openValidation(selectedFournisseur!, 'valider')" *ngIf="selectedFournisseur.statut === 'attente'">
           <i class="bi bi-check-circle"></i> Valider
         </button>
-        <button class="btn-action exceptional" (click)="openValidation(selectedFournisseur!, 'refuser')" *ngIf="selectedFournisseur?.statut === 'attente'">
+        <button class="btn-action exceptional" (click)="openValidation(selectedFournisseur!, 'refuser')" *ngIf="selectedFournisseur.statut === 'attente'">
           <i class="bi bi-x-circle"></i> Refuser
         </button>
-        <button class="btn-action exceptional" (click)="openValidation(selectedFournisseur!, 'suspendre')" *ngIf="selectedFournisseur?.statut === 'actif'">
+        <button class="btn-action exceptional" (click)="openValidation(selectedFournisseur!, 'suspendre')" *ngIf="selectedFournisseur.statut === 'actif'">
           <i class="bi bi-pause-circle"></i> Suspendre
         </button>
-        <button class="btn-action" (click)="openValidation(selectedFournisseur!, 'reactiver')" *ngIf="selectedFournisseur?.statut === 'suspendu' || selectedFournisseur?.statut === 'desactive'">
+        <button class="btn-action" (click)="openValidation(selectedFournisseur!, 'reactiver')" *ngIf="selectedFournisseur.statut === 'suspendu' || selectedFournisseur.statut === 'desactive'">
           <i class="bi bi-arrow-clockwise"></i> Réactiver
         </button>
         <button class="btn-action exceptional" (click)="askDelete(selectedFournisseur!)">

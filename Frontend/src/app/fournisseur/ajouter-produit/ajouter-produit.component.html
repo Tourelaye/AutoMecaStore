@@ -519,3 +519,41 @@
   <i class="bi" [class.bi-check-circle-fill]="toastType==='success'" [class.bi-x-circle-fill]="toastType==='error'"></i>
   {{ toastMsg }}
 </div>
+
+<!-- Match loading overlay -->
+<div class="loading-overlay" *ngIf="matchLoading">
+  <span class="mini-spinner"></span>
+  <p>Vérification des produits existants...</p>
+</div>
+
+<!-- Modal : Produit existant détecté -->
+<div class="match-modal-overlay" *ngIf="showMatchModal && matchResult">
+  <div class="match-modal">
+    <div class="match-modal-header">
+      <i class="bi bi-info-circle-fill"></i>
+      <h3>Ce produit existe déjà dans le catalogue</h3>
+    </div>
+    <div class="match-modal-body" *ngIf="matchResult.product">
+      <p class="match-confidence" [class.conf-high]="matchResult.confidence === 'high'" [class.conf-medium]="matchResult.confidence === 'medium'">
+        Confiance : {{ matchResult.confidence === 'high' ? 'Élevée' : 'Moyenne' }}
+      </p>
+      <div class="match-product-info">
+        <div class="match-row"><span class="match-label">Nom :</span> <strong>{{ matchResult.product.nom }}</strong></div>
+        <div class="match-row" *ngIf="matchResult.product.marque"><span class="match-label">Marque :</span> {{ matchResult.product.marque }}</div>
+        <div class="match-row" *ngIf="matchResult.product.reference_oem"><span class="match-label">OEM :</span> {{ matchResult.product.reference_oem }}</div>
+        <div class="match-row" *ngIf="matchResult.product.reference"><span class="match-label">Référence :</span> {{ matchResult.product.reference }}</div>
+        <div class="match-row" *ngIf="matchResult.product.fabricant"><span class="match-label">Fabricant :</span> {{ matchResult.product.fabricant }}</div>
+      </div>
+      <p class="match-message">
+        En continuant, votre offre (prix, stock) sera rattachée à ce produit existant.
+        Le produit global ne sera pas dupliqué.
+      </p>
+    </div>
+    <div class="match-modal-footer">
+      <button type="button" class="btn-cancel-match" (click)="annulerRattachement()">Annuler</button>
+      <button type="button" class="btn-confirm-match" (click)="confirmerRattachement()">
+        <i class="bi bi-link-45deg"></i> Utiliser ce produit
+      </button>
+    </div>
+  </div>
+</div>

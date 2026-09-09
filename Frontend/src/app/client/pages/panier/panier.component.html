@@ -9,7 +9,7 @@
     </nav>
 
     <!-- HEADER -->
-    <div class="panier-header">
+    <div class="panier-header" appScrollReveal>
       <div class="panier-title">
         <div class="title-icon">
           <i class="bi bi-cart3"></i>
@@ -258,112 +258,33 @@
 
       </div>
 
-      <!-- ========== RIGHT ========== -->
-      <div class="panier-right">
-
-        <!-- RÉCAPITULATIF -->
-        <div class="card total-box sticky-card">
-          <div class="card-title">
-            <span class="card-icon"><i class="bi bi-receipt"></i></span>
-            Récapitulatif
-          </div>
-
-          <div class="total-lines">
-            <div class="line">
-              <span>Sous-total ({{ nbArticles }} article{{ nbArticles > 1 ? 's' : '' }})</span>
-              <span>{{ sousTotal | number:'1.2-2' }} FCFA</span>
-            </div>
-
-            <div class="line promo-line" *ngIf="promoAppliquee">
-              <span><i class="bi bi-tag-fill"></i> Remise ({{ remisePromo }}%)</span>
-              <span class="remise">- {{ montantRemise | number:'1.2-2' }} FCFA</span>
-            </div>
-
-            <div class="line">
-              <span>Livraison</span>
-              <span [class.gratuit]="fraisLivraison === 0 || livraisonGratuite">
-                {{ (fraisLivraison === 0 || livraisonGratuite)
-                  ? 'Gratuite 🎉'
-                  : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
-              </span>
-            </div>
-          </div>
-
-          <!-- CODE PROMO -->
-          <div class="promo-section">
-            <div class="promo-box" *ngIf="!promoAppliquee">
-              <input
-                type="text"
-                placeholder="Code promo (ex: AUTO10)"
-                [(ngModel)]="codePromo"
-                (keyup.enter)="appliquerPromo()"
-                [class.input-error]="promoErreur"
-              >
-              <button (click)="appliquerPromo()">Appliquer</button>
-            </div>
-
-            <div class="promo-error" *ngIf="promoErreur">
-              <i class="bi bi-x-circle"></i> Code invalide ou expiré
-            </div>
-
-            <div class="promo-success" *ngIf="promoAppliquee">
-              <i class="bi bi-check-circle-fill"></i>
-              <span>Code <strong>{{ codePromo.toUpperCase() }}</strong> — -{{ remisePromo }}%</span>
-              <button class="btn-retirer-promo" (click)="retirerPromo()">
-                <i class="bi bi-x"></i>
-              </button>
-            </div>
-          </div>
-
-          <div class="separator"></div>
-
-          <div class="line total-final">
-            <span>Total TTC</span>
-            <span>{{ total | number:'1.2-2' }} FCFA</span>
-          </div>
-
-          <button class="checkout" (click)="afficherRecap()">
-            <i class="bi bi-bag-check"></i>
-            Passer la commande
-            <i class="bi bi-arrow-right"></i>
-          </button>
-
-          <div class="secure">
-            <span><i class="bi bi-shield-lock-fill"></i> Paiement sécurisé</span>
-            <span><i class="bi bi-lightning-charge-fill"></i> Livraison rapide</span>
-            <span><i class="bi bi-arrow-return-left"></i> Retour 30 jours</span>
-          </div>
-
-        </div>
-
-      </div>
     </div>
 
     <!-- ========== SECTION BAS DE PAGE — RÉCAP & CONFIANCE ========== -->
     <div class="panier-bottom-section" *ngIf="items.length > 0 && !showRecap && etapeCommande === 1">
 
-      <!-- RÉCAPITULATIF RAPIDE EN BAS -->
+      <!-- BARRE RÉCAP + CHECKOUT -->
       <div class="bottom-summary-bar">
-        <div class="bsb-left">
+        <div class="bsb-stats-row">
           <div class="bsb-stat">
-            <i class="bi bi-bag"></i>
-            <div>
+            <div class="bsb-stat-icon"><i class="bi bi-bag"></i></div>
+            <div class="bsb-stat-text">
               <span class="bsb-label">Articles</span>
               <span class="bsb-value">{{ nbArticles }}</span>
             </div>
           </div>
           <div class="bsb-divider"></div>
           <div class="bsb-stat">
-            <i class="bi bi-shop"></i>
-            <div>
+            <div class="bsb-stat-icon"><i class="bi bi-shop"></i></div>
+            <div class="bsb-stat-text">
               <span class="bsb-label">Magasins</span>
               <span class="bsb-value">{{ groupesMagasins.length }}</span>
             </div>
           </div>
           <div class="bsb-divider"></div>
           <div class="bsb-stat">
-            <i class="bi bi-truck"></i>
-            <div>
+            <div class="bsb-stat-icon livraison"><i class="bi bi-truck"></i></div>
+            <div class="bsb-stat-text">
               <span class="bsb-label">Livraison</span>
               <span class="bsb-value" [class.gratuit]="fraisLivraison === 0 || livraisonGratuite">
                 {{ (fraisLivraison === 0 || livraisonGratuite) ? 'Gratuite' : (fraisLivraison | number:'1.2-2') + ' FCFA' }}
@@ -372,21 +293,72 @@
           </div>
           <div class="bsb-divider" *ngIf="promoAppliquee"></div>
           <div class="bsb-stat" *ngIf="promoAppliquee">
-            <i class="bi bi-tag"></i>
-            <div>
+            <div class="bsb-stat-icon promo"><i class="bi bi-tag"></i></div>
+            <div class="bsb-stat-text">
               <span class="bsb-label">Remise</span>
               <span class="bsb-value promo">- {{ montantRemise | number:'1.2-2' }} FCFA</span>
             </div>
           </div>
         </div>
-        <div class="bsb-right">
-          <div class="bsb-total">
-            <span class="bsb-total-label">Total</span>
-            <span class="bsb-total-value">{{ total | number:'1.2-2' }} FCFA</span>
+
+        <div class="bsb-action-row">
+          <!-- PROMO CODE -->
+          <div class="bsb-promo">
+            <div class="bsb-promo-input" *ngIf="!promoAppliquee">
+              <i class="bi bi-ticket-perforated"></i>
+              <input
+                type="text"
+                placeholder="Code promo"
+                [(ngModel)]="codePromo"
+                (keyup.enter)="appliquerPromo()"
+                [class.input-error]="promoErreur"
+              >
+              <button (click)="appliquerPromo()" [disabled]="!codePromo.trim()">Appliquer</button>
+            </div>
+            <div class="bsb-promo-error" *ngIf="promoErreur && !promoAppliquee">
+              <i class="bi bi-x-circle"></i> Code invalide ou expiré
+            </div>
+            <div class="bsb-promo-success" *ngIf="promoAppliquee">
+              <i class="bi bi-check-circle-fill"></i>
+              <span><strong>{{ codePromo.toUpperCase() }}</strong> · -{{ remisePromo }}%</span>
+              <button class="bsb-promo-remove" (click)="retirerPromo()" title="Retirer">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
           </div>
-          <button class="checkout bsb-btn" (click)="afficherRecap()">
-            <i class="bi bi-bag-check"></i> Commander
-          </button>
+
+          <!-- TOTAL + CHECKOUT -->
+          <div class="bsb-checkout">
+            <div class="bsb-total">
+              <span class="bsb-total-label">Total TTC</span>
+              <span class="bsb-total-value">{{ total | number:'1.2-2' }} <small>FCFA</small></span>
+            </div>
+            <button class="checkout bsb-btn" (click)="afficherRecap()">
+              <i class="bi bi-bag-check"></i>
+              <span>Commander</span>
+              <i class="bi bi-arrow-right bsb-arrow"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRUST BADGES -->
+      <div class="panier-trust-badges">
+        <div class="trust-badge">
+          <i class="bi bi-shield-lock-fill"></i>
+          <span>Paiement sécurisé</span>
+        </div>
+        <div class="trust-badge">
+          <i class="bi bi-lightning-charge-fill"></i>
+          <span>Livraison rapide</span>
+        </div>
+        <div class="trust-badge">
+          <i class="bi bi-arrow-return-left"></i>
+          <span>Retour 30 jours</span>
+        </div>
+        <div class="trust-badge">
+          <i class="bi bi-headset"></i>
+          <span>Support 7j/7</span>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { PanierService } from '../../core/services/panier.service';
 import { HomeService, Produit as HomeProduit } from '../../core/services/home.service';
 import { ProductBadgesComponent } from '../../shared/components/product-badges/product-badges.component';
+import { HomeRailComponent } from '../shared/home-rail/home-rail.component';
 
 export interface VenteEclairProduit {
   id: number;
@@ -43,7 +44,7 @@ interface TimerDisplay {
 @Component({
   selector: 'app-vente-eclair',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductBadgesComponent],
+  imports: [CommonModule, RouterModule, ProductBadgesComponent, HomeRailComponent],
   templateUrl: './vente-eclair.component.html',
   styleUrls: ['./vente-eclair.component.css']
 })

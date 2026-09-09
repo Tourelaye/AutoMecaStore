@@ -17,6 +17,11 @@ __pycache__/
 *.pyd
 *.sqlite3
 .env
+*.env
+!.env.example
+venv/
+env/
+*.log
 
 # =====================
 # Django static/media

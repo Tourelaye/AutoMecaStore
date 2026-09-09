@@ -1,0 +1,165 @@
+<div class="admin-partenariats">
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-box">
+      <span class="stat-num">{{ stats.total }}</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat-box blue">
+      <span class="stat-num">{{ stats.nouvelles }}</span>
+      <span class="stat-label">Nouvelles</span>
+    </div>
+    <div class="stat-box orange">
+      <span class="stat-num">{{ stats.en_cours }}</span>
+      <span class="stat-label">En cours</span>
+    </div>
+    <div class="stat-box green">
+      <span class="stat-num">{{ stats.acceptees }}</span>
+      <span class="stat-label">Acceptées</span>
+    </div>
+    <div class="stat-box red">
+      <span class="stat-num">{{ stats.rejetees }}</span>
+      <span class="stat-label">Rejetées</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input type="text" class="search-input" placeholder="Rechercher..." [(ngModel)]="search" (ngModelChange)="load()">
+    <select class="filter-select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
+      <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <i class="bi bi-arrow-repeat spin"></i> Chargement...
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && demandes.length === 0">
+    <i class="bi bi-inbox"></i>
+    <p>Aucune demande de partenariat.</p>
+  </div>
+
+  <!-- Table -->
+  <table class="part-table" *ngIf="!loading && demandes.length > 0">
+    <thead>
+      <tr>
+        <th>Entreprise</th>
+        <th>Marque</th>
+        <th>Contact</th>
+        <th>Message</th>
+        <th>Statut</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let d of demandes" (click)="selectDemande(d)" [class.selected]="selectedDemande?.id === d.id">
+        <td class="entreprise-cell">
+          <div class="entreprise-icon"><i class="bi bi-building"></i></div>
+          <div>
+            <div class="entreprise-nom">{{ d.nom_entreprise }}</div>
+            <div class="entreprise-sub" *ngIf="d.marque">{{ d.marque }}</div>
+          </div>
+        </td>
+        <td>{{ d.marque || '—' }}</td>
+        <td>
+          <div class="contact-cell">
+            <div>{{ d.email_contact }}</div>
+            <div class="contact-phone" *ngIf="d.telephone">{{ d.telephone }}</div>
+          </div>
+        </td>
+        <td class="msg-cell">{{ d.message | slice:0:60 }}{{ d.message.length > 60 ? '...' : '' }}</td>
+        <td>
+          <span class="status-badge" [class]="getStatutClass(d.statut)">{{ d.statut_label }}</span>
+        </td>
+        <td class="date-cell">{{ d.date_soumission | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <div class="action-btns" (click)="$event.stopPropagation()">
+            <button class="btn-icon view" title="Voir détail" (click)="selectDemande(d)">
+              <i class="bi bi-eye-fill"></i>
+            </button>
+            <button class="btn-icon delete" title="Supprimer" (click)="supprimer(d)">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Detail panel -->
+  <div class="detail-overlay" *ngIf="selectedDemande" (click)="closeDetail()"></div>
+  <div class="detail-panel" *ngIf="selectedDemande">
+    <button class="detail-close" (click)="closeDetail()">&times;</button>
+    <h3>Demande de partenariat #{{ selectedDemande.id }}</h3>
+
+    <div class="detail-section">
+      <label>Entreprise</label>
+      <p>{{ selectedDemande.nom_entreprise }}</p>
+    </div>
+
+    <div class="detail-section" *ngIf="selectedDemande.marque">
+      <label>Marque représentée</label>
+      <p>{{ selectedDemande.marque }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Email de contact</label>
+      <p>{{ selectedDemande.email_contact }}</p>
+    </div>
+
+    <div class="detail-section" *ngIf="selectedDemande.telephone">
+      <label>Téléphone</label>
+      <p>{{ selectedDemande.telephone }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Message</label>
+      <p class="msg-full">{{ selectedDemande.message }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Statut actuel</label>
+      <span class="status-badge" [class]="getStatutClass(selectedDemande.statut)">{{ selectedDemande.statut_label }}</span>
+    </div>
+
+    <div class="detail-section" *ngIf="selectedDemande.date_traitement">
+      <label>Traité le</label>
+      <p>{{ selectedDemande.date_traitement | date: 'dd/MM/yyyy HH:mm' }} <span *ngIf="selectedDemande.traitee_par_nom">par {{ selectedDemande.traitee_par_nom }}</span></p>
+    </div>
+
+    <!-- Status actions -->
+    <div class="detail-section">
+      <label>Changer le statut</label>
+      <div class="status-actions">
+        <button class="btn-status" [class.active]="selectedDemande.statut === 'en_cours'" (click)="changerStatut(selectedDemande, 'en_cours')">
+          En cours
+        </button>
+        <button class="btn-status accept" [class.active]="selectedDemande.statut === 'acceptee'" (click)="changerStatut(selectedDemande, 'acceptee')">
+          Accepter
+        </button>
+        <button class="btn-status reject" [class.active]="selectedDemande.statut === 'rejetee'" (click)="changerStatut(selectedDemande, 'rejetee')">
+          Rejeter
+        </button>
+      </div>
+    </div>
+
+    <!-- Response -->
+    <div class="detail-section">
+      <label>Réponse admin</label>
+      <textarea class="reponse-textarea" [(ngModel)]="reponseAdmin" rows="4" placeholder="Écrire une réponse..."></textarea>
+      <button class="btn-send-reponse" (click)="envoyerReponse()" [disabled]="!reponseAdmin.trim()">
+        <i class="bi bi-send-fill"></i> Envoyer la réponse
+      </button>
+    </div>
+
+    <div class="detail-section danger-zone">
+      <button class="btn-delete" (click)="supprimer(selectedDemande)">
+        <i class="bi bi-trash-fill"></i> Supprimer cette demande
+      </button>
+    </div>
+  </div>
+</div>

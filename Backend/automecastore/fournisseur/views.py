@@ -5,12 +5,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.core.cache import cache
 from django.utils import timezone
+from django.db import transaction as db_transaction
 from datetime import timedelta
 from account.permissions import IsFournisseur
 from .models import Transaction, HistoriqueActivite, Notification, Magasin, creer_notification_fournisseur, creer_notification_client, creer_notification_admin
 from .serializers import TransactionSerializer, HistoriqueActiviteSerializer, NotificationSerializer, FournisseurSerializer, MagasinSerializer
-from catalog.models import Produit, MouvementStock, Promotion
+from catalog.models import Produit, MouvementStock, Promotion, FournisseurProduit
 from catalog.serializers import ProduitSerializer, PromotionSerializer, MouvementStockSerializer
+from catalog.product_matching import find_matching_product, normalize_product_text
 from django.db.models import Avg, Count, F, Q, Sum, ExpressionWrapper, IntegerField, DurationField
 from support.models import Avis, SignalementAvis
 from support.serializers import AvisSerializer
@@ -210,6 +212,115 @@ class FournisseurStatsView(APIView):
 # -----------------------------
 # Fournisseur - Produits
 # -----------------------------
+class FournisseurProduitMatchView(APIView):
+    """
+    Recherche d'un produit existant dans le catalogue avant création.
+    GET /api/fournisseur/produits/match/
+
+    Paramètres : oem, marque, reference_fabricant, type_piece, nom
+
+    Retourne :
+    - found: bool
+    - confidence: 'high' | 'medium' | 'low' | null
+    - ambiguous: bool
+    - product: {id, nom, marque, reference_oem, ...} | null
+    - results: [...] si ambiguous
+    - message: str
+    """
+    permission_classes = [IsFournisseur]
+
+    def get(self, request):
+        oem = request.query_params.get('oem', '').strip()
+        marque = request.query_params.get('marque', '').strip()
+        reference = request.query_params.get('reference_fabricant', '').strip()
+        nom = request.query_params.get('nom', '').strip()
+        fabricant = request.query_params.get('fabricant', '').strip()
+        type_piece_id = request.query_params.get('type_piece')
+        modeles_raw = request.query_params.get('modeles_compatibles', '')
+        annee_debut = request.query_params.get('annee_debut')
+        annee_fin = request.query_params.get('annee_fin')
+
+        if type_piece_id:
+            try:
+                type_piece_id = int(type_piece_id)
+            except (ValueError, TypeError):
+                type_piece_id = None
+
+        modeles_compatibles = [m.strip() for m in modeles_raw.split(',') if m.strip()] if modeles_raw else []
+        try:
+            annee_debut = int(annee_debut) if annee_debut else None
+        except (ValueError, TypeError):
+            annee_debut = None
+        try:
+            annee_fin = int(annee_fin) if annee_fin else None
+        except (ValueError, TypeError):
+            annee_fin = None
+
+        match_result = find_matching_product(
+            nom=nom,
+            marque=marque,
+            reference_oem=oem,
+            fabricant=fabricant,
+            reference=reference,
+            type_piece_id=type_piece_id,
+            modeles_compatibles=modeles_compatibles,
+            annee_debut=annee_debut,
+            annee_fin=annee_fin,
+        )
+
+        response_data = {
+            'found': match_result['found'],
+            'confidence': match_result['confidence'],
+            'ambiguous': match_result['ambiguous'],
+            'message': match_result['message'],
+        }
+
+        if match_result['product']:
+            p = match_result['product']
+            response_data['product'] = {
+                'id': p.id,
+                'nom': p.nom,
+                'marque': p.marque,
+                'reference_oem': p.reference_oem,
+                'reference': p.reference,
+                'fabricant': p.fabricant,
+                'etat': p.etat,
+            }
+        elif match_result['results']:
+            # results is now a list of dicts with score/reasons
+            results_list = match_result['results']
+            if results_list and isinstance(results_list[0], dict) and 'product' in results_list[0]:
+                response_data['results'] = [
+                    {
+                        'id': r['product'].id,
+                        'nom': r['product'].nom,
+                        'marque': r['product'].marque,
+                        'reference_oem': r['product'].reference_oem,
+                        'reference': r['product'].reference,
+                        'fabricant': r['product'].fabricant,
+                        'score': r.get('score', 0),
+                        'reasons_match': r.get('reasons_match', []),
+                        'reasons_block': r.get('reasons_block', []),
+                    }
+                    for r in results_list
+                ]
+            else:
+                # Fallback: old format (list of Produit objects)
+                response_data['results'] = [
+                    {
+                        'id': p.id,
+                        'nom': p.nom,
+                        'marque': p.marque,
+                        'reference_oem': p.reference_oem,
+                        'reference': p.reference,
+                        'fabricant': p.fabricant,
+                    }
+                    for p in results_list
+                ]
+
+        return Response(response_data)
+
+
 class FournisseurProduitListCreateView(generics.ListCreateAPIView):
     """
     Liste et création de produits pour le fournisseur connecté
@@ -225,36 +336,90 @@ class FournisseurProduitListCreateView(generics.ListCreateAPIView):
         fournisseur = self.request.user.fournisseur
         data = serializer.validated_data
 
-        # Valeurs par défaut si le fournisseur ne les fournit pas explicitement
-        defaults = {
-            'fournisseur': fournisseur,
-        }
-        if 'statut' not in data:
-            defaults['statut'] = 'actif'
-        if 'is_active' not in data:
-            defaults['is_active'] = True
-        if 'statut_approbation' not in data:
-            defaults['statut_approbation'] = 'approuve'
+        # Données pour le matching
+        nom = data.get('nom', '')
+        marque = data.get('marque', '')
+        reference_oem = data.get('reference_oem', '')
+        fabricant = data.get('fabricant', '')
+        reference = data.get('reference', '')
+        type_piece_id = data.get('type_piece_id') or (data.get('type_piece').id if data.get('type_piece') else None)
+        modeles_compatibles = data.get('modeles_compatibles', [])
+        annee_debut = data.get('annee_debut')
+        annee_fin = data.get('annee_fin')
+        poids = data.get('poids')
+        longueur = data.get('longueur')
+        largeur = data.get('largeur')
+        hauteur = data.get('hauteur')
+        matiere = data.get('matiere', '')
+        couleur = data.get('couleur', '')
+        etat = data.get('etat', '')
 
-        produit = serializer.save(**defaults)
+        with db_transaction.atomic():
+            # Étape 1 : Rechercher un produit existant
+            match_result = find_matching_product(
+                nom=nom,
+                marque=marque,
+                reference_oem=reference_oem,
+                fabricant=fabricant,
+                reference=reference,
+                type_piece_id=type_piece_id,
+                modeles_compatibles=modeles_compatibles,
+                annee_debut=annee_debut,
+                annee_fin=annee_fin,
+                poids=poids,
+                longueur=longueur,
+                largeur=largeur,
+                hauteur=hauteur,
+                matiere=matiere,
+                couleur=couleur,
+                etat=etat,
+            )
 
-        # Créer une entrée FournisseurProduit pour que le produit apparaisse dans les offres
-        try:
-            from catalog.models import Fournisseur as CatalogFournisseur, FournisseurProduit
-            catalog_f, _ = CatalogFournisseur.objects.get_or_create(
-                administrateur=self.request.user,
-                defaults={'nom_entreprise': fournisseur.nom_entreprise}
-            )
-            FournisseurProduit.objects.create(
-                fournisseur=catalog_f,
-                produit=produit,
-                prix_achat=produit.prix,
-                prix_vente=produit.prix,
-                stock_disponible=produit.stock
-            )
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning(f"FournisseurProduit not created for produit {produit.id}: {e}")
+            if match_result['found'] and not match_result['ambiguous']:
+                # Produit existant trouvé → créer uniquement une offre
+                produit = match_result['product']
+            else:
+                # Aucun match ou ambigu → créer un nouveau produit
+                defaults = {
+                    'fournisseur': fournisseur,
+                }
+                if 'statut' not in data:
+                    defaults['statut'] = 'actif'
+                if 'is_active' not in data:
+                    defaults['is_active'] = True
+                if 'statut_approbation' not in data:
+                    defaults['statut_approbation'] = 'approuve'
+
+                produit = serializer.save(**defaults)
+
+            # Étape 2 : Créer ou mettre à jour l'offre FournisseurProduit
+            try:
+                from catalog.models import Fournisseur as CatalogFournisseur
+                catalog_f, _ = CatalogFournisseur.objects.get_or_create(
+                    administrateur=self.request.user,
+                    defaults={'nom_entreprise': fournisseur.nom_entreprise}
+                )
+
+                # Vérifier si une offre existe déjà pour ce produit + fournisseur
+                fp, created = FournisseurProduit.objects.get_or_create(
+                    fournisseur=catalog_f,
+                    produit=produit,
+                    defaults={
+                        'prix_achat': produit.prix,
+                        'prix_vente': produit.prix,
+                        'stock_disponible': produit.stock
+                    }
+                )
+
+                if not created:
+                    # L'offre existe déjà → mettre à jour les prix/stock
+                    fp.prix_vente = produit.prix
+                    fp.stock_disponible = produit.stock
+                    fp.save(update_fields=['prix_vente', 'stock_disponible'])
+
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"FournisseurProduit not created for produit {produit.id}: {e}")
 
         # Notifier les admins de la création du produit
         try:

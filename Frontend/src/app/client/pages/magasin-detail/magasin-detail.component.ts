@@ -6,11 +6,12 @@ import { Subscription } from 'rxjs';
 
 import { ProduitService, MagasinDetail } from '../../../core/services/produit.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-magasin-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ScrollRevealDirective],
   templateUrl: './magasin-detail.component.html',
   styleUrls: ['./magasin-detail.component.css']
 })

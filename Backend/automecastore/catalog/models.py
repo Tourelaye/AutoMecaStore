@@ -321,6 +321,9 @@ class FournisseurProduit(models.Model):
                                                   help_text="Stock spécifique à ce fournisseur/magasin. Si vide, le stock du produit est utilisé.")
     date_livraison = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        unique_together = ('produit', 'fournisseur')
+
 
 # -----------------------------
 # Stock & Entrepot

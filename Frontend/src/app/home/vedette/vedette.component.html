@@ -1,35 +1,45 @@
 <section class="vedette" *ngIf="isLoading || produits.length > 0">
   <div class="container">
 
-    <!-- HEADER -->
+    <!-- HEADER AMÉLIORÉ -->
     <div class="offers-header">
-      <div>
+      <div class="offers-header-content">
         <span class="section-tag">
           <i class="bi bi-heart-fill"></i> COUPS DE CŒUR
         </span>
         <h2>Produits vedettes</h2>
-        <p>Sélection coups de cœur par notre équipe</p>
+        <p>Les meilleures pièces sélectionnées pour vous</p>
       </div>
-      <a class="see-all" routerLink="/produits">
+      <a class="see-all" routerLink="/produits" aria-label="Afficher tous les produits">
         Tout voir <i class="bi bi-arrow-right"></i>
       </a>
     </div>
 
-    <!-- SKELETON -->
+    <!-- SKELETON AMÉLIORÉ -->
     <div class="offers-grid" *ngIf="isLoading">
-      <div class="product-card skeleton" *ngFor="let i of [1,2,3,4]">
+      <div class="product-card skeleton" *ngFor="let i of [1,2,3,4,5,6]">
         <div class="skeleton-img"></div>
         <div class="skeleton-body">
           <div class="skeleton-line short"></div>
           <div class="skeleton-line"></div>
           <div class="skeleton-line medium"></div>
+          <div class="skeleton-line short"></div>
         </div>
       </div>
     </div>
 
-    <!-- ERREUR -->
-    <div class="error-state" *ngIf="errorMessage && !isLoading">
-      <i class="bi bi-exclamation-circle"></i> {{ errorMessage }}
+    <!-- ERREUR AMÉLIORÉE -->
+    <div class="error-state" *ngIf="errorMessage && !isLoading" role="alert">
+      <div class="error-content">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+          <strong>Oups !</strong>
+          <p>{{ errorMessage }}</p>
+        </div>
+      </div>
+      <button class="error-retry" (click)="retryLoadProducts()" *ngIf="!isLoading">
+        <i class="bi bi-arrow-clockwise"></i> Réessayer
+      </button>
     </div>
 
     <!-- GRILLE -->
@@ -37,21 +47,50 @@
 
       <div
         class="product-card"
-        *ngFor="let produit of produits"
+        *ngFor="let produit of produits; let idx = index"
         [class.out-of-stock]="produit.stock === 0"
+        [class.is-featured]="idx < 2"
         routerLink="/produits"
         [queryParams]="{ id: produit.id }"
+        role="article"
+        [attr.aria-label]="produit.nom + ', ' + (produit.stock === 0 ? 'Rupture' : 'Disponible')"
       >
-        <!-- IMAGE -->
+        <!-- IMAGE ZONE -->
         <div class="product-image">
-          <span class="badge-heart">
-            <i class="bi bi-heart-fill"></i>
-          </span>
-          <app-product-badges [product]="produit" [maxBadges]="3" placement="overlay"></app-product-badges>
-          <div class="rupture-overlay" *ngIf="produit.stock === 0">
-            <i class="bi bi-x-circle"></i> Rupture
+          
+          <!-- FAVORIS BADGE -->
+          <button
+            class="badge-heart"
+            [class.active]="isFavorite(produit.id)"
+            aria-label="Ajouter aux favoris"
+            (click)="toggleFavorite($event, produit.id)"
+            type="button"
+          >
+            <i class="bi" [class.bi-heart-fill]="isFavorite(produit.id)" [class.bi-heart]="!isFavorite(produit.id)"></i>
+          </button>
+
+          <!-- BADGES PRODUITS -->
+          <div class="badges-overlay">
+            <app-product-badges [product]="produit" [maxBadges]="2" placement="overlay"></app-product-badges>
           </div>
-          <img *ngIf="produit.image; else placeholder" [src]="produit.image" [alt]="produit.nom">
+
+          <!-- RUPTURE OVERLAY -->
+          <div class="rupture-overlay" *ngIf="produit.stock === 0">
+            <div class="rupture-content">
+              <i class="bi bi-lock"></i>
+              <span>Rupture de stock</span>
+              <small>Réapprovionnement prévu bientôt</small>
+            </div>
+          </div>
+
+          <!-- IMAGE -->
+          <img
+            *ngIf="produit.image; else placeholder"
+            [src]="produit.image"
+            [alt]="produit.nom"
+            class="product-img"
+            loading="lazy"
+          >
           <ng-template #placeholder>
             <div class="img-placeholder">
               <i class="bi bi-gear-wide-connected"></i>
@@ -59,54 +98,79 @@
           </ng-template>
         </div>
 
-        <!-- INFOS -->
+        <!-- INFO ZONE -->
         <div class="product-info">
-          <div class="brand-row">
+          
+          <!-- HEADER INFO -->
+          <div class="info-header">
             <span class="brand">{{ produit.marque }}</span>
             <span class="categorie-pill">{{ produit.categorie }}</span>
           </div>
-          <h3>{{ produit.nom }}</h3>
 
-          <!-- ÉTOILES -->
-          <div class="etoile">
-            <span class="stars">
-              <i *ngFor="let star of getEtoiles()"
-                [class]="isPleine(star, produit.note) ? 'bi bi-star-fill'
-                  : isDemi(star, produit.note) ? 'bi bi-star-half' : 'bi bi-star'"></i>
+          <!-- TITRE -->
+          <h3 class="product-title">{{ produit.nom }}</h3>
+
+          <!-- ÉTOILES + AVIS -->
+          <div class="rating-section">
+            <div class="stars-row">
+              <span class="stars" aria-label="Note du produit">
+                <i *ngFor="let star of getEtoiles()"
+                  [class]="isPleine(star, produit.note) ? 'bi bi-star-fill'
+                    : isDemi(star, produit.note) ? 'bi bi-star-half' : 'bi bi-star'"
+                  aria-hidden="true"></i>
+              </span>
+              <span class="note-val" *ngIf="produit.avis > 0">{{ produit.note | number:'1.1-1' }}</span>
+            </div>
+            <span class="avis-count" *ngIf="produit.avis > 0">({{ produit.avis }} avis)</span>
+            <span class="avis-count nouveau" *ngIf="produit.avis === 0">
+              <i class="bi bi-sparkles"></i> Nouveau
             </span>
-            <span class="note-val" *ngIf="produit.avis > 0">{{ produit.note | number:'1.1-1' }}</span>
-            <span class="avis-count" *ngIf="produit.avis > 0">({{ produit.avis }})</span>
-            <span class="avis-count" *ngIf="produit.avis === 0">Nouveau</span>
           </div>
 
-          <!-- PRIX -->
-          <div class="price">
-            <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }} FCFA</span>
-            <span class="old-price" *ngIf="produit.prixAncien">
-              {{ produit.prixAncien | number:'1.2-2' }} FCFA
-            </span>
+          <!-- PRIX SECTION AMÉLIORÉE -->
+          <div class="price-section">
+            <div class="price-main">
+              <span class="new-price">{{ produit.prixNouveau | number:'1.2-2' }}</span>
+              <span class="currency">FCFA</span>
+            </div>
+            <div class="price-secondary" *ngIf="produit.prixAncien">
+              <span class="old-price">{{ produit.prixAncien | number:'1.2-2' }} FCFA</span>
+              <span class="discount-badge">
+                -{{ ((produit.prixAncien - produit.prixNouveau) / produit.prixAncien * 100) | number:'0.0' }}%
+              </span>
+            </div>
           </div>
 
-          <app-product-badges [product]="produit" [maxBadges]="5" placement="info"></app-product-badges>
+          <!-- BADGES ADDITIONNELLES INFO -->
+          <div class="badges-info" *ngIf="produit.avis > 0">
+            <app-product-badges [product]="produit" [maxBadges]="3" placement="info"></app-product-badges>
+          </div>
 
-          <!-- BOUTON -->
+          <!-- CTA BUTTON -->
           <button
             class="button-r"
             [disabled]="produit.stock === 0"
             (click)="goToProduit(produit.id); $event.stopPropagation()"
             type="button"
+            [attr.aria-label]="'Voir ' + produit.nom"
           >
-            <i class="bi bi-eye"></i> Voir le produit
+            <i class="bi bi-eye"></i>
+            <span class="btn-text">
+              {{ produit.stock === 0 ? 'Rupture' : 'Voir le produit' }}
+            </span>
           </button>
         </div>
       </div>
 
     </app-home-rail>
 
-    <!-- EMPTY -->
-    <div class="empty-state" *ngIf="!isLoading && !errorMessage && produits.length === 0">
-      <i class="bi bi-heart"></i>
-      <p>Aucun produit vedette pour le moment.</p>
+    <!-- EMPTY STATE AMÉLIORÉ -->
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && produits.length === 0" role="status">
+      <div class="empty-content">
+        <i class="bi bi-heart-handshake"></i>
+        <h3>Aucun produit vedette pour le moment</h3>
+        <p>Consultez notre <a routerLink="/produits">catalogue complet</a> pour découvrir toutes nos pièces.</p>
+      </div>
     </div>
 
   </div>

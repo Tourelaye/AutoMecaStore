@@ -51,4 +51,8 @@ export class AvisClientService {
   signalerAvis(avisId: number, payload: SignalementPayload): Observable<any> {
     return this.http.post(`${this.apiUrl}/${avisId}/signaler/`, payload);
   }
+
+  getMesAvis(): Observable<AvisProduit[]> {
+    return this.http.get<AvisProduit[]>(`${this.apiUrl}/moi/`);
+  }
 }

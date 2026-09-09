@@ -10,6 +10,7 @@ from .views import (
     FournisseurProfileView,
     FournisseurProduitListCreateView,
     FournisseurProduitDetailView,
+    FournisseurProduitMatchView,
     FournisseurCommandeListView,
     FournisseurCommandeDetailView,
     FournisseurCommandeCommentaireView,
@@ -43,6 +44,7 @@ urlpatterns = [
     path('stats/', FournisseurStatsView.as_view(), name='fournisseur_stats'),
 
     # Produits
+    path('produits/match/', FournisseurProduitMatchView.as_view(), name='fournisseur_produit_match'),
     path('produits/', FournisseurProduitListCreateView.as_view(), name='fournisseur_produits'),
     path('produits/<int:pk>/', FournisseurProduitDetailView.as_view(), name='fournisseur_produit_detail'),
 

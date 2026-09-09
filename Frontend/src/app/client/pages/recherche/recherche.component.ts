@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -11,11 +11,12 @@ import { NotificationService } from '../../../core/services/notification.service
 import { AuthService } from '../../../core/services/auth.service';
 import { VehiculeClientService } from '../../../core/services/vehicule-client.service';
 import { VehiculeClient } from '../../../models/vehicule-client.model';
+import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-recherche',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule, DecimalPipe, ScrollRevealDirective, RouterLink],
   templateUrl: './recherche.component.html',
   styleUrls: ['./recherche.component.css']
 })
@@ -108,6 +109,9 @@ export class RechercheComponent implements OnInit, OnDestroy {
 
   // Filtres mobiles
   showFiltersMobile = false;
+
+  // Sections repliables
+  collapsedSections = new Set<string>();
 
   private routeSub: Subscription | null = null;
 
@@ -725,5 +729,39 @@ export class RechercheComponent implements OnInit, OnDestroy {
 
   toggleFiltersMobile(): void {
     this.showFiltersMobile = !this.showFiltersMobile;
+  }
+
+  toggleSection(key: string): void {
+    if (this.collapsedSections.has(key)) {
+      this.collapsedSections.delete(key);
+    } else {
+      this.collapsedSections.add(key);
+    }
+  }
+
+  isSectionCollapsed(key: string): boolean {
+    return this.collapsedSections.has(key);
+  }
+
+  getMagasinCount(p: Produit): number {
+    if (p.offres && p.offres.length > 0) return p.offres.length;
+    return p.nombre_magasins || 0;
+  }
+
+  hasMultipleOffres(p: Produit): boolean {
+    const count = this.getMagasinCount(p);
+    return count > 1;
+  }
+
+  getOffreCount(p: Produit): number {
+    return this.getMagasinCount(p);
+  }
+
+  getBestOffre(p: Produit): Offre | null {
+    if (!p.offres || p.offres.length === 0) return null;
+    return p.offres.reduce((best, o) => {
+      if (!best || (o.prix && best.prix && o.prix < best.prix)) return o;
+      return best;
+    }, p.offres[0]);
   }
 }

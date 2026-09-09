@@ -68,7 +68,7 @@
       </div>
     </div>
 
-    <button class="cta-btn">
+    <button class="cta-btn" (click)="openPartenariatForm()">
       <i class="bi bi-send-fill"></i>
       Proposer un partenariat
     </button>
@@ -86,6 +86,91 @@
       </div>
       <div class="stat-valeur">{{ s.valeur }}</div>
       <div class="stat-label">{{ s.label }}</div>
+    </div>
+  </div>
+
+  <!-- MODAL PARTENARIAT -->
+  <div class="partenariat-modal-backdrop" *ngIf="showPartenariatForm" (click)="closePartenariatForm()">
+    <div class="partenariat-modal" (click)="$event.stopPropagation()">
+      <button class="partenariat-modal-close" (click)="closePartenariatForm()">&times;</button>
+
+      <h5 class="partenariat-modal-title">
+        <i class="bi bi-handshake-fill"></i>
+        Proposer un partenariat
+      </h5>
+
+      <p class="partenariat-info-hint">
+        <i class="bi bi-info-circle"></i>
+        Remplissez ce formulaire pour proposer votre marque. Nous vous contacterons rapidement.
+      </p>
+
+      <!-- Succès -->
+      <div class="partenariat-success" *ngIf="partenaireSuccess">
+        <i class="bi bi-check-circle-fill"></i>
+        <p>Votre demande a bien été envoyée. Nous vous contacterons rapidement.</p>
+      </div>
+
+      <!-- Formulaire -->
+      <form [formGroup]="partenaireForm" (ngSubmit)="submitPartenariat()" *ngIf="!partenaireSuccess">
+
+        <label class="partenariat-label">Nom de l'entreprise *</label>
+        <input
+          type="text"
+          class="partenariat-input"
+          formControlName="nom_entreprise"
+          placeholder="Ex: Bosch, Michelin..."
+        >
+        <div class="partenariat-hint" *ngIf="partenaireForm.get('nom_entreprise')?.invalid && partenaireForm.get('nom_entreprise')?.touched">
+          Le nom de l'entreprise est requis (2 à 100 caractères).
+        </div>
+
+        <label class="partenariat-label">Marque représentée</label>
+        <input
+          type="text"
+          class="partenariat-input"
+          formControlName="marque"
+          placeholder="Ex: Bosch"
+        >
+
+        <label class="partenariat-label">Email de contact *</label>
+        <input
+          type="email"
+          class="partenariat-input"
+          formControlName="email_contact"
+          placeholder="contact@entreprise.com"
+        >
+        <div class="partenariat-hint" *ngIf="partenaireForm.get('email_contact')?.invalid && partenaireForm.get('email_contact')?.touched">
+          Veuillez saisir un email valide.
+        </div>
+
+        <label class="partenariat-label">Téléphone</label>
+        <input
+          type="tel"
+          class="partenariat-input"
+          formControlName="telephone"
+          placeholder="+221 ..."
+        >
+
+        <label class="partenariat-label">Votre message *</label>
+        <textarea
+          class="partenariat-textarea"
+          formControlName="message"
+          rows="4"
+          placeholder="Décrivez votre proposition de partenariat..."
+        ></textarea>
+        <div class="partenariat-hint" *ngIf="partenaireForm.get('message')?.invalid && partenaireForm.get('message')?.touched">
+          Le message doit faire entre 10 et 2000 caractères.
+        </div>
+
+        <div class="partenariat-error" *ngIf="partenaireError">
+          <i class="bi bi-exclamation-circle"></i> {{ partenaireError }}
+        </div>
+
+        <button type="submit" class="btn-submit-partenariat" [disabled]="partenaireForm.invalid || partenaireLoading">
+          <span *ngIf="!partenaireLoading"><i class="bi bi-send-fill"></i> Envoyer ma demande</span>
+          <span *ngIf="partenaireLoading"><i class="bi bi-arrow-repeat"></i> Envoi en cours...</span>
+        </button>
+      </form>
     </div>
   </div>
 

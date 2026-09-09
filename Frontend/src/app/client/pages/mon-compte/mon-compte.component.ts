@@ -11,13 +11,14 @@ import { ClientNotificationsService, NotificationClient } from '../../../core/se
 import { DemandeService, Demande, Offre } from '../../../core/services/demande.service';
 import { VehiculeClientService } from '../../../core/services/vehicule-client.service';
 import { VehiculeClient } from '../../../models/vehicule-client.model';
+import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 
 type OngletType = 'accueil' | 'profil' | 'securite' | 'confidentialite' | 'commandes' | 'favoris' | 'panier' | 'adresses' | 'notifications' | 'demandes' | 'vehicules';
 
 @Component({
   selector: 'app-mon-compte',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, ScrollRevealDirective],
   templateUrl: './mon-compte.component.html',
   styleUrls: ['./mon-compte.component.css']
 })

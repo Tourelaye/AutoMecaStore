@@ -1,4 +1,10 @@
-<div class="ams-rail" [class.has-prev]="canPrev" [class.has-next]="canNext">
+<div
+  class="ams-rail"
+  [class.has-prev]="canPrev"
+  [class.has-next]="canNext"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+>
 
   <button
     type="button"
@@ -16,6 +22,10 @@
     role="list"
     [attr.aria-label]="ariaLabel"
     (scroll)="onScroll()"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
   >
     <ng-content></ng-content>
   </div>

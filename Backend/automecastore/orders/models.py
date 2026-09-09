@@ -129,7 +129,10 @@ class LigneCommande(models.Model):
         super().save(*args, **kwargs)
         # Mise à jour automatique du montant total de la commande
         if self.commande:
-            total = sum((l.sous_total or 0) for l in self.commande.lignes.all())
+            from django.db.models import Sum
+            total = self.commande.lignes.aggregate(
+                total=Sum('sous_total')
+            )['total'] or 0
             self.commande.montant_total = total
             self.commande.save()
 

@@ -43,6 +43,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Paiements & Factures',           icon: 'bi-credit-card',    route: '/admin/paiements'  },
     { label: 'Livraisons',          icon: 'bi-truck',          route: '/admin/livraisons' },
     { label: 'Réclamations & Litiges', icon: 'bi-shield-exclamation', route: '/admin/reclamations' },
+    { label: 'Avis clients', icon: 'bi-star-half', route: '/admin/avis' },
+    { label: 'Partenariats', icon: 'bi-handshake', route: '/admin/partenariats' },
+    { label: 'Messages support', icon: 'bi-envelope-paper', route: '/admin/messages' },
   ];
 
   analyseMenuItems: NavItem[] = [

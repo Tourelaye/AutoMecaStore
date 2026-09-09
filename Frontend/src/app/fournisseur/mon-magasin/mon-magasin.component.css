@@ -448,3 +448,173 @@
 
 /* Toast button override */
 .btn-save:disabled .saving-spinner { color: var(--bg-3); }
+
+/* =============================================
+   GÉOLOCALISATION
+   ============================================= */
+.geo-block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  transition: border-color 0.2s;
+}
+.geo-block.geo-success { border-color: rgba(45, 212, 191, 0.4); }
+.geo-block.geo-error { border-color: rgba(239, 68, 68, 0.4); }
+
+.geo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.geo-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.geo-icon {
+  font-size: 22px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.geo-info strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+}
+
+.geo-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+.btn-location {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: var(--bg-3);
+  box-shadow: 0 3px 12px var(--accent-glow);
+}
+.btn-location:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px var(--accent-glow);
+}
+.btn-location:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-location.loading { background: linear-gradient(135deg, #5eead4, #2dd4bf); }
+.btn-location.success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  box-shadow: 0 3px 12px rgba(22, 163, 74, 0.3);
+  color: #fff;
+}
+.btn-location.error {
+  background: linear-gradient(135deg, var(--alert), #dc2626);
+  box-shadow: 0 3px 12px rgba(239, 68, 68, 0.3);
+  color: #fff;
+}
+
+.spin { animation: geo-spin 0.8s linear infinite; display: inline-block; }
+@keyframes geo-spin { to { transform: rotate(360deg); } }
+
+.geo-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+.geo-message .bi-check-circle-fill { color: var(--accent); font-size: 1.05rem; }
+.geo-message .bi-exclamation-triangle-fill { color: var(--alert); font-size: 1.05rem; }
+
+.geo-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(45, 212, 191, 0.3);
+}
+
+.gps-coords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.coord-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.coord-item i { color: var(--accent); }
+.coord-item strong { color: var(--text-primary); }
+
+.geo-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.geo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  transition: background 0.2s;
+}
+.geo-link:hover { background: rgba(45, 212, 191, 0.25); }
+
+.geo-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--alert);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+.geo-clear:hover { background: rgba(239, 68, 68, 0.1); }
+
+@media (max-width: 768px) {
+  .geo-header { flex-direction: column; align-items: stretch; }
+  .btn-location { width: 100%; }
+}

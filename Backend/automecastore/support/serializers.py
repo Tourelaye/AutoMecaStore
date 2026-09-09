@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (
     Ticket, MessageSupport, Reclamation, Avis, SignalementAvis,
-    MessageReclamation, PieceJointeReclamation, HistoriqueReclamation
+    MessageReclamation, PieceJointeReclamation, HistoriqueReclamation,
+    DemandePartenariat
 )
 from account.models import Client, Fournisseur, Utilisateur
 from catalog.models import Produit
@@ -20,6 +21,39 @@ class MessageSupportSerializer(serializers.ModelSerializer):
         model = MessageSupport
         fields = "__all__"
         read_only_fields = ['date_envoi']
+
+
+class MessageSupportListSerializer(serializers.ModelSerializer):
+    client_nom = serializers.SerializerMethodField()
+    client_prenom = serializers.SerializerMethodField()
+    client_email = serializers.SerializerMethodField()
+    client_photo = serializers.SerializerMethodField()
+    statut_label = serializers.CharField(source='get_statut_display', read_only=True)
+
+    class Meta:
+        model = MessageSupport
+        fields = [
+            'id', 'objet', 'contenu', 'date_envoi', 'statut', 'statut_label',
+            'client', 'client_nom', 'client_prenom', 'client_email', 'client_photo',
+            'ticket'
+        ]
+
+    def get_client_nom(self, obj):
+        return obj.client.user.nom if obj.client and obj.client.user else None
+
+    def get_client_prenom(self, obj):
+        return obj.client.user.prenom if obj.client and obj.client.user else None
+
+    def get_client_email(self, obj):
+        return obj.client.user.email if obj.client and obj.client.user else None
+
+    def get_client_photo(self, obj):
+        if obj.client and obj.client.photo:
+            try:
+                return obj.client.photo.url
+            except Exception:
+                return None
+        return None
 
 
 class PieceJointeReclamationSerializer(serializers.ModelSerializer):
@@ -574,3 +608,45 @@ class AvisCreateSerializer(serializers.ModelSerializer):
         client = request.user.client
         validated_data['client'] = client
         return super().create(validated_data)
+
+
+# -----------------------------
+# DemandePartenariat
+# -----------------------------
+class DemandePartenariatCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemandePartenariat
+        fields = ['id', 'nom_entreprise', 'marque', 'email_contact', 'telephone', 'message', 'date_soumission']
+        read_only_fields = ['id', 'date_soumission']
+
+
+class DemandePartenariatListSerializer(serializers.ModelSerializer):
+    statut_label = serializers.CharField(source='get_statut_display', read_only=True)
+    traitee_par_nom = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DemandePartenariat
+        fields = [
+            'id', 'nom_entreprise', 'marque', 'email_contact', 'telephone',
+            'message', 'statut', 'statut_label', 'reponse_admin',
+            'date_soumission', 'date_traitement', 'traitee_par', 'traitee_par_nom'
+        ]
+
+    def get_traitee_par_nom(self, obj):
+        if obj.traitee_par:
+            return f"{obj.traitee_par.prenom} {obj.traitee_par.nom}".strip() or obj.traitee_par.email
+        return None
+
+
+class DemandePartenariatDetailSerializer(serializers.ModelSerializer):
+    statut_label = serializers.CharField(source='get_statut_display', read_only=True)
+    traitee_par_nom = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DemandePartenariat
+        fields = '__all__'
+
+    def get_traitee_par_nom(self, obj):
+        if obj.traitee_par:
+            return f"{obj.traitee_par.prenom} {obj.traitee_par.nom}".strip() or obj.traitee_par.email
+        return None

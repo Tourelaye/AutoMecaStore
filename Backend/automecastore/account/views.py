@@ -79,6 +79,8 @@ class CreateAdminView(APIView):
             )
 
 class RegisterView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'register'
     def post(self, request):
         print(f"DEBUG: Inscription - Données reçues: {request.data}")
         serializer = RegisterSerializer(data=request.data)
@@ -146,6 +148,8 @@ class RegisterFournisseurView(APIView):
     Inscription publique d'un fournisseur.
     Le compte est créé avec le statut 'attente' et doit être validé par un admin.
     """
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'register'
     def post(self, request):
         serializer = RegisterFournisseurSerializer(data=request.data)
         if serializer.is_valid():
@@ -228,10 +232,12 @@ class ProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+    throttle_scope = 'login'
 
 class UtilisateurDetailView(generics.RetrieveAPIView):
     queryset = Utilisateur.objects.all()
     serializer_class = UtilisateurSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 # ==============================
 # VIEWS POUR LA GESTION DES CLIENTS

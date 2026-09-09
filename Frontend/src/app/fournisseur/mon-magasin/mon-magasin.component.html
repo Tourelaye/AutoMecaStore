@@ -130,6 +130,71 @@
         </div>
 
         <label class="field-label section-label"><i class="bi bi-geo"></i> Coordonnées GPS</label>
+
+        <!-- BOUTON GÉOLOCALISATION -->
+        <div class="geo-block" [class.geo-success]="geoSuccess" [class.geo-error]="geoError">
+          <div class="geo-header">
+            <div class="geo-info">
+              <i class="bi bi-geo-alt-fill geo-icon"></i>
+              <div>
+                <strong>Localiser mon magasin</strong>
+                <p class="geo-sub">Capture automatique de votre position et pré-remplissage de l'adresse</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="btn-location"
+              [class.loading]="geoLoading"
+              [class.success]="geoSuccess"
+              [class.error]="geoError"
+              (click)="localiser()"
+              [disabled]="geoLoading">
+              <span *ngIf="!geoLoading && !geoSuccess">
+                <i class="bi bi-crosshair"></i> Partager ma position
+              </span>
+              <span *ngIf="geoLoading">
+                <i class="bi bi-arrow-repeat spin"></i> Localisation...
+              </span>
+              <span *ngIf="geoSuccess">
+                <i class="bi bi-check-circle-fill"></i> Position captée
+              </span>
+              <span *ngIf="geoError">
+                <i class="bi bi-x-circle"></i> Réessayer
+              </span>
+            </button>
+          </div>
+
+          <div class="geo-message" *ngIf="geoMessage">
+            <i class="bi" [class.bi-check-circle-fill]="geoSuccess" [class.bi-exclamation-triangle-fill]="geoError"></i>
+            <span>{{ geoMessage }}</span>
+          </div>
+
+          <div class="geo-details" *ngIf="geoSuccess">
+            <div class="gps-coords">
+              <div class="coord-item">
+                <i class="bi bi-compass"></i>
+                <span>Lat: <strong>{{ magasinForm.get('latitude')?.value | number:'1.6-6' }}</strong></span>
+              </div>
+              <div class="coord-item">
+                <i class="bi bi-compass"></i>
+                <span>Lng: <strong>{{ magasinForm.get('longitude')?.value | number:'1.6-6' }}</strong></span>
+              </div>
+              <div class="coord-item" *ngIf="geoPrecision != null">
+                <i class="bi bi-bullseye"></i>
+                <span>Précision: <strong>{{ geoPrecision }} m</strong></span>
+              </div>
+            </div>
+            <div class="geo-actions">
+              <a [href]="geoMapUrl" target="_blank" rel="noopener" class="geo-link">
+                <i class="bi bi-map"></i> Voir sur Google Maps
+              </a>
+              <button type="button" class="geo-clear" (click)="effacerLocalisation()">
+                <i class="bi bi-trash"></i> Effacer la position
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="field-row">
           <div class="field-group">
             <label class="field-label sub-label">Latitude</label>

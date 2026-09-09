@@ -366,3 +366,39 @@ class SignalementAvis(models.Model):
 
     def __str__(self):
         return f"Signalement {self.motif} sur avis {self.avis_id}"
+
+
+# -----------------------------
+# DemandePartenariat
+# -----------------------------
+class DemandePartenariat(models.Model):
+
+    STATUT_CHOICES = [
+        ('nouvelle', 'Nouvelle'),
+        ('en_cours', 'En cours'),
+        ('acceptee', 'Acceptée'),
+        ('rejetee', 'Rejetée'),
+    ]
+
+    nom_entreprise = models.CharField(max_length=200)
+    marque = models.CharField(max_length=200, blank=True, default='')
+    email_contact = models.EmailField()
+    telephone = models.CharField(max_length=30, blank=True, default='')
+    message = models.TextField()
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='nouvelle')
+    reponse_admin = models.TextField(blank=True, default='')
+    date_soumission = models.DateTimeField(auto_now_add=True)
+    date_traitement = models.DateTimeField(blank=True, null=True)
+    traitee_par = models.ForeignKey(
+        'account.Utilisateur',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='demandes_partenariat_traitees'
+    )
+
+    class Meta:
+        ordering = ['-date_soumission']
+        db_table = 'support_demande_partenariat'
+
+    def __str__(self):
+        return f"Partenariat — {self.nom_entreprise} ({self.get_statut_display()})"

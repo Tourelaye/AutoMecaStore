@@ -20,6 +20,8 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-x;
 }
 .ams-rail-track::-webkit-scrollbar { display: none; }
 
@@ -28,6 +30,13 @@
   width: var(--ams-card-w);
   max-width: 88vw;
   scroll-snap-align: start;
+  transition: transform .35s cubic-bezier(.25,.46,.45,.94), opacity .35s ease, box-shadow .35s ease;
+}
+
+/* Effet de mise en avant au survol de la carte */
+.ams-rail-track > *:hover {
+  transform: translateY(-6px) scale(1.03);
+  z-index: 1;
 }
 
 /* dégradés de bord signalant le contenu masqué */
@@ -117,12 +126,24 @@
   color: #9ca3af;
 }
 
+/* ── Responsive ─────────────────────────────────────────────
+   Desktop  : ~4-5 cartes (264px)
+   Tablette : ~2-3 cartes (240px)
+   Mobile   : 1-1.5 carte (280px → montre un bout de la 2e)
+────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
+  .ams-rail { --ams-card-w: 240px; --ams-gap: 18px; }
   .ams-rail-arrow.prev { left: 6px; }
   .ams-rail-arrow.next { right: 6px; }
 }
 @media (max-width: 768px) {
-  .ams-rail { --ams-card-w: 236px; --ams-gap: 16px; }
+  .ams-rail { --ams-card-w: 280px; --ams-gap: 14px; }
   .ams-rail-arrow { display: none; }
   .ams-rail::before, .ams-rail::after { width: 32px; }
+  .ams-rail-track > *:hover {
+    transform: none;
+  }
+}
+@media (max-width: 480px) {
+  .ams-rail { --ams-card-w: 260px; --ams-gap: 12px; }
 }

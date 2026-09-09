@@ -688,11 +688,7 @@ class ProduitSerializer(serializers.ModelSerializer):
 
         """Retourne le nombre de magasins proposant ce produit."""
 
-        # FournisseurProduit.fournisseur est catalog.Fournisseur,
-
-        # tandis que Produit.fournisseur est account.Fournisseur : on ne peut pas les exclure directement.
-
-        return FournisseurProduit.objects.filter(produit=obj).count() + (1 if obj.fournisseur else 0)
+        return FournisseurProduit.objects.filter(produit=obj).count()
 
 
 

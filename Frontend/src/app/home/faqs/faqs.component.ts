@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 export interface FAQ {
   question: string;
@@ -18,6 +19,8 @@ export interface FAQ {
   styleUrl: './faqs.component.css'
 })
 export class FaqsComponent {
+
+  constructor(private router: Router) {}
 
   faqs: FAQ[] = [
     {
@@ -87,5 +90,9 @@ export class FaqsComponent {
       faq.answer.toLowerCase().includes(query) ||
       faq.category.toLowerCase().includes(query)
     );
+  }
+
+  contactSupport(): void {
+    this.router.navigate(['/aide']);
   }
 }

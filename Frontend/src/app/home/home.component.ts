@@ -20,6 +20,7 @@ import { PromoBannerComponent } from './promo-banner/promo-banner.component';
 import { NewsletterComponent } from './newsletter/newsletter.component';
 import { VehiculeFinderComponent } from './vehicule-finder/vehicule-finder.component';
 import { CommentCaMarcheComponent } from './comment-ca-marche/comment-ca-marche.component';
+import { ScrollRevealDirective } from '../shared/directives/scroll-reveal.directive';
 
 @Component({
   selector: 'app-home',
@@ -45,40 +46,41 @@ import { CommentCaMarcheComponent } from './comment-ca-marche/comment-ca-marche.
     PartenaireComponent,
     RechercheComponent,
     NewsletterComponent,
-    FaqsComponent
+    FaqsComponent,
+    ScrollRevealDirective
   ],
   template: `
     <!-- Accroche -->
     <app-slide></app-slide>
-    <app-vehicule-finder></app-vehicule-finder>
-    <app-services-bar></app-services-bar>
+    <app-vehicule-finder appScrollReveal></app-vehicule-finder>
+    <app-services-bar appScrollReveal></app-services-bar>
 
     <!-- Catalogues & catégories -->
-    <app-promo-banner></app-promo-banner>
-    <app-categorie></app-categorie>
+    <app-promo-banner appScrollReveal></app-promo-banner>
+    <app-categorie appScrollReveal></app-categorie>
 
     <!-- Offres (masquées automatiquement si aucune donnée) -->
-    <app-offre></app-offre>
-    <app-promotion></app-promotion>
-    <app-vente-eclair></app-vente-eclair>
+    <app-offre appScrollReveal></app-offre>
+    <app-promotion appScrollReveal></app-promotion>
+    <app-vente-eclair appScrollReveal></app-vente-eclair>
 
     <!-- Produits -->
-    <app-plus-vendus></app-plus-vendus>
-    <app-vogue></app-vogue>
-    <app-nouveaute></app-nouveaute>
-    <app-vedette></app-vedette>
-    <app-recommande></app-recommande>
+    <app-plus-vendus appScrollReveal></app-plus-vendus>
+    <app-vogue appScrollReveal></app-vogue>
+    <app-nouveaute appScrollReveal></app-nouveaute>
+    <app-vedette appScrollReveal></app-vedette>
+    <app-recommande appScrollReveal></app-recommande>
 
     <!-- Confiance -->
-    <app-comment-ca-marche></app-comment-ca-marche>
-    <app-chooce></app-chooce>
-    <app-avis-client></app-avis-client>
-    <app-partenaire></app-partenaire>
+    <app-comment-ca-marche appScrollReveal></app-comment-ca-marche>
+    <app-chooce appScrollReveal></app-chooce>
+    <app-avis-client appScrollReveal></app-avis-client>
+    <app-partenaire appScrollReveal></app-partenaire>
 
     <!-- Engagement -->
-    <app-recherche></app-recherche>
-    <app-newsletter></app-newsletter>
-    <app-faqs></app-faqs>
+    <app-recherche appScrollReveal></app-recherche>
+    <app-newsletter appScrollReveal></app-newsletter>
+    <app-faqs appScrollReveal></app-faqs>
 
     <button
       type="button"

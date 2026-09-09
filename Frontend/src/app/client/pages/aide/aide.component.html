@@ -6,7 +6,7 @@
   </div>
 
   <!-- HEADER -->
-  <div class="aide-header text-center fade-in">
+  <div class="aide-header text-center fade-in" appScrollReveal>
     <div class="aide-header__icon">
       <i class="bi bi-headset"></i>
     </div>
@@ -104,59 +104,66 @@
     <div class="contact-right">
 
       <h5>Envoyez-nous un message</h5>
-      <p>Remplissez le formulaire ci-dessous et nous vous répondons rapidement !</p>
+      <p>Remplissez le formulaire ci-dessous et nous vous répondrons rapidement !</p>
 
-      <form>
+      <!-- Success message -->
+      <div class="support-success" *ngIf="success">
+        <i class="bi bi-check-circle-fill"></i>
+        <p>Votre message a bien été envoyé. Nous vous répondrons rapidement.</p>
+      </div>
+
+      <!-- Error message -->
+      <div class="support-error" *ngIf="error">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <p>{{ error }}</p>
+      </div>
+
+      <form [formGroup]="supportForm" (ngSubmit)="submitSupport()" *ngIf="!success">
 
         <div class="form-row">
           <div class="input-icon">
             <i class="bi bi-person"></i>
-            <input type="text" placeholder="Prénom" required>
+            <input type="text" placeholder="Prénom" formControlName="prenom" required>
           </div>
           <div class="input-icon">
             <i class="bi bi-person"></i>
-            <input type="text" placeholder="Nom" required>
+            <input type="text" placeholder="Nom" formControlName="nom" required>
           </div>
         </div>
 
         <div class="form-row">
           <div class="input-icon">
             <i class="bi bi-envelope"></i>
-            <input type="email" placeholder="Email" required>
+            <input type="email" placeholder="Email" formControlName="email" required>
           </div>
           <div class="input-icon">
             <i class="bi bi-telephone"></i>
-            <input type="tel" placeholder="Téléphone">
+            <input type="tel" placeholder="Téléphone" formControlName="telephone">
           </div>
         </div>
 
         <div class="input-icon input-icon--select">
           <i class="bi bi-tag"></i>
-          <select required>
+          <select formControlName="categorie" required>
             <option value="" disabled selected>Sélectionnez une catégorie</option>
-            <option value="commande">Suivi de commande</option>
-            <option value="retour">Retour &amp; remboursement</option>
-            <option value="paiement">Problème de paiement</option>
-            <option value="livraison">Livraison</option>
-            <option value="compte">Mon compte</option>
-            <option value="autre">Autre demande</option>
+            <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
           </select>
         </div>
 
         <div class="input-icon">
           <i class="bi bi-chat-left-text"></i>
-          <input type="text" placeholder="Sujet" required>
+          <input type="text" placeholder="Sujet" formControlName="sujet" required>
         </div>
 
-        <textarea placeholder="Votre message..." required></textarea>
+        <textarea placeholder="Votre message..." formControlName="message" required></textarea>
 
         <div class="form-buttons">
 
-          <button type="submit" class="btn-send">
-            <i class="bi bi-send"></i> Envoyer le message
+          <button type="submit" class="btn-send" [disabled]="loading">
+            <i class="bi bi-send"></i> {{ loading ? 'Envoi...' : 'Envoyer le message' }}
           </button>
 
-          <button type="reset" class="btn-reset">
+          <button type="button" class="btn-reset" (click)="supportForm.reset()">
             <i class="bi bi-x-lg"></i> Effacer
           </button>
 

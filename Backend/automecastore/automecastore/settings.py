@@ -52,17 +52,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = 'django-insecure-esu+s699q0i^)^-wv42=_r*sf0$yp-kjq#=ker&6xs2(_u*=c='
+# DEBUG from environment — defaults to True if no .env file (dev mode), False otherwise
+_env_file = BASE_DIR / '.env'
+if os.environ.get('DEBUG') is not None:
+    DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+elif _env_file.exists():
+    DEBUG = False
+else:
+    DEBUG = True  # No .env file → assume development
 
+# SECRET_KEY from environment — fail explicitly in production if missing
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-key-do-not-use-in-production'
+    else:
+        raise ValueError('SECRET_KEY must be set in environment for production')
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
-
-DEBUG = True
-
-
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+# ALLOWED_HOSTS from environment (comma-separated)
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,0.0.0.0').split(',')
 
 
 
@@ -127,9 +135,35 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PERMISSION_CLASSES': (
 
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
 
     ),
+
+    'DEFAULT_THROTTLE_CLASSES': (
+
+        'rest_framework.throttling.AnonRateThrottle',
+
+        'rest_framework.throttling.UserRateThrottle',
+
+        'rest_framework.throttling.ScopedRateThrottle',
+
+    ),
+
+    'DEFAULT_THROTTLE_RATES': {
+
+        'anon': os.environ.get('THROTTLE_ANON', '60/min'),
+
+        'user': os.environ.get('THROTTLE_USER', '120/min'),
+
+        'login': os.environ.get('THROTTLE_LOGIN', '5/min'),
+
+        'register': os.environ.get('THROTTLE_REGISTER', '3/min'),
+
+        'payment': os.environ.get('THROTTLE_PAYMENT', '10/min'),
+
+        'order': os.environ.get('THROTTLE_ORDER', '10/min'),
+
+    },
 
 }
 
@@ -321,21 +355,18 @@ SIMPLE_JWT = {
 
 # Configuration CORS pour permettre les requêtes du frontend
 
+# CORS — configurable via environment (comma-separated)
 CORS_ALLOWED_ORIGINS = [
-
-    "http://localhost:4200",
-
-    "http://127.0.0.1:4200",
-
+    origin.strip() for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:4200,http://127.0.0.1:4200'
+    ).split(',') if origin.strip()
 ]
-
-
 
 CORS_ALLOW_CREDENTIALS = True
 
-
-
-CORS_ALLOW_ALL_ORIGINS = True  # Pour le développement
+# Never allow all origins in production
+CORS_ALLOW_ALL_ORIGINS = False
 
 
 # Configuration email
@@ -355,3 +386,34 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'AutoMecaStore <noreply@automecastore.sn>')
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
+
+# -----------------------------
+# Production security settings
+# -----------------------------
+if not DEBUG:
+    # HTTPS / SSL
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True') == 'True'
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Cookies
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Headers
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+
+    # Proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'

@@ -118,4 +118,26 @@ export class VedetteComponent implements OnInit {
   goToProduit(id: number): void {
     this.router.navigate(['/produits'], { queryParams: { id } });
   }
+
+  retryLoadProducts(): void {
+    this.errorMessage = '';
+    this.isLoading = true;
+    this.loadFeatured();
+  }
+
+  favorites = new Set<number>();
+
+  toggleFavorite(event: Event, produitId: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.favorites.has(produitId)) {
+      this.favorites.delete(produitId);
+    } else {
+      this.favorites.add(produitId);
+    }
+  }
+
+  isFavorite(produitId: number): boolean {
+    return this.favorites.has(produitId);
+  }
 }

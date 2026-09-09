@@ -60,6 +60,14 @@ export class MonMagasinComponent implements OnInit, OnDestroy {
   readonly joursSemaine = JOURS_SEMAINE;
   private subs: Subscription = new Subscription();
 
+  // Géolocalisation
+  geoLoading = false;
+  geoSuccess = false;
+  geoError = false;
+  geoPrecision: number | null = null;
+  geoMapUrl: string | null = null;
+  geoMessage = '';
+
   constructor(
     private fb: FormBuilder,
     private fournisseurService: FournisseurService
@@ -311,10 +319,10 @@ export class MonMagasinComponent implements OnInit, OnDestroy {
     });
 
     if (value.latitude !== null && value.latitude !== undefined && value.latitude !== '') {
-      formData.append('latitude', value.latitude.toString());
+      formData.append('latitude', parseFloat(value.latitude.toString()).toFixed(7));
     }
     if (value.longitude !== null && value.longitude !== undefined && value.longitude !== '') {
-      formData.append('longitude', value.longitude.toString());
+      formData.append('longitude', parseFloat(value.longitude.toString()).toFixed(7));
     }
 
     formData.append('livraison_disponible', value.livraison_disponible ? 'true' : 'false');
@@ -340,7 +348,27 @@ export class MonMagasinComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         this.isSaving = false;
-        const msg = err?.error?.message || err?.error?.detail || 'Erreur lors de la mise à jour du magasin.';
+        let msg = 'Erreur lors de la mise à jour du magasin.';
+        const raw = err?.error;
+        if (raw && typeof raw === 'object') {
+          if (raw.detail) {
+            msg = raw.detail;
+          } else if (raw.message) {
+            msg = raw.message;
+          } else {
+            // DRF field errors: { "field": ["msg"] } or { "field": "msg" }
+            const parts: string[] = [];
+            for (const key of Object.keys(raw)) {
+              const val = raw[key];
+              if (Array.isArray(val)) {
+                parts.push(`${key}: ${val.join(', ')}`);
+              } else if (typeof val === 'string') {
+                parts.push(`${key}: ${val}`);
+              }
+            }
+            if (parts.length) msg = parts.join(' | ');
+          }
+        }
         this.showToast(msg, 'error');
       }
     });
@@ -385,5 +413,94 @@ export class MonMagasinComponent implements OnInit, OnDestroy {
 
   onImgError(event: Event): void {
     (event.target as HTMLImageElement).style.display = 'none';
+  }
+
+  localiser(): void {
+    if (!navigator.geolocation) {
+      this.geoError = true;
+      this.geoSuccess = false;
+      this.geoLoading = false;
+      this.geoMessage = 'Géolocalisation non supportée par votre navigateur.';
+      return;
+    }
+
+    this.geoLoading = true;
+    this.geoSuccess = false;
+    this.geoError = false;
+    this.geoMessage = '';
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.geoLoading = false;
+        this.geoSuccess = true;
+        this.geoError = false;
+        this.magasinForm.patchValue({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+        this.geoPrecision = Math.round(pos.coords.accuracy || 0);
+        this.geoMapUrl = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+        this.geoMessage = `Position captée avec une précision de ${this.geoPrecision} m.`;
+
+        // Auto-remplir l'adresse si vide, via reverse geocoding (Nominatim)
+        const adresse = this.magasinForm.get('adresse_complete')?.value;
+        const ville = this.magasinForm.get('ville')?.value;
+        if (!adresse || !ville) {
+          this.reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        }
+      },
+      (err) => {
+        this.geoLoading = false;
+        this.geoSuccess = false;
+        this.geoError = true;
+        if (err.code === err.PERMISSION_DENIED) {
+          this.geoMessage = 'Géolocalisation refusée. Vous pouvez saisir les coordonnées manuellement.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          this.geoMessage = 'Position indisponible. Vérifiez votre GPS ou saisissez manuellement.';
+        } else if (err.code === err.TIMEOUT) {
+          this.geoMessage = 'Délai dépassé. Réessayez ou saisissez manuellement.';
+        } else {
+          this.geoMessage = 'Erreur de géolocalisation. Saisissez manuellement.';
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  }
+
+  private reverseGeocode(lat: number, lng: number): void {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    fetch(url, { headers: { 'Accept-Language': 'fr' } })
+      .then(res => res.json())
+      .then(data => {
+        const a = data.address || {};
+        const adresse = this.magasinForm.get('adresse_complete');
+        const ville = this.magasinForm.get('ville');
+        const region = this.magasinForm.get('region');
+
+        if (!adresse?.value) {
+          const road = [a.road, a.house_number].filter(Boolean).join(' ');
+          adresse?.setValue(road || a.neighbourhood || a.suburb || '');
+        }
+        if (!ville?.value) {
+          ville?.setValue(a.city || a.town || a.village || a.county || '');
+        }
+        if (!region?.value) {
+          region?.setValue(a.state || a.region || '');
+        }
+        this.geoMessage = `Position captée et adresse pré-remplie (précision ${this.geoPrecision} m).`;
+      })
+      .catch(() => {
+        // Silencieux : on garde juste les coordonnées GPS
+      });
+  }
+
+  effacerLocalisation(): void {
+    this.magasinForm.patchValue({ latitude: null, longitude: null });
+    this.geoSuccess = false;
+    this.geoError = false;
+    this.geoLoading = false;
+    this.geoPrecision = null;
+    this.geoMapUrl = null;
+    this.geoMessage = '';
   }
 }

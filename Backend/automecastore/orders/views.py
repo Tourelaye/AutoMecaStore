@@ -197,6 +197,7 @@ class LigneCommandeCreateView(generics.CreateAPIView):
 class CreerCommandeDepuisPanierView(generics.CreateAPIView):
     serializer_class = CommandeSerializer
     permission_classes = [permissions.IsAuthenticated]
+    throttle_scope = 'order'
 
     @transaction.atomic
     def post(self, request):
@@ -400,8 +401,9 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
             if offre and offre.stock_disponible is not None:
                 offre.stock_disponible = max(0, offre.stock_disponible - l['quantite'])
                 offre.save()
-            l['produit'].stock = max(0, l['produit'].stock - l['quantite'])
-            l['produit'].save()
+            else:
+                l['produit'].stock = max(0, l['produit'].stock - l['quantite'])
+                l['produit'].save()
             # print(f"✅ Stock déduit pour {l['produit'].nom}: nouveau stock={l['produit'].stock}")
 
         # 🔔 Notifier les fournisseurs concernés

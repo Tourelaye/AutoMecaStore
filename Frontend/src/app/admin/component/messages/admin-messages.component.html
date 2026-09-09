@@ -1,0 +1,129 @@
+<div class="admin-messages">
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-box">
+      <span class="stat-num">{{ stats.total }}</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat-box blue">
+      <span class="stat-num">{{ stats.non_lus }}</span>
+      <span class="stat-label">Non lus</span>
+    </div>
+    <div class="stat-box green">
+      <span class="stat-num">{{ stats.lus }}</span>
+      <span class="stat-label">Lus</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input type="text" class="search-input" placeholder="Rechercher..." [(ngModel)]="search" (ngModelChange)="load()">
+    <select class="filter-select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
+      <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <i class="bi bi-arrow-repeat spin"></i> Chargement...
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && messages.length === 0">
+    <i class="bi bi-inbox"></i>
+    <p>Aucun message de support.</p>
+  </div>
+
+  <!-- Table -->
+  <table class="msg-table" *ngIf="!loading && messages.length > 0">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Objet</th>
+        <th>Message</th>
+        <th>Statut</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let m of messages" (click)="selectMessage(m)" [class.selected]="selectedMessage?.id === m.id"
+          [class.unread]="m.statut === 'ENVOYE'">
+        <td>
+          <div class="client-cell">
+            <img *ngIf="m.client_photo" [src]="m.client_photo" class="client-avatar" alt="">
+            <div class="client-avatar placeholder" *ngIf="!m.client_photo">
+              {{ (m.client_prenom?.[0] || '') + (m.client_nom?.[0] || '') }}
+            </div>
+            <div>
+              <div class="client-name">{{ m.client_prenom }} {{ m.client_nom }}</div>
+              <div class="client-email">{{ m.client_email || '—' }}</div>
+            </div>
+          </div>
+        </td>
+        <td class="objet-cell">{{ m.objet }}</td>
+        <td class="msg-cell">{{ m.contenu | slice:0:60 }}{{ m.contenu.length > 60 ? '...' : '' }}</td>
+        <td>
+          <span class="status-badge" [class.unread]="m.statut === 'ENVOYE'" [class.read]="m.statut === 'LU'">
+            {{ m.statut_label }}
+          </span>
+        </td>
+        <td class="date-cell">{{ m.date_envoi | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <div class="action-btns" (click)="$event.stopPropagation()">
+            <button class="btn-icon view" title="Voir" (click)="selectMessage(m)">
+              <i class="bi bi-eye-fill"></i>
+            </button>
+            <button class="btn-icon delete" title="Supprimer" (click)="supprimer(m)">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Detail panel -->
+  <div class="detail-overlay" *ngIf="selectedMessage" (click)="closeDetail()"></div>
+  <div class="detail-panel" *ngIf="selectedMessage">
+    <button class="detail-close" (click)="closeDetail()">&times;</button>
+    <h3>Message #{{ selectedMessage.id }}</h3>
+
+    <div class="detail-section">
+      <label>De</label>
+      <p>{{ selectedMessage.client_prenom }} {{ selectedMessage.client_nom }}</p>
+      <p class="sub-info" *ngIf="selectedMessage.client_email">{{ selectedMessage.client_email }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Objet</label>
+      <p class="objet-full">{{ selectedMessage.objet }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Message</label>
+      <p class="msg-full">{{ selectedMessage.contenu }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Date</label>
+      <p>{{ selectedMessage.date_envoi | date: 'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Statut</label>
+      <span class="status-badge" [class.unread]="selectedMessage.statut === 'ENVOYE'" [class.read]="selectedMessage.statut === 'LU'">
+        {{ selectedMessage.statut_label }}
+      </span>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn-action" *ngIf="selectedMessage.statut === 'LU'" (click)="marquerNonLu(selectedMessage)">
+        <i class="bi bi-envelope"></i> Marquer comme non lu
+      </button>
+      <button class="btn-action delete" (click)="supprimer(selectedMessage)">
+        <i class="bi bi-trash-fill"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

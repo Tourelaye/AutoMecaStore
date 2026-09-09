@@ -126,6 +126,9 @@ class MagasinSerializer(serializers.ModelSerializer):
 
     def validate_rayon_livraison_km(self, value):
         data = self.get_initial()
-        if data.get('livraison_disponible') and not value:
+        livraison = data.get('livraison_disponible')
+        # Avec FormData (MultiPart), livraison_disponible arrive comme 'true'/'false' (string)
+        livraison_active = livraison is True or (isinstance(livraison, str) and livraison.lower() == 'true')
+        if livraison_active and not value:
             raise serializers.ValidationError('Le rayon de livraison est requis lorsque la livraison est disponible.')
         return value

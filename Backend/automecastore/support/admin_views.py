@@ -14,7 +14,7 @@ from rest_framework import filters
 from account.permissions import IsAdmin
 from account.models import Utilisateur, Client, Fournisseur
 from fournisseur.models import creer_notification_fournisseur
-from .models import Reclamation, MessageReclamation, PieceJointeReclamation, HistoriqueReclamation, Avis, SignalementAvis
+from .models import Reclamation, MessageReclamation, PieceJointeReclamation, HistoriqueReclamation, Avis, SignalementAvis, MessageSupport
 from .serializers import (
     ReclamationListSerializer,
     ReclamationDetailSerializer,
@@ -26,6 +26,7 @@ from .serializers import (
     AvisListSerializer,
     AvisDetailSerializer,
     SignalementAvisSerializer,
+    MessageSupportListSerializer,
 )
 
 
@@ -599,3 +600,81 @@ class AdminAvisSignalementsView(APIView):
         signalement.statut = nouveau_statut
         signalement.save()
         return Response(SignalementAvisSerializer(signalement).data)
+
+
+# ===============================
+# ADMIN - MESSAGES SUPPORT
+# ===============================
+
+class AdminMessageSupportListView(generics.ListAPIView):
+    """Liste paginée des messages de support pour l'admin."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+    serializer_class = MessageSupportListSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['objet', 'contenu', 'client__user__nom', 'client__user__prenom', 'client__user__email']
+    ordering_fields = ['date_envoi', 'statut']
+    ordering = ['-date_envoi']
+
+    def get_queryset(self):
+        qs = MessageSupport.objects.select_related('client__user', 'ticket').all()
+        statut = self.request.query_params.get('statut')
+        if statut and statut != 'tous':
+            qs = qs.filter(statut=statut)
+        return qs
+
+
+class AdminMessageSupportDetailView(APIView):
+    """Détail d'un message de support."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        msg = get_object_or_404(
+            MessageSupport.objects.select_related('client__user', 'ticket'),
+            pk=pk
+        )
+        return Response(MessageSupportListSerializer(msg).data)
+
+
+class AdminMessageSupportActionView(APIView):
+    """Actions admin sur un message de support: marquer comme lu, supprimer."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        msg = get_object_or_404(MessageSupport, pk=pk)
+        action = request.data.get('action')
+
+        if action == 'marquer_lu':
+            msg.statut = 'LU'
+            msg.save()
+            return Response({'message': 'Message marqué comme lu', 'msg': MessageSupportListSerializer(msg).data})
+
+        elif action == 'marquer_non_lu':
+            msg.statut = 'ENVOYE'
+            msg.save()
+            return Response({'message': 'Message marqué comme non lu', 'msg': MessageSupportListSerializer(msg).data})
+
+        return Response({'error': 'Action inconnue'}, status=400)
+
+    def delete(self, request, pk):
+        msg = get_object_or_404(MessageSupport, pk=pk)
+        msg.delete()
+        return Response({'message': 'Message supprimé'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminMessageSupportStatsView(APIView):
+    """Statistiques des messages de support."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        total = MessageSupport.objects.count()
+        envoyes = MessageSupport.objects.filter(statut='ENVOYE').count()
+        lus = MessageSupport.objects.filter(statut='LU').count()
+        return Response({
+            'total': total,
+            'non_lus': envoyes,
+            'lus': lus,
+        })

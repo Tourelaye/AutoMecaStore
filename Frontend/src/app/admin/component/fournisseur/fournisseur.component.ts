@@ -98,15 +98,15 @@ export class FournisseurComponent implements OnInit {
       const mag = f.magasin || { nom_magasin: '', ville: '', telephone: '', email: '' };
       const matchesSearch =
         !term ||
-        mag.nom_magasin?.toLowerCase().includes(term) ||
-        f.nom_entreprise?.toLowerCase().includes(term) ||
-        f.nom_complet?.toLowerCase().includes(term) ||
-        f.user?.email?.toLowerCase().includes(term) ||
-        mag.email?.toLowerCase().includes(term) ||
-        f.user?.telephone?.includes(term) ||
-        mag.telephone?.includes(term) ||
-        mag.ville?.toLowerCase().includes(term) ||
-        f.siret?.includes(term);
+        mag.nom_magasin.toLowerCase().includes(term) ||
+        f.nom_entreprise.toLowerCase().includes(term) ||
+        f.nom_complet.toLowerCase().includes(term) ||
+        f.user.email.toLowerCase().includes(term) ||
+        mag.email.toLowerCase().includes(term) ||
+        f.user.telephone.includes(term) ||
+        mag.telephone.includes(term) ||
+        mag.ville.toLowerCase().includes(term) ||
+        f.siret.includes(term);
       return matchesStatus && matchesSearch;
     });
   }
@@ -135,7 +135,7 @@ export class FournisseurComponent implements OnInit {
   }
 
   initials(name: string): string {
-    return name?.trim()?.charAt(0)?.toUpperCase() || '?';
+    return name.trim().charAt(0).toUpperCase() || '?';
   }
 
   /**

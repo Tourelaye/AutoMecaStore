@@ -14,6 +14,11 @@ from .views import (
     AdminAvisActionView,
     AdminSignalementAvisListView,
     AdminSignalementAvisUpdateStatutView,
+    DemandePartenariatCreateView,
+    AdminDemandePartenariatListView,
+    AdminDemandePartenariatDetailView,
+    AdminDemandePartenariatActionView,
+    AdminDemandePartenariatStatsView,
 )
 from .admin_views import (
     AdminReclamationListView,
@@ -28,6 +33,10 @@ from .admin_views import (
     AdminAvisStatsView,
     AdminAvisActionView,
     AdminAvisSignalementsView,
+    AdminMessageSupportListView,
+    AdminMessageSupportDetailView,
+    AdminMessageSupportActionView,
+    AdminMessageSupportStatsView,
 )
 
 urlpatterns = [
@@ -70,4 +79,19 @@ urlpatterns = [
     path('admin/reclamations/<int:pk>/messages/', AdminReclamationMessageView.as_view(), name='admin_reclamation_messages'),
     path('admin/reclamations/<int:pk>/attachments/', AdminReclamationAttachmentView.as_view(), name='admin_reclamation_attachments'),
     path('admin/reclamations/<int:pk>/historique/', AdminReclamationHistoriqueView.as_view(), name='admin_reclamation_historique'),
+
+    # Public - Demande de partenariat
+    path('partenariat/create/', DemandePartenariatCreateView.as_view(), name='partenariat_create'),
+
+    # Admin - Gestion des demandes de partenariat
+    path('admin/partenariats/', AdminDemandePartenariatListView.as_view(), name='admin_partenariat_list'),
+    path('admin/partenariats/stats/', AdminDemandePartenariatStatsView.as_view(), name='admin_partenariat_stats'),
+    path('admin/partenariats/<int:pk>/', AdminDemandePartenariatDetailView.as_view(), name='admin_partenariat_detail'),
+    path('admin/partenariats/<int:pk>/action/', AdminDemandePartenariatActionView.as_view(), name='admin_partenariat_action'),
+
+       # Admin - Messages de support
+    path('admin/messages/', AdminMessageSupportListView.as_view(), name='admin_message_list'),
+    path('admin/messages/stats/', AdminMessageSupportStatsView.as_view(), name='admin_message_stats'),
+    path('admin/messages/<int:pk>/', AdminMessageSupportDetailView.as_view(), name='admin_message_detail'),
+    path('admin/messages/<int:pk>/action/', AdminMessageSupportActionView.as_view(), name='admin_message_action'),
 ]

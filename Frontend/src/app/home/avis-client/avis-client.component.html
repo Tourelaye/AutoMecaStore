@@ -95,10 +95,115 @@
   <!-- CTA -->
   <div class="cta-row">
     <p>Vous aussi, partagez votre expérience</p>
-    <button class="btn-avis">
+    <button class="btn-avis" (click)="openReviewForm()">
       <i class="bi bi-pencil-square"></i>
       Laisser un avis
     </button>
+  </div>
+
+  <!-- MODAL AVIS -->
+  <div class="review-modal-backdrop" *ngIf="showReviewForm" (click)="closeReviewForm()">
+    <div class="review-modal" (click)="$event.stopPropagation()">
+      <button class="review-modal-close" (click)="closeReviewForm()">&times;</button>
+
+      <h5 class="review-modal-title">
+        <i class="bi bi-star-half"></i>
+        Évaluer un produit
+      </h5>
+
+      <p class="review-info-hint">
+        <i class="bi bi-info-circle"></i>
+        Vous devez avoir acheté le produit et votre commande doit être terminée pour laisser un avis.
+      </p>
+
+      <!-- Succès -->
+      <div class="review-success" *ngIf="reviewSuccess">
+        <i class="bi bi-check-circle-fill"></i>
+        <p>Votre avis a bien été enregistré. Merci !</p>
+      </div>
+
+      <!-- Formulaire -->
+      <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" *ngIf="!reviewSuccess">
+
+        <!-- Recherche produit -->
+        <label class="review-label">Produit à évaluer</label>
+        <div class="produit-search-wrap" *ngIf="!produitSelectionne">
+          <input
+            type="text"
+            class="produit-search-input"
+            placeholder="Rechercher un produit..."
+            [(ngModel)]="produitSearch"
+            (ngModelChange)="onProduitSearch()"
+            [ngModelOptions]="{standalone: true}"
+          >
+          <i class="bi bi-search produit-search-icon"></i>
+          <span class="search-loading" *ngIf="searchLoading">
+            <i class="bi bi-arrow-repeat"></i>
+          </span>
+
+          <div class="produit-search-results" *ngIf="produitsSearchResults.length > 0">
+            <div
+              class="produit-search-item"
+              *ngFor="let p of produitsSearchResults"
+              (click)="selectProduit(p)"
+            >
+              <img *ngIf="p.image_url" [src]="p.image_url" alt="" class="search-item-img">
+              <div class="search-item-info">
+                <strong>{{ p.nom }}</strong>
+                <span>{{ p.prix | number:'1.0-0' }} FCFA</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Produit sélectionné -->
+        <div class="produit-selected" *ngIf="produitSelectionne">
+          <img *ngIf="produitSelectionne.image_url" [src]="produitSelectionne.image_url" alt="" class="produit-selected-img">
+          <div class="produit-selected-info">
+            <strong>{{ produitSelectionne.nom }}</strong>
+            <span>{{ produitSelectionne.prix | number:'1.0-0' }} FCFA</span>
+          </div>
+          <button type="button" class="btn-change-produit" (click)="clearProduitSelection()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- Note -->
+        <label class="review-label">Votre note</label>
+        <div class="review-stars-input">
+          <i
+            *ngFor="let s of getEtoiles(5); let i = index"
+            [class]="isPleine(i + 1, reviewForm.get('note')?.value) ? 'bi bi-star-fill' : 'bi bi-star'"
+            (click)="reviewForm.get('note')?.setValue(i + 1)"
+          ></i>
+          <span class="review-note-text">{{ reviewForm.get('note')?.value }}/5</span>
+        </div>
+
+        <!-- Commentaire -->
+        <label class="review-label" for="commentaire">Votre commentaire</label>
+        <textarea
+          id="commentaire"
+          class="review-textarea"
+          formControlName="commentaire"
+          rows="4"
+          placeholder="Décrivez votre expérience avec ce produit..."
+        ></textarea>
+        <div class="review-hint" *ngIf="reviewForm.get('commentaire')?.invalid && reviewForm.get('commentaire')?.touched">
+          Le commentaire doit faire entre 5 et 2000 caractères.
+        </div>
+
+        <!-- Erreur -->
+        <div class="review-error" *ngIf="reviewError">
+          <i class="bi bi-exclamation-circle"></i> {{ reviewError }}
+        </div>
+
+        <!-- Bouton -->
+        <button type="submit" class="btn-submit-review" [disabled]="reviewForm.invalid || reviewLoading || !produitSelectionne">
+          <span *ngIf="!reviewLoading"><i class="bi bi-send-fill"></i> Envoyer mon avis</span>
+          <span *ngIf="reviewLoading"><i class="bi bi-arrow-repeat"></i> Envoi en cours...</span>
+        </button>
+      </form>
+    </div>
   </div>
 
 </section>

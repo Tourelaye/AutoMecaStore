@@ -1441,7 +1441,24 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         this.reviewLoading = false;
 
-        this.reviewError = err.error?.error || err.error?.detail || 'Impossible d\'envoyer l\'avis.';
+        const raw = err.error;
+        if (raw?.non_field_errors) {
+          this.reviewError = Array.isArray(raw.non_field_errors) ? raw.non_field_errors[0] : raw.non_field_errors;
+        } else if (raw?.detail) {
+          this.reviewError = raw.detail;
+        } else if (typeof raw === 'string') {
+          this.reviewError = raw;
+        } else if (raw && typeof raw === 'object') {
+          const firstKey = Object.keys(raw)[0];
+          if (firstKey) {
+            const val = raw[firstKey];
+            this.reviewError = Array.isArray(val) ? val[0] : String(val);
+          } else {
+            this.reviewError = 'Impossible d\'envoyer l\'avis.';
+          }
+        } else {
+          this.reviewError = 'Impossible d\'envoyer l\'avis.';
+        }
 
       }
 

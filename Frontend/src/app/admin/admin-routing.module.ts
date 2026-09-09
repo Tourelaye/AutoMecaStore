@@ -21,6 +21,9 @@ import { NotificationsComponent } from './component/notifications/notifications.
 import { SecuriteComponent } from './component/securite/securite.component';
 import { ProfilComponent } from './component/profil/profil.component';
 import { AnalyseComponent } from './component/analyse/analyse.component';
+import { AdminAvisComponent } from './component/avis/admin-avis.component';
+import { AdminPartenariatsComponent } from './component/partenariats/admin-partenariats.component';
+import { AdminMessagesComponent } from './component/messages/admin-messages.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -42,6 +45,9 @@ const routes: Routes = [
       { path: 'paiements', component: PaiementComponent },
       { path: 'livraisons', component: LivraisonComponent },
       { path: 'reclamations', component: ReclamationComponent },
+      { path: 'avis', component: AdminAvisComponent },
+      { path: 'partenariats', component: AdminPartenariatsComponent },
+      { path: 'messages', component: AdminMessagesComponent },
       { path: 'demandes', component: AdminDemandesComponent },
       { path: 'journal', component: JournalComponent },
       { path: 'parametres', component: ParametresComponent },

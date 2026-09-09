@@ -1,0 +1,158 @@
+<div class="admin-avis">
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-box">
+      <span class="stat-num">{{ stats.total }}</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat-box green">
+      <span class="stat-num">{{ stats.visibles }}</span>
+      <span class="stat-label">Visibles</span>
+    </div>
+    <div class="stat-box orange">
+      <span class="stat-num">{{ stats.masques }}</span>
+      <span class="stat-label">Masqués</span>
+    </div>
+    <div class="stat-box red">
+      <span class="stat-num">{{ stats.signales }}</span>
+      <span class="stat-label">Signalés</span>
+    </div>
+    <div class="stat-box blue">
+      <span class="stat-num">{{ stats.note_moyenne }}</span>
+      <span class="stat-label">Note moy.</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input type="text" class="search-input" placeholder="Rechercher..." [(ngModel)]="search" (ngModelChange)="onSearch()">
+    <select class="filter-select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
+      <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="noteFilter" (ngModelChange)="load()">
+      <option *ngFor="let n of notes" [value]="n.value">{{ n.label }}</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <i class="bi bi-arrow-repeat spin"></i> Chargement...
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && avis.length === 0">
+    <i class="bi bi-inbox"></i>
+    <p>Aucun avis trouvé.</p>
+  </div>
+
+  <!-- Table -->
+  <table class="avis-table" *ngIf="!loading && avis.length > 0">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Produit</th>
+        <th>Note</th>
+        <th>Commentaire</th>
+        <th>Statut</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let a of avis" (click)="selectAvis(a)" [class.selected]="selectedAvis?.id === a.id">
+        <td>
+          <div class="client-cell">
+            <img *ngIf="a.client_photo" [src]="a.client_photo" class="client-avatar" alt="">
+            <div class="client-avatar placeholder" *ngIf="!a.client_photo">{{ (a.client_prenom?.[0] || '') + (a.client_nom?.[0] || '') }}</div>
+            <div>
+              <div class="client-name">{{ a.client_prenom }} {{ a.client_nom }}</div>
+              <div class="client-email">{{ a.client_email }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ a.produit_nom || a.magasin_nom || '—' }}</td>
+        <td>
+          <div class="stars">
+            <span *ngFor="let s of getStars(a.note)" [class.filled]="s === '★'">{{ s }}</span>
+          </div>
+          <span class="badge-achat" *ngIf="a.achat_verifie"><i class="bi bi-check-circle-fill"></i> Achat vérifié</span>
+        </td>
+        <td class="comment-cell">{{ a.commentaire | slice:0:80 }}{{ a.commentaire.length > 80 ? '...' : '' }}</td>
+        <td>
+          <span class="status-badge" [class.visible]="a.approuve" [class.masque]="!a.approuve">
+            {{ a.approuve ? 'Visible' : 'Masqué' }}
+          </span>
+          <span class="signal-badge" *ngIf="a.nb_signalements > 0">
+            <i class="bi bi-flag-fill"></i> {{ a.nb_signalements }}
+          </span>
+        </td>
+        <td class="date-cell">{{ a.date | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <div class="action-btns" (click)="$event.stopPropagation()">
+            <button class="btn-icon approve" title="Rendre visible" (click)="approuver(a)" *ngIf="!a.approuve">
+              <i class="bi bi-eye-fill"></i>
+            </button>
+            <button class="btn-icon hide" title="Masquer" (click)="masquer(a)" *ngIf="a.approuve">
+              <i class="bi bi-eye-slash-fill"></i>
+            </button>
+            <button class="btn-icon delete" title="Supprimer" (click)="supprimer(a)">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Detail panel -->
+  <div class="detail-overlay" *ngIf="selectedAvis" (click)="closeDetail()"></div>
+  <div class="detail-panel" *ngIf="selectedAvis">
+    <button class="detail-close" (click)="closeDetail()">&times;</button>
+    <h3>Détail de l'avis #{{ selectedAvis.id }}</h3>
+
+    <div class="detail-section">
+      <label>Client</label>
+      <p>{{ selectedAvis.client_prenom }} {{ selectedAvis.client_nom }} ({{ selectedAvis.client_email }})</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Produit / Magasin</label>
+      <p>{{ selectedAvis.produit_nom || selectedAvis.magasin_nom || '—' }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Note</label>
+      <div class="stars large">
+        <span *ngFor="let s of getStars(selectedAvis.note)" [class.filled]="s === '★'">{{ s }}</span>
+      </div>
+      <span class="badge-achat" *ngIf="selectedAvis.achat_verifie"><i class="bi bi-check-circle-fill"></i> Achat vérifié</span>
+    </div>
+
+    <div class="detail-section">
+      <label>Commentaire</label>
+      <p class="comment-full">{{ selectedAvis.commentaire }}</p>
+    </div>
+
+    <div class="detail-section">
+      <label>Date</label>
+      <p>{{ selectedAvis.date | date: 'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+
+    <div class="detail-section" *ngIf="selectedAvis.nb_signalements > 0">
+      <label>Signalements</label>
+      <p class="signal-info"><i class="bi bi-flag-fill"></i> {{ selectedAvis.nb_signalements }} signalement(s)</p>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn-action approve" (click)="approuver(selectedAvis)" *ngIf="!selectedAvis.approuve">
+        <i class="bi bi-eye-fill"></i> Rendre visible
+      </button>
+      <button class="btn-action hide" (click)="masquer(selectedAvis)" *ngIf="selectedAvis.approuve">
+        <i class="bi bi-eye-slash-fill"></i> Masquer
+      </button>
+      <button class="btn-action delete" (click)="supprimer(selectedAvis)">
+        <i class="bi bi-trash-fill"></i> Supprimer
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,5 +1,8 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface Partenaire {
   nom: string;
@@ -19,7 +22,7 @@ export interface Stat {
 @Component({
   selector: 'app-partenaire',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './partenaire.component.html',
   styleUrl: './partenaire.component.css'
 })
@@ -41,6 +44,27 @@ export class PartenaireComponent implements AfterViewInit {
     { valeur: '3+',    label: 'Années de confiance',  icon: 'bi-calendar-check-fill' },
   ];
 
+  // ── Modal partenariat ──
+  showPartenariatForm = false;
+  partenaireForm: FormGroup;
+  partenaireLoading = false;
+  partenaireError: string | null = null;
+  partenaireSuccess = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private notificationService: NotificationService
+  ) {
+    this.partenaireForm = this.fb.group({
+      nom_entreprise: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      marque: ['', [Validators.maxLength(100)]],
+      email_contact: ['', [Validators.required, Validators.email]],
+      telephone: ['', [Validators.maxLength(20)]],
+      message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]]
+    });
+  }
+
   ngAfterViewInit(): void {
     const els = document.querySelectorAll('.brand-card, .stat-card, .cta-block');
     const obs = new IntersectionObserver((entries) => {
@@ -49,5 +73,59 @@ export class PartenaireComponent implements AfterViewInit {
       });
     }, { threshold: 0.12 });
     els.forEach(el => obs.observe(el));
+  }
+
+  openPartenariatForm(): void {
+    this.showPartenariatForm = true;
+    this.partenaireError = null;
+    this.partenaireSuccess = false;
+    this.partenaireForm.reset();
+  }
+
+  closePartenariatForm(): void {
+    this.showPartenariatForm = false;
+    this.partenaireForm.reset();
+  }
+
+  submitPartenariat(): void {
+    if (this.partenaireForm.invalid) {
+      this.partenaireForm.markAllAsTouched();
+      return;
+    }
+
+    this.partenaireLoading = true;
+    this.partenaireError = null;
+
+    const v = this.partenaireForm.value;
+
+    this.http.post('http://127.0.0.1:8000/api/partenariat/create/', {
+      nom_entreprise: v.nom_entreprise,
+      marque: v.marque || '',
+      email_contact: v.email_contact,
+      telephone: v.telephone || '',
+      message: v.message
+    }).subscribe({
+      next: () => {
+        this.partenaireSuccess = true;
+        this.partenaireLoading = false;
+        this.notificationService.success('Votre demande a été envoyée. Nous vous contacterons rapidement.', 'Partenariat envoyé');
+        setTimeout(() => { this.closePartenariatForm(); this.partenaireSuccess = false; }, 2000);
+      },
+      error: (err: any) => {
+        this.partenaireLoading = false;
+        const raw = err.error;
+        if (raw && typeof raw === 'object') {
+          const firstKey = Object.keys(raw)[0];
+          if (firstKey) {
+            const val = raw[firstKey];
+            this.partenaireError = Array.isArray(val) ? val[0] : String(val);
+          } else {
+            this.partenaireError = 'Erreur lors de l\'envoi. Veuillez réessayer.';
+          }
+        } else {
+          this.partenaireError = 'Erreur lors de l\'envoi. Veuillez réessayer.';
+        }
+      }
+    });
   }
 }

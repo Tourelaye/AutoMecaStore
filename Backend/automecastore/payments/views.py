@@ -31,6 +31,7 @@ class PaiementInitView(views.APIView):
     via un callback de prestataire ou une action admin.
     """
     permission_classes = [permissions.IsAuthenticated]
+    throttle_scope = 'payment'
 
     @transaction.atomic
     def post(self, request):
