@@ -438,7 +438,7 @@
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
+    gap: 45px;
   }
   
   /* ---------------------------------
@@ -548,7 +548,7 @@
   /* IMAGE */
   .product-img {
     position: relative;
-    height: 220px;
+    height: 200px;
     background: linear-gradient(135deg, #f9fafb, #f3f4f6);
     border-radius: 10px;
     display: flex;
@@ -562,7 +562,7 @@
   .product-img img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     transition: transform 0.4s ease;
   }
@@ -767,7 +767,7 @@
   .list-img img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     transition: transform 0.4s ease;
   }
@@ -948,9 +948,29 @@
   }
   
   @media (max-width: 576px) {
-    .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
     .product-list-card { flex-direction: column; align-items: flex-start; }
     .product-right { width: 100%; align-items: flex-start; }
     .btnns { width: 100%; }
     .list-img { width: 100%; height: 140px; }
   }
+
+/* Badge de réduction promo */
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.4);
+  animation: promo-pop 0.3s ease;
+}
+@keyframes promo-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}

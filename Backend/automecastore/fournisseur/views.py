@@ -10,7 +10,7 @@ from datetime import timedelta
 from account.permissions import IsFournisseur
 from .models import Transaction, HistoriqueActivite, Notification, Magasin, creer_notification_fournisseur, creer_notification_client, creer_notification_admin
 from .serializers import TransactionSerializer, HistoriqueActiviteSerializer, NotificationSerializer, FournisseurSerializer, MagasinSerializer
-from catalog.models import Produit, MouvementStock, Promotion, FournisseurProduit
+from catalog.models import Produit, MouvementStock, Promotion, FournisseurProduit, ProduitGroup
 from catalog.serializers import ProduitSerializer, PromotionSerializer, MouvementStockSerializer
 from catalog.product_matching import find_matching_product, normalize_product_text
 from django.db.models import Avg, Count, F, Q, Sum, ExpressionWrapper, IntegerField, DurationField
@@ -330,7 +330,7 @@ class FournisseurProduitListCreateView(generics.ListCreateAPIView):
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     def get_queryset(self):
-        return Produit.objects.filter(fournisseur=self.request.user.fournisseur)
+        return Produit.all_objects.filter(fournisseur=self.request.user.fournisseur)
 
     def perform_create(self, serializer):
         fournisseur = self.request.user.fournisseur
@@ -375,24 +375,46 @@ class FournisseurProduitListCreateView(generics.ListCreateAPIView):
                 etat=etat,
             )
 
+            # Toujours créer un nouveau produit (chaque fournisseur garde son propre produit
+            # avec ses images, description, prix, stock)
+            defaults = {
+                'fournisseur': fournisseur,
+            }
+            if 'statut' not in data:
+                defaults['statut'] = 'inactif'
+            if 'is_active' not in data:
+                defaults['is_active'] = False
+            if 'statut_approbation' not in data:
+                defaults['statut_approbation'] = 'en_attente'
+
+            produit = serializer.save(**defaults)
+
+            # Étape 2 : Si un produit identique existe, les lier via un ProduitGroup
+            matched_product = None
             if match_result['found'] and not match_result['ambiguous']:
-                # Produit existant trouvé → créer uniquement une offre
-                produit = match_result['product']
-            else:
-                # Aucun match ou ambigu → créer un nouveau produit
-                defaults = {
-                    'fournisseur': fournisseur,
-                }
-                if 'statut' not in data:
-                    defaults['statut'] = 'actif'
-                if 'is_active' not in data:
-                    defaults['is_active'] = True
-                if 'statut_approbation' not in data:
-                    defaults['statut_approbation'] = 'approuve'
+                matched_product = match_result['product']
+            elif match_result['found'] and match_result['ambiguous']:
+                # En cas d'ambiguïté, prendre le meilleur match si confiance haute
+                results = match_result.get('results', [])
+                if results and results[0].get('classification') == 'MATCH_CONFIRMED':
+                    matched_product = results[0].get('product')
 
-                produit = serializer.save(**defaults)
+            if matched_product and matched_product.id != produit.id:
+                if matched_product.produit_group_id:
+                    # Le produit existant a déjà un groupe → y ajouter le nouveau
+                    produit.produit_group = matched_product.produit_group
+                    produit.save(update_fields=['produit_group'])
+                else:
+                    # Créer un nouveau groupe et y ajouter les deux produits
+                    group = ProduitGroup.objects.create(
+                        nom=matched_product.nom or produit.nom
+                    )
+                    matched_product.produit_group = group
+                    matched_product.save(update_fields=['produit_group'])
+                    produit.produit_group = group
+                    produit.save(update_fields=['produit_group'])
 
-            # Étape 2 : Créer ou mettre à jour l'offre FournisseurProduit
+            # Étape 3 : Créer ou mettre à jour l'offre FournisseurProduit
             try:
                 from catalog.models import Fournisseur as CatalogFournisseur
                 catalog_f, _ = CatalogFournisseur.objects.get_or_create(
@@ -449,7 +471,7 @@ class FournisseurProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     def get_queryset(self):
-        return Produit.objects.filter(fournisseur=self.request.user.fournisseur)
+        return Produit.all_objects.filter(fournisseur=self.request.user.fournisseur)
 
     def perform_update(self, serializer):
         # Sécurité : un fournisseur ne peut pas modifier certains champs administrateur

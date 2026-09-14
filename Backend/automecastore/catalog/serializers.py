@@ -12,7 +12,7 @@ from datetime import timedelta
 
 
 
-from .models import Categorie, Marque, Produit, ProduitFavoris, FournisseurProduit, TypePiece, Livraison, Promotion, MouvementStock, DemandePiece
+from .models import Categorie, Marque, Produit, ProduitFavoris, FournisseurProduit, TypePiece, Livraison, Promotion, MouvementStock, DemandePiece, ProduitGroup
 
 from account.models import Fournisseur, VehiculeClient
 
@@ -449,6 +449,7 @@ class ProduitSerializer(serializers.ModelSerializer):
             'nombre_vues', 'nombre_favoris', 'nombre_ventes',
 
             'reference', 'marque', 'fabricant', 'is_active', 'date_suppression',
+            'statut', 'statut_approbation',
 
             # Avis
 
@@ -1607,7 +1608,11 @@ class MagasinSimpleSerializer(serializers.ModelSerializer):
 
             'horaires_ouverture', 'jours_ouverture', 'livraison_disponible',
 
-            'retrait_magasin', 'rayon_livraison_km', 'distance_km', 'note', 'nombre_avis'
+            'retrait_magasin', 'rayon_livraison_km', 'frais_livraison',
+
+            'mode_tarif_livraison', 'tarif_gratuit_desous', 'delai_livraison_estime',
+
+            'description', 'distance_km', 'note', 'nombre_avis'
 
         ]
 
@@ -1759,6 +1764,8 @@ class ProduitDetailSerializer(ProduitSerializer):
 
     offres = serializers.SerializerMethodField()
 
+    magasins_lies = serializers.SerializerMethodField()
+
     avis = serializers.SerializerMethodField()
 
     distribution_etoiles = serializers.SerializerMethodField()
@@ -1771,7 +1778,7 @@ class ProduitDetailSerializer(ProduitSerializer):
 
             'fournisseur', 'fournisseur_detail', 'magasin_detail',
 
-            'offres', 'avis', 'distribution_etoiles'
+            'offres', 'magasins_lies', 'avis', 'distribution_etoiles'
 
         ]
 
@@ -1964,6 +1971,82 @@ class ProduitDetailSerializer(ProduitSerializer):
 
 
         return raw_offres
+
+
+
+    def get_magasins_lies(self, obj):
+        """Retourne les autres produits liés au même groupe (autres magasins)."""
+        if not obj.produit_group_id:
+            return []
+
+        request = self.context.get('request')
+        lat = None
+        lng = None
+        if request:
+            lat = request.query_params.get('lat')
+            lng = request.query_params.get('lng')
+
+        qs = obj.produit_group.produits.filter(
+            is_active=True
+        ).exclude(id=obj.id).select_related('fournisseur')
+
+        magasins = []
+        for p in qs:
+            # Résoudre le magasin du fournisseur
+            magasin_data = None
+            fournisseur_data = None
+            try:
+                if p.fournisseur:
+                    account_f = p.fournisseur
+                    magasin = account_f.magasin
+                    magasin_data = MagasinSimpleSerializer(magasin, context=self.context).data
+            except (AttributeError, Exception):
+                pass
+
+            # Prix
+            prix = p.prix
+            if p.est_en_promo and p.prix_promo:
+                prix = p.prix_promo
+
+            # Récupérer le prix/stock du FournisseurProduit si disponible
+            fp = FournisseurProduit.objects.filter(produit=p).first()
+            stock = p.stock or 0
+            if fp:
+                if fp.prix_vente is not None:
+                    prix = fp.prix_vente
+                if fp.stock_disponible is not None:
+                    stock = fp.stock_disponible
+
+            # Images du produit
+            images = []
+            image_fields = ['image', 'image_2', 'image_3', 'image_4']
+            for img_field in image_fields:
+                img = getattr(p, img_field, None)
+                if img:
+                    try:
+                        images.append(request.build_absolute_uri(img.url) if request else img.url)
+                    except (ValueError, AttributeError):
+                        pass
+
+            magasins.append({
+                'produit_id': p.id,
+                'nom': p.nom,
+                'prix': str(prix),
+                'stock': stock,
+                'etat': p.etat,
+                'image': request.build_absolute_uri(p.image.url) if request and p.image else None,
+                'images': images,
+                'description_courte': p.description_courte,
+                'description': p.description,
+                'livraison_disponible': p.livraison_disponible,
+                'retrait_magasin': p.retrait_magasin,
+                'delai_livraison': p.delai_livraison or '2_5j',
+                'fournisseur': FournisseurSimpleSerializer(p.fournisseur).data if p.fournisseur else None,
+                'magasin': magasin_data,
+                'distance_km': None,
+            })
+
+        return magasins
 
 
 

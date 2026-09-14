@@ -20,6 +20,47 @@ interface StatusConfig {
   icon: string;
 }
 
+interface StatusAction {
+  action: string;
+  label: string;
+  icon: string;
+  class: string;
+  requiresMotif?: boolean;
+}
+
+const STATUS_FLOW: { [key: string]: StatusAction[] } = {
+  'nouvelle_commande': [
+    { action: 'accepter', label: 'Accepter', icon: 'bi-check-circle', class: 'act-accept' },
+    { action: 'refuser', label: 'Refuser', icon: 'bi-x-octagon', class: 'act-refuse', requiresMotif: true },
+    { action: 'annuler', label: 'Annuler', icon: 'bi-x-circle', class: 'act-cancel', requiresMotif: true },
+  ],
+  'en_attente_confirmation': [
+    { action: 'accepter', label: 'Accepter', icon: 'bi-check-circle', class: 'act-accept' },
+    { action: 'refuser', label: 'Refuser', icon: 'bi-x-octagon', class: 'act-refuse', requiresMotif: true },
+  ],
+  'en_attente_paiement': [
+    { action: 'accepter', label: 'Accepter', icon: 'bi-check-circle', class: 'act-accept' },
+    { action: 'annuler', label: 'Annuler', icon: 'bi-x-circle', class: 'act-cancel', requiresMotif: true },
+  ],
+  'acceptee': [
+    { action: 'preparer', label: 'Lancer préparation', icon: 'bi-gear', class: 'act-prepare' },
+    { action: 'annuler', label: 'Annuler', icon: 'bi-x-circle', class: 'act-cancel', requiresMotif: true },
+  ],
+  'en_preparation': [
+    { action: 'prete', label: 'Prête à retirer', icon: 'bi-bag-check', class: 'act-ready' },
+    { action: 'expedier', label: 'Expédier', icon: 'bi-truck', class: 'act-ship' },
+  ],
+  'prete_a_retirer': [
+    { action: 'livrer', label: 'Marquer livrée', icon: 'bi-box-seam', class: 'act-deliver' },
+  ],
+  'en_cours_livraison': [
+    { action: 'livrer', label: 'Marquer livrée', icon: 'bi-box-seam', class: 'act-deliver' },
+  ],
+  'livree': [
+    { action: 'terminer', label: 'Terminer', icon: 'bi-check2-circle', class: 'act-finish' },
+  ],
+};
+
 interface TimelineItem {
   statut?: string;
   label: string;
@@ -231,13 +272,14 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
       carte: 'Carte bancaire',
       mobile_money: 'Mobile Money',
       virement: 'Virement',
-      a_la_livraison: 'À la livraison'
+      a_la_livraison: 'À la réception',
+      a_la_retrait: 'Au retrait'
     };
     return map[mode] || mode;
   }
 
   getReceptionLabel(mode: string): string {
-    const map: { [k: string]: string } = { livraison: 'Livraison', retrait_magasin: 'Retrait magasin' };
+    const map: { [k: string]: string } = { livraison: 'Domicile', retrait_magasin: 'Retrait magasin' };
     return map[mode] || mode;
   }
 
@@ -397,6 +439,38 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
     this.modalTitle = titles[action];
   }
 
+  getAvailableActions(statut: string): StatusAction[] {
+    return STATUS_FLOW[statut] || [];
+  }
+
+  executeStatusAction(action: string, commande: AdminCommande): void {
+    const actionDef = this.getAvailableActions(commande.statut).find(a => a.action === action);
+    if (!actionDef) return;
+
+    if (actionDef.requiresMotif) {
+      this.modalCommande = commande;
+      this.activeModal = action as any;
+      this.modalTitle = actionDef.label;
+      this.modalMessage = '';
+      this.modalMotif = '';
+      return;
+    }
+
+    this.adminCommandeService.actionCommande(commande.id, { action: action as any }).subscribe({
+      next: (res) => {
+        this.showNotification(res.message, 'success');
+        this.loadAll();
+        if (this.showDetail && this.selectedCommande) {
+          this.openDetail(commande);
+        }
+      },
+      error: (err) => {
+        const msg = err?.error?.error || 'Erreur lors de l\'action';
+        this.showNotification(msg, 'error');
+      }
+    });
+  }
+
   closeActionModal(): void {
     this.activeModal = null;
     this.modalCommande = null;
@@ -410,6 +484,8 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
     const payload: any = { action: this.activeModal };
     if (this.activeModal === 'exception_status') {
       payload.statut = this.modalStatut;
+      payload.motif = this.modalMotif;
+    } else if (['refuser', 'annuler'].includes(this.activeModal)) {
       payload.motif = this.modalMotif;
     } else {
       payload.message = this.modalMessage;

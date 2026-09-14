@@ -120,13 +120,16 @@ export class PanierComponent implements OnInit, OnDestroy {
   paymentLoading = false;
   paymentError = '';
   paymentDetails: PaiementClient | null = null;
+  showOrderSuccess = false;
+  successCountdown = 5;
+  private successTimer: any = null;
   moyenPaiementOptions = [
-    { key: 'mobile_money', label: 'Mobile Money', icon: 'bi-phone' },
-    { key: 'carte', label: 'Carte bancaire', icon: 'bi-credit-card' },
-    { key: 'virement', label: 'Virement bancaire', icon: 'bi-bank' },
-    { key: 'a_la_livraison', label: 'Payer à la livraison', icon: 'bi-cash' },
-    { key: 'a_la_retrait', label: 'Payer au retrait', icon: 'bi-shop' },
-    { key: 'especes', label: 'Espèces', icon: 'bi-cash-stack' }
+    { key: 'mobile_money', label: 'Mobile Money', icon: 'bi-phone', desc: 'Orange Money, Wave, Free Money', badge: 'Instantané', requiresRedirect: true },
+    { key: 'carte', label: 'Carte bancaire', icon: 'bi-credit-card', desc: 'Visa, Mastercard', badge: 'Sécurisé', requiresRedirect: true },
+    { key: 'virement', label: 'Virement bancaire', icon: 'bi-bank', desc: 'Transfert bancaire direct', badge: '1-3 jours', requiresRedirect: false },
+    { key: 'a_la_livraison', label: 'Payer à la livraison', icon: 'bi-cash-coin', desc: 'Espèces à la réception', badge: 'À la livraison', requiresRedirect: false, livraisonOnly: true },
+    { key: 'a_la_retrait', label: 'Payer au retrait', icon: 'bi-shop', desc: 'Espèces au magasin', badge: 'Au retrait', requiresRedirect: false, retraitOnly: true },
+    { key: 'especes', label: 'Espèces', icon: 'bi-cash-stack', desc: 'Paiement en espèces', badge: 'Direct', requiresRedirect: false }
   ];
 
   constructor(
@@ -254,6 +257,9 @@ export class PanierComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+    if (this.successTimer) {
+      clearInterval(this.successTimer);
+    }
   }
 
   // -------------------------------------------------------
@@ -269,6 +275,24 @@ export class PanierComponent implements OnInit, OnDestroy {
 
   get aLivraison(): boolean {
     return this.items.some(i => i.mode_reception === 'livraison');
+  }
+
+  get aRetrait(): boolean {
+    return this.items.some(i => i.mode_reception === 'retrait_magasin');
+  }
+
+  get paiementOptionsFiltrees() {
+    return this.moyenPaiementOptions.filter(opt => {
+      if (opt.livraisonOnly && !this.aLivraison) return false;
+      if (opt.retraitOnly && !this.aRetrait) return false;
+      return true;
+    });
+  }
+
+  get selectedOptionRequiresRedirect(): boolean {
+    if (!this.moyenPaiement) return false;
+    const opt = this.moyenPaiementOptions.find(o => o.key === this.moyenPaiement);
+    return !!opt?.requiresRedirect;
   }
 
   get fraisLivraison(): number {
@@ -516,6 +540,16 @@ export class PanierComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   // Commande
   // -------------------------------------------------------
+  passerAuPaiementMaintenant(): void {
+    if (this.successTimer) {
+      clearInterval(this.successTimer);
+      this.successTimer = null;
+    }
+    this.showOrderSuccess = false;
+    this.etapeCommande = 5;
+    this.showRecap = false;
+  }
+
   passerCommande(): void {
     if (this.items.length === 0) {
       this.commandeErreur = 'Votre panier est vide';
@@ -541,8 +575,6 @@ export class PanierComponent implements OnInit, OnDestroy {
         this.commandeSucces = true;
         this.isCommandeEnCours = false;
         this.commandeConfirmee = false;
-        this.etapeCommande = 5;
-        this.showRecap = false;
         this.commandeDetails = commande;
         this.moyenPaiement = '';
         this.paymentDetails = null;
@@ -558,6 +590,20 @@ export class PanierComponent implements OnInit, OnDestroy {
         } else {
           this.panierService.viderPanier();
         }
+
+        // Afficher l'écran de succès pendant 5s
+        this.showOrderSuccess = true;
+        this.successCountdown = 5;
+        this.successTimer = setInterval(() => {
+          this.successCountdown--;
+          if (this.successCountdown <= 0) {
+            clearInterval(this.successTimer);
+            this.successTimer = null;
+            this.showOrderSuccess = false;
+            this.etapeCommande = 5;
+            this.showRecap = false;
+          }
+        }, 1000);
       },
       error: (err) => {
         console.error('❌ Erreur lors de la création de la commande:', err);
@@ -685,5 +731,52 @@ export class PanierComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   trackById(index: number, item: PanierItem): number {
     return item.produit.id;
+  }
+
+  // -------------------------------------------------------
+  // Horaires magasin
+  // -------------------------------------------------------
+  hasHoraires(magasin: any): boolean {
+    if (!magasin) return false;
+    const horaires = magasin.horaires_ouverture;
+    const hasPlages = !!horaires && typeof horaires === 'object' && Object.keys(horaires).length > 0;
+    return hasPlages || !!(magasin.jours_ouverture || '').trim();
+  }
+
+  isMagasinOuvert(magasin: any): boolean {
+    if (!magasin?.horaires_ouverture || !magasin?.jours_ouverture) return false;
+    const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const now = new Date();
+    const jour = jours[now.getDay()];
+    const ouverts = this.getHorairesJours(magasin.jours_ouverture).map(j => j.toLowerCase());
+    if (!ouverts.includes(jour)) return false;
+    const plages = magasin.horaires_ouverture?.[jour];
+    if (!plages) return false;
+    const heureActuelle = now.getHours() * 60 + now.getMinutes();
+
+    // Format objet: { ouvert: true, debut: "08:00", fin: "18:00" }
+    if (typeof plages === 'object' && !Array.isArray(plages)) {
+      if (!plages.ouvert) return false;
+      const [oh, om] = (plages.debut || '').split(':').map((x: string) => parseInt(x, 10) || 0);
+      const [fh, fm] = (plages.fin || '').split(':').map((x: string) => parseInt(x, 10) || 0);
+      return heureActuelle >= oh * 60 + om && heureActuelle < fh * 60 + fm;
+    }
+
+    // Format chaîne: "08:00-18:00"
+    for (const plage of (Array.isArray(plages) ? plages : [plages])) {
+      if (typeof plage !== 'string') continue;
+      const match = plage.match(/(\d{1,2}):(\d{0,2})?\s*[-–à]\s*(\d{1,2}):(\d{0,2})?/);
+      if (match) {
+        const hDebut = parseInt(match[1]) * 60 + (parseInt(match[2]) || 0);
+        const hFin = parseInt(match[3]) * 60 + (parseInt(match[4]) || 0);
+        if (heureActuelle >= hDebut && heureActuelle <= hFin) return true;
+      }
+    }
+    return false;
+  }
+
+  getHorairesJours(jours?: string): string[] {
+    if (!jours) return [];
+    return jours.split(/[,;]/).map(j => j.trim()).filter(j => j);
   }
 }

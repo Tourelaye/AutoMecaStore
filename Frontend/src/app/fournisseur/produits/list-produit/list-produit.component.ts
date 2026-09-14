@@ -385,4 +385,49 @@ export class ProduitComponent implements OnInit, OnDestroy {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => { this.toastMsg = ''; }, 3500);
   }
+
+  // ── Helpers formatage labels ──────────────────────────────────────
+  getEtatLabel(etat?: string): string {
+    if (!etat) return 'N/A';
+    const map: Record<string, string> = { 'neuf': 'Neuf', 'occasion': 'Occasion', 'reconditionne': 'Reconditionné' };
+    return map[etat] || etat;
+  }
+
+  getPaysLabel(pays?: string): string {
+    if (!pays) return 'N/A';
+    const map: Record<string, string> = {
+      'japon': 'Japon', 'allemagne': 'Allemagne', 'france': 'France',
+      'coree_sud': 'Corée du Sud', 'chine': 'Chine', 'usa': 'États-Unis',
+      'italie': 'Italie', 'espagne': 'Espagne', 'turquie': 'Turquie',
+      'inde': 'Inde', 'belgique': 'Belgique'
+    };
+    return map[pays] || pays;
+  }
+
+  getDisponibiliteLabel(disp?: string): string {
+    if (!disp) return 'N/A';
+    const map: Record<string, string> = {
+      'en_stock': 'En stock', 'faible_stock': 'Faible stock',
+      'rupture': 'Rupture de stock', 'precommande': 'Précommande'
+    };
+    return map[disp] || disp;
+  }
+
+  getDelaiLivraisonLabel(delai?: string): string {
+    if (!delai) return 'N/A';
+    const map: Record<string, string> = {
+      'same_day': 'Jour même', '24h': '24 heures', '48h': '48 heures',
+      '2_5j': '2 à 5 jours', '5_7j': '5 à 7 jours', '7j_plus': 'Plus de 7 jours'
+    };
+    return map[delai] || delai;
+  }
+
+  getDelaiPreparationLabel(delai?: string): string {
+    if (!delai) return 'N/A';
+    const map: Record<string, string> = {
+      '24h': '24 heures', '48h': '48 heures', '72h': '72 heures',
+      '4_5j': '4 à 5 jours', '6_7j': '6 à 7 jours', '7j_plus': 'Plus de 7 jours'
+    };
+    return map[delai] || delai;
+  }
 }

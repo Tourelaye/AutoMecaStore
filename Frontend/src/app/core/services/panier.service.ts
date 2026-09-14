@@ -53,6 +53,7 @@ export class PanierService {
           fournisseur_nom: item.fournisseur_nom,
           magasin_id: item.magasin_id,
           magasin_nom: item.magasin_nom,
+          magasin: (item as any).magasin_detail || null,
           mode_reception: (item.mode_reception as 'livraison' | 'retrait_magasin') || 'livraison'
         }));
         this.save(localItems);
@@ -194,6 +195,7 @@ export class PanierService {
     fournisseur_nom?: string;
     magasin_id: number;
     magasin_nom?: string;
+    magasin?: any;
     prix: number;
     stock?: number;
   } | null {
@@ -213,6 +215,7 @@ export class PanierService {
           fournisseur_nom: offreChoisie.fournisseur.nom_entreprise,
           magasin_id: offreChoisie.magasin.id,
           magasin_nom: offreChoisie.magasin?.nom_magasin,
+          magasin: offreChoisie.magasin || data.magasin_detail || data.magasin || null,
           prix: offreChoisie.prix ?? data.prix,
           stock: offreChoisie.stock ?? data.stock
         };
@@ -222,6 +225,7 @@ export class PanierService {
         fournisseur_nom: data.fournisseur_nom,
         magasin_id: magasinId,
         magasin_nom: data.magasin_nom ?? data.magasin_detail?.nom_magasin,
+        magasin: data.magasin_detail || data.magasin || null,
         prix: data.prix,
         stock: data.stock
       };
@@ -235,6 +239,7 @@ export class PanierService {
         fournisseur_nom: o.fournisseur?.nom_entreprise,
         magasin_id: o.magasin?.id,
         magasin_nom: o.magasin?.nom_magasin,
+        magasin: o.magasin || data.magasin_detail || data.magasin || null,
         prix: o.prix ?? data.prix,
         stock: o.stock ?? data.stock
       };
@@ -320,7 +325,7 @@ export class PanierService {
       magasin_id: offre.magasin_id,
       magasin_nom: offre.magasin_nom,
       mode_reception: (data.mode_reception as 'livraison' | 'retrait_magasin') || 'livraison',
-      magasin: data.magasin || undefined
+      magasin: data.magasin || offre.magasin || undefined
     };
 
     this.ajouterAuPanier(item);
@@ -527,6 +532,7 @@ export class PanierService {
           fournisseur_nom: item.fournisseur_nom,
           magasin_id: item.magasin_id,
           magasin_nom: item.magasin_nom,
+          magasin: (item as any).magasin_detail || null,
           mode_reception: (item.mode_reception as 'livraison' | 'retrait_magasin') || 'livraison'
         }));
         this.save(localItems);

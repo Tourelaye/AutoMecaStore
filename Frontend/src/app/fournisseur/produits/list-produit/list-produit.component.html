@@ -285,35 +285,119 @@
     <div class="modal-body">
 
       <!-- MODE VIEW -->
-      <div class="view-grid" *ngIf="modalMode === 'view' && selectedProduit">
-        <div class="view-image-col">
-          <div class="view-img-wrap">
-            <img *ngIf="selectedProduit.image" [src]="selectedProduit.image" [alt]="selectedProduit.nom">
-            <div *ngIf="!selectedProduit.image" class="view-img-placeholder">
-              {{ selectedProduit.nom.charAt(0) }}
+      <div class="view-detail" *ngIf="modalMode === 'view' && selectedProduit">
+
+        <!-- En-tête : image + infos de base -->
+        <div class="view-grid">
+          <div class="view-image-col">
+            <div class="view-img-wrap">
+              <img *ngIf="selectedProduit.image_url || selectedProduit.image" [src]="selectedProduit.image_url || selectedProduit.image" [alt]="selectedProduit.nom">
+              <div *ngIf="!selectedProduit.image_url && !selectedProduit.image" class="view-img-placeholder">
+                {{ selectedProduit.nom.charAt(0) }}
+              </div>
             </div>
-          </div>
-          <span class="statut-badge large-badge" [ngClass]="getStatutClass(selectedProduit)">
-            <i class="bi" [ngClass]="getStatutIcon(selectedProduit)"></i>
-            {{ getStatutLabel(selectedProduit) }}
-          </span>
-        </div>
-        <div class="view-info-col">
-          <div class="view-field"><span class="vf-label">Nom</span><span class="vf-val">{{ selectedProduit.nom }}</span></div>
-          <div class="view-field"><span class="vf-label">Référence</span><code class="ref-code">{{ selectedProduit.reference }}</code></div>
-          <div class="view-field"><span class="vf-label">Catégorie véhicule</span><span class="cat-badge" [ngClass]="getCatClass(selectedProduit.categorie_nom || '')">{{ selectedProduit.categorie_nom || 'Non catégorisé' }}</span></div>
-          <div class="view-field"><span class="vf-label">Type de pièce</span><span class="vf-val">{{ selectedProduit.type_piece_nom || 'Non défini' }}</span></div>
-          <div class="view-field"><span class="vf-label">Prix</span><span class="vf-val prix-big">{{ formatPrix(selectedProduit.prix) }}</span></div>
-          <div class="view-field"><span class="vf-label">Stock</span>
-            <span class="vf-val" [class.stock-low]="selectedProduit.stock <= 10" [class.stock-zero]="selectedProduit.stock === 0">
-              {{ selectedProduit.stock }} unités
+            <span class="statut-badge large-badge" [ngClass]="getStatutClass(selectedProduit)">
+              <i class="bi" [ngClass]="getStatutIcon(selectedProduit)"></i>
+              {{ getStatutLabel(selectedProduit) }}
             </span>
           </div>
-          <div class="view-field" *ngIf="selectedProduit.description">
-            <span class="vf-label">Description</span>
-            <span class="vf-val">{{ selectedProduit.description }}</span>
+          <div class="view-info-col">
+            <div class="view-field"><span class="vf-label">Nom</span><span class="vf-val">{{ selectedProduit.nom }}</span></div>
+            <div class="view-field"><span class="vf-label">Référence</span><code class="ref-code">{{ selectedProduit.reference }}</code></div>
+            <div class="view-field" *ngIf="selectedProduit.marque"><span class="vf-label">Marque</span><span class="vf-val">{{ selectedProduit.marque }}</span></div>
+            <div class="view-field" *ngIf="selectedProduit.fabricant"><span class="vf-label">Fabricant</span><span class="vf-val">{{ selectedProduit.fabricant }}</span></div>
+            <div class="view-field"><span class="vf-label">Catégorie véhicule</span><span class="cat-badge" [ngClass]="getCatClass(selectedProduit.categorie_nom || '')">{{ selectedProduit.categorie_nom || 'Non catégorisé' }}</span></div>
+            <div class="view-field"><span class="vf-label">Type de pièce</span><span class="vf-val">{{ selectedProduit.type_piece_nom || 'Non défini' }}</span></div>
+            <div class="view-field"><span class="vf-label">Prix</span><span class="vf-val prix-big">{{ formatPrix(selectedProduit.prix) }}</span></div>
+            <div class="view-field"><span class="vf-label">Stock</span>
+              <span class="vf-val" [class.stock-low]="selectedProduit.stock <= 10" [class.stock-zero]="selectedProduit.stock === 0">
+                {{ selectedProduit.stock }} unités
+              </span>
+            </div>
           </div>
         </div>
+
+        <!-- Section : Caractéristiques techniques -->
+        <div class="view-section" *ngIf="selectedProduit.etat || selectedProduit.pays_origine || selectedProduit.reference_oem || selectedProduit.matiere || selectedProduit.couleur || selectedProduit.poids || selectedProduit.longueur || selectedProduit.largeur || selectedProduit.hauteur || selectedProduit.garantie_disponible || selectedProduit.fabricant">
+          <h4 class="view-section-title"><i class="bi bi-list-check"></i> Caractéristiques techniques</h4>
+          <div class="view-specs-grid">
+            <div class="view-spec" *ngIf="selectedProduit.etat"><span class="vs-key">État</span><span class="vs-val">{{ getEtatLabel(selectedProduit.etat) }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.fabricant"><span class="vs-key">Fabricant</span><span class="vs-val">{{ selectedProduit.fabricant }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.pays_origine"><span class="vs-key">Pays d'origine</span><span class="vs-val">{{ getPaysLabel(selectedProduit.pays_origine) }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.reference_oem"><span class="vs-key">Référence OEM</span><span class="vs-val">{{ selectedProduit.reference_oem }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.matiere"><span class="vs-key">Matière</span><span class="vs-val">{{ selectedProduit.matiere }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.couleur"><span class="vs-key">Couleur</span><span class="vs-val">{{ selectedProduit.couleur }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.garantie_disponible"><span class="vs-key">Garantie</span><span class="vs-val">{{ selectedProduit.garantie_mois ? selectedProduit.garantie_mois + ' mois' : 'Oui' }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.poids"><span class="vs-key">Poids</span><span class="vs-val">{{ selectedProduit.poids }} kg</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.longueur || selectedProduit.largeur || selectedProduit.hauteur"><span class="vs-key">Dimensions</span><span class="vs-val">{{ selectedProduit.longueur || '—' }} × {{ selectedProduit.largeur || '—' }} × {{ selectedProduit.hauteur || '—' }} cm</span></div>
+          </div>
+          <div class="view-field" *ngIf="selectedProduit.conditions_garantie">
+            <span class="vf-label">Conditions de garantie</span>
+            <span class="vf-val">{{ selectedProduit.conditions_garantie }}</span>
+          </div>
+        </div>
+
+        <!-- Section : Descriptions -->
+        <div class="view-section" *ngIf="selectedProduit.description || selectedProduit.description_courte || selectedProduit.description_detaillee || selectedProduit.precautions">
+          <h4 class="view-section-title"><i class="bi bi-file-text"></i> Descriptions</h4>
+          <div class="view-field" *ngIf="selectedProduit.description_courte"><span class="vf-label">Description courte</span><span class="vf-val">{{ selectedProduit.description_courte }}</span></div>
+          <div class="view-field" *ngIf="selectedProduit.description"><span class="vf-label">Description</span><span class="vf-val">{{ selectedProduit.description }}</span></div>
+          <div class="view-field" *ngIf="selectedProduit.description_detaillee"><span class="vf-label">Description détaillée</span><span class="vf-val">{{ selectedProduit.description_detaillee }}</span></div>
+          <div class="view-field" *ngIf="selectedProduit.precautions"><span class="vf-label">Précautions</span><span class="vf-val">{{ selectedProduit.precautions }}</span></div>
+        </div>
+
+        <!-- Section : Compatibilité -->
+        <div class="view-section" *ngIf="selectedProduit.modeles_compatibles?.length || selectedProduit.compatibilites?.length || selectedProduit.annee_debut || selectedProduit.annee_fin">
+          <h4 class="view-section-title"><i class="bi bi-car-front"></i> Compatibilité</h4>
+          <div class="view-field" *ngIf="selectedProduit.modeles_compatibles?.length">
+            <span class="vf-label">Modèles compatibles</span>
+            <span class="vf-val">{{ selectedProduit.modeles_compatibles?.join(', ') }}</span>
+          </div>
+          <div class="view-field" *ngIf="selectedProduit.annee_debut || selectedProduit.annee_fin">
+            <span class="vf-label">Années compatibles</span>
+            <span class="vf-val">{{ selectedProduit.annee_debut || '?' }} — {{ selectedProduit.annee_fin || '?' }}</span>
+          </div>
+          <div class="view-field" *ngIf="selectedProduit.compatibilites?.length">
+            <span class="vf-label">Compatibilités détaillées</span>
+            <div class="compat-list">
+              <div class="compat-item" *ngFor="let c of selectedProduit.compatibilites">
+                <i class="bi bi-car-front-fill"></i> {{ c.marque }} {{ c.modele }}{{ c.version ? ' ' + c.version : '' }}{{ c.motorisation ? ' (' + c.motorisation + ')' : '' }}{{ c.annee_debut ? ' — ' + c.annee_debut : '' }}{{ c.annee_fin ? ' à ' + c.annee_fin : '' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section : Livraison & stock -->
+        <div class="view-section" *ngIf="selectedProduit.disponibilite || selectedProduit.delai_livraison || selectedProduit.livraison_disponible || selectedProduit.retrait_magasin || selectedProduit.delai_preparation || selectedProduit.seuil_alerte || selectedProduit.quantite_min">
+          <h4 class="view-section-title"><i class="bi bi-truck"></i> Livraison & Stock</h4>
+          <div class="view-specs-grid">
+            <div class="view-spec" *ngIf="selectedProduit.disponibilite"><span class="vs-key">Disponibilité</span><span class="vs-val">{{ getDisponibiliteLabel(selectedProduit.disponibilite) }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.delai_livraison"><span class="vs-key">Délai de livraison</span><span class="vs-val">{{ getDelaiLivraisonLabel(selectedProduit.delai_livraison) }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.delai_preparation"><span class="vs-key">Délai de préparation</span><span class="vs-val">{{ getDelaiPreparationLabel(selectedProduit.delai_preparation) }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.livraison_disponible"><span class="vs-key">Livraison</span><span class="vs-val">{{ selectedProduit.livraison_disponible ? 'Disponible' : 'Non' }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.retrait_magasin"><span class="vs-key">Retrait magasin</span><span class="vs-val">{{ selectedProduit.retrait_magasin ? 'Disponible' : 'Non' }}</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.seuil_alerte"><span class="vs-key">Seuil d'alerte</span><span class="vs-val">{{ selectedProduit.seuil_alerte }} unités</span></div>
+            <div class="view-spec" *ngIf="selectedProduit.quantite_min"><span class="vs-key">Quantité minimale</span><span class="vs-val">{{ selectedProduit.quantite_min }} unités</span></div>
+          </div>
+        </div>
+
+        <!-- Section : Informations complémentaires -->
+        <div class="view-section" *ngIf="selectedProduit.mots_cles?.length || selectedProduit.conseils_installation || selectedProduit.conditions_retour">
+          <h4 class="view-section-title"><i class="bi bi-info-circle"></i> Informations complémentaires</h4>
+          <div class="view-field" *ngIf="selectedProduit.mots_cles?.length">
+            <span class="vf-label">Mots-clés</span>
+            <span class="vf-val">{{ selectedProduit.mots_cles?.join(', ') }}</span>
+          </div>
+          <div class="view-field" *ngIf="selectedProduit.conseils_installation">
+            <span class="vf-label">Conseils d'installation</span>
+            <span class="vf-val">{{ selectedProduit.conseils_installation }}</span>
+          </div>
+          <div class="view-field" *ngIf="selectedProduit.conditions_retour">
+            <span class="vf-label">Conditions de retour</span>
+            <span class="vf-val">{{ selectedProduit.conditions_retour }}</span>
+          </div>
+        </div>
+
       </div>
 
       <!-- MODE CREATE / EDIT -->

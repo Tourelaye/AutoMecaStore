@@ -210,6 +210,7 @@ class Test08_ActifInactif(GenericMatchingBase):
             marque='NGK',
             reference_oem='OEM-NGK1234',
             type_piece_id=self.tp_bougie.id,
+            include_inactive=True,
         )
         self.assertTrue(result['found'])
         self.assertEqual(result['product'].id, p1.id)

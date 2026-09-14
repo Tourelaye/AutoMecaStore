@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from account.models import Utilisateur, Client, Administrateur, Invite
 
 
@@ -271,6 +272,15 @@ class Produit(models.Model):
     # Date de dernière mise à jour du stock
     date_derniere_maj_stock = models.DateTimeField(null=True, blank=True)
 
+    # Groupe de produits identiques (liés sans fusion)
+    produit_group = models.ForeignKey(
+        'ProduitGroup',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='produits'
+    )
+
     # Managers
     objects = ProduitActifManager()  # Par défaut, ne retourne que les actifs
     all_objects = ProduitTousManager()  # Retourne tous les produits
@@ -290,6 +300,26 @@ class Produit(models.Model):
         self.is_active = True
         self.date_suppression = None
         self.save()
+
+
+# -----------------------------
+# ProduitGroup (groupe de produits identiques vendus par différents fournisseurs)
+# -----------------------------
+class ProduitGroup(models.Model):
+    nom = models.CharField(max_length=200, blank=True, default='', help_text="Nom commun du groupe (auto-généré)")
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Groupe #{self.id} — {self.nom or 'sans nom'}"
+
+    @property
+    def produits_actifs(self):
+        return self.produits.filter(Q(is_active=True) | Q(is_active__isnull=True))
+
+    @property
+    def nb_magasins(self):
+        return self.produits_actifs.count()
 
 
 # -----------------------------

@@ -63,7 +63,7 @@
         <td>
           <div class="client-cell">
             <img *ngIf="a.client_photo" [src]="a.client_photo" class="client-avatar" alt="">
-            <div class="client-avatar placeholder" *ngIf="!a.client_photo">{{ (a.client_prenom?.[0] || '') + (a.client_nom?.[0] || '') }}</div>
+            <div class="client-avatar placeholder" *ngIf="!a.client_photo">{{ ((a.client_prenom && a.client_prenom[0]) || '') + ((a.client_nom && a.client_nom[0]) || '') }}</div>
             <div>
               <div class="client-name">{{ a.client_prenom }} {{ a.client_nom }}</div>
               <div class="client-email">{{ a.client_email }}</div>

@@ -322,7 +322,7 @@ def compute_match_score(
             score = score_hors_oem - OEM_DIFF_PENALTY
             # Classification spéciale : score_hors_oem très élevé + caractéristiques
             # critiques concordantes → MATCH_POSSIBLE même si score final < 70
-            if score_hors_oem >= 80 and marque_identique and type_identique and compat_forte:
+            if score_hors_oem >= OEM_DIFF_THRESHOLD and marque_identique and type_identique and compat_forte:
                 classification = MATCH_POSSIBLE
             elif score >= SCORE_POSSIBLE:
                 classification = MATCH_POSSIBLE
@@ -391,11 +391,13 @@ def find_matching_product(
     couleur: str = '',
     etat: str = '',
     exclude_ids: Optional[List[int]] = None,
+    include_inactive: bool = False,
 ) -> Dict[str, Any]:
     """
     Recherche un produit existant dans le catalogue par score de correspondance.
 
-    Inclut les produits actifs ET inactifs (soft-deleted).
+    Par défaut, ne recherche que les produits actifs (non soft-deleted).
+    Si include_inactive=True, inclut également les produits soft-deleted.
 
     Retourne un dict :
     {
@@ -413,10 +415,14 @@ def find_matching_product(
     - score < 50  → None     (NO_MATCH)
 
     NOTE: Produit.reference (SKU interne) n'est PAS utilisé.
+    Seuls les produits actifs (non soft-deleted) sont recherchés.
     """
     from catalog.models import Produit
 
-    base_qs = Produit.all_objects.all()
+    if include_inactive:
+        base_qs = Produit.all_objects.all()
+    else:
+        base_qs = Produit.objects.all()
 
     if exclude_ids:
         base_qs = base_qs.exclude(id__in=exclude_ids)

@@ -954,3 +954,23 @@
     .btnns { width: 100%; }
     .list-img { width: 100%; height: 140px; }
   }
+
+/* Badge de réduction promo */
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.4);
+  animation: promo-pop 0.3s ease;
+}
+@keyframes promo-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}

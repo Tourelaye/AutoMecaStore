@@ -110,11 +110,15 @@ export interface Produit {
   // Nouveauté
   date_ajout?: string;
   is_new?: boolean;
+  // Statut
+  statut?: string;
+  statut_approbation?: string;
   // Fournisseur / magasin
   fournisseur?: number;
   fournisseur_detail?: FournisseurDetail;
   magasin_detail?: MagasinDetail;
   offres?: Offre[];
+  magasins_lies?: MagasinLie[];
   avis?: AvisProduit[];
   distribution_etoiles?: DistributionEtoiles;
   badges?: any[];
@@ -168,6 +172,24 @@ export interface Offre {
   badge?: string | null;
   badges?: string[];
   offer_badges?: any[];
+}
+
+export interface MagasinLie {
+  produit_id: number;
+  nom: string;
+  prix: number;
+  stock: number;
+  etat: string;
+  image: string | null;
+  images: string[];
+  description_courte: string;
+  description: string;
+  livraison_disponible: boolean;
+  retrait_magasin: boolean;
+  delai_livraison: string;
+  fournisseur: FournisseurDetail | null;
+  magasin: MagasinDetail | null;
+  distance_km?: number | null;
 }
 
 export interface AvisProduit {

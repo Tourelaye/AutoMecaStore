@@ -30,6 +30,7 @@ export interface VeloProduit {
   prix?: number;
   prix_promo?: number | null;
   est_en_promo?: boolean;
+  pourcentage_reduction?: number | null;
   seuil_alerte?: number | null;
   date_ajout?: string;
   nombre_ventes?: number;
@@ -118,6 +119,7 @@ export class VeloListComponent implements OnInit {
           prix: parseFloat(p.prix),
           prix_promo: p.prix_promo ? parseFloat(p.prix_promo) : null,
           est_en_promo: p.est_en_promo,
+          pourcentage_reduction: p.pourcentage_reduction,
           seuil_alerte: p.seuil_alerte,
           date_ajout: p.date_ajout,
           nombre_ventes: p.nombre_ventes,

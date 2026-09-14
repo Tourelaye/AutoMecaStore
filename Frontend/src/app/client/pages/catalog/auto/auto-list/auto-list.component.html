@@ -203,6 +203,9 @@
 
           <!-- IMAGE + OVERLAY BADGES -->
           <div class="product-img">
+            <span class="discount-badge" *ngIf="p.est_en_promo && p.prix && p.prix_promo">
+              -{{ p.pourcentage_reduction || ((p.prix - p.prix_promo) / p.prix * 100 | number:'1.0-0') }}%
+            </span>
             <app-product-badges [product]="p" [maxBadges]="3" placement="overlay"></app-product-badges>
             <img *ngIf="p.image" [src]="p.image" [alt]="p.nom">
             <i *ngIf="!p.image" class="bi bi-gear-wide-connected placeholder-icon"></i>

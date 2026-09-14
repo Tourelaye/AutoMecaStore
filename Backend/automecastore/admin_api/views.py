@@ -1325,16 +1325,18 @@ class AdminFournisseurValidationView(APIView):
                 return
 
             from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@automecastore.sn')
+            logger.info(f"[Email] Envoi email a {user.email} via {settings.EMAIL_BACKEND} (from: {from_email})")
             send_mail(
                 subject,
                 plain,
                 from_email,
                 [user.email],
                 html_message=html,
-                fail_silently=True
+                fail_silently=False
             )
-        except Exception:
-            logger.exception("Erreur envoi email fournisseur")
+            logger.info(f"[Email] Email envoye avec succes a {user.email}")
+        except Exception as e:
+            logger.exception(f"Erreur envoi email fournisseur: {e}")
 
     def _notifier_fournisseur_in_app(self, fournisseur, action, motif):
         from fournisseur.models import creer_notification_fournisseur
@@ -1719,7 +1721,7 @@ class AdminCommandeAlertsView(APIView):
 
         now = timezone.now()
         alertes = []
-        qs = Commande.objects.prefetch_related('client__user', 'reclamation_set').all()
+        qs = Commande.objects.prefetch_related('client__user', 'reclamations').all()
 
         for commande in qs:
             delta = now - commande.date_commande
@@ -1886,6 +1888,66 @@ class AdminCommandeActionView(APIView):
                 utilisateur_nom=f"{request.user.prenom or ''} {request.user.nom or ''}".strip() or request.user.email
             )
             return Response({'message': 'Statut mis à jour (procédure exceptionnelle)'})
+
+        # ---- Actions de transition de statut ----
+        STATUS_TRANSITIONS = {
+            'accepter':      ('acceptee',          'ORDER_ACCEPTED',  'success', 'Commande acceptée', 'Votre commande {ref} a été acceptée par le vendeur.'),
+            'refuser':       ('refusee',           'ORDER_REFUSED',   'danger',  'Commande refusée',  'Votre commande {ref} a été refusée. Motif: {motif}'),
+            'preparer':      ('en_preparation',    'ORDER_PREPARING', 'info',    'Commande en préparation', 'Votre commande {ref} est maintenant en préparation.'),
+            'prete':         ('prete_a_retirer',   'ORDER_READY',     'success', 'Commande prête', 'Votre commande {ref} est prête à être retirée en magasin.'),
+            'expedier':      ('en_cours_livraison','ORDER_DELIVERING','info',    'Commande expédiée', 'Votre commande {ref} est en cours de livraison.'),
+            'livrer':        ('livree',            'ORDER_DELIVERED', 'success', 'Commande livrée', 'Votre commande {ref} a été livrée.'),
+            'terminer':      ('terminee',          'ORDER_DELIVERED', 'success', 'Commande terminée', 'Votre commande {ref} est terminée. Merci pour votre achat!'),
+            'annuler':       ('annulee',           'ORDER_CANCELLED', 'warning', 'Commande annulée', 'Votre commande {ref} a été annulée. Motif: {motif}'),
+        }
+
+        if action in STATUS_TRANSITIONS:
+            new_statut, notif_type, notif_importance, notif_titre, notif_msg_template = STATUS_TRANSITIONS[action]
+
+            old_statut = commande.statut
+            commande.statut = new_statut
+            commande.save(update_fields=['statut'])
+
+            user_name = f"{request.user.prenom or ''} {request.user.nom or ''}".strip() or request.user.email
+            ref = commande.reference or f"#{commande.id}"
+            notif_msg = notif_msg_template.format(ref=ref, motif=motif or 'Non précisé')
+
+            HistoriqueCommande.objects.create(
+                commande=commande,
+                statut=new_statut,
+                commentaire=f"{notif_titre}" + (f" — Motif: {motif}" if motif else ""),
+                motif=motif,
+                utilisateur=request.user,
+                utilisateur_nom=user_name
+            )
+
+            # Notifier le client (in-app + email)
+            if commande.client:
+                creer_notification_client(
+                    client_id=commande.client.user_id,
+                    type_notif=notif_type,
+                    titre=notif_titre,
+                    message=notif_msg,
+                    lien=f'/mon-compte?tab=commandes',
+                    importance=notif_importance,
+                    objet_type='commande',
+                    objet_id=commande.id
+                )
+                # Email
+                client_email = getattr(commande.client.user, 'email', None) if commande.client.user else None
+                if client_email:
+                    try:
+                        send_mail(
+                            subject=f"AutoMecaStore — {notif_titre} (Commande {ref})",
+                            message=f"Bonjour {commande.client.user.prenom or ''},\n\n{notif_msg}\n\nCordialement,\nL'équipe AutoMecaStore",
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[client_email],
+                            fail_silently=True
+                        )
+                    except Exception:
+                        pass
+
+            return Response({'message': notif_titre})
 
         return Response({'error': 'Action non reconnue'}, status=status.HTTP_400_BAD_REQUEST)
 

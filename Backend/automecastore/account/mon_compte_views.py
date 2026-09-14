@@ -32,6 +32,35 @@ from .permissions import IsClient, IsClientOrAdmin
 
 
 
+def _magasin_detail(magasin):
+    if not magasin:
+        return None
+    return {
+        'id': magasin.id,
+        'nom_magasin': magasin.nom_magasin,
+        'adresse': magasin.adresse_complete,
+        'adresse_complete': magasin.adresse_complete,
+        'ville': magasin.ville,
+        'region': magasin.region,
+        'latitude': float(magasin.latitude) if magasin.latitude else None,
+        'longitude': float(magasin.longitude) if magasin.longitude else None,
+        'telephone': magasin.telephone,
+        'whatsapp': magasin.whatsapp,
+        'email': magasin.email,
+        'description': magasin.description,
+        'horaires_ouverture': magasin.horaires_ouverture,
+        'jours_ouverture': magasin.jours_ouverture,
+        'livraison_disponible': magasin.livraison_disponible,
+        'retrait_magasin': magasin.retrait_magasin,
+        'rayon_livraison_km': magasin.rayon_livraison_km,
+        'frais_livraison': float(magasin.frais_livraison) if magasin.frais_livraison else None,
+        'mode_tarif_livraison': magasin.mode_tarif_livraison,
+        'tarif_gratuit_desous': float(magasin.tarif_gratuit_desous) if magasin.tarif_gratuit_desous else None,
+        'delai_livraison_estime': magasin.delai_livraison_estime,
+    }
+
+
+
 def _offre_et_stock(produit, account_fournisseur=None, magasin=None):
 
     account_f = account_fournisseur
@@ -1065,6 +1094,8 @@ class PanierView(APIView):
                     'magasin_id': item.magasin_id,
 
                     'magasin_nom': item.magasin.nom_magasin if item.magasin else None,
+
+                    'magasin_detail': _magasin_detail(item.magasin),
 
                     'mode_reception': item.mode_reception or 'livraison'
 

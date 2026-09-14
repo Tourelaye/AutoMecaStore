@@ -1,4 +1,4 @@
-<div class="produit-page" @pageEnter>
+<div class="produit-page">
 
   <!-- ============ LOADING ============ -->
   <div class="loading-screen" *ngIf="isLoading">
@@ -50,6 +50,11 @@
 
         <!-- IMAGE PRINCIPALE -->
         <div class="main-image-wrap" (click)="openLightbox()">
+          <!-- BADGE PROMO -->
+          <div class="promo-discount-badge" *ngIf="produit.est_en_promo && produit.prix_promo && produit.prix">
+            <span class="promo-discount-pct">-{{ produit.pourcentage_reduction || calculerPourcentageReduction() }}%</span>
+            <span class="promo-discount-label">PROMO</span>
+          </div>
           <div class="main-image" [class.has-image]="images[currentImageIndex]">
             <div class="img-skeleton" *ngIf="imageLoading"></div>
             <img
@@ -207,18 +212,18 @@
           </div>
 
           <!-- Aucun magasin choisi -->
-          <div class="store-empty" *ngIf="!selectedOffre && offres.length > 1">
+          <div class="store-empty" *ngIf="!selectedOffre && totalMagasins > 1">
             <div class="store-empty-icon"><i class="bi bi-geo-alt"></i></div>
             <div class="store-empty-text">
               <strong>Choisissez votre magasin</strong>
-              <span>Comparez le prix, la distance et la disponibilité de {{ offres.length }} vendeurs.</span>
+              <span>Comparez le prix, la distance et la disponibilité de {{ totalMagasins }} vendeurs.</span>
             </div>
           </div>
 
           <div class="store-picker-actions">
             <button type="button" class="btn-store" [class.primary]="!selectedOffre" (click)="goToOffres($event)">
               <i class="bi" [class.bi-shop]="!selectedOffre" [class.bi-arrow-left-right]="selectedOffre"></i>
-              {{ selectedOffre ? (offres.length > 1 ? 'Changer de magasin' : 'Voir les détails du magasin') : 'Choisir un magasin' }}
+              {{ selectedOffre ? (totalMagasins > 1 ? 'Changer de magasin' : 'Voir les détails du magasin') : 'Choisir un magasin' }}
             </button>
             <a *ngIf="selectedOffre?.magasin?.id" class="btn-store ghost" [routerLink]="['/magasins', selectedOffre?.magasin?.id]">
               <i class="bi bi-box-arrow-up-right"></i> Boutique
@@ -363,7 +368,7 @@
     </div>
 
     <!-- ============ TABS ============ -->
-    <div class="tabs-section" id="product-tabs" *ngIf="produit" appScrollReveal [revealDelay]="120">
+    <div class="tabs-section" id="product-tabs" *ngIf="produit">
 
       <!-- TAB BUTTONS -->
       <div class="tabs-bar">
@@ -383,13 +388,13 @@
       </div>
 
       <!-- DESCRIPTION -->
-      <div class="tab-panel" *ngIf="activeTab === 'description'" @fadeSlide>
+      <div class="tab-panel" *ngIf="activeTab === 'description'">
         <h5><i class="bi bi-file-text-fill"></i> Description</h5>
         <p>{{ produit.description }}</p>
       </div>
 
       <!-- CARACTÉRISTIQUES -->
-      <div class="tab-panel" *ngIf="activeTab === 'caracteristiques'" @fadeSlide>
+      <div class="tab-panel" *ngIf="activeTab === 'caracteristiques'">
         <h5><i class="bi bi-list-check"></i> Spécifications techniques</h5>
         <div class="specs-grid">
           <div class="spec-row">
@@ -464,7 +469,7 @@
       </div>
 
       <!-- COMPATIBILITÉ -->
-      <div class="tab-panel" *ngIf="activeTab === 'compatibilite'" @fadeSlide>
+      <div class="tab-panel" *ngIf="activeTab === 'compatibilite'">
         <h5><i class="bi bi-car-front-fill"></i> Véhicules compatibles</h5>
 
         <div *ngIf="produit.compatibilites?.length">
@@ -510,7 +515,7 @@
       </div>
 
       <!-- OFFRES & MAGASINS -->
-      <div class="tab-panel" *ngIf="activeTab === 'offres'" @fadeSlide>
+      <div class="tab-panel" *ngIf="activeTab === 'offres'">
         <h5><i class="bi bi-shop-window"></i> Où acheter cette pièce</h5>
 
         <p class="tab-intro" *ngIf="offres.length > 1">Comparez les vendeurs : prix, disponibilité, délai, distance et options de retrait/livraison.</p>
@@ -668,7 +673,7 @@
                   <div class="horaires-list" *ngIf="offre.magasin?.horaires_ouverture as horaires">
                     <div class="horaire-row" *ngFor="let jour of getHorairesJours(offre.magasin?.jours_ouverture)">
                       <span>{{ jour }}</span>
-                      <span>{{ horaires[jour] || 'Fermé' }}</span>
+                      <span>{{ formatHoraire(horaires, jour.toLowerCase()) }}</span>
                     </div>
                   </div>
                   <p *ngIf="!offre.magasin?.horaires_ouverture && offre.magasin?.jours_ouverture" class="horaires-jours">
@@ -704,8 +709,67 @@
         </div>
       </div>
 
+      <!-- AUTRES MAGASINS (produits liés via ProduitGroup) -->
+      <div class="tab-panel" *ngIf="activeTab === 'offres' && magasinsLies.length > 0">
+        <div class="magasins-lies-section">
+          <h5><i class="bi bi-shop"></i> Autres magasins qui vendent cette pièce</h5>
+          <p class="tab-intro">Ce produit est également vendu par {{ magasinsLies.length }} autre{{ magasinsLies.length > 1 ? 's' : '' }} magasin{{ magasinsLies.length > 1 ? 's' : '' }}. Cliquez pour voir les images et informations de chaque magasin.</p>
+
+          <div class="magasins-lies-list">
+            <div
+              class="magasin-lie-card"
+              *ngFor="let magasin of magasinsLies; let i = index"
+            >
+              <div class="magasin-lie-image">
+                <img *ngIf="magasin.image" [src]="magasin.image" [alt]="magasin.nom">
+                <img *ngIf="!magasin.image && magasin.images.length > 0" [src]="magasin.images[0]" [alt]="magasin.nom">
+                <div *ngIf="!magasin.image && magasin.images.length === 0" class="magasin-lie-no-image">
+                  <i class="bi bi-image"></i>
+                </div>
+              </div>
+              <div class="magasin-lie-body">
+                <div class="magasin-lie-header">
+                  <strong *ngIf="magasin.magasin?.id" [routerLink]="['/magasins', magasin.magasin?.id]" class="store-link">
+                    {{ magasin.magasin?.nom_magasin || magasin.fournisseur?.nom_entreprise }}
+                  </strong>
+                  <strong *ngIf="!magasin.magasin?.id">{{ magasin.magasin?.nom_magasin || magasin.fournisseur?.nom_entreprise }}</strong>
+                  <span class="magasin-lie-prix">{{ magasin.prix | number:'1.0-0' }} FCFA</span>
+                </div>
+                <div class="magasin-lie-details">
+                  <span *ngIf="magasin.magasin?.ville" class="magasin-lie-info">
+                    <i class="bi bi-geo-alt"></i> {{ magasin.magasin?.ville }}
+                  </span>
+                  <span class="magasin-lie-stock" [class.ok]="magasin.stock > 0" [class.out]="magasin.stock === 0">
+                    <i class="bi" [class.bi-check-circle-fill]="magasin.stock > 0" [class.bi-x-circle-fill]="magasin.stock === 0"></i>
+                    {{ magasin.stock > 0 ? 'En stock (' + magasin.stock + ')' : 'Rupture' }}
+                  </span>
+                  <span *ngIf="magasin.etat" class="magasin-lie-info">
+                    <i class="bi bi-tag"></i> {{ magasin.etat }}
+                  </span>
+                  <span *ngIf="magasin.livraison_disponible" class="magasin-lie-info">
+                    <i class="bi bi-truck"></i> Livraison
+                  </span>
+                  <span *ngIf="magasin.retrait_magasin" class="magasin-lie-info">
+                    <i class="bi bi-shop"></i> Retrait
+                  </span>
+                </div>
+                <p *ngIf="magasin.description_courte" class="magasin-lie-desc">{{ magasin.description_courte }}</p>
+                <div class="magasin-lie-images" *ngIf="magasin.images.length > 1">
+                  <img *ngFor="let img of magasin.images.slice(0, 4)" [src]="img" [alt]="magasin.nom" class="magasin-lie-thumb">
+                </div>
+              </div>
+              <div class="magasin-lie-actions">
+                <button class="btn-choose" type="button" (click)="goToMagasinLie(magasin, $event)">
+                  <i class="bi bi-box-arrow-up-right"></i> Voir ce magasin
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- AVIS -->
-      <div class="tab-panel avis-panel" *ngIf="activeTab === 'avis'" @fadeSlide>
+      <div class="tab-panel avis-panel" *ngIf="activeTab === 'avis'">
         <h5><i class="bi bi-star-half"></i> Avis clients</h5>
         <button class="btn-write-review" (click)="openReviewForm()">
           <i class="bi bi-pencil-fill"></i> Écrire un avis
@@ -824,7 +888,7 @@
     </div>
 
     <!-- ============ PRODUITS SIMILAIRES ============ -->
-    <div class="similaires-section" *ngIf="produits.length > 0" appScrollReveal [revealDelay]="160">
+    <div class="similaires-section" *ngIf="produits.length > 0">
 
       <div class="sim-header">
         <h5>Produits similaires</h5>
@@ -833,13 +897,11 @@
         </a>
       </div>
 
-      <div class="sim-grid" [@listStagger]="produits.length">
+      <div class="sim-grid">
         <div
           class="sim-card"
           *ngFor="let p of produits.slice(0, 4); let i = index"
           (click)="naviguerVersProduit(p.id)"
-          appScrollReveal
-          [revealDelay]="i * 120"
         >
           <!-- IMAGE -->
           <div class="sim-img">

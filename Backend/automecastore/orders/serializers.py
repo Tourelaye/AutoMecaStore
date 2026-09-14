@@ -143,15 +143,16 @@ class PanierItemSerializer(serializers.ModelSerializer):
     sous_total = serializers.SerializerMethodField()
     fournisseur_nom = serializers.SerializerMethodField()
     magasin_nom = serializers.SerializerMethodField()
+    magasin_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = PanierItem
         fields = [
             'id', 'panier', 'produit', 'produit_id', 'produit_nom', 'image', 'prix', 'stock',
             'sous_total', 'fournisseur', 'fournisseur_id', 'fournisseur_nom',
-            'magasin', 'magasin_id', 'magasin_nom', 'quantite', 'mode_reception'
+            'magasin', 'magasin_id', 'magasin_nom', 'magasin_detail', 'quantite', 'mode_reception'
         ]
-        read_only_fields = ['produit', 'fournisseur', 'magasin', 'produit_id', 'produit_nom', 'fournisseur_id', 'magasin_id', 'image', 'prix', 'stock', 'sous_total', 'fournisseur_nom', 'magasin_nom']
+        read_only_fields = ['produit', 'fournisseur', 'magasin', 'produit_id', 'produit_nom', 'fournisseur_id', 'magasin_id', 'image', 'prix', 'stock', 'sous_total', 'fournisseur_nom', 'magasin_nom', 'magasin_detail']
 
     def _offre(self, obj):
         fournisseur = obj.fournisseur
@@ -201,6 +202,34 @@ class PanierItemSerializer(serializers.ModelSerializer):
         if obj.magasin:
             return obj.magasin.nom_magasin
         return None
+
+    def get_magasin_detail(self, obj):
+        if not obj.magasin:
+            return None
+        m = obj.magasin
+        return {
+            'id': m.id,
+            'nom_magasin': m.nom_magasin,
+            'adresse': m.adresse_complete,
+            'adresse_complete': m.adresse_complete,
+            'ville': m.ville,
+            'region': m.region,
+            'latitude': float(m.latitude) if m.latitude else None,
+            'longitude': float(m.longitude) if m.longitude else None,
+            'telephone': m.telephone,
+            'whatsapp': m.whatsapp,
+            'email': m.email,
+            'description': m.description,
+            'horaires_ouverture': m.horaires_ouverture,
+            'jours_ouverture': m.jours_ouverture,
+            'livraison_disponible': m.livraison_disponible,
+            'retrait_magasin': m.retrait_magasin,
+            'rayon_livraison_km': m.rayon_livraison_km,
+            'frais_livraison': float(m.frais_livraison) if m.frais_livraison else None,
+            'mode_tarif_livraison': m.mode_tarif_livraison,
+            'tarif_gratuit_desous': float(m.tarif_gratuit_desous) if m.tarif_gratuit_desous else None,
+            'delai_livraison_estime': m.delai_livraison_estime,
+        }
 
 
 class PanierSerializer(serializers.ModelSerializer):

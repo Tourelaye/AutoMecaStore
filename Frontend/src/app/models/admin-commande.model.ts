@@ -105,7 +105,8 @@ export interface StatistiquesCommande {
 }
 
 export interface ActionCommandePayload {
-  action: 'note' | 'intervention' | 'contact_fournisseur' | 'contact_client' | 'exception_status';
+  action: 'note' | 'intervention' | 'contact_fournisseur' | 'contact_client' | 'exception_status'
+    | 'accepter' | 'refuser' | 'preparer' | 'prete' | 'expedier' | 'livrer' | 'terminer' | 'annuler';
   message?: string;
   statut?: string;
   motif?: string;

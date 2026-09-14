@@ -458,6 +458,7 @@ class Test13_MatchingInactifs(DedupBaseTestCase):
             marque='Brembo',
             reference_oem='04465-0K240',
             type_piece_id=self.type_piece.id,
+            include_inactive=True,
         )
         self.assertTrue(result['found'])
         self.assertEqual(result['product'].id, p1.id)
@@ -475,6 +476,7 @@ class Test13_MatchingInactifs(DedupBaseTestCase):
             fabricant='Brembo',
             modeles_compatibles=['Toyota Hilux', 'Nissan Navara'],
             matiere='Ceramique', etat='neuf', poids=Decimal('1.2'),
+            include_inactive=True,
         )
         self.assertTrue(result['found'])
         self.assertEqual(result['product'].id, p1.id)

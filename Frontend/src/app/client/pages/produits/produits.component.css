@@ -259,6 +259,41 @@
 }
 .hero-badges.left  { left: 16px; align-items: flex-start; }
 .hero-badges.right { right: 16px; align-items: flex-end; }
+
+/* Badge promo -X% sur l'image principale */
+.promo-discount-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  border-radius: 12px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+  pointer-events: none;
+  animation: promo-badge-pop 0.4s ease;
+}
+.promo-discount-pct {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+.promo-discount-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+@keyframes promo-badge-pop {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
 .hero-badge {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 12px; border-radius: 999px;
@@ -666,9 +701,7 @@ a.rating-count:hover { color: var(--p-primary); text-decoration: underline; }
 
 .tab-panel {
   padding: 34px 40px;
-  animation: fadeSlide 0.4s cubic-bezier(0.22,1,0.36,1) both;
 }
-@keyframes fadeSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 .tab-panel h5 {
   font-size: 18px; font-weight: 900; color: var(--p-text);
@@ -1293,4 +1326,151 @@ a.rating-count:hover { color: var(--p-primary); text-decoration: underline; }
 .btn-cart:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ── Magasins liés (autres produits identiques) ── */
+.magasins-lies-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #e2e8f0;
+}
+.magasins-lies-section h5 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.magasins-lies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+.magasin-lie-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.magasin-lie-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: #3b82f6;
+}
+.magasin-lie-image {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.magasin-lie-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.magasin-lie-no-image {
+  color: #cbd5e1;
+  font-size: 2rem;
+}
+.magasin-lie-body {
+  flex: 1;
+  min-width: 0;
+}
+.magasin-lie-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.magasin-lie-header strong {
+  font-size: 1rem;
+  color: #0f172a;
+}
+.magasin-lie-prix {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #059669;
+  white-space: nowrap;
+}
+.magasin-lie-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+.magasin-lie-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.magasin-lie-stock.ok {
+  color: #059669;
+  font-weight: 600;
+}
+.magasin-lie-stock.out {
+  color: #dc2626;
+}
+.magasin-lie-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.magasin-lie-images {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.magasin-lie-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+.magasin-lie-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.magasin-lie-actions .btn-choose {
+  white-space: nowrap;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.magasin-lie-actions .btn-choose:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+.store-link {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+.store-link:hover {
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .magasin-lie-card {
+    flex-direction: column;
+  }
+  .magasin-lie-image {
+    width: 100%;
+    height: 160px;
+  }
 }

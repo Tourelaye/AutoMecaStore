@@ -12,7 +12,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 
 import { PanierService } from '../../../core/services/panier.service';
 
-import { ProduitService, Produit, Offre, AvisProduit } from '../../../core/services/produit.service';
+import { ProduitService, Produit, Offre, AvisProduit, MagasinLie } from '../../../core/services/produit.service';
 
 import { AvisClientService } from '../../../core/services/avis-client.service';
 
@@ -22,7 +22,6 @@ import { MonCompteService } from '../../../core/services/mon-compte.service';
 
 import { HomeService } from '../../../core/services/home.service';
 
-import { ScrollRevealDirective } from '../../../shared/directives/scroll-reveal.directive';
 
 import { ProductBadgesComponent } from '../../../shared/components/product-badges/product-badges.component';
 
@@ -56,11 +55,11 @@ import {
 
   standalone: true,
 
-  imports: [CommonModule, DecimalPipe, TitleCasePipe, RouterLink, ScrollRevealDirective, ReactiveFormsModule, ProductBadgesComponent],
+  imports: [CommonModule, DecimalPipe, TitleCasePipe, RouterLink, ReactiveFormsModule, ProductBadgesComponent],
 
   templateUrl: './produits.component.html',
 
-  styleUrls: ['./produits.component.css', '../../../shared/styles/scroll-reveal.css'],
+  styleUrls: ['./produits.component.css'],
 
   animations: [
 
@@ -173,6 +172,10 @@ export class ProduitsComponent implements OnInit, OnDestroy {
   selectedOffre: Offre | null = null;
 
   modeReception: 'livraison' | 'retrait_magasin' = 'livraison';
+
+  /** Magasins liés (autres produits identiques vendus par d'autres fournisseurs) */
+
+  magasinsLies: MagasinLie[] = [];
 
 
 
@@ -310,13 +313,19 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
 
+    console.log('[loadProduit] Fetching product', id, 'lat:', lat, 'lng:', lng);
+
     this.produitService.getProduit(id, lat, lng).subscribe({
 
       next: (produit) => {
 
+        console.log('[loadProduit] Received product:', produit?.id, produit?.nom);
+
         this.produit = produit;
 
+        try {
         this.computeBadges(produit);
+        } catch (e) { console.error('[loadProduit] computeBadges error:', e); }
 
         // Incrémenter les vues du produit (uniquement au premier chargement)
 
@@ -384,8 +393,17 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
         // Construire la liste des offres et etiqueter les meilleures
 
+        try {
         this.offres = this.tagOffres(this.buildOffres(produit));
+        } catch (e) { console.error('[loadProduit] buildOffres/tagOffres error:', e); this.offres = []; }
 
+
+
+        // Magasins liés (autres produits identiques vendus par d'autres fournisseurs)
+
+        this.magasinsLies = produit.magasins_lies || [];
+
+        console.log('[loadProduit] magasins_lies:', this.magasinsLies.length);
 
 
         // Préserver la sélection d'offre lors d'un rechargement géolocalisé
@@ -444,12 +462,13 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
         this.isLoading = false;
+        console.log('[loadProduit] Success, isLoading=false');
 
       },
 
       error: (err) => {
 
-        console.error('Erreur produit:', err);
+        console.error('[loadProduit] API error:', err);
 
         this.erreur = true;
 
@@ -593,6 +612,27 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
 
 
+  /** Navigue vers la page du produit lié (autre magasin) */
+
+  goToMagasinLie(magasin: MagasinLie, event?: Event): void {
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.router.navigate(['/produits'], { queryParams: { id: magasin.produit_id } });
+    // Recharger la page avec le nouveau produit
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }
+
+  /** Retourne le nombre total de magasins (offre principale + magasins liés) */
+  get totalMagasins(): number {
+    return 1 + this.magasinsLies.length;
+  }
+
+
+
   private scrollToElement(id: string): void {
 
     setTimeout(() => {
@@ -643,7 +683,7 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
   get storeCountLabel(): string {
 
-    const n = this.offres.length;
+    const n = this.totalMagasins;
 
     return n > 1 ? `${n} magasins proposent cette pièce` : 'Vendu par 1 magasin';
 
@@ -1381,7 +1421,20 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
     const minutes = now.getHours() * 60 + now.getMinutes();
 
+    // Format objet: { ouvert: true, debut: "08:00", fin: "18:00" }
+    if (typeof plages === 'object' && !Array.isArray(plages)) {
+      if (!plages.ouvert) return false;
+      const [oh, om] = (plages.debut || '').split(':').map((x: string) => parseInt(x, 10) || 0);
+      const [fh, fm] = (plages.fin || '').split(':').map((x: string) => parseInt(x, 10) || 0);
+      const debut = oh * 60 + om;
+      const fin = fh * 60 + fm;
+      return minutes >= debut && minutes < fin;
+    }
+
+    // Format chaîne: "08:00-18:00"
     for (const plage of (Array.isArray(plages) ? plages : [plages])) {
+
+      if (typeof plage !== 'string') continue;
 
       const [ouv, fer] = plage.split('-');
 
@@ -1417,6 +1470,16 @@ export class ProduitsComponent implements OnInit, OnDestroy {
 
     return jours.split(',').map(j => j.trim()).filter(Boolean);
 
+  }
+
+  formatHoraire(horaires: any, jour: string): string {
+    const h = horaires?.[jour];
+    if (!h) return 'Fermé';
+    if (typeof h === 'object') {
+      if (!h.ouvert) return 'Fermé';
+      return `${h.debut || ''} - ${h.fin || ''}`;
+    }
+    return h || 'Fermé';
   }
 
 

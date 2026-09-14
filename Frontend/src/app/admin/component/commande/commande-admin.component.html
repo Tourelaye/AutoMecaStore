@@ -157,32 +157,29 @@
 
       <div class="table-wrap" *ngIf="!error">
         <div class="table-head">
-          <span class="th">Référence</span>
-          <span class="th">Date</span>
+          <span class="th">Commande</span>
           <span class="th">Client</span>
-          <span class="th">Magasin(s)</span>
-          <span class="th text-center">Produits</span>
+          <span class="th">Détails</span>
           <span class="th text-right">Montant</span>
           <span class="th">Paiement</span>
-          <span class="th">Mode</span>
           <span class="th">Statut</span>
-          <span class="th">Actions</span>
+          <span class="th text-right">Actions</span>
         </div>
 
         <div class="table-row" *ngFor="let c of commandesFiltrees; let i = index; trackBy: trackByCommandeId"
              [style.--i]="i" (click)="openDetail(c)">
 
+          <!-- Commande : Référence + Date -->
           <div class="td">
-            <span class="ref-badge">{{ c.reference || '#' + c.id }}</span>
+            <div class="cmd-cell">
+              <span class="ref-badge">{{ c.reference || '#' + c.id }}</span>
+              <span class="cmd-date">
+                <i class="bi bi-calendar3"></i> {{ formatDate(c.date_commande, false) }}
+              </span>
+            </div>
           </div>
 
-          <div class="td">
-            <span class="date-chip">
-              <i class="bi bi-calendar3"></i>
-              {{ formatDate(c.date_commande) }}
-            </span>
-          </div>
-
+          <!-- Client -->
           <div class="td">
             <div class="client-cell" *ngIf="c.client">
               <div class="client-av">{{ getClientInitials(c.client) }}</div>
@@ -194,29 +191,42 @@
             <span *ngIf="!c.client">-</span>
           </div>
 
+          <!-- Détails : Magasins + Nb produits -->
           <div class="td">
-            <div class="magasins-list">
-              <span class="magasin-chip" *ngFor="let m of c.magasins.slice(0, 2)">{{ m }}</span>
-              <span class="more-chip" *ngIf="c.magasins.length > 2">+{{ c.magasins.length - 2 }}</span>
+            <div class="details-cell">
+              <div class="magasins-list">
+                <span class="magasin-chip" *ngFor="let m of c.magasins.slice(0, 2)">{{ m }}</span>
+                <span class="more-chip" *ngIf="c.magasins.length > 2">+{{ c.magasins.length - 2 }}</span>
+              </div>
+              <span class="products-count">
+                <i class="bi bi-box-seam"></i> {{ c.nombre_produits }} article(s)
+              </span>
             </div>
           </div>
 
-          <div class="td text-center">
-            <span class="count-chip">{{ c.nombre_produits }}</span>
-          </div>
-
+          <!-- Montant -->
           <div class="td text-right">
             <span class="montant-chip">{{ formatMontant(c.montant_total) }}</span>
           </div>
 
+          <!-- Paiement : Mode paiement + Mode réception -->
           <div class="td">
-            <span class="mode-chip">{{ getPaiementLabel(c.mode_paiement) }}</span>
+            <div class="payment-cell">
+              <span class="pay-chip">
+                <i class="bi" [class.bi-cash-coin]="c.mode_paiement === 'especes' || c.mode_paiement === 'a_la_livraison'"
+                   [class.bi-credit-card]="c.mode_paiement === 'carte'"
+                   [class.bi-phone]="c.mode_paiement === 'mobile_money'"
+                   [class.bi-bank]="c.mode_paiement === 'virement'"></i>
+                {{ getPaiementLabel(c.mode_paiement) }}
+              </span>
+              <span class="reception-chip">
+                <i class="bi" [class.bi-truck]="c.mode_reception === 'livraison'" [class.bi-shop]="c.mode_reception === 'retrait_magasin'"></i>
+                {{ getReceptionLabel(c.mode_reception) }}
+              </span>
+            </div>
           </div>
 
-          <div class="td">
-            <span class="mode-chip">{{ getReceptionLabel(c.mode_reception) }}</span>
-          </div>
-
+          <!-- Statut -->
           <div class="td">
             <span class="status-badge" [ngClass]="getStatutClass(c.statut)">
               <i class="bi" [ngClass]="getStatutIcon(c.statut)"></i>
@@ -225,12 +235,19 @@
             <span class="alert-dot" *ngIf="c.alertes.length > 0" [title]="c.alertes[0].label"></span>
           </div>
 
+          <!-- Actions -->
           <div class="td text-right actions-cell" (click)="$event.stopPropagation()">
             <button class="btn-icon" (click)="openDetail(c)" title="Voir la commande"><i class="bi bi-eye"></i></button>
+            <button
+              *ngFor="let act of getAvailableActions(c.statut)"
+              class="btn-icon {{ act.class }}"
+              (click)="executeStatusAction(act.action, c)"
+              [title]="act.label"
+            >
+              <i class="bi" [class]="act.icon"></i>
+            </button>
             <div class="dropdown">
               <button class="btn-icon" (click)="openActionModal('note', c)" title="Note"><i class="bi bi-journal-text"></i></button>
-              <button class="btn-icon" (click)="openActionModal('intervention', c)" title="Intervention"><i class="bi bi-tools"></i></button>
-              <button class="btn-icon" (click)="openActionModal('contact_fournisseur', c)" title="Contacter fournisseur"><i class="bi bi-shop"></i></button>
               <button class="btn-icon" (click)="openActionModal('contact_client', c)" title="Contacter client"><i class="bi bi-person-lines-fill"></i></button>
             </div>
           </div>
@@ -419,6 +436,20 @@
 
       </div>
 
+      <!-- ACTIONS DE STATUT -->
+      <div class="status-actions-bar" *ngIf="getAvailableActions(selectedCommande.statut).length > 0">
+        <div class="sab-label">Actions sur la commande :</div>
+        <div class="sab-buttons">
+          <button
+            *ngFor="let act of getAvailableActions(selectedCommande.statut)"
+            class="sab-btn {{ act.class }}"
+            (click)="executeStatusAction(act.action, selectedCommande!)"
+          >
+            <i class="bi" [class]="act.icon"></i> {{ act.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="detail-footer">
         <button class="btn-action" (click)="openActionModal('contact_fournisseur', selectedCommande!)"><i class="bi bi-shop"></i> Fournisseur</button>
         <button class="btn-action" (click)="openActionModal('contact_client', selectedCommande!)"><i class="bi bi-person-lines-fill"></i> Client</button>
@@ -456,7 +487,12 @@
         <textarea [(ngModel)]="modalMotif" rows="4" placeholder="Expliquez la raison de cette mise à jour exceptionnelle..."></textarea>
       </div>
 
-      <div class="field" *ngIf="activeModal !== 'exception_status'">
+      <div class="field" *ngIf="['refuser', 'annuler'].includes(activeModal)">
+        <label>Motif obligatoire</label>
+        <textarea [(ngModel)]="modalMotif" rows="4" placeholder="Expliquez la raison de cette action..."></textarea>
+      </div>
+
+      <div class="field" *ngIf="activeModal !== 'exception_status' && !['refuser', 'annuler'].includes(activeModal)">
         <label>Message / Commentaire</label>
         <textarea [(ngModel)]="modalMessage" rows="5" placeholder="Saisissez votre message..."></textarea>
       </div>
@@ -464,7 +500,8 @@
 
     <div class="modal-footer">
       <button class="btn-secondary" (click)="closeActionModal()">Annuler</button>
-      <button class="btn-primary" (click)="submitAction()" [disabled]="activeModal === 'exception_status' && (!modalMotif || !modalStatut)">
+      <button class="btn-primary" (click)="submitAction()"
+        [disabled]="(activeModal === 'exception_status' && (!modalMotif || !modalStatut)) || (['refuser', 'annuler'].includes(activeModal) && !modalMotif)">
         Valider
       </button>
     </div>

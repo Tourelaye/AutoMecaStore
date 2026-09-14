@@ -421,6 +421,10 @@
                   <span class="store-items-count">
                     {{ g.items.length }} article{{ g.items.length > 1 ? 's' : '' }}
                   </span>
+                  <span class="store-open-status" *ngIf="hasHoraires(g.magasin)"
+                        [class.ouvert]="isMagasinOuvert(g.magasin)" [class.ferme]="!isMagasinOuvert(g.magasin)">
+                    <i class="bi bi-circle-fill"></i> {{ isMagasinOuvert(g.magasin) ? 'Ouvert' : 'Fermé' }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -890,30 +894,121 @@
       </div>
     </div>
 
+    <!-- ÉCRAN DE SUCCÈS COMMANDE -->
+    <div class="order-success-overlay" *ngIf="showOrderSuccess">
+      <div class="order-success-card">
+        <div class="os-success-icon">
+          <div class="os-icon-circle">
+            <i class="bi bi-check-lg"></i>
+          </div>
+          <div class="os-icon-ring"></div>
+        </div>
+        <h2 class="os-title">Commande confirmée !</h2>
+        <p class="os-message">Votre commande a été passée avec succès.</p>
+        <div class="os-ref" *ngIf="commandeDetails?.reference">
+          <i class="bi bi-receipt"></i> Référence : <strong>#{{ commandeDetails?.reference }}</strong>
+        </div>
+        <div class="os-amount" *ngIf="commandeDetails?.montant_total">
+          {{ commandeDetails?.montant_total | number:'1.2-2' }} FCFA
+        </div>
+        <div class="os-redirect">
+          <div class="os-redirect-text">Redirection vers le paiement...</div>
+          <div class="os-countdown-bar">
+            <div class="os-countdown-fill" [style.width.%]="(successCountdown / 5) * 100"></div>
+          </div>
+        </div>
+        <button class="os-continue-btn" (click)="passerAuPaiementMaintenant()">
+          Continuer maintenant <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
     <!-- STEP 5 : CHOIX DU MOYEN DE PAIEMENT -->
-    <div class="recap-card" *ngIf="etapeCommande === 5">
+    <div class="recap-card payment-step" *ngIf="etapeCommande === 5 && !showOrderSuccess">
       <h2><i class="bi bi-credit-card"></i> Choix du mode de paiement</h2>
       <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
 
-      <div class="recap-totaux">
-        <div class="line total"><span>Total à payer</span><span>{{ commandeDetails?.montant_total | number:'1.2-2' }} FCFA</span></div>
-        <div class="line" *ngIf="commandeDetails?.reference"><span>Commande</span><span>#{{ commandeDetails?.reference }}</span></div>
+      <!-- Récapitulatif montant -->
+      <div class="payment-summary">
+        <div class="ps-row">
+          <span class="ps-label">Sous-total</span>
+          <span class="ps-value">{{ sousTotal | number:'1.2-2' }} FCFA</span>
+        </div>
+        <div class="ps-row" *ngIf="fraisLivraison > 0">
+          <span class="ps-label">Frais de livraison</span>
+          <span class="ps-value">{{ fraisLivraison | number:'1.2-2' }} FCFA</span>
+        </div>
+        <div class="ps-row" *ngIf="montantRemise > 0">
+          <span class="ps-label">Remise</span>
+          <span class="ps-value ps-discount">-{{ montantRemise | number:'1.2-2' }} FCFA</span>
+        </div>
+        <div class="ps-row ps-total">
+          <span class="ps-label">Total à payer</span>
+          <span class="ps-value">{{ commandeDetails?.montant_total || total | number:'1.2-2' }} FCFA</span>
+        </div>
+        <div class="ps-ref" *ngIf="commandeDetails?.reference">
+          <i class="bi bi-receipt"></i> Commande #{{ commandeDetails?.reference }}
+        </div>
       </div>
 
-      <div class="payment-methods">
+      <!-- Methods de paiement -->
+      <div class="pm-section-title">
+        <i class="bi bi-wallet2"></i> Sélectionnez votre moyen de paiement
+      </div>
+      <div class="payment-methods-grid">
         <button
-          *ngFor="let option of moyenPaiementOptions"
-          class="payment-method-btn"
+          *ngFor="let option of paiementOptionsFiltrees"
+          class="pm-card"
           [class.active]="moyenPaiement === option.key"
           (click)="moyenPaiement = option.key"
+          type="button"
         >
-          <i class="bi" [class]="option.icon"></i>
-          {{ option.label }}
+          <div class="pm-card-header">
+            <div class="pm-icon-wrap">
+              <i class="bi" [class]="option.icon"></i>
+            </div>
+            <span class="pm-badge">{{ option.badge }}</span>
+          </div>
+          <div class="pm-card-body">
+            <span class="pm-label">{{ option.label }}</span>
+            <span class="pm-desc">{{ option.desc }}</span>
+          </div>
+          <div class="pm-check" *ngIf="moyenPaiement === option.key">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
         </button>
       </div>
 
-      <div class="info-message" *ngIf="moyenPaiement === 'mobile_money' || moyenPaiement === 'carte'">
-        <i class="bi bi-info-circle"></i> Vous serez redirigé vers le prestataire de paiement une fois la connexion activée.
+      <!-- Info redirection -->
+      <div class="pm-info-banner" *ngIf="selectedOptionRequiresRedirect">
+        <div class="pmib-icon"><i class="bi bi-shield-lock"></i></div>
+        <div class="pmib-content">
+          <strong>Paiement sécurisé en ligne</strong>
+          <p>Vous serez redirigé vers le prestataire de paiement pour finaliser la transaction.</p>
+        </div>
+      </div>
+
+      <!-- Info livraison/retrait -->
+      <div class="pm-info-banner soft" *ngIf="moyenPaiement === 'a_la_livraison'">
+        <div class="pmib-icon"><i class="bi bi-truck"></i></div>
+        <div class="pmib-content">
+          <strong>Paiement à la livraison</strong>
+          <p>Préparez le montant exact. Le paiement se fait en espèces lors de la réception de votre commande.</p>
+        </div>
+      </div>
+      <div class="pm-info-banner soft" *ngIf="moyenPaiement === 'a_la_retrait'">
+        <div class="pmib-icon"><i class="bi bi-shop"></i></div>
+        <div class="pmib-content">
+          <strong>Paiement au retrait</strong>
+          <p>Réglez en espèces lors du retrait de votre commande en magasin.</p>
+        </div>
+      </div>
+
+      <!-- Sécurité -->
+      <div class="pm-trust-row">
+        <div class="pm-trust-item"><i class="bi bi-shield-check"></i> Paiement chiffré</div>
+        <div class="pm-trust-item"><i class="bi bi-lock-fill"></i> Données protégées</div>
+        <div class="pm-trust-item"><i class="bi bi-patch-check-fill"></i> Transaction sécurisée</div>
       </div>
 
       <div class="error-message" *ngIf="paymentError">{{ paymentError }}</div>
@@ -922,9 +1017,9 @@
         <button class="btn-secondary" (click)="retourRecap()">
           <i class="bi bi-arrow-left"></i> Retour
         </button>
-        <button class="checkout" (click)="initierPaiement()" [disabled]="!moyenPaiement || paymentLoading">
+        <button class="checkout pm-pay-btn" (click)="initierPaiement()" [disabled]="!moyenPaiement || paymentLoading">
           <span *ngIf="!paymentLoading">
-            <i class="bi bi-lock"></i> Payer
+            <i class="bi bi-lock-fill"></i> Payer {{ commandeDetails?.montant_total || total | number:'1.2-2' }} FCFA
           </span>
           <span *ngIf="paymentLoading" class="spinner"></span>
         </button>
