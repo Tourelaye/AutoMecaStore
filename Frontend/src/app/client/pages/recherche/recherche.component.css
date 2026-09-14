@@ -710,7 +710,7 @@
 
 .result-img {
   width: 100%;
-  height: 140px;
+  height: 200px;
   border-radius: 10px;
   background: #f8fafc;
   display: flex;
@@ -719,12 +719,19 @@
   overflow: hidden;
   margin-bottom: 12px;
   margin-top: 4px;
+  position: relative;
 }
 
 .result-img img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.35s ease;
+}
+
+.result-card:hover .result-img img {
+  transform: scale(1.05);
 }
 
 .placeholder-icon {
@@ -1700,7 +1707,7 @@
   }
 
   .result-img {
-    height: 100px;
+    height: 140px;
   }
 
   .new-price {
