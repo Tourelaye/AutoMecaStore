@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -20,7 +21,7 @@ export interface NotificationsResponse {
   providedIn: 'root'
 })
 export class HeaderService {
-  private baseUrl = 'http://127.0.0.1:8000/account';
+  private baseUrl = 'environment.apiUrl/account';
 
   constructor(private http: HttpClient) {}
 

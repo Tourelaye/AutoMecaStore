@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -53,7 +54,7 @@ export interface CommandeCreateRequest {
   providedIn: 'root'
 })
 export class CommandeClientService {
-  private apiUrl = 'http://localhost:8000/api';
+  private apiUrl = 'environment.apiUrl/api';
 
   constructor(
     private http: HttpClient,

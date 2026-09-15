@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -98,7 +99,7 @@ export class PartenaireComponent implements AfterViewInit {
 
     const v = this.partenaireForm.value;
 
-    this.http.post('http://127.0.0.1:8000/api/partenariat/create/', {
+    this.http.post('environment.apiUrl/api/partenariat/create/', {
       nom_entreprise: v.nom_entreprise,
       marque: v.marque || '',
       email_contact: v.email_contact,

@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +9,7 @@ import { Marque } from '../../models/marque.model';
 })
 export class MarqueService {
 
-  private apiUrl = 'http://127.0.0.1:8000/api/marques/';
+  private apiUrl = 'environment.apiUrl/api/marques/';
 
   constructor(private http: HttpClient) { }
 
@@ -33,6 +34,6 @@ export class MarqueService {
   }
 
   reorderMarques(items: { id: number; ordre: number }[]): Observable<{ updated: number }> {
-    return this.http.post<{ updated: number }>('http://127.0.0.1:8000/api/admin/marques/reorder/', { items });
+    return this.http.post<{ updated: number }>('environment.apiUrl/api/admin/marques/reorder/', { items });
   }
 }

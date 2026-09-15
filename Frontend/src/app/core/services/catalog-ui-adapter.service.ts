@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { DjangoProduitDto } from '../../models/api/django-catalog.model';
 import { UiCatalogProduct, UiOffreProduct, UiPromoProduct } from '../../models/view/catalog-ui.model';
@@ -6,7 +7,7 @@ import { UiCatalogProduct, UiOffreProduct, UiPromoProduct } from '../../models/v
   providedIn: 'root'
 })
 export class CatalogUiAdapterService {
-  private readonly apiBase = 'http://localhost:8000';
+  private readonly apiBase = 'environment.apiUrl';
 
   toCatalogProduct(p: DjangoProduitDto): UiCatalogProduct {
     const prixNouveau = this.asNumber(p.prix_promo ?? p.prix);

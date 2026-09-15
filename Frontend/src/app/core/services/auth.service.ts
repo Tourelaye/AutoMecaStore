@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable, inject, forwardRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
@@ -27,7 +28,7 @@ export interface LoginResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private apiUrl = 'http://127.0.0.1:8000/account';
+  private apiUrl = 'environment.apiUrl/account';
 
   private utilisateurSubject = new BehaviorSubject<Utilisateur | null>(null);
   public utilisateur$ = this.utilisateurSubject.asObservable();

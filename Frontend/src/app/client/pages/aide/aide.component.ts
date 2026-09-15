@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -72,7 +73,7 @@ export class AideComponent {
       v.message
     ].filter(Boolean).join('\n');
 
-    this.http.post('http://127.0.0.1:8000/api/message/create/', {
+    this.http.post('environment.apiUrl/api/message/create/', {
       objet,
       contenu
     }).subscribe({

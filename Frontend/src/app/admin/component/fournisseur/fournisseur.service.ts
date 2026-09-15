@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -66,7 +67,7 @@ export interface FournisseurPayload {
 
 @Injectable({ providedIn: 'root' })
 export class FournisseurService {
-  private apiUrl = 'http://127.0.0.1:8000/api/admin/fournisseurs';
+  private apiUrl = 'environment.apiUrl/api/admin/fournisseurs';
 
   constructor(private http: HttpClient) {}
 

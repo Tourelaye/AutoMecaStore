@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -239,7 +240,7 @@ export class ApprobationProduitComponent implements OnInit {
   getImageUrl(image?: string | null): string {
     if (!image) return 'assets/images/placeholder-product.png';
     if (image.startsWith('http')) return image;
-    return `http://127.0.0.1:8000${image}`;
+    return `environment.apiUrl${image}`;
   }
 
   onImageError(event: Event): void {

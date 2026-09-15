@@ -41,3 +41,11 @@ media/
 .DS_Store
 Thumbs.db
 settings.py.backup
+
+# =====================
+# Diagnostic / temp scripts
+# =====================
+diag_*.py
+fix_db.py
+build.log
+temp/

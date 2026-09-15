@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, from } from 'rxjs';
@@ -14,7 +15,7 @@ import { PanierItem } from '../../models/panier.model';
 })
 export class PanierService {
 
-  private apiUrl = 'http://127.0.0.1:8000/account';
+  private apiUrl = 'environment.apiUrl/account';
 
   private itemsSubject = new BehaviorSubject<PanierItem[]>([]);
   public items$ = this.itemsSubject.asObservable();

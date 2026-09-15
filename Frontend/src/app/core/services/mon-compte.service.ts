@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
@@ -148,8 +149,8 @@ export interface PanierResponse {
   providedIn: 'root'
 })
 export class MonCompteService {
-  private readonly API_URL = 'http://127.0.0.1:8000/account';
-  private readonly DELIVERY_URL = 'http://127.0.0.1:8000/api';
+  private readonly API_URL = 'environment.apiUrl/account';
+  private readonly DELIVERY_URL = 'environment.apiUrl/api';
 
   // BehaviorSubjects pour la mise à jour automatique
   private clientInfoSubject = new BehaviorSubject<ClientInfo | null>(null);

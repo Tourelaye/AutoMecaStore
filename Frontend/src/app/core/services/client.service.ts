@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -53,7 +54,7 @@ export interface ClientFilters {
   providedIn: 'root'
 })
 export class ClientService {
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = 'environment.apiUrl/api';
 
   constructor(private http: HttpClient) {}
 

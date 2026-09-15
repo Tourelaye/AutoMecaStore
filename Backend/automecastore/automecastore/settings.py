@@ -97,8 +97,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 
     'corsheaders',
-
-
+    'whitenoise.runserver_nostatic',
 
     # APPS CREER
 
@@ -172,6 +171,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
 
@@ -241,15 +241,15 @@ DATABASES = {
 
         'ENGINE': 'django.db.backends.postgresql',
 
-        'NAME': 'automecastore_dev',
+        'NAME': os.environ.get('DB_NAME', 'automecastore_dev'),
 
-        'USER': 'postgres',
+        'USER': os.environ.get('DB_USER', 'postgres'),
 
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '2004'),
 
-        'HOST': 'localhost',
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
 
-        'PORT': '5432',
+        'PORT': os.environ.get('DB_PORT', '5432'),
 
     }
 
@@ -330,7 +330,8 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Media files (User uploaded content)
@@ -408,6 +409,7 @@ if not DEBUG:
 
     # Proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 else:
     SECURE_SSL_REDIRECT = False
     SECURE_HSTS_SECONDS = 0
@@ -417,3 +419,7 @@ else:
     CSRF_COOKIE_SECURE = False
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

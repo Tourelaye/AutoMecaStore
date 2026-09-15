@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, FormGroup } from '@angular/forms';
@@ -286,7 +287,7 @@ export class RegisterComponent {
         
         // Messages d'erreur plus spécifiques
         if (err.status === 0) {
-          this.stepError = 'Impossible de contacter le serveur. Vérifiez que le backend est démarré sur http://127.0.0.1:8000';
+          this.stepError = 'Impossible de contacter le serveur. Vérifiez que le backend est démarré sur environment.apiUrl';
         } else if (err.status === 400) {
           this.stepError = 'Données invalides: ' + (err.error?.detail || JSON.stringify(err.error));
         } else if (err.status === 409) {

@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +9,7 @@ import { Categorie } from '../../models/categorie.model';
 })
 export class CategorieService {
 
-  private apiUrl = "http://127.0.0.1:8000/api/categories/";
+  private apiUrl = "environment.apiUrl/api/categories/";
 
   constructor(private http: HttpClient) { }
 
@@ -33,6 +34,6 @@ export class CategorieService {
   }
 
   reorderCategories(items: { id: number; ordre: number }[]): Observable<{ updated: number }> {
-    return this.http.post<{ updated: number }>('http://127.0.0.1:8000/api/admin/categories/reorder/', { items });
+    return this.http.post<{ updated: number }>('environment.apiUrl/api/admin/categories/reorder/', { items });
   }
 }

@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,7 +8,7 @@ import { AnalyticsData, AnalyticsFilters, FilterOptions } from '../../models/ana
   providedIn: 'root'
 })
 export class AnalyticsService {
-  private readonly baseUrl = 'http://127.0.0.1:8000/api/admin/analytics';
+  private readonly baseUrl = 'environment.apiUrl/api/admin/analytics';
 
   constructor(private http: HttpClient) {}
 

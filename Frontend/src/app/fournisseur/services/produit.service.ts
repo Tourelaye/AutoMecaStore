@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -99,7 +100,7 @@ export interface ProduitCompatibilite {
   providedIn: 'root'
 })
 export class ProduitService {
-  private apiUrl = 'http://127.0.0.1:8000/api/fournisseur/produits';
+  private apiUrl = 'environment.apiUrl/api/fournisseur/produits';
 
   constructor(
     private http: HttpClient,

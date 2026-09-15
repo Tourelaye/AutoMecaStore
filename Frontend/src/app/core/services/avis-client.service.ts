@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -32,7 +33,7 @@ export interface AvisStats {
   providedIn: 'root'
 })
 export class AvisClientService {
-  private apiUrl = 'http://127.0.0.1:8000/api/avis';
+  private apiUrl = 'environment.apiUrl/api/avis';
 
   constructor(private http: HttpClient) {}
 

@@ -1,8 +1,9 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'environment.apiUrl/api';
 
 export interface Categorie {
   id: number;

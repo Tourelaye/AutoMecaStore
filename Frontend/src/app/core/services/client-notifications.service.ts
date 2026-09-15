@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -26,7 +27,7 @@ export interface ClientNotificationsResponse {
   providedIn: 'root'
 })
 export class ClientNotificationsService {
-  private readonly API_URL = 'http://127.0.0.1:8000/account';
+  private readonly API_URL = 'environment.apiUrl/account';
 
   private unreadCount = new BehaviorSubject<number>(0);
   unreadCount$ = this.unreadCount.asObservable();

@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -53,7 +54,7 @@ export interface PaiementActionPayload {
 
 @Injectable({ providedIn: 'root' })
 export class PaiementService {
-  private readonly apiUrl = 'http://127.0.0.1:8000/api/admin/paiements/';
+  private readonly apiUrl = 'environment.apiUrl/api/admin/paiements/';
 
   constructor(private http: HttpClient) {}
 

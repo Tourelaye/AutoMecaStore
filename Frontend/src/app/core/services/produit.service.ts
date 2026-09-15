@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -223,7 +224,7 @@ export interface ProduitListResponse {
 })
 export class ProduitService {
 
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = 'environment.apiUrl/api';
 
   constructor(private http: HttpClient) {}
 

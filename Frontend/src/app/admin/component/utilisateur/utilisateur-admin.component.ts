@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Component, OnInit, OnDestroy, Renderer2, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -242,7 +243,7 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
     if (!image) return 'assets/img/placeholder.png';
     if (image.startsWith('http://') || image.startsWith('https://')) return image;
     const separator = image.startsWith('/') ? '' : '/';
-    return `http://127.0.0.1:8000${separator}${image}`;
+    return `environment.apiUrl${separator}${image}`;
   }
 
   trackByUserId(_: number, u: AdminUtilisateur): number {

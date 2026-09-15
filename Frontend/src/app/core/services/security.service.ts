@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
@@ -54,7 +55,7 @@ export interface TwoFactorResponse {
   providedIn: 'root'
 })
 export class SecurityService {
-  private readonly apiUrl = 'http://127.0.0.1:8000/account/security';
+  private readonly apiUrl = 'environment.apiUrl/account/security';
 
   constructor(private http: HttpClient) {}
 

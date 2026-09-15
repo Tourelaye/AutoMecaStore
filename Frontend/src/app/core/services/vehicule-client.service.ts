@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +9,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class VehiculeClientService {
-  private apiUrl = 'http://127.0.0.1:8000/api/vehicules';
+  private apiUrl = 'environment.apiUrl/api/vehicules';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

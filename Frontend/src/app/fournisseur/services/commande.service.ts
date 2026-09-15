@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -63,7 +64,7 @@ export interface Commande {
   providedIn: 'root'
 })
 export class CommandeService {
-  private apiUrl = 'http://127.0.0.1:8000/api/fournisseur/commandes';
+  private apiUrl = 'environment.apiUrl/api/fournisseur/commandes';
 
   constructor(
     private http: HttpClient,

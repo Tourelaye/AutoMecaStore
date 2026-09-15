@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,7 +26,7 @@ export class ClientMotDePasseOublieComponent {
 
   readonly currentYear = new Date().getFullYear();
 
-  private apiUrl = 'http://127.0.0.1:8000/account';
+  private apiUrl = 'environment.apiUrl/account';
 
   constructor(
     private router: Router,

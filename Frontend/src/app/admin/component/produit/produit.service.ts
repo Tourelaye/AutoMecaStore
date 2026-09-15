@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -111,8 +112,8 @@ const LOW_STOCK_THRESHOLD = 5;
 
 @Injectable({ providedIn: 'root' })
 export class ProduitService {
-  private readonly apiUrl = 'http://127.0.0.1:8000/api/admin/produits/';
-  private readonly baseUrl = 'http://127.0.0.1:8000';
+  private readonly apiUrl = 'environment.apiUrl/api/admin/produits/';
+  private readonly baseUrl = 'environment.apiUrl';
 
   constructor(private http: HttpClient) {}
 

@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -36,7 +37,7 @@ export interface Livraison {
 
 @Injectable({ providedIn: 'root' })
 export class LivraisonService {
-  private readonly baseUrl = 'http://127.0.0.1:8000/api';
+  private readonly baseUrl = 'environment.apiUrl/api';
 
   constructor(
     private http: HttpClient,

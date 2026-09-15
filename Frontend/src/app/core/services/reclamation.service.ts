@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -16,7 +17,7 @@ import {
   providedIn: 'root'
 })
 export class ReclamationService {
-  private readonly baseUrl = 'http://127.0.0.1:8000/api/admin/reclamations';
+  private readonly baseUrl = 'environment.apiUrl/api/admin/reclamations';
 
   constructor(private http: HttpClient) {}
 

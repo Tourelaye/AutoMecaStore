@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -36,7 +37,7 @@ export class HistoriquesComponent implements OnInit {
   showConfirmClear = false;
   private toastTimeout: any;
 
-  private apiUrl = 'http://127.0.0.1:8000/api/fournisseur/historique';
+  private apiUrl = 'environment.apiUrl/api/fournisseur/historique';
 
   activites: Activite[] = [];
 
