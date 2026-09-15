@@ -1,165 +1,243 @@
-<div class="admin-partenariats">
-  <!-- Stats -->
-  <div class="stats-row" *ngIf="stats">
-    <div class="stat-box">
-      <span class="stat-num">{{ stats.total }}</span>
-      <span class="stat-label">Total</span>
+<div class="sp-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-title">
+      <span class="page-tag"><i class="bi bi-handshake"></i> Partenaires</span>
+      <h2>Demandes de partenariat</h2>
+      <p>Suivez les candidatures d'entreprises et de marques souhaitant rejoindre la plateforme.</p>
     </div>
-    <div class="stat-box blue">
-      <span class="stat-num">{{ stats.nouvelles }}</span>
-      <span class="stat-label">Nouvelles</span>
-    </div>
-    <div class="stat-box orange">
-      <span class="stat-num">{{ stats.en_cours }}</span>
-      <span class="stat-label">En cours</span>
-    </div>
-    <div class="stat-box green">
-      <span class="stat-num">{{ stats.acceptees }}</span>
-      <span class="stat-label">Acceptées</span>
-    </div>
-    <div class="stat-box red">
-      <span class="stat-num">{{ stats.rejetees }}</span>
-      <span class="stat-label">Rejetées</span>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refresh()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i> Actualiser
+      </button>
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filters-bar">
-    <input type="text" class="search-input" placeholder="Rechercher..." [(ngModel)]="search" (ngModelChange)="load()">
-    <select class="filter-select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
+  <!-- STATS -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon text-blue"><i class="bi bi-building"></i></div>
+      <div class="stat-info">
+        <span class="stat-val">{{ stats.total }}</span>
+        <span class="stat-lbl">Demandes reçues</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-blue"><i class="bi bi-envelope-paper-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-blue">{{ stats.nouvelles }}</span>
+        <span class="stat-lbl">Nouvelles</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-amber"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-amber">{{ stats.en_cours }}</span>
+        <span class="stat-lbl">En cours d'étude</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-green"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-green">{{ stats.acceptees }}</span>
+        <span class="stat-lbl">Acceptées</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-red"><i class="bi bi-x-circle-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-red">{{ stats.rejetees }}</span>
+        <span class="stat-lbl">Rejetées</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-violet"><i class="bi bi-percent"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-violet">{{ (stats.acceptees + stats.rejetees) ? tauxAcceptation + ' %' : '—' }}</span>
+        <span class="stat-lbl">Taux d'acceptation</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Rechercher une entreprise, une marque, un e-mail…"
+             [(ngModel)]="search" (ngModelChange)="load()">
+      <button class="toolbar__clear" *ngIf="search" (click)="search = ''; load()" title="Effacer"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <select class="toolbar__select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
       <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
     </select>
+    <button class="btn" *ngIf="hasFilters" (click)="resetFilters()"><i class="bi bi-x-circle"></i> Réinitialiser</button>
+    <span class="toolbar__count" *ngIf="!loading">{{ demandes.length }} demande(s)<span *ngIf="aTraiter && !hasFilters"> · {{ aTraiter }} à traiter</span></span>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-state" *ngIf="loading">
-    <i class="bi bi-arrow-repeat spin"></i> Chargement...
+  <!-- TABLE -->
+  <div class="panel">
+    <div class="state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement des demandes…</p>
+    </div>
+
+    <div class="state" *ngIf="!loading && demandes.length === 0">
+      <i class="bi bi-building"></i>
+      <p>{{ hasFilters ? 'Aucune demande ne correspond à ces critères.' : 'Aucune demande de partenariat pour le moment.' }}</p>
+      <small *ngIf="!hasFilters">Les entreprises qui remplissent le formulaire « Devenir partenaire » apparaîtront ici.</small>
+      <button class="btn" *ngIf="hasFilters" (click)="resetFilters()">Réinitialiser les filtres</button>
+    </div>
+
+    <div class="table-wrap" *ngIf="!loading && demandes.length > 0">
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th>Entreprise</th>
+            <th>Contact</th>
+            <th>Message</th>
+            <th>Statut</th>
+            <th>Soumise le</th>
+            <th>Traitement</th>
+            <th class="th-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of demandes" (click)="selectDemande(d)" [class.selected]="selectedDemande?.id === d.id" [class.row-new]="d.statut === 'nouvelle'">
+            <td>
+              <div class="person">
+                <div class="avatar avatar--icon">{{ getInitials(d.nom_entreprise) }}</div>
+                <div>
+                  <div class="cell-main">{{ d.nom_entreprise }}</div>
+                  <div class="cell-sub"><i class="bi bi-tag"></i> {{ d.marque || 'Marque non précisée' }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="cell-main cell-email">{{ d.email_contact }}</div>
+              <div class="cell-sub">{{ d.telephone || 'Téléphone non renseigné' }}</div>
+            </td>
+            <td>
+              <div class="cell-clamp" [title]="d.message">{{ d.message }}</div>
+              <div class="cell-sub" *ngIf="d.reponse_admin"><i class="bi bi-reply-fill"></i> Réponse envoyée</div>
+            </td>
+            <td><span class="badge" [class]="'badge ' + getStatutBadge(d.statut)">{{ d.statut_label }}</span></td>
+            <td>
+              <span class="date-chip"><i class="bi bi-calendar3"></i> {{ d.date_soumission | date: 'dd/MM/yyyy' }}</span>
+              <div class="cell-sub" *ngIf="d.statut === 'nouvelle' || d.statut === 'en_cours'">il y a {{ joursDepuis(d.date_soumission) }} j</div>
+            </td>
+            <td>
+              <ng-container *ngIf="d.date_traitement; else nonTraitee">
+                <div class="cell-main">{{ d.date_traitement | date: 'dd/MM/yyyy' }}</div>
+                <div class="cell-sub" *ngIf="d.traitee_par_nom">par {{ d.traitee_par_nom }}</div>
+              </ng-container>
+              <ng-template #nonTraitee><span class="cell-sub">En attente</span></ng-template>
+            </td>
+            <td class="td-right">
+              <div class="action-btns" (click)="$event.stopPropagation()">
+                <button class="btn-icon" title="Voir le détail" (click)="selectDemande(d)"><i class="bi bi-eye"></i></button>
+                <button class="btn-icon approve" *ngIf="d.statut !== 'acceptee'" title="Accepter" (click)="changerStatut(d, 'acceptee')" [disabled]="actionEnCours === d.id"><i class="bi bi-check-lg"></i></button>
+                <button class="btn-icon hide" *ngIf="d.statut !== 'rejetee'" title="Rejeter" (click)="changerStatut(d, 'rejetee')" [disabled]="actionEnCours === d.id"><i class="bi bi-x-lg"></i></button>
+                <button class="btn-icon delete" title="Supprimer" (click)="supprimer(d)" [disabled]="actionEnCours === d.id"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Empty -->
-  <div class="empty-state" *ngIf="!loading && demandes.length === 0">
-    <i class="bi bi-inbox"></i>
-    <p>Aucune demande de partenariat.</p>
-  </div>
+  <!-- DRAWER -->
+  <div class="drawer-overlay" *ngIf="selectedDemande" (click)="closeDetail()"></div>
+  <aside class="drawer" *ngIf="selectedDemande">
+    <div class="drawer__head">
+      <div>
+        <h3 class="drawer__title">{{ selectedDemande.nom_entreprise }}</h3>
+        <p class="drawer__sub">Demande #{{ selectedDemande.id }} · soumise le {{ selectedDemande.date_soumission | date: 'dd/MM/yyyy à HH:mm' }}</p>
+      </div>
+      <button class="drawer__close" (click)="closeDetail()" title="Fermer">&times;</button>
+    </div>
 
-  <!-- Table -->
-  <table class="part-table" *ngIf="!loading && demandes.length > 0">
-    <thead>
-      <tr>
-        <th>Entreprise</th>
-        <th>Marque</th>
-        <th>Contact</th>
-        <th>Message</th>
-        <th>Statut</th>
-        <th>Date</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let d of demandes" (click)="selectDemande(d)" [class.selected]="selectedDemande?.id === d.id">
-        <td class="entreprise-cell">
-          <div class="entreprise-icon"><i class="bi bi-building"></i></div>
-          <div>
-            <div class="entreprise-nom">{{ d.nom_entreprise }}</div>
-            <div class="entreprise-sub" *ngIf="d.marque">{{ d.marque }}</div>
+    <div class="drawer__body">
+      <div class="badge-stack">
+        <span class="badge" [class]="'badge ' + getStatutBadge(selectedDemande.statut)">{{ selectedDemande.statut_label }}</span>
+        <span class="badge badge--violet" *ngIf="selectedDemande.reponse_admin"><i class="bi bi-reply-fill"></i> Réponse envoyée</span>
+      </div>
+
+      <div>
+        <p class="section-title">Entreprise</p>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Raison sociale</span>
+            <span class="value">{{ selectedDemande.nom_entreprise }}</span>
           </div>
-        </td>
-        <td>{{ d.marque || '—' }}</td>
-        <td>
-          <div class="contact-cell">
-            <div>{{ d.email_contact }}</div>
-            <div class="contact-phone" *ngIf="d.telephone">{{ d.telephone }}</div>
+          <div class="info-item">
+            <span class="label">Marque représentée</span>
+            <span class="value">{{ selectedDemande.marque || '—' }}</span>
           </div>
-        </td>
-        <td class="msg-cell">{{ d.message | slice:0:60 }}{{ d.message.length > 60 ? '...' : '' }}</td>
-        <td>
-          <span class="status-badge" [class]="getStatutClass(d.statut)">{{ d.statut_label }}</span>
-        </td>
-        <td class="date-cell">{{ d.date_soumission | date: 'dd/MM/yyyy' }}</td>
-        <td>
-          <div class="action-btns" (click)="$event.stopPropagation()">
-            <button class="btn-icon view" title="Voir détail" (click)="selectDemande(d)">
-              <i class="bi bi-eye-fill"></i>
-            </button>
-            <button class="btn-icon delete" title="Supprimer" (click)="supprimer(d)">
-              <i class="bi bi-trash-fill"></i>
-            </button>
+          <div class="info-item">
+            <span class="label">E-mail</span>
+            <a class="value link" [href]="'mailto:' + selectedDemande.email_contact">{{ selectedDemande.email_contact }}</a>
           </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          <div class="info-item">
+            <span class="label">Téléphone</span>
+            <a class="value link" *ngIf="selectedDemande.telephone; else noTel" [href]="'tel:' + selectedDemande.telephone">{{ selectedDemande.telephone }}</a>
+            <ng-template #noTel><span class="value text-muted">—</span></ng-template>
+          </div>
+        </div>
+      </div>
 
-  <!-- Detail panel -->
-  <div class="detail-overlay" *ngIf="selectedDemande" (click)="closeDetail()"></div>
-  <div class="detail-panel" *ngIf="selectedDemande">
-    <button class="detail-close" (click)="closeDetail()">&times;</button>
-    <h3>Demande de partenariat #{{ selectedDemande.id }}</h3>
+      <div>
+        <p class="section-title">Message</p>
+        <p class="text-block">{{ selectedDemande.message }}</p>
+      </div>
 
-    <div class="detail-section">
-      <label>Entreprise</label>
-      <p>{{ selectedDemande.nom_entreprise }}</p>
-    </div>
+      <div>
+        <p class="section-title">Suivi</p>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Soumise le</span>
+            <span class="value">{{ selectedDemande.date_soumission | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Traitée le</span>
+            <span class="value" *ngIf="selectedDemande.date_traitement; else pasTraitee">
+              {{ selectedDemande.date_traitement | date: 'dd/MM/yyyy HH:mm' }}
+              <span class="cell-sub" *ngIf="selectedDemande.traitee_par_nom">par {{ selectedDemande.traitee_par_nom }}</span>
+            </span>
+            <ng-template #pasTraitee><span class="value text-muted">Pas encore traitée</span></ng-template>
+          </div>
+        </div>
+      </div>
 
-    <div class="detail-section" *ngIf="selectedDemande.marque">
-      <label>Marque représentée</label>
-      <p>{{ selectedDemande.marque }}</p>
-    </div>
+      <div>
+        <p class="section-title">Changer le statut</p>
+        <div class="btn-group">
+          <button class="btn" [class.btn--active]="selectedDemande.statut === 'nouvelle'" (click)="changerStatut(selectedDemande, 'nouvelle')" [disabled]="actionEnCours === selectedDemande.id || selectedDemande.statut === 'nouvelle'"><i class="bi bi-envelope-paper"></i> Nouvelle</button>
+          <button class="btn btn--primary" [class.btn--active]="selectedDemande.statut === 'en_cours'" (click)="changerStatut(selectedDemande, 'en_cours')" [disabled]="actionEnCours === selectedDemande.id || selectedDemande.statut === 'en_cours'"><i class="bi bi-hourglass-split"></i> En cours</button>
+          <button class="btn btn--success" [class.btn--active]="selectedDemande.statut === 'acceptee'" (click)="changerStatut(selectedDemande, 'acceptee')" [disabled]="actionEnCours === selectedDemande.id || selectedDemande.statut === 'acceptee'"><i class="bi bi-check-lg"></i> Accepter</button>
+          <button class="btn btn--danger" [class.btn--active]="selectedDemande.statut === 'rejetee'" (click)="changerStatut(selectedDemande, 'rejetee')" [disabled]="actionEnCours === selectedDemande.id || selectedDemande.statut === 'rejetee'"><i class="bi bi-x-lg"></i> Rejeter</button>
+        </div>
+      </div>
 
-    <div class="detail-section">
-      <label>Email de contact</label>
-      <p>{{ selectedDemande.email_contact }}</p>
-    </div>
+      <div *ngIf="selectedDemande.reponse_admin">
+        <p class="section-title">Réponse enregistrée</p>
+        <p class="text-block text-block--accent">{{ selectedDemande.reponse_admin }}</p>
+      </div>
 
-    <div class="detail-section" *ngIf="selectedDemande.telephone">
-      <label>Téléphone</label>
-      <p>{{ selectedDemande.telephone }}</p>
-    </div>
-
-    <div class="detail-section">
-      <label>Message</label>
-      <p class="msg-full">{{ selectedDemande.message }}</p>
-    </div>
-
-    <div class="detail-section">
-      <label>Statut actuel</label>
-      <span class="status-badge" [class]="getStatutClass(selectedDemande.statut)">{{ selectedDemande.statut_label }}</span>
-    </div>
-
-    <div class="detail-section" *ngIf="selectedDemande.date_traitement">
-      <label>Traité le</label>
-      <p>{{ selectedDemande.date_traitement | date: 'dd/MM/yyyy HH:mm' }} <span *ngIf="selectedDemande.traitee_par_nom">par {{ selectedDemande.traitee_par_nom }}</span></p>
-    </div>
-
-    <!-- Status actions -->
-    <div class="detail-section">
-      <label>Changer le statut</label>
-      <div class="status-actions">
-        <button class="btn-status" [class.active]="selectedDemande.statut === 'en_cours'" (click)="changerStatut(selectedDemande, 'en_cours')">
-          En cours
-        </button>
-        <button class="btn-status accept" [class.active]="selectedDemande.statut === 'acceptee'" (click)="changerStatut(selectedDemande, 'acceptee')">
-          Accepter
-        </button>
-        <button class="btn-status reject" [class.active]="selectedDemande.statut === 'rejetee'" (click)="changerStatut(selectedDemande, 'rejetee')">
-          Rejeter
-        </button>
+      <div class="field">
+        <label>{{ selectedDemande.reponse_admin ? 'Modifier la réponse' : 'Réponse à l\'entreprise' }}</label>
+        <textarea [(ngModel)]="reponseAdmin" rows="4" placeholder="Rédiger une réponse…"></textarea>
+        <div class="btn-group">
+          <button class="btn btn--primary" (click)="envoyerReponse()" [disabled]="!reponseAdmin.trim() || actionEnCours === selectedDemande.id">
+            <i class="bi bi-send-fill"></i> {{ selectedDemande.reponse_admin ? 'Mettre à jour' : 'Enregistrer la réponse' }}
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Response -->
-    <div class="detail-section">
-      <label>Réponse admin</label>
-      <textarea class="reponse-textarea" [(ngModel)]="reponseAdmin" rows="4" placeholder="Écrire une réponse..."></textarea>
-      <button class="btn-send-reponse" (click)="envoyerReponse()" [disabled]="!reponseAdmin.trim()">
-        <i class="bi bi-send-fill"></i> Envoyer la réponse
-      </button>
+    <div class="drawer__foot">
+      <button class="btn btn--danger" (click)="supprimer(selectedDemande)" [disabled]="actionEnCours === selectedDemande.id"><i class="bi bi-trash"></i> Supprimer cette demande</button>
     </div>
-
-    <div class="detail-section danger-zone">
-      <button class="btn-delete" (click)="supprimer(selectedDemande)">
-        <i class="bi bi-trash-fill"></i> Supprimer cette demande
-      </button>
-    </div>
-  </div>
+  </aside>
 </div>

@@ -29,11 +29,25 @@ export interface Offre {
   date_mise_a_jour: string;
 }
 
+export interface DemandeClientDetail {
+  id?: number;
+  nom: string;
+  email: string;
+  telephone?: string;
+}
+
+export interface DemandeVehiculeDetail {
+  id: number;
+  marque: string;
+  plaque: string;
+  annee: number | null;
+}
+
 export interface Demande {
   id: number;
   reference: string;
   client?: number;
-  client_detail?: any;
+  client_detail?: DemandeClientDetail;
   nom_contact: string;
   email_contact: string;
   telephone_contact: string;
@@ -42,10 +56,10 @@ export interface Demande {
   quantite: number;
   description: string;
   vehicule: number | null;
-  vehicule_detail?: any;
+  vehicule_detail?: DemandeVehiculeDetail | null;
   marque_vehicule: string;
   modele_vehicule: string;
-  annee_vehicule: number | null;
+  annee_vehicule: number | string | null;
   motorisation: string;
   version: string;
   ville: string;
@@ -56,7 +70,7 @@ export interface Demande {
   photo_vehicule: string | null;
   statut: string;
   statut_libelle: string;
-  offres: Offre[];
+  offres?: Offre[];
   offres_count?: number;
   commande: number | null;
   commande_reference?: string;

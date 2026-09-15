@@ -325,7 +325,7 @@
               <div class="info-row"><span class="label"><i class="bi bi-geo"></i> Ville</span><span class="value">{{ selectedUtilisateur.profil.magasin?.ville || '—' }}</span></div>
               <div class="info-row"><span class="label"><i class="bi bi-box-seam"></i> Produits</span><span class="value">{{ selectedUtilisateur.statistiques?.nombre_produits || 0 }}</span></div>
               <div class="info-row"><span class="label"><i class="bi bi-currency-euro"></i> Ventes</span><span class="value">{{ selectedUtilisateur.statistiques?.nombre_ventes || 0 }}</span></div>
-              <div class="info-row"><span class="label"><i class="bi bi-graph-up"></i> CA</span><span class="value">{{ (selectedUtilisateur.statistiques?.chiffre_affaires || 0) | currency:'EUR':'symbol':'1.2-2':'fr' }}</span></div>
+              <div class="info-row"><span class="label"><i class="bi bi-graph-up"></i> CA</span><span class="value">{{ (selectedUtilisateur.statistiques?.chiffre_affaires || 0) | number:'1.0-0':'fr' }} FCFA</span></div>
             </div>
           </div>
 
@@ -335,7 +335,7 @@
               <div class="mini-item" *ngFor="let c of selectedUtilisateur.historique_commandes">
                 <span class="mini-ref">{{ c.reference }}</span>
                 <span class="mini-date">{{ formatDateOnly(c.date_commande) }}</span>
-                <span class="mini-montant">{{ c.montant_total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+                <span class="mini-montant">{{ c.montant_total | number:'1.0-0':'fr' }} FCFA</span>
                 <span class="mini-statut" [ngClass]="'status-' + (getStatusConfig(c.statut).color || 'gray')">{{ c.statut }}</span>
               </div>
             </div>
@@ -353,7 +353,7 @@
                   <span class="produit-card__nom" [title]="p.nom">{{ p.nom }}</span>
                   <span class="produit-card__ref" *ngIf="p.reference_oem">Réf : {{ p.reference_oem }}</span>
                   <div class="produit-card__footer">
-                    <span class="produit-card__prix">{{ p.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+                    <span class="produit-card__prix">{{ p.prix | number:'1.0-0':'fr' }} FCFA</span>
                     <span class="produit-card__stock" [class.out]="!p.stock || p.stock === 0">
                       <i class="bi" [class.bi-box-seam]="!!p.stock && p.stock > 0" [class.bi-exclamation-triangle]="!p.stock || p.stock === 0"></i>
                       Stock : {{ p.stock || 0 }}

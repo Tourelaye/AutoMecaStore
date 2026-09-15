@@ -77,6 +77,52 @@ export class LivraisonComponent implements OnInit {
     return this.livraisons.filter(l => l.statut === 'en_attente_attribution').length;
   }
 
+  get echecsAnnulees(): number {
+    return this.livraisons.filter(l => l.statut === 'echec_livraison' || l.statut === 'annulee').length;
+  }
+
+  get totalFrais(): number {
+    return this.livraisons
+      .filter(l => l.statut !== 'annulee')
+      .reduce((sum, l) => sum + Number(l.frais_livraison || 0), 0);
+  }
+
+  formatMontant(value?: number | string | null): string {
+    const n = Number(value ?? 0);
+    return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Number.isFinite(n) ? n : 0) + ' FCFA';
+  }
+
+  getModeTarifLabel(mode: string): string {
+    const labels: Record<string, string> = {
+      fixe: 'Tarif fixe',
+      zone: 'Tarif par zone',
+      distance: 'Tarif par distance',
+      magasin: 'Tarif magasin',
+      partenaire: 'Tarif partenaire'
+    };
+    return labels[mode] || mode;
+  }
+
+  getResponsableTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      magasin: 'Magasin',
+      partenaire: 'Partenaire externe',
+      livreur: 'Livreur interne'
+    };
+    return labels[type] || type;
+  }
+
+  isEnRetard(l: Livraison): boolean {
+    if (!l.delai_estime || l.date_livraison) return false;
+    if (l.statut === 'livree' || l.statut === 'annulee' || l.statut === 'echec_livraison') return false;
+    return new Date(l.delai_estime).getTime() < Date.now();
+  }
+
+  hasStatutChange(l: Livraison): boolean {
+    const choisi = this.nouveauStatut[l.id];
+    return !!choisi && choisi !== l.statut;
+  }
+
   updateStatut(id: number): void {
     const statut = this.nouveauStatut[id];
     if (!statut) return;

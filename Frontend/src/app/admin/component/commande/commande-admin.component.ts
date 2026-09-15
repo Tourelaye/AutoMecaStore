@@ -115,7 +115,7 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
   private pollingSubscription: Subscription | null = null;
   private readonly POLLING_INTERVAL = 30000;
 
-  filtres: FiltresCommande = {};
+  filtres: FiltresCommande = this.defaultFiltres();
 
   statutsPossibles: StatusConfig[] = [
     { value: 'nouvelle_commande', label: 'Nouvelle', color: 'orange', icon: 'bi-cart-plus' },
@@ -239,14 +239,18 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
     this.loadCommandes();
   }
 
+  private defaultFiltres(): FiltresCommande {
+    return { periode: '', statut: '', mode_paiement: '', mode_reception: '' };
+  }
+
   resetFilters(): void {
-    this.filtres = {};
+    this.filtres = this.defaultFiltres();
     this.searchTerm = '';
     this.loadCommandes();
   }
 
-  setPeriode(value: string): void {
-    this.filtres.periode = (value || undefined) as any;
+  setPeriode(value: FiltresCommande['periode']): void {
+    this.filtres.periode = value || '';
     this.loadCommandes();
   }
 
@@ -310,7 +314,7 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
 
   formatMontant(montant?: number): string {
     if (montant === undefined || montant === null) return '-';
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(montant);
+    return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(montant) + ' FCFA';
   }
 
   getProduitImageUrl(url?: string | null): string {

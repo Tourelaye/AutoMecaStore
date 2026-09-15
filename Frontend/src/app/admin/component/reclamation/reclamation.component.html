@@ -312,7 +312,7 @@
               <div class="info-row"><span class="label">Référence</span><span class="value">{{ r.commande.reference }}</span></div>
               <div class="info-row"><span class="label">Date</span><span class="value">{{ formatDate(r.commande.date_commande) }}</span></div>
               <div class="info-row"><span class="label">Statut</span><span class="value">{{ r.commande.statut }}</span></div>
-              <div class="info-row"><span class="label">Montant</span><span class="value">{{ r.commande.montant_total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span></div>
+              <div class="info-row"><span class="label">Montant</span><span class="value">{{ r.commande.montant_total | number:'1.0-0':'fr' }} FCFA</span></div>
             </div>
           </div>
 
@@ -324,7 +324,7 @@
               <div>
                 <h5>{{ r.produit.nom }}</h5>
                 <span>Réf: {{ r.produit.reference || '—' }}</span>
-                <span *ngIf="r.produit.prix"> · {{ r.produit.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+                <span *ngIf="r.produit.prix"> · {{ r.produit.prix | number:'1.0-0':'fr' }} FCFA</span>
               </div>
             </div>
           </div>

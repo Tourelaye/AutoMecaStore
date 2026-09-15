@@ -70,6 +70,7 @@
 .hs-val.text-amber { color: var(--accent-amber); }
 .hs-val.text-red   { color: var(--accent-red); }
 .hs-val.text-blue  { color: var(--accent-blue); }
+.hs-val.text-orange { color: var(--accent-amber); }
 .hs-lbl { font-size: 10px; color: #334155; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 
 @keyframes fade-in-up { to { opacity: 1; transform: translateY(0); } }
@@ -147,7 +148,8 @@
 
 .liv-card__ids { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .liv-card__transp { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); }
-.liv-card__order { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.liv-card__order { font-weight: 700; font-size: 0.9rem; font-family: var(--font-mono); color: var(--accent-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.liv-card__date { font-size: 0.72rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; }
 
 .liv-card__parties { display: flex; flex-direction: column; gap: 10px; }
 .party { display: flex; flex-direction: column; gap: 2px; }
@@ -160,6 +162,21 @@
 .meta-item { font-size: 0.82rem; color: var(--text-secondary); }
 .meta-item__label { color: var(--text-muted); margin-right: 4px; }
 .meta-item strong { color: var(--text-primary); }
+.meta-item__hint { color: var(--text-muted); font-size: 0.74rem; }
+
+.liv-dates { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.liv-date {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.74rem; color: var(--text-muted);
+  padding: 4px 9px; border-radius: 8px;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+}
+.liv-date strong { color: var(--text-secondary); font-weight: 600; }
+.liv-date--done { border-color: rgba(34,197,94,0.25); color: var(--accent-green); }
+.liv-date--done strong { color: var(--text-primary); }
+.liv-date--late { border-color: rgba(239,68,68,0.3); color: var(--accent-red); }
+.liv-date--late strong { color: var(--accent-red); }
+.btn-icon .spin { animation: spin 0.7s linear infinite; }
 .mono { font-family: var(--font-mono); }
 .blue { color: var(--accent-blue); }
 

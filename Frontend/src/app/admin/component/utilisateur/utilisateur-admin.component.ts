@@ -32,7 +32,7 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   // ───────────── FILTERS
-  filters: UtilisateurFilters = { role: 'tous', statut: 'tous' };
+  filters: UtilisateurFilters = { role: 'tous', statut: 'tous', periode: 'tous' };
   searchTerm = '';
 
   roleOptions = [
@@ -202,7 +202,7 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.filters = { role: 'tous', statut: 'tous' };
+    this.filters = { role: 'tous', statut: 'tous', periode: 'tous' };
     this.searchTerm = '';
     this.applyFiltersBackend();
   }

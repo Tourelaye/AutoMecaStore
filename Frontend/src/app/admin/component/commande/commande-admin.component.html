@@ -79,6 +79,13 @@
         </div>
       </div>
       <div class="stat-card fade-up delay-2">
+        <i class="bi bi-gear stat-icon text-indigo"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ stats.en_preparation }}</span>
+          <span class="stat-lbl">En cours (préparation / livraison)</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-2">
         <i class="bi bi-x-circle stat-icon text-red"></i>
         <div class="stat-info">
           <span class="stat-val">{{ stats.annulees }}</span>
@@ -97,6 +104,13 @@
         <div class="stat-info">
           <span class="stat-val">{{ formatMontant(stats.panier_moyen) }}</span>
           <span class="stat-lbl">Panier moyen</span>
+        </div>
+      </div>
+      <div class="stat-card fade-up delay-3">
+        <i class="bi bi-calendar-month stat-icon text-cyan"></i>
+        <div class="stat-info">
+          <span class="stat-val">{{ formatMontant(stats.montant_mois) }}</span>
+          <span class="stat-lbl">Montant ce mois</span>
         </div>
       </div>
     </div>
