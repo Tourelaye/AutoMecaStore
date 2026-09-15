@@ -1,0 +1,5504 @@
+[
+{
+  "model": "sessions.session",
+  "pk": "01ah2sf8humho9w3aelo1eo3yj05lcir",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1womLD:gvBq_rEC3SuoIib3gpCGVzVbrug8onqj08OwPD8p8Q4",
+    "expire_date": "2026-08-11T18:15:47.072Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "25gio5bwphvitjkn9amshlmtjn3ooo5y",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjvCr:gPV314QDpngFYxTPSet7YLd2lb_R5vs2nrnyhD3Cf_8",
+    "expire_date": "2026-07-29T08:43:05.267Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "2z3j3v5d7lric9xiqz202ju91xfhcd77",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wwQrz:ao7Nye2EbHBduxJGkGr-GyRV6Qci1dwJlu7UXvZ3tro",
+    "expire_date": "2026-09-01T20:57:15.392Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "3m3dm46kph4k0a4gkhjghr8svyw3svte",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hApMyAu3fcMZBhAqgaS0q6Md9eaLnT733v_KTytS_FrT7OfojgLGMThdwzE91Q3Em9Ur01yq8s8Bbkpcqddji2mx2V3_w4K9fKpyWSlAA0pNAzWGmZtFGaDzgEfHSg7gD4hUNSAie0XpkwqgOYUxOsN2Xg3Tg:1wwv8G:sEiElOhkiqyXRXKx30bRz6LFqRn7rSEVGUgiSb-iSvA",
+    "expire_date": "2026-09-03T05:16:04.252Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "3mbv0z24wwjnsigqlyolagpn7z9ws0e6",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wkDNS:UDuq9jnw9-EudoOF8jh6mFmpMWtPn4Co0bx4nMBXno8",
+    "expire_date": "2026-07-30T04:07:14.225Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4nzdfoi3dqznkbxse5d0hyd35m7qwcqf",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wwoK8:pDkUlVktpmUQSXbpFXQs-zK6WdA2wXg66YSApSYavHM",
+    "expire_date": "2026-09-02T21:59:52.279Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4s07w7vk95fv40lt8yz1edtopykpn89p",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wwQr5:_mcEwkT67V7gYqYh9rMYUUSL41sx9sWqV1CMNbvmbEM",
+    "expire_date": "2026-09-01T20:56:19.585Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "5zv3v4daupk5s6spyj56c8r1f9zhpkn4",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjwVl:UX1G-Qz_Eyq5to-S4oFmLXvEDD-6P9LCItKfm9d-H2M",
+    "expire_date": "2026-07-29T10:06:41.721Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "7l6nz1viy1q4psixv6vlo85ke0srk965",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjvHn:znKAVOsJOEeb58hffMGvNMn0FOYYMIfV4_KZupbEbus",
+    "expire_date": "2026-07-29T08:48:11.346Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "80xprx0bg7fd6tkug12r1o12lso494tr",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlneZNfKUtJzBmv9wwFkS3FSIe4OkVJA-2bmvZSTbS1u62lxc1RnRaBOv6OX8Eh1J_Eu9dZ0aHVdZq93RR-062uL6Xk53L-DIr18ayQaGC2ZlDFEGhHBUPaAKMwe2IwmE1IeIAFHhDyNFKaMgiJsrVHvD9TYNuU:1wwvT3:Re5741BOITEGIZaGuSkety_291e_YhvQLEQxyQzTbmE",
+    "expire_date": "2026-09-03T05:37:33.522Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "bx6mwgiy6fmt5qqgcwk75edthekndsxk",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wwQs9:RZLN9GEsee3O9vatHtg3rf95bPPuv5hfOjgrdLT38So",
+    "expire_date": "2026-09-01T20:57:25.259Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "djef44948zg5fgihlo7x0tfpboc1vm66",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlneZNfKUtJzBmv9wwFkS3FSIe4OkVJA-2bmvZSTbS1u62lxc1RnRaBOv6OX8Eh1J_Eu9dZ0aHVdZq93RR-062uL6Xk53L-DIr18ayQaGC2ZlDFEGhHBUPaAKMwe2IwmE1IeIAFHhDyNFKaMgiJsrVHvD9TYNuU:1wwvU0:0B-DAnZmxV-HQkUlCn35mauNlPVaJIYqgc_6mV9YjBA",
+    "expire_date": "2026-09-03T05:38:32.181Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "g5umeah52va11eg6fhhgtiqm1eaq2bzi",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hApMyAu3fcMZBhAqgaS0q6Md9eaLnT733v_KTytS_FrT7OfojgLGMThdwzE91Q3Em9Ur01yq8s8Bbkpcqddji2mx2V3_w4K9fKpyWSlAA0pNAzWGmZtFGaDzgEfHSg7gD4hUNSAie0XpkwqgOYUxOsN2Xg3Tg:1wwv85:wVyV3pgaNfFb3pgqqRr-uh240lFNl83JyRRkWLtEmn0",
+    "expire_date": "2026-09-03T05:15:53.823Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "hxhya30egz9zc4enikoanuq4dw71fw4v",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hApMyAu3fcMZBhAqgaS0q6Md9eaLnT733v_KTytS_FrT7OfojgLGMThdwzE91Q3Em9Ur01yq8s8Bbkpcqddji2mx2V3_w4K9fKpyWSlAA0pNAzWGmZtFGaDzgEfHSg7gD4hUNSAie0XpkwqgOYUxOsN2Xg3Tg:1wwv6S:H_rO9eqWQSfdP7zYJ-alLAN2S168XJk6BNlHpMol6hk",
+    "expire_date": "2026-09-03T05:14:12.798Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "jbzgp788vs40y550ci6rim3eot76x7yd",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjvIA:y9lsd0HtyPrnkT6eLqfprFbm80dQy-SK4V4KHwGNXoc",
+    "expire_date": "2026-07-29T08:48:34.690Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "l7fdvsz32hvhcns6jqxff9caa38vylmp",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wkDNL:BHo9Q6qvjGJGhFv6fk3rzWxpmpSuNsftJZGf_mpXBtU",
+    "expire_date": "2026-07-30T04:07:07.195Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "nhkaqr7cz8xwb1blg8seymujm7246lql",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlneZNfKUtJzBmv9wwFkS3FSIe4OkVJA-2bmvZSTbS1u62lxc1RnRaBOv6OX8Eh1J_Eu9dZ0aHVdZq93RR-062uL6Xk53L-DIr18ayQaGC2ZlDFEGhHBUPaAKMwe2IwmE1IeIAFHhDyNFKaMgiJsrVHvD9TYNuU:1wwvSF:zZZ4UyciJiklF8Ahf9ntf8NvHk92KB5jaRqM5IwW-WU",
+    "expire_date": "2026-09-03T05:36:43.850Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "osiuo5iarkjnmhw1tc5x1f5i0ol8n9vc",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wwQqD:IPl0579rJVhGgYNVwjArsR6pnG256ct5xLYuIwCm-yM",
+    "expire_date": "2026-09-01T20:55:25.321Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "otrl8xrtvwdiricqm8a0r3l70by5jlmi",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjvCT:8vmR7lLsIkgFSxetGe3k8MwYhY8XOI6DX03NTNrHMGc",
+    "expire_date": "2026-07-29T08:42:41.467Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "pfup9kw7wp12xgjs90lg5sdbc3ptn174",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjwZP:i7zi-HAzY6gAVlRc7Atn5buNtl9HTgeAFqnudYbM2IY",
+    "expire_date": "2026-07-29T10:10:27.519Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "pvt0eipgqfk1d7e94jwn6a8n6xom1neo",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlneZNfKUtJzBmv9wwFkS3FSIe4OkVJA-2bmvZSTbS1u62lxc1RnRaBOv6OX8Eh1J_Eu9dZ0aHVdZq93RR-062uL6Xk53L-DIr18ayQaGC2ZlDFEGhHBUPaAKMwe2IwmE1IeIAFHhDyNFKaMgiJsrVHvD9TYNuU:1wwoKP:BKUDRDt34MwGihxxZqRkAxlnndfxl1zIAwZpeEg8J-0",
+    "expire_date": "2026-09-02T22:00:09.851Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "q1uworht4btp116upf5vq9zwvh2v3n7p",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjwVA:f3B_MlQDuGSEflymgGATGAN_ptlC0NS3pGfU-e8gwB0",
+    "expire_date": "2026-07-29T10:06:04.208Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "qh8yoyta9bsyobkekrp5drkvuod6jh96",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjvC6:PLuIyOpSZTa1lNBumQsdPMJWiedClyI11qjObYzyIn4",
+    "expire_date": "2026-07-29T08:42:18.367Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "qkn9iexor7ctqphhygd4p4ztxqn4s14t",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wwQqM:1cJvwaxuwJj5iNRAd6bzP7yxYcR3ClrFw_zfV0Ud-cw",
+    "expire_date": "2026-09-01T20:55:34.126Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "qwpimdsksxlwvrsxu9y7d14ayl3aea4l",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1womMR:Rpv5TaVc_TsnZDSPoYdyhaMmqVBg5DbXN4Jkg0io7f8",
+    "expire_date": "2026-08-11T18:17:03.094Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "stfd9g34ji40nrqd653ku2advfcpzph0",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjvP3:cZ4aF2V0CHNIfSxnnhE8FzVEPLDADjEkZMNR9YrkYBA",
+    "expire_date": "2026-07-29T08:55:41.039Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ugjn4fk4uzx50y30epi548q7pov8ds54",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjwYh:eJKwrdM1NwV0ETny574tE2E6f18gKmqs3td5mSR2HJU",
+    "expire_date": "2026-07-29T10:09:43.677Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "x9ggh49iysw1gsql72gjmdl7zhkakujn",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1womLK:4475g2nj5cvOstUbBBWUN68HX3wPW8sZ-h5yakvFQEE",
+    "expire_date": "2026-08-11T18:15:54.213Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "znge6bgit33hxouc0sqxu5ukgmtsw37q",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQRf-FtSHDs-DSvd9ABhikaiAp7cr479qkC93ec859sYDbWsM2aAlzZmcm2el3i5ge1HaQ79hunafe1mWOfFf4QQe_9kzPy-H-HVQc9VsDkEVTvHPKGAnZKe9kJq0zFCNRRkMaQIjJ6eQiKiEQipcGJ43J2sLeH7uwNwU:1wjwUp:gimp2hQ4_94CjawrvXO3I-3RojPbRFXy80lfClhS31U",
+    "expire_date": "2026-07-29T10:05:43.705Z"
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$5x3VaL7hV4flBNw6Gm6nP9$g9EibPUxxox1OMDPUaScAPt8+uuAYt3mZWDuUkhaThY=",
+    "last_login": "2026-09-15T18:03:52.068Z",
+    "is_superuser": true,
+    "nom": "Admin",
+    "prenom": "Super",
+    "email": "admin@automecastore.com",
+    "adresse": null,
+    "telephone": null,
+    "role": "admin",
+    "is_active": true,
+    "is_staff": true,
+    "date_joined": "2026-06-29T03:11:17.012Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$AqTR1zCpFFcDY10dUeDcnm$DhkDAzBvCz4dp2C3E21aIWEEYQAPv0ISFOKsVyJLD1o=",
+    "last_login": "2026-09-14T18:36:32.816Z",
+    "is_superuser": true,
+    "nom": "Toure",
+    "prenom": "Abdoulaye",
+    "email": "admin@automeca.com",
+    "adresse": null,
+    "telephone": null,
+    "role": "admin",
+    "is_active": true,
+    "is_staff": true,
+    "date_joined": "2026-06-29T03:13:44.286Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$TMz9MQ6O5d83BNQTC0fAdy$OlThQiFNg7NyOMKsTcKJAwRNmn12ZzSmDQPl7IX6Hic=",
+    "last_login": null,
+    "is_superuser": true,
+    "nom": "Admin",
+    "prenom": "Test",
+    "email": "testadmin_flow@example.com",
+    "adresse": null,
+    "telephone": null,
+    "role": "admin",
+    "is_active": false,
+    "is_staff": true,
+    "date_joined": "2026-07-20T07:11:33.622Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$9e4eQz1uh2SH1B3EDKnkRB$DBFEojf6lqnMNk9pvysWdk0PFpt0ncXCBdPJ6N8n3NM=",
+    "last_login": "2026-08-28T03:06:13.773Z",
+    "is_superuser": false,
+    "nom": "Mbengue",
+    "prenom": "Fallou",
+    "email": "fallouMbengue01@gmail.com",
+    "adresse": null,
+    "telephone": "+221785469876",
+    "role": "client",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-07-20T12:31:22.309Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$gH48dl3EE6J9uO8GQiY8b6$r7GTYdvbnixU3s1NOFkq8Jqa/vpw3qChtJL9naImjcI=",
+    "last_login": "2026-08-29T04:38:46.603Z",
+    "is_superuser": false,
+    "nom": "Diop",
+    "prenom": "Djibril",
+    "email": "DjibrilDiop07@gmail.com",
+    "adresse": null,
+    "telephone": "+221776682065",
+    "role": "client",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-07-21T01:09:06.677Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$5WJNB7gne1CU0C3IaActNs$sDHlJ9wQCXNbEgTIreza/NPyicFgfb3Ti4r1emgaQME=",
+    "last_login": "2026-09-09T00:06:07.301Z",
+    "is_superuser": false,
+    "nom": "Mbengue",
+    "prenom": "Mame Anta",
+    "email": "Maantamb10@gmail.com",
+    "adresse": "Rufisque",
+    "telephone": "+221771467073",
+    "role": "client",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-08-09T19:14:04.943Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$nMTnMefyHQkFNNgZFx5qBw$MmuADQ5EruHJaqdOd/bTLZuQkpfrQVa2Zbb3Ol62P40=",
+    "last_login": "2026-09-14T18:01:10.349Z",
+    "is_superuser": false,
+    "nom": "Ba",
+    "prenom": "Moussa",
+    "email": "MoussaBa12@gmail.com",
+    "adresse": null,
+    "telephone": "+221784568900",
+    "role": "client",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-09-08T02:53:48.674Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$vaTCMySyYjTm8ViijZAEol$SBx5qpNbHxGuDh07kD4WlAl3AHAyB+ycY0qT+Q494aA=",
+    "last_login": "2026-09-09T10:06:08.444Z",
+    "is_superuser": false,
+    "nom": "Toure",
+    "prenom": "Mouhamed",
+    "email": "toureemouhamed88@gmail.com",
+    "adresse": "Rufisque, Dakar",
+    "telephone": "+221778257786",
+    "role": "fournisseur",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-09-08T22:41:04.811Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.utilisateur",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$h5nHhXrJdV0IZ2dV8KosLK$kyVxenRw+pHmu4tT1ssvWvpoe1LdcexA7cJ6V9ZaG1M=",
+    "last_login": "2026-09-14T18:31:36.029Z",
+    "is_superuser": false,
+    "nom": "Toure",
+    "prenom": "El hadji Abdoulaye Djibril",
+    "email": "ablayedjiby81@gmail.com",
+    "adresse": "Rufisque, Dakar",
+    "telephone": "+221784492568",
+    "role": "fournisseur",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-09-12T19:05:01.823Z",
+    "two_factor_enabled": false,
+    "two_factor_secret": null,
+    "email_alerts_enabled": true,
+    "password_changed_at": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.administrateur",
+  "pk": 35,
+  "fields": {
+    "date_embauche": "2024-01-01"
+  }
+},
+{
+  "model": "account.client",
+  "pk": 3,
+  "fields": {
+    "date_inscription": "2026-07-21T01:27:59.875Z",
+    "point_fidelite": 0,
+    "mode_paiement_favoris": null,
+    "note_livreur": null,
+    "livreur_id": null,
+    "administrateur_id": null,
+    "photo": ""
+  }
+},
+{
+  "model": "account.client",
+  "pk": 51,
+  "fields": {
+    "date_inscription": "2026-07-20T12:31:22.338Z",
+    "point_fidelite": null,
+    "mode_paiement_favoris": null,
+    "note_livreur": null,
+    "livreur_id": null,
+    "administrateur_id": null,
+    "photo": ""
+  }
+},
+{
+  "model": "account.client",
+  "pk": 54,
+  "fields": {
+    "date_inscription": "2026-07-21T01:09:06.698Z",
+    "point_fidelite": null,
+    "mode_paiement_favoris": null,
+    "note_livreur": null,
+    "livreur_id": null,
+    "administrateur_id": null,
+    "photo": ""
+  }
+},
+{
+  "model": "account.client",
+  "pk": 57,
+  "fields": {
+    "date_inscription": "2026-08-09T19:14:05.109Z",
+    "point_fidelite": null,
+    "mode_paiement_favoris": null,
+    "note_livreur": null,
+    "livreur_id": null,
+    "administrateur_id": null,
+    "photo": ""
+  }
+},
+{
+  "model": "account.client",
+  "pk": 59,
+  "fields": {
+    "date_inscription": "2026-09-08T02:53:48.873Z",
+    "point_fidelite": null,
+    "mode_paiement_favoris": null,
+    "note_livreur": null,
+    "livreur_id": null,
+    "administrateur_id": null,
+    "photo": ""
+  }
+},
+{
+  "model": "account.fournisseur",
+  "pk": 60,
+  "fields": {
+    "nom_entreprise": "Mouhamed automobile",
+    "description": "Entreprise spécialisée sur la vente de pièces détachées automobile, livraison intégrée",
+    "siret": "123456789",
+    "logo": "",
+    "date_inscription": "2026-09-08T22:41:04.998Z",
+    "statut": "actif",
+    "date_validation": "2026-09-08T22:45:03.579Z",
+    "validated_by": null,
+    "raison_refus": "",
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "nombre_produits": 0,
+    "nombre_ventes": 0,
+    "chiffre_affaires": "0.00"
+  }
+},
+{
+  "model": "account.fournisseur",
+  "pk": 62,
+  "fields": {
+    "nom_entreprise": "Laye Automobile & Freres",
+    "description": "Entreprise basée  sur la vente de pièce détachée automobile",
+    "siret": "12345678",
+    "logo": "",
+    "date_inscription": "2026-09-12T19:05:01.895Z",
+    "statut": "actif",
+    "date_validation": "2026-09-12T19:06:06.851Z",
+    "validated_by": null,
+    "raison_refus": "",
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "nombre_produits": 0,
+    "nombre_ventes": 0,
+    "chiffre_affaires": "0.00"
+  }
+},
+{
+  "model": "account.fournisseurstatushistory",
+  "pk": 16,
+  "fields": {
+    "fournisseur": 60,
+    "statut": "actif",
+    "changed_by": null,
+    "commentaire": "Votre compte est activée avec succès ",
+    "created_at": "2026-09-08T22:45:03.591Z"
+  }
+},
+{
+  "model": "account.fournisseurstatushistory",
+  "pk": 18,
+  "fields": {
+    "fournisseur": 62,
+    "statut": "actif",
+    "changed_by": null,
+    "commentaire": "",
+    "created_at": "2026-09-12T19:06:06.859Z"
+  }
+},
+{
+  "model": "account.vehiculeclient",
+  "pk": 1,
+  "fields": {
+    "client": 57,
+    "marque": "Toyota",
+    "modele": "Hilux",
+    "annee": 2018,
+    "motorisation": "2.4-CB24",
+    "carburant": "Diesel",
+    "version": "SR",
+    "immatriculation": "AB-123-CD",
+    "actif": true,
+    "date_ajout": "2026-09-03T15:01:14.648Z"
+  }
+},
+{
+  "model": "account.favori",
+  "pk": 10,
+  "fields": {
+    "client": 59,
+    "produit": 37,
+    "date_ajout": "2026-09-13T19:34:17.970Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-21T04:31:00.586Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 6,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-22T05:24:25.000Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 8,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-22T06:23:13.834Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 9,
+  "fields": {
+    "user": [
+      "fallouMbengue01@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-23T00:48:05.409Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 10,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-23T00:49:28.709Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 11,
+  "fields": {
+    "user": [
+      "fallouMbengue01@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-23T00:50:18.338Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 12,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-23T01:09:26.825Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 13,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-23T04:28:54.279Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 14,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-23T05:32:29.544Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 15,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-23T06:49:20.117Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 16,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-24T07:45:58.047Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 17,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-24T07:50:44.700Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 18,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-24T09:02:23.252Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 19,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-25T04:50:34.032Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 20,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-25T05:51:14.587Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 21,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-25T06:52:18.061Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 22,
+  "fields": {
+    "user": [
+      "fallouMbengue01@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-28T03:06:13.791Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 24,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-28T03:08:07.589Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 25,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-28T03:13:35.460Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 26,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-28T03:20:29.802Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 30,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-28T21:15:31.461Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 32,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-28T22:48:05.630Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 33,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-29T01:39:55.091Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 35,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-29T01:43:49.192Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 36,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-29T01:44:21.500Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 37,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-29T02:04:20.004Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 38,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-29T02:06:05.451Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 39,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-29T02:09:50.723Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 40,
+  "fields": {
+    "user": [
+      "DjibrilDiop07@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-29T04:38:46.611Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 41,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-08-29T05:23:59.666Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 42,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-08-31T05:48:46.457Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 43,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-01T10:30:39.848Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 44,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-01T10:31:34.541Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 45,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-01T11:34:20.120Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 46,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-02T04:20:02.111Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 47,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-02T05:21:32.582Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 48,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-02T05:21:38.272Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 49,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-02T06:22:00.031Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 50,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-02T07:26:40.556Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 51,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-02T08:35:43.345Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 52,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-03T14:46:30.797Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 53,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-03T16:02:44.117Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 54,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-04T15:08:04.066Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 55,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-04T16:15:13.713Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 56,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-05T12:14:17.821Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 57,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-05T12:18:27.457Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 58,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": null
+    },
+    "timestamp": "2026-09-08T02:53:50.773Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 59,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-08T10:55:40.664Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 60,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-08T11:03:59.423Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 62,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-08T11:08:21.816Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 64,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-08T11:09:45.378Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 66,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-08T11:49:59.432Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 68,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-08T11:51:24.295Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 72,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-08T12:54:22.863Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 73,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-08T15:46:47.245Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 74,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-08T15:49:15.485Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 76,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-08T16:01:01.845Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 77,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-08T17:02:13.059Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 78,
+  "fields": {
+    "user": [
+      "toureemouhamed88@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-08T22:41:17.862Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 79,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-08T22:44:11.625Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 80,
+  "fields": {
+    "user": [
+      "toureemouhamed88@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-08T23:42:51.521Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 81,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-09T00:00:46.358Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 82,
+  "fields": {
+    "user": [
+      "Maantamb10@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-09T00:06:07.386Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 83,
+  "fields": {
+    "user": [
+      "toureemouhamed88@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-09T10:06:08.460Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 84,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-09T18:31:59.305Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 85,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-10T02:20:02.244Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 86,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-10T02:33:37.795Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 87,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-10T19:16:24.419Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 89,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-11T18:09:44.564Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 90,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-12T18:55:33.532Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 91,
+  "fields": {
+    "user": [
+      "ablayedjiby81@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-12T19:05:29.001Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 92,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-12T19:24:20.551Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 93,
+  "fields": {
+    "user": [
+      "ablayedjiby81@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-12T19:25:52.200Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 94,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-13T01:41:11.503Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 95,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-13T19:34:04.275Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 96,
+  "fields": {
+    "user": [
+      "ablayedjiby81@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-13T20:15:30.371Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 97,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-13T20:46:18.478Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 98,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-14T15:40:10.643Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 99,
+  "fields": {
+    "user": [
+      "ablayedjiby81@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-14T15:45:35.277Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 100,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-14T16:44:02.410Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 101,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-14T16:50:34.194Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 102,
+  "fields": {
+    "user": [
+      "ablayedjiby81@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-14T17:30:00.374Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 103,
+  "fields": {
+    "user": [
+      "MoussaBa12@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "client"
+    },
+    "timestamp": "2026-09-14T18:01:10.354Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 104,
+  "fields": {
+    "user": [
+      "ablayedjiby81@gmail.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "fournisseur"
+    },
+    "timestamp": "2026-09-14T18:31:36.054Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 105,
+  "fields": {
+    "user": [
+      "admin@automeca.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-14T18:36:32.820Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 106,
+  "fields": {
+    "user": [
+      "admin@automecastore.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "",
+    "status": "success",
+    "metadata": {
+      "portal": "admin"
+    },
+    "timestamp": "2026-09-15T18:03:52.136Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 107,
+  "fields": {
+    "user": [
+      "admin@automecastore.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Avast/151.0.0.0",
+    "status": "success",
+    "metadata": {
+      "session_key": "bgE7Z469PiPjTvAAjbVglNC25W92C0g3C/ORUw3d0Qo="
+    },
+    "timestamp": "2026-09-15T18:04:51.609Z"
+  }
+},
+{
+  "model": "account.securityactivity",
+  "pk": 108,
+  "fields": {
+    "user": [
+      "admin@automecastore.com"
+    ],
+    "action": "login",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Avast/151.0.0.0",
+    "status": "success",
+    "metadata": {
+      "session_key": "bgE7Z469PiPjTvAAjbVglNC25W92C0g3C/ORUw3d0Qo="
+    },
+    "timestamp": "2026-09-15T18:04:59.058Z"
+  }
+},
+{
+  "model": "account.usersession",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "admin@automecastore.com"
+    ],
+    "session_key": "bgE7Z469PiPjTvAAjbVglNC25W92C0g3C/ORUw3d0Qo=",
+    "device_name": "Windows",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Avast/151.0.0.0",
+    "ip_address": "127.0.0.1",
+    "location": "",
+    "created_at": "2026-09-15T18:04:51.597Z",
+    "last_active_at": "2026-09-15T18:04:59.051Z",
+    "is_current": true,
+    "is_active": true
+  }
+},
+{
+  "model": "catalog.categorie",
+  "pk": 1,
+  "fields": {
+    "nom": "Automobile",
+    "description": "",
+    "datecreation": "2026-07-14T08:39:24.335Z",
+    "datemodification": "2026-07-14T08:39:24.335Z",
+    "etat": true,
+    "categorieid": null,
+    "ordre": 0
+  }
+},
+{
+  "model": "catalog.categorie",
+  "pk": 2,
+  "fields": {
+    "nom": "Moto & Scooter",
+    "description": "",
+    "datecreation": "2026-07-14T08:39:24.374Z",
+    "datemodification": "2026-07-14T08:39:24.375Z",
+    "etat": true,
+    "categorieid": null,
+    "ordre": 1
+  }
+},
+{
+  "model": "catalog.categorie",
+  "pk": 3,
+  "fields": {
+    "nom": "Poids Lourds",
+    "description": "",
+    "datecreation": "2026-07-14T08:39:24.395Z",
+    "datemodification": "2026-07-14T08:39:24.395Z",
+    "etat": true,
+    "categorieid": null,
+    "ordre": 2
+  }
+},
+{
+  "model": "catalog.categorie",
+  "pk": 4,
+  "fields": {
+    "nom": "Vélo & E-bike",
+    "description": "",
+    "datecreation": "2026-07-14T08:39:24.415Z",
+    "datemodification": "2026-07-14T08:39:24.415Z",
+    "etat": true,
+    "categorieid": null,
+    "ordre": 3
+  }
+},
+{
+  "model": "catalog.marque",
+  "pk": 1,
+  "fields": {
+    "nom": "Bosch",
+    "logo": "marques/Bosh2.jpg",
+    "description": null,
+    "est_visible": true,
+    "ordre": 0,
+    "datecreation": "2026-08-21T03:13:15.477Z",
+    "datemodification": "2026-08-21T03:13:15.477Z"
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 1,
+  "fields": {
+    "nom": "Freinage",
+    "description": "",
+    "categorie": 1,
+    "datecreation": "2026-07-14T08:39:24.345Z",
+    "datemodification": "2026-07-14T08:39:24.345Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 2,
+  "fields": {
+    "nom": "Filtration",
+    "description": "",
+    "categorie": 1,
+    "datecreation": "2026-07-14T08:39:24.355Z",
+    "datemodification": "2026-07-14T08:39:24.355Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 3,
+  "fields": {
+    "nom": "Suspension",
+    "description": "",
+    "categorie": 1,
+    "datecreation": "2026-07-14T08:39:24.360Z",
+    "datemodification": "2026-07-14T08:39:24.360Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 4,
+  "fields": {
+    "nom": "Moteur",
+    "description": "",
+    "categorie": 1,
+    "datecreation": "2026-07-14T08:39:24.363Z",
+    "datemodification": "2026-07-14T08:39:24.363Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 5,
+  "fields": {
+    "nom": "Électrique",
+    "description": "",
+    "categorie": 1,
+    "datecreation": "2026-07-14T08:39:24.368Z",
+    "datemodification": "2026-07-14T08:39:24.368Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 6,
+  "fields": {
+    "nom": "Carrosserie",
+    "description": "",
+    "categorie": 1,
+    "datecreation": "2026-07-14T08:39:24.371Z",
+    "datemodification": "2026-07-14T08:39:24.371Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 7,
+  "fields": {
+    "nom": "Chaîne & Transmission",
+    "description": "",
+    "categorie": 2,
+    "datecreation": "2026-07-14T08:39:24.378Z",
+    "datemodification": "2026-07-14T08:39:24.378Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 8,
+  "fields": {
+    "nom": "Freinage",
+    "description": "",
+    "categorie": 2,
+    "datecreation": "2026-07-14T08:39:24.381Z",
+    "datemodification": "2026-07-14T08:39:24.381Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 9,
+  "fields": {
+    "nom": "Pneus",
+    "description": "",
+    "categorie": 2,
+    "datecreation": "2026-07-14T08:39:24.385Z",
+    "datemodification": "2026-07-14T08:39:24.385Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 10,
+  "fields": {
+    "nom": "Éclairage",
+    "description": "",
+    "categorie": 2,
+    "datecreation": "2026-07-14T08:39:24.389Z",
+    "datemodification": "2026-07-14T08:39:24.389Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 11,
+  "fields": {
+    "nom": "Moteur",
+    "description": "",
+    "categorie": 2,
+    "datecreation": "2026-07-14T08:39:24.392Z",
+    "datemodification": "2026-07-14T08:39:24.392Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 12,
+  "fields": {
+    "nom": "Freinage pneumatique",
+    "description": "",
+    "categorie": 3,
+    "datecreation": "2026-07-14T08:39:24.398Z",
+    "datemodification": "2026-07-14T08:39:24.398Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 13,
+  "fields": {
+    "nom": "Suspension",
+    "description": "",
+    "categorie": 3,
+    "datecreation": "2026-07-14T08:39:24.402Z",
+    "datemodification": "2026-07-14T08:39:24.402Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 14,
+  "fields": {
+    "nom": "Moteur",
+    "description": "",
+    "categorie": 3,
+    "datecreation": "2026-07-14T08:39:24.406Z",
+    "datemodification": "2026-07-14T08:39:24.406Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 15,
+  "fields": {
+    "nom": "Éclairage",
+    "description": "",
+    "categorie": 3,
+    "datecreation": "2026-07-14T08:39:24.409Z",
+    "datemodification": "2026-07-14T08:39:24.409Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 16,
+  "fields": {
+    "nom": "Remorquage",
+    "description": "",
+    "categorie": 3,
+    "datecreation": "2026-07-14T08:39:24.412Z",
+    "datemodification": "2026-07-14T08:39:24.412Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 17,
+  "fields": {
+    "nom": "Transmission",
+    "description": "",
+    "categorie": 4,
+    "datecreation": "2026-07-14T08:39:24.419Z",
+    "datemodification": "2026-07-14T08:39:24.419Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 18,
+  "fields": {
+    "nom": "Freinage",
+    "description": "",
+    "categorie": 4,
+    "datecreation": "2026-07-14T08:39:24.422Z",
+    "datemodification": "2026-07-14T08:39:24.422Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 19,
+  "fields": {
+    "nom": "Roues",
+    "description": "",
+    "categorie": 4,
+    "datecreation": "2026-07-14T08:39:24.426Z",
+    "datemodification": "2026-07-14T08:39:24.426Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 20,
+  "fields": {
+    "nom": "Batterie (e-bike)",
+    "description": "",
+    "categorie": 4,
+    "datecreation": "2026-07-14T08:39:24.429Z",
+    "datemodification": "2026-07-14T08:39:24.429Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.typepiece",
+  "pk": 21,
+  "fields": {
+    "nom": "Accessoires",
+    "description": "",
+    "categorie": 4,
+    "datecreation": "2026-07-14T08:39:24.432Z",
+    "datemodification": "2026-07-14T08:39:24.432Z",
+    "etat": true
+  }
+},
+{
+  "model": "catalog.fournisseur",
+  "pk": 4,
+  "fields": {
+    "nom_entreprise": "Mouhamed automobile",
+    "delai_livraison": null,
+    "contrat_actif": true,
+    "note_fournisseur": null,
+    "administrateur": [
+      "toureemouhamed88@gmail.com"
+    ]
+  }
+},
+{
+  "model": "catalog.fournisseur",
+  "pk": 5,
+  "fields": {
+    "nom_entreprise": "Laye Automobile & Freres",
+    "delai_livraison": null,
+    "contrat_actif": true,
+    "note_fournisseur": null,
+    "administrateur": [
+      "ablayedjiby81@gmail.com"
+    ]
+  }
+},
+{
+  "model": "catalog.produit",
+  "pk": 35,
+  "fields": {
+    "nom": "Plaquettes de frein avant Brembo Premium",
+    "prix": "45000.00",
+    "stock": 20,
+    "categorie": 1,
+    "type_piece": 1,
+    "gestionnaire_stock": null,
+    "image": "products/Brembo2_ZI3ZALD.jpg",
+    "image_2": "products/Brembo1_g5g8qiL.jpg",
+    "image_3": "products/Brembo3_CVjs1xv.jpg",
+    "image_4": "products/Brembo4_QMd8WWR.jpg",
+    "est_en_promo": false,
+    "prix_promo": "41400.00",
+    "pourcentage_reduction": 8,
+    "date_debut_promo": "2026-09-08T00:00:00Z",
+    "date_fin_promo": "2026-09-22T00:00:00Z",
+    "vente_eclair": false,
+    "heure_debut_eclair": null,
+    "heure_fin_eclair": null,
+    "est_vedette": false,
+    "est_tendance": true,
+    "est_recommande": true,
+    "est_bestseller": false,
+    "est_meilleure_offre": false,
+    "nombre_vues": 51,
+    "nombre_favoris": 0,
+    "nombre_ventes": 0,
+    "reference": "MTE-AUTO-001",
+    "marque": "Brembo",
+    "fabricant": "Brembo S.p.A.",
+    "modeles_compatibles": [
+      "Toyota Hilux",
+      "Fortuner",
+      "Prado"
+    ],
+    "annee_debut": 2016,
+    "annee_fin": 2024,
+    "compatibilites": [],
+    "etat": "neuf",
+    "garantie_mois": 24,
+    "garantie_disponible": true,
+    "conditions_garantie": "Garantie constructeur",
+    "pays_origine": "allemagne",
+    "reference_oem": "OEM-04465-0K340",
+    "poids": "2.00",
+    "longueur": "18.0",
+    "largeur": "15.0",
+    "hauteur": "6.0",
+    "matiere": "Composite de friction, metal",
+    "couleur": "Noir/gris",
+    "disponibilite": "en_stock",
+    "seuil_alerte": 10,
+    "quantite_min": 2,
+    "delai_livraison": "2_5j",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "delai_preparation": "24h",
+    "description_courte": "Plaquettes de frein avant haute performance",
+    "description": "Plaquettes conçues pour offrir un freinage, progressif et silencieux",
+    "description_detaillee": "Jeu de plaquettes destiné aux véhicules compatibles. Vérifier le système de freinage avant commande",
+    "precautions": "Ne pas installer sur un véhicule non compatible. Ne pas contaminer la surface de friction",
+    "mots_cles": [
+      "Plaquettes frein Brembo",
+      "Toyota Hilux",
+      "Freinae automobile"
+    ],
+    "conseils_installation": "Faire installer par un mécanicien qualifie et effectuer un rodage progressif",
+    "conditions_retour": "",
+    "image_principale_index": 1,
+    "fournisseur": 60,
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "statut": "actif",
+    "statut_approbation": "approuve",
+    "motif_rejet": null,
+    "signale": false,
+    "is_active": true,
+    "date_suppression": null,
+    "date_ajout": "2026-09-08T23:55:01.281Z",
+    "date_derniere_maj_stock": null,
+    "produit_group": 1
+  }
+},
+{
+  "model": "catalog.produit",
+  "pk": 37,
+  "fields": {
+    "nom": "Plaquettes de frein avant Brembo Premium",
+    "prix": "20000.00",
+    "stock": 15,
+    "categorie": 1,
+    "type_piece": 1,
+    "gestionnaire_stock": null,
+    "image": "products/Brembo_occasion_1.jpg",
+    "image_2": "products/Brembo_occasion_2.jpg",
+    "image_3": "products/Brembo_occasion_3.jpg",
+    "image_4": "products/Brembo_occasion_4.jpg",
+    "est_en_promo": false,
+    "prix_promo": null,
+    "pourcentage_reduction": null,
+    "date_debut_promo": null,
+    "date_fin_promo": null,
+    "vente_eclair": false,
+    "heure_debut_eclair": null,
+    "heure_fin_eclair": null,
+    "est_vedette": false,
+    "est_tendance": false,
+    "est_recommande": false,
+    "est_bestseller": false,
+    "est_meilleure_offre": false,
+    "nombre_vues": 7,
+    "nombre_favoris": 0,
+    "nombre_ventes": 0,
+    "reference": "REF-AUTO-001",
+    "marque": "Brembo",
+    "fabricant": "Brembo S.p.A.",
+    "modeles_compatibles": [
+      "Toyota Hilux",
+      "Fortuner",
+      "Prado"
+    ],
+    "annee_debut": 2017,
+    "annee_fin": 2020,
+    "compatibilites": [],
+    "etat": "occasion",
+    "garantie_mois": 0,
+    "garantie_disponible": false,
+    "conditions_garantie": "",
+    "pays_origine": "coree_sud",
+    "reference_oem": "01122-AE123",
+    "poids": "2.00",
+    "longueur": "18.0",
+    "largeur": "15.0",
+    "hauteur": "6.0",
+    "matiere": "Composite de friction, métal",
+    "couleur": "Noir/ Rouge",
+    "disponibilite": "en_stock",
+    "seuil_alerte": 5,
+    "quantite_min": 1,
+    "delai_livraison": "2_5j",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "delai_preparation": "24h",
+    "description_courte": "Plaquettes de frein avant haute performance",
+    "description": "Plaquettes conçues pour offrir un freinage efficace, progressif et silencieux",
+    "description_detaillee": "Jeu  de Plaquettes destine aux véhicules compatibles. Vérifier le système de freinage avant commande.",
+    "precautions": "Ne pas installer sur un véhicule non compatible. Ne pas contaminer la surface de friction",
+    "mots_cles": [
+      "plaquettes frein Brembo",
+      "Toyota Hilux",
+      "freinage automobile"
+    ],
+    "conseils_installation": "Faire installer par un mécanicien qualifie et effectuer un rodage progressif",
+    "conditions_retour": "",
+    "image_principale_index": 1,
+    "fournisseur": 62,
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "statut": "actif",
+    "statut_approbation": "approuve",
+    "motif_rejet": null,
+    "signale": false,
+    "is_active": true,
+    "date_suppression": null,
+    "date_ajout": "2026-09-12T19:23:07.011Z",
+    "date_derniere_maj_stock": null,
+    "produit_group": 1
+  }
+},
+{
+  "model": "catalog.produit",
+  "pk": 38,
+  "fields": {
+    "nom": "Disques de frein avant Brembo ventilés",
+    "prix": "64998.00",
+    "stock": 15,
+    "categorie": 1,
+    "type_piece": 1,
+    "gestionnaire_stock": null,
+    "image": "products/Disque_Frein_t1R4EWz.jpg",
+    "image_2": "products/Disque_Frein_2_b4PHU9e.jpg",
+    "image_3": "products/Disque_Frein_3_gPUaSCQ.jpg",
+    "image_4": "products/Disque_Frein_4_Q68sqZR.jpg",
+    "est_en_promo": false,
+    "prix_promo": null,
+    "pourcentage_reduction": null,
+    "date_debut_promo": null,
+    "date_fin_promo": null,
+    "vente_eclair": false,
+    "heure_debut_eclair": null,
+    "heure_fin_eclair": null,
+    "est_vedette": false,
+    "est_tendance": false,
+    "est_recommande": false,
+    "est_bestseller": false,
+    "est_meilleure_offre": false,
+    "nombre_vues": 1,
+    "nombre_favoris": 0,
+    "nombre_ventes": 0,
+    "reference": "REF-AUTO-002",
+    "marque": "Brembo",
+    "fabricant": "Brembo S.p.A",
+    "modeles_compatibles": [
+      "Toyota Corolla",
+      "Yaris"
+    ],
+    "annee_debut": 2015,
+    "annee_fin": 2023,
+    "compatibilites": [],
+    "etat": "neuf",
+    "garantie_mois": 6,
+    "garantie_disponible": true,
+    "conditions_garantie": "Garantie constructeur 6mois",
+    "pays_origine": "italie",
+    "reference_oem": "",
+    "poids": "8.00",
+    "longueur": "28.0",
+    "largeur": "28.0",
+    "hauteur": "5.0",
+    "matiere": "Acier",
+    "couleur": "Gris",
+    "disponibilite": "en_stock",
+    "seuil_alerte": 4,
+    "quantite_min": null,
+    "delai_livraison": "2_5j",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "delai_preparation": "24h",
+    "description_courte": "Disques ventiles résistants a la chaleur",
+    "description": "Disques destinés au remplacement du système de freinage avant",
+    "description_detaillee": "Disques conçus pour assurer une bonne dissipation thermique et un freinage stable sur véhicules compatibles",
+    "precautions": "Disques conçus pour assurer une bonne dissipation thermique et un freinage stable sur véhicules compatibles",
+    "mots_cles": [
+      "disque frein Brembo Toyota",
+      "disque frein automobile"
+    ],
+    "conseils_installation": "Vérifier l'état des plaquettes lors du remplacement",
+    "conditions_retour": "7 jours si non monté",
+    "image_principale_index": 1,
+    "fournisseur": 62,
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "statut": "actif",
+    "statut_approbation": "approuve",
+    "motif_rejet": null,
+    "signale": false,
+    "is_active": true,
+    "date_suppression": null,
+    "date_ajout": "2026-09-13T20:28:21.659Z",
+    "date_derniere_maj_stock": null,
+    "produit_group": null
+  }
+},
+{
+  "model": "catalog.produit",
+  "pk": 39,
+  "fields": {
+    "nom": "Filtre a huile Bosch",
+    "prix": "8499.00",
+    "stock": 70,
+    "categorie": 1,
+    "type_piece": 2,
+    "gestionnaire_stock": null,
+    "image": "products/Bosh2_5g3mU0P.jpg",
+    "image_2": "products/Bosh1_X1XNVvB.jpg",
+    "image_3": "products/Bosh3_CUgslS1.jpg",
+    "image_4": "products/Bosh4_Dpf0Kvq.jpg",
+    "est_en_promo": false,
+    "prix_promo": null,
+    "pourcentage_reduction": null,
+    "date_debut_promo": null,
+    "date_fin_promo": null,
+    "vente_eclair": false,
+    "heure_debut_eclair": null,
+    "heure_fin_eclair": null,
+    "est_vedette": false,
+    "est_tendance": false,
+    "est_recommande": false,
+    "est_bestseller": false,
+    "est_meilleure_offre": false,
+    "nombre_vues": 1,
+    "nombre_favoris": 0,
+    "nombre_ventes": 0,
+    "reference": "REF-AMS-003",
+    "marque": "Bosch",
+    "fabricant": "Bosch Gmbh",
+    "modeles_compatibles": [
+      "Toyota Corolla",
+      "Yaris",
+      "Hilux"
+    ],
+    "annee_debut": 2015,
+    "annee_fin": 2024,
+    "compatibilites": [],
+    "etat": "neuf",
+    "garantie_mois": 0,
+    "garantie_disponible": false,
+    "conditions_garantie": "",
+    "pays_origine": "allemagne",
+    "reference_oem": "",
+    "poids": "0.40",
+    "longueur": "10.0",
+    "largeur": "8.0",
+    "hauteur": "8.0",
+    "matiere": "Papier filtrant, metal, caoutchouc",
+    "couleur": "Jaune",
+    "disponibilite": "en_stock",
+    "seuil_alerte": 15,
+    "quantite_min": null,
+    "delai_livraison": "2_5j",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "delai_preparation": "24h",
+    "description_courte": "Filtre protégeant le moteur des impuretés",
+    "description": "Filtre a retenir les particules présentes dans l'huile moteur",
+    "description_detaillee": "Contribue a maintenir une huile propre et a réduire l'usure des composants internes",
+    "precautions": "Vérifier la référence et le filtrage avant installation",
+    "mots_cles": [
+      "filtre huile Bosch",
+      "filtre Toyota",
+      "entretien voiture"
+    ],
+    "conseils_installation": "Remplacer lors de chaque vidange selon les recommandations du constructeur",
+    "conditions_retour": "7 jours si neuf, non monte et emaballage intact",
+    "image_principale_index": 3,
+    "fournisseur": 62,
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "statut": "actif",
+    "statut_approbation": "approuve",
+    "motif_rejet": null,
+    "signale": false,
+    "is_active": true,
+    "date_suppression": null,
+    "date_ajout": "2026-09-13T20:36:23.232Z",
+    "date_derniere_maj_stock": null,
+    "produit_group": null
+  }
+},
+{
+  "model": "catalog.produit",
+  "pk": 40,
+  "fields": {
+    "nom": "Filtre a air Mann-Filter",
+    "prix": "10498.00",
+    "stock": 40,
+    "categorie": 1,
+    "type_piece": 2,
+    "gestionnaire_stock": null,
+    "image": "products/mann-filter_qmuMphb.jpg",
+    "image_2": "products/mann-filter2_tb3sRWs.jpg",
+    "image_3": "products/mann-filter3_TLE86vi.jpg",
+    "image_4": "products/mann-filter4_Py0lz4u.jpg",
+    "est_en_promo": true,
+    "prix_promo": null,
+    "pourcentage_reduction": null,
+    "date_debut_promo": null,
+    "date_fin_promo": null,
+    "vente_eclair": true,
+    "heure_debut_eclair": null,
+    "heure_fin_eclair": null,
+    "est_vedette": false,
+    "est_tendance": false,
+    "est_recommande": false,
+    "est_bestseller": false,
+    "est_meilleure_offre": false,
+    "nombre_vues": 15,
+    "nombre_favoris": 0,
+    "nombre_ventes": 0,
+    "reference": "REF-AUTO-004",
+    "marque": "MANN-FILTER",
+    "fabricant": "MANN+HUMMEL",
+    "modeles_compatibles": [
+      "Toyota Hilux",
+      "Corolla"
+    ],
+    "annee_debut": 2016,
+    "annee_fin": 2024,
+    "compatibilites": [],
+    "etat": "neuf",
+    "garantie_mois": 0,
+    "garantie_disponible": false,
+    "conditions_garantie": "",
+    "pays_origine": "allemagne",
+    "reference_oem": "",
+    "poids": "0.50",
+    "longueur": "30.0",
+    "largeur": "20.0",
+    "hauteur": "5.0",
+    "matiere": "Papier filtrant, plastique",
+    "couleur": "Jaune, Noir",
+    "disponibilite": "en_stock",
+    "seuil_alerte": 10,
+    "quantite_min": null,
+    "delai_livraison": "2_5j",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "delai_preparation": "24h",
+    "description_courte": "Filtre haute efficacité pour moteur",
+    "description": "Filtre permettant de purifier l'air entrant dans le moteur",
+    "description_detaillee": "Protège le moteur contre les poussières et impuretés et favorise une bonne combustion",
+    "precautions": "Vérifier la forme et les dimensions avant montage",
+    "mots_cles": [
+      "filtre air Man",
+      "filtre Toyota",
+      "entretien automobile"
+    ],
+    "conseils_installation": "Remplacer régulièrement selon les conditions d'utilisation",
+    "conditions_retour": "7 jours si non installé",
+    "image_principale_index": 2,
+    "fournisseur": 62,
+    "note_moyenne": null,
+    "nombre_avis": 0,
+    "statut": "actif",
+    "statut_approbation": "approuve",
+    "motif_rejet": null,
+    "signale": false,
+    "is_active": true,
+    "date_suppression": null,
+    "date_ajout": "2026-09-13T20:46:08.337Z",
+    "date_derniere_maj_stock": null,
+    "produit_group": null
+  }
+},
+{
+  "model": "catalog.produitgroup",
+  "pk": 1,
+  "fields": {
+    "nom": "Plaquettes de frein avant Brembo Premium",
+    "date_creation": "2026-09-13T02:21:13.816Z",
+    "date_modification": "2026-09-13T02:21:13.816Z"
+  }
+},
+{
+  "model": "catalog.fournisseurproduit",
+  "pk": 14,
+  "fields": {
+    "fournisseur": 4,
+    "produit": 35,
+    "prix_achat": "45000.00",
+    "prix_vente": "45000.00",
+    "stock_initial": null,
+    "stock_disponible": 20,
+    "date_livraison": null
+  }
+},
+{
+  "model": "catalog.fournisseurproduit",
+  "pk": 16,
+  "fields": {
+    "fournisseur": 5,
+    "produit": 37,
+    "prix_achat": "20000.00",
+    "prix_vente": "20000.00",
+    "stock_initial": null,
+    "stock_disponible": 15,
+    "date_livraison": null
+  }
+},
+{
+  "model": "catalog.fournisseurproduit",
+  "pk": 17,
+  "fields": {
+    "fournisseur": 5,
+    "produit": 38,
+    "prix_achat": "64998.00",
+    "prix_vente": "64998.00",
+    "stock_initial": null,
+    "stock_disponible": 14,
+    "date_livraison": null
+  }
+},
+{
+  "model": "catalog.fournisseurproduit",
+  "pk": 18,
+  "fields": {
+    "fournisseur": 5,
+    "produit": 39,
+    "prix_achat": "8499.00",
+    "prix_vente": "8499.00",
+    "stock_initial": null,
+    "stock_disponible": 69,
+    "date_livraison": null
+  }
+},
+{
+  "model": "catalog.fournisseurproduit",
+  "pk": 19,
+  "fields": {
+    "fournisseur": 5,
+    "produit": 40,
+    "prix_achat": "10498.00",
+    "prix_vente": "10498.00",
+    "stock_initial": null,
+    "stock_disponible": 40,
+    "date_livraison": null
+  }
+},
+{
+  "model": "catalog.promotion",
+  "pk": 3,
+  "fields": {
+    "fournisseur": 60,
+    "produit": 35,
+    "nom": "Soldes d'ete",
+    "description": "Premier produit enregistrer par l'entreprise Mouhamed automobile en partenariat en AutoMecaStore, bénéficiez d'une réduction de -10% sur tout nos produits pendant 14 jours",
+    "type_promotion": "pourcentage",
+    "pourcentage": "8.00",
+    "valeur_reduction": null,
+    "date_debut": "2026-09-08T00:00:00Z",
+    "heure_debut": null,
+    "date_fin": "2026-09-22T00:00:00Z",
+    "heure_fin": null,
+    "quantite_min": 1,
+    "nombre_max_utilisations": 96,
+    "nb_utilisations": 0,
+    "is_active": true,
+    "statut": "active",
+    "created_at": "2026-09-08T23:59:04.331Z"
+  }
+},
+{
+  "model": "delivery.adresse",
+  "pk": 1,
+  "fields": {
+    "client": 57,
+    "nom_destinataire": "Mame Anta Mbengue",
+    "telephone": "+221771467073",
+    "ville": "Rufisque",
+    "quartier": "Socabeg",
+    "adresse": "Rufisque",
+    "point_de_repere": "",
+    "instructions": "",
+    "latitude": null,
+    "longitude": null,
+    "est_principale": false,
+    "created_at": "2026-08-20T05:44:01.632Z"
+  }
+},
+{
+  "model": "delivery.adresse",
+  "pk": 2,
+  "fields": {
+    "client": 59,
+    "nom_destinataire": "Moussa Ba",
+    "telephone": "+221784568900",
+    "ville": "Rufisque",
+    "quartier": "Commune de Rufisque Nord",
+    "adresse": "Medina ",
+    "point_de_repere": "Pres de la service librairie",
+    "instructions": "",
+    "latitude": "14.7380633",
+    "longitude": "-17.2810448",
+    "est_principale": false,
+    "created_at": "2026-09-14T16:24:24.270Z"
+  }
+},
+{
+  "model": "delivery.adresse",
+  "pk": 3,
+  "fields": {
+    "client": 59,
+    "nom_destinataire": "Moussa Ba",
+    "telephone": "+221784568900",
+    "ville": "Rufisque",
+    "quartier": "Commune de Rufisque Nord",
+    "adresse": "Commune de Rufisque Nord",
+    "point_de_repere": "",
+    "instructions": "",
+    "latitude": "14.7381165",
+    "longitude": "-17.2810973",
+    "est_principale": false,
+    "created_at": "2026-09-14T16:39:16.358Z"
+  }
+},
+{
+  "model": "delivery.livraison",
+  "pk": 1,
+  "fields": {
+    "date_creation": "2026-08-20T05:44:01.637Z",
+    "date_attribution": null,
+    "date_livraison": null,
+    "delai_estime": null,
+    "statut": "en_attente_attribution",
+    "responsable_type": "non_attribue",
+    "mode_tarif": "non_defini",
+    "frais_livraison": "0.00",
+    "instructions": "",
+    "remarque": "",
+    "commande": 10,
+    "client": 57,
+    "adresse": 1,
+    "magasin": null,
+    "fournisseur": null,
+    "partenaire": null,
+    "livreur": null,
+    "vehicule": null
+  }
+},
+{
+  "model": "delivery.livraison",
+  "pk": 2,
+  "fields": {
+    "date_creation": "2026-08-20T05:44:01.643Z",
+    "date_attribution": null,
+    "date_livraison": null,
+    "delai_estime": null,
+    "statut": "en_attente_attribution",
+    "responsable_type": "non_attribue",
+    "mode_tarif": "non_defini",
+    "frais_livraison": "0.00",
+    "instructions": "",
+    "remarque": "",
+    "commande": 10,
+    "client": 57,
+    "adresse": 1,
+    "magasin": null,
+    "fournisseur": null,
+    "partenaire": null,
+    "livreur": null,
+    "vehicule": null
+  }
+},
+{
+  "model": "delivery.livraison",
+  "pk": 3,
+  "fields": {
+    "date_creation": "2026-09-14T16:24:24.275Z",
+    "date_attribution": null,
+    "date_livraison": null,
+    "delai_estime": null,
+    "statut": "en_attente_attribution",
+    "responsable_type": "non_attribue",
+    "mode_tarif": "non_defini",
+    "frais_livraison": "0.00",
+    "instructions": "",
+    "remarque": "",
+    "commande": 11,
+    "client": 59,
+    "adresse": 2,
+    "magasin": 5,
+    "fournisseur": 62,
+    "partenaire": null,
+    "livreur": null,
+    "vehicule": null
+  }
+},
+{
+  "model": "delivery.livraison",
+  "pk": 4,
+  "fields": {
+    "date_creation": "2026-09-14T16:39:16.360Z",
+    "date_attribution": null,
+    "date_livraison": null,
+    "delai_estime": null,
+    "statut": "en_attente_attribution",
+    "responsable_type": "non_attribue",
+    "mode_tarif": "non_defini",
+    "frais_livraison": "0.00",
+    "instructions": "",
+    "remarque": "",
+    "commande": 12,
+    "client": 59,
+    "adresse": 3,
+    "magasin": 5,
+    "fournisseur": 62,
+    "partenaire": null,
+    "livreur": null,
+    "vehicule": null
+  }
+},
+{
+  "model": "orders.commande",
+  "pk": 2,
+  "fields": {
+    "date_commande": "2026-07-15T08:59:13.829Z",
+    "statut": "acceptee",
+    "montant_total": "15000.00",
+    "frais_livraison": "0.00",
+    "client": null,
+    "administrateur": null,
+    "livreur": null,
+    "reference": "CMD20260715-4WWN1B",
+    "mode_paiement": "a_la_livraison",
+    "mode_reception": "livraison",
+    "adresse_livraison": "",
+    "telephone_client": "",
+    "commentaire_fournisseur": ""
+  }
+},
+{
+  "model": "orders.commande",
+  "pk": 5,
+  "fields": {
+    "date_commande": "2026-07-21T01:53:51.314Z",
+    "statut": "en_preparation",
+    "montant_total": "714000.00",
+    "frais_livraison": "0.00",
+    "client": 54,
+    "administrateur": null,
+    "livreur": null,
+    "reference": "CMD20260721-K41F1F",
+    "mode_paiement": "a_la_livraison",
+    "mode_reception": "livraison",
+    "adresse_livraison": "",
+    "telephone_client": "",
+    "commentaire_fournisseur": ""
+  }
+},
+{
+  "model": "orders.commande",
+  "pk": 6,
+  "fields": {
+    "date_commande": "2026-07-28T17:52:37.316Z",
+    "statut": "nouvelle_commande",
+    "montant_total": "90000.00",
+    "frais_livraison": "0.00",
+    "client": 51,
+    "administrateur": null,
+    "livreur": null,
+    "reference": "CMD20260728-SET2WC",
+    "mode_paiement": "a_la_livraison",
+    "mode_reception": "livraison",
+    "adresse_livraison": "",
+    "telephone_client": "",
+    "commentaire_fournisseur": ""
+  }
+},
+{
+  "model": "orders.commande",
+  "pk": 10,
+  "fields": {
+    "date_commande": "2026-08-20T05:44:01.575Z",
+    "statut": "nouvelle_commande",
+    "montant_total": "31500.00",
+    "frais_livraison": "0.00",
+    "client": 57,
+    "administrateur": null,
+    "livreur": null,
+    "reference": "CMD20260820-BELKQR",
+    "mode_paiement": "a_la_livraison",
+    "mode_reception": "livraison",
+    "adresse_livraison": "Rufisque",
+    "telephone_client": "+221771467073",
+    "commentaire_fournisseur": ""
+  }
+},
+{
+  "model": "orders.commande",
+  "pk": 11,
+  "fields": {
+    "date_commande": "2026-09-14T16:24:24.210Z",
+    "statut": "en_preparation",
+    "montant_total": "8499.00",
+    "frais_livraison": "0.00",
+    "client": 59,
+    "administrateur": null,
+    "livreur": null,
+    "reference": "CMD20260914-FQYLN7",
+    "mode_paiement": "a_la_livraison",
+    "mode_reception": "livraison",
+    "adresse_livraison": "Medina ",
+    "telephone_client": "+221784568900",
+    "commentaire_fournisseur": ""
+  }
+},
+{
+  "model": "orders.commande",
+  "pk": 12,
+  "fields": {
+    "date_commande": "2026-09-14T16:39:16.324Z",
+    "statut": "acceptee",
+    "montant_total": "64998.00",
+    "frais_livraison": "0.00",
+    "client": 59,
+    "administrateur": null,
+    "livreur": null,
+    "reference": "CMD20260914-8G9NSM",
+    "mode_paiement": "a_la_livraison",
+    "mode_reception": "livraison",
+    "adresse_livraison": "Commune de Rufisque Nord",
+    "telephone_client": "+221784568900",
+    "commentaire_fournisseur": ""
+  }
+},
+{
+  "model": "orders.lignecommande",
+  "pk": 4,
+  "fields": {
+    "commande": 5,
+    "produit": 35,
+    "fournisseur": null,
+    "magasin": null,
+    "quantite": 1,
+    "prix_unitaire": "45000.00",
+    "sous_total": "45000.00",
+    "mode_reception": "livraison",
+    "statut": "en_preparation"
+  }
+},
+{
+  "model": "orders.lignecommande",
+  "pk": 6,
+  "fields": {
+    "commande": 6,
+    "produit": 35,
+    "fournisseur": null,
+    "magasin": null,
+    "quantite": 2,
+    "prix_unitaire": "45000.00",
+    "sous_total": "90000.00",
+    "mode_reception": "livraison",
+    "statut": "nouvelle_commande"
+  }
+},
+{
+  "model": "orders.lignecommande",
+  "pk": 13,
+  "fields": {
+    "commande": 11,
+    "produit": 39,
+    "fournisseur": 62,
+    "magasin": 5,
+    "quantite": 1,
+    "prix_unitaire": "8499.00",
+    "sous_total": "8499.00",
+    "mode_reception": "livraison",
+    "statut": "nouvelle_commande"
+  }
+},
+{
+  "model": "orders.lignecommande",
+  "pk": 14,
+  "fields": {
+    "commande": 12,
+    "produit": 38,
+    "fournisseur": 62,
+    "magasin": 5,
+    "quantite": 1,
+    "prix_unitaire": "64998.00",
+    "sous_total": "64998.00",
+    "mode_reception": "livraison",
+    "statut": "nouvelle_commande"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 1,
+  "fields": {
+    "commande": 2,
+    "ligne": null,
+    "statut": "acceptee",
+    "commentaire": "Commande créée",
+    "motif": "",
+    "utilisateur": null,
+    "utilisateur_nom": "Système",
+    "date": "2026-07-24T06:11:32.250Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 2,
+  "fields": {
+    "commande": 5,
+    "ligne": null,
+    "statut": "en_attente_confirmation",
+    "commentaire": "Commande créée",
+    "motif": "",
+    "utilisateur": null,
+    "utilisateur_nom": "Système",
+    "date": "2026-07-24T06:11:32.263Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 3,
+  "fields": {
+    "commande": 5,
+    "ligne": null,
+    "statut": "acceptee",
+    "commentaire": "Commande acceptée",
+    "motif": "",
+    "utilisateur": null,
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-07-26T06:48:27.495Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 4,
+  "fields": {
+    "commande": 5,
+    "ligne": null,
+    "statut": "en_preparation",
+    "commentaire": "Préparation en cours",
+    "motif": "",
+    "utilisateur": null,
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-07-26T06:48:29.593Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 5,
+  "fields": {
+    "commande": 6,
+    "ligne": null,
+    "statut": "nouvelle_commande",
+    "commentaire": "Commande créée",
+    "motif": "",
+    "utilisateur": [
+      "fallouMbengue01@gmail.com"
+    ],
+    "utilisateur_nom": "Fallou Mbengue",
+    "date": "2026-07-28T17:52:37.452Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 6,
+  "fields": {
+    "commande": 2,
+    "ligne": null,
+    "statut": "",
+    "commentaire": "note test",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-07-29T15:32:56.133Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 10,
+  "fields": {
+    "commande": 10,
+    "ligne": null,
+    "statut": "nouvelle_commande",
+    "commentaire": "Commande créée",
+    "motif": "",
+    "utilisateur": [
+      "Maantamb10@gmail.com"
+    ],
+    "utilisateur_nom": "Mame Anta Mbengue",
+    "date": "2026-08-20T05:44:01.585Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 12,
+  "fields": {
+    "commande": 10,
+    "ligne": null,
+    "statut": "",
+    "commentaire": "Fournisseur contacté",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-08-20T07:53:06.714Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 13,
+  "fields": {
+    "commande": 5,
+    "ligne": null,
+    "statut": "",
+    "commentaire": "Intervention créée",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-08-21T03:13:35.567Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 14,
+  "fields": {
+    "commande": 11,
+    "ligne": null,
+    "statut": "nouvelle_commande",
+    "commentaire": "Commande créée",
+    "motif": "",
+    "utilisateur": [
+      "MoussaBa12@gmail.com"
+    ],
+    "utilisateur_nom": "Moussa Ba",
+    "date": "2026-09-14T16:24:24.240Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 15,
+  "fields": {
+    "commande": 12,
+    "ligne": null,
+    "statut": "nouvelle_commande",
+    "commentaire": "Commande créée",
+    "motif": "",
+    "utilisateur": [
+      "MoussaBa12@gmail.com"
+    ],
+    "utilisateur_nom": "Moussa Ba",
+    "date": "2026-09-14T16:39:16.336Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 16,
+  "fields": {
+    "commande": 12,
+    "ligne": null,
+    "statut": "",
+    "commentaire": "Note ajoutée",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-09-14T16:51:44.080Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 17,
+  "fields": {
+    "commande": 11,
+    "ligne": null,
+    "statut": "acceptee",
+    "commentaire": "Commande acceptée",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-09-14T17:07:31.685Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 18,
+  "fields": {
+    "commande": 11,
+    "ligne": null,
+    "statut": "acceptee",
+    "commentaire": "Commande acceptée",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-09-14T17:07:33.308Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 19,
+  "fields": {
+    "commande": 11,
+    "ligne": null,
+    "statut": "en_preparation",
+    "commentaire": "Commande en préparation",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-09-14T17:13:39.729Z"
+  }
+},
+{
+  "model": "orders.historiquecommande",
+  "pk": 20,
+  "fields": {
+    "commande": 12,
+    "ligne": null,
+    "statut": "acceptee",
+    "commentaire": "Commande acceptée",
+    "motif": "",
+    "utilisateur": [
+      "admin@automeca.com"
+    ],
+    "utilisateur_nom": "Abdoulaye Toure",
+    "date": "2026-09-14T17:13:41.765Z"
+  }
+},
+{
+  "model": "orders.panier",
+  "pk": 5,
+  "fields": {
+    "nom_panier": "Panier",
+    "client": 51,
+    "invite": null
+  }
+},
+{
+  "model": "orders.panier",
+  "pk": 6,
+  "fields": {
+    "nom_panier": "Panier",
+    "client": 54,
+    "invite": null
+  }
+},
+{
+  "model": "orders.panier",
+  "pk": 7,
+  "fields": {
+    "nom_panier": "Panier",
+    "client": 57,
+    "invite": null
+  }
+},
+{
+  "model": "orders.panier",
+  "pk": 8,
+  "fields": {
+    "nom_panier": "Panier",
+    "client": 3,
+    "invite": null
+  }
+},
+{
+  "model": "orders.panier",
+  "pk": 9,
+  "fields": {
+    "nom_panier": "Panier",
+    "client": 59,
+    "invite": null
+  }
+},
+{
+  "model": "orders.panieritem",
+  "pk": 18,
+  "fields": {
+    "panier": 6,
+    "produit": 35,
+    "fournisseur": null,
+    "magasin": null,
+    "quantite": 1,
+    "mode_reception": "livraison"
+  }
+},
+{
+  "model": "orders.panieritem",
+  "pk": 20,
+  "fields": {
+    "panier": 8,
+    "produit": 35,
+    "fournisseur": 60,
+    "magasin": 4,
+    "quantite": 2,
+    "mode_reception": "livraison"
+  }
+},
+{
+  "model": "payments.paiement",
+  "pk": 1,
+  "fields": {
+    "reference": "PAY-E339236BCD",
+    "cle_idempotence": "pay-mt13idum-vsa11aa1yc",
+    "commande": 10,
+    "client": 57,
+    "moyen": "a_la_livraison",
+    "statut": "reussi",
+    "montant": "31500.00",
+    "date_creation": "2026-08-20T05:44:20.814Z",
+    "date_mise_a_jour": "2026-08-20T08:26:25.774Z",
+    "provider_reference": "",
+    "motif_erreur": "",
+    "remboursement_motif": "",
+    "remboursement_montant": null,
+    "metadata": {}
+  }
+},
+{
+  "model": "support.reclamation",
+  "pk": 1,
+  "fields": {
+    "numero_dossier": "REC-20260729-42786",
+    "objet": "Test",
+    "motif": "produit_defectueux",
+    "description": "Desc",
+    "statut": "en_cours_analyse",
+    "priorite": "normale",
+    "est_litige": false,
+    "date_soumission": "2026-07-29T17:41:46.396Z",
+    "date_ouverture": "2026-07-29T17:41:46.395Z",
+    "date_resolution": null,
+    "date_cloture": null,
+    "date_derniere_maj": "2026-07-29T17:44:19.956Z",
+    "client": 3,
+    "fournisseur": null,
+    "produit": null,
+    "commande": null,
+    "agent_support_client": null,
+    "assigne_a": null,
+    "reponse_admin": "",
+    "note_interne": "",
+    "raison_rejet": "",
+    "photos": [],
+    "documents": []
+  }
+},
+{
+  "model": "support.messagereclamation",
+  "pk": 1,
+  "fields": {
+    "reclamation": 1,
+    "auteur_type": "admin",
+    "auteur": [
+      "admin@automeca.com"
+    ],
+    "auteur_nom": "Abdoulaye Toure",
+    "contenu": "Message de test",
+    "est_note_interne": false,
+    "est_visible_client": true,
+    "est_visible_fournisseur": true,
+    "lu_par_client": false,
+    "lu_par_fournisseur": false,
+    "date": "2026-07-29T17:44:20.018Z"
+  }
+},
+{
+  "model": "support.piecejointereclamation",
+  "pk": 1,
+  "fields": {
+    "reclamation": 1,
+    "message": null,
+    "fichier": "reclamations/2026/09/client.png",
+    "type": "autre",
+    "nom": "client.png",
+    "date": "2026-09-10T19:19:09.684Z"
+  }
+},
+{
+  "model": "support.historiquereclamation",
+  "pk": 1,
+  "fields": {
+    "reclamation": 1,
+    "action": "ouverture",
+    "statut": "en_cours_analyse",
+    "priorite": "normale",
+    "auteur": [
+      "admin@automeca.com"
+    ],
+    "auteur_nom": "Abdoulaye Toure",
+    "auteur_type": "admin",
+    "commentaire": "Dossier ouvert et pris en charge",
+    "date": "2026-07-29T17:44:19.964Z"
+  }
+},
+{
+  "model": "support.historiquereclamation",
+  "pk": 2,
+  "fields": {
+    "reclamation": 1,
+    "action": "reponse",
+    "statut": "",
+    "priorite": "",
+    "auteur": [
+      "admin@automeca.com"
+    ],
+    "auteur_nom": "Abdoulaye Toure",
+    "auteur_type": "admin",
+    "commentaire": "Message de test",
+    "date": "2026-07-29T17:44:20.023Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 1,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "commande",
+    "importance": "info",
+    "titre": "Nouvelle commande",
+    "message": "Une nouvelle commande (CMD20260721-K41F1F) a été passée pour l'un de vos produits.",
+    "lien": "/fournisseur/commandes",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-07-21T01:53:51.368Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 2,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "commande",
+    "importance": "info",
+    "titre": "Nouvelle commande",
+    "message": "Une nouvelle commande (CMD20260728-SET2WC) a été passée pour l'un de vos produits.",
+    "lien": "/fournisseur/commandes",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": true,
+    "created_at": "2026-07-28T17:52:37.495Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 3,
+  "fields": {
+    "destinataire_id": 55,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin suspendu",
+    "message": "Votre magasin \"Garage Piece\" a été suspendu. Motif : Test de suspension temporaire",
+    "lien": "/fournisseur/parametres",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-07-29T09:55:58.600Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 4,
+  "fields": {
+    "destinataire_id": 55,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin réactivé",
+    "message": "Votre magasin \"Garage Piece\" a été réactivé.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-07-29T13:35:00.102Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 8,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin validé",
+    "message": "Votre magasin \"LaBouna & Freres\" a été validé par l'administrateur.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": true,
+    "created_at": "2026-08-20T03:42:15.628Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 9,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit retiré",
+    "message": "Votre produit \"Produit complet\" a été retiré du catalogue.",
+    "lien": "/fournisseur/produits/28",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-20T05:18:56.221Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 10,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit retiré",
+    "message": "Votre produit \"Produit complet\" a été retiré du catalogue.",
+    "lien": "/fournisseur/produits/28",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-20T05:19:01.278Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 11,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit retiré",
+    "message": "Votre produit \"Test Produit\" a été retiré du catalogue.",
+    "lien": "/fournisseur/produits/27",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-20T05:19:06.525Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 12,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "ORDER_CREATED",
+    "importance": "info",
+    "titre": "Nouvelle commande",
+    "message": "Une nouvelle commande (CMD20260820-BELKQR) a été passée pour l'un de vos produits.",
+    "lien": "/fournisseur/commandes",
+    "objet_type": "Commande",
+    "objet_id": 10,
+    "lu": false,
+    "created_at": "2026-08-20T05:44:01.626Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 13,
+  "fields": {
+    "destinataire_id": 55,
+    "destinataire_type": "fournisseur",
+    "type": "ORDER_CREATED",
+    "importance": "info",
+    "titre": "Nouvelle commande",
+    "message": "Une nouvelle commande (CMD20260820-BELKQR) a été passée pour l'un de vos produits.",
+    "lien": "/fournisseur/commandes",
+    "objet_type": "Commande",
+    "objet_id": 10,
+    "lu": false,
+    "created_at": "2026-08-20T05:44:01.628Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 14,
+  "fields": {
+    "destinataire_id": 57,
+    "destinataire_type": "client",
+    "type": "ORDER_CREATED",
+    "importance": "success",
+    "titre": "Commande créée",
+    "message": "Votre commande CMD20260820-BELKQR a été créée avec succès.",
+    "lien": "/mes-commandes/10",
+    "objet_type": "Commande",
+    "objet_id": 10,
+    "lu": false,
+    "created_at": "2026-08-20T05:44:01.629Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 15,
+  "fields": {
+    "destinataire_id": 57,
+    "destinataire_type": "client",
+    "type": "ORDER_ACCEPTED",
+    "importance": "info",
+    "titre": "Statut mis à jour : nouvelle_commande",
+    "message": "Votre commande CMD20260820-BELKQR est maintenant 'Statut mis à jour : nouvelle_commande'.",
+    "lien": "/mes-commandes/10",
+    "objet_type": "Commande",
+    "objet_id": 10,
+    "lu": true,
+    "created_at": "2026-08-20T06:49:49.155Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 16,
+  "fields": {
+    "destinataire_id": 57,
+    "destinataire_type": "client",
+    "type": "PAYMENT_SUCCESS",
+    "importance": "success",
+    "titre": "Paiement confirmé",
+    "message": "Le paiement de votre commande CMD20260820-BELKQR a été confirmé.",
+    "lien": "/mes-commandes/10",
+    "objet_type": "Paiement",
+    "objet_id": 1,
+    "lu": false,
+    "created_at": "2026-08-20T08:26:25.795Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 17,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit publié",
+    "message": "Votre produit \"Disque de frein avant Brembo ventiles\" a été publié.",
+    "lien": "/fournisseur/produits/30",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-23T00:49:52.992Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 18,
+  "fields": {
+    "destinataire_id": 55,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin réactivé",
+    "message": "Votre magasin \"Garage Piece\" a été réactivé.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-25T05:25:27.311Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 19,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit retiré",
+    "message": "Votre produit \"Produit complet\" a été retiré du catalogue.",
+    "lien": "/fournisseur/produits/28",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-28T21:15:49.723Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 20,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit retiré",
+    "message": "Votre produit \"Test Produit\" a été retiré du catalogue.",
+    "lien": "/fournisseur/produits/27",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-28T21:15:54.035Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 21,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit retiré",
+    "message": "Votre produit \"Filtre a huile Bosh\" a été retiré du catalogue.",
+    "lien": "/fournisseur/produits/20",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-28T21:16:15.797Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 22,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit publié",
+    "message": "Votre produit \"Filtre a huile Bosch\" a été publié.",
+    "lien": "/fournisseur/produits/31",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-29T01:40:14.663Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 23,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit publié",
+    "message": "Votre produit \"Filtre a air Mann-Filter\" a été publié.",
+    "lien": "/fournisseur/produits/32",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-08-29T02:05:38.203Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 24,
+  "fields": {
+    "destinataire_id": 54,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a air Mann-Filter est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=32",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": false,
+    "created_at": "2026-08-29T02:05:38.215Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 25,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a air Mann-Filter est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=32",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": false,
+    "created_at": "2026-08-29T02:05:38.219Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 26,
+  "fields": {
+    "destinataire_id": 57,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a air Mann-Filter est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=32",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": true,
+    "created_at": "2026-08-29T02:05:38.223Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 27,
+  "fields": {
+    "destinataire_id": 51,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a air Mann-Filter est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=32",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": false,
+    "created_at": "2026-08-29T02:05:38.227Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 28,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit publié",
+    "message": "Votre produit \"Filtre a carburant Bosch DIesel\" a été publié.",
+    "lien": "/fournisseur/produits/33",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:21.038Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 29,
+  "fields": {
+    "destinataire_id": 57,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a carburant Bosch DIesel est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=33",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": true,
+    "created_at": "2026-09-05T12:15:21.140Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 30,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a carburant Bosch DIesel est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=33",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:21.144Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 31,
+  "fields": {
+    "destinataire_id": 54,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a carburant Bosch DIesel est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=33",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:21.149Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 32,
+  "fields": {
+    "destinataire_id": 51,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Filtre a carburant Bosch DIesel est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=33",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:21.154Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 33,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "produit",
+    "importance": "info",
+    "titre": "Produit publié",
+    "message": "Votre produit \"Bougies d'allumage NGK Iridium\" a été publié.",
+    "lien": "/fournisseur/produits/34",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:44.554Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 34,
+  "fields": {
+    "destinataire_id": 57,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Bougies d'allumage NGK Iridium est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=34",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:44.589Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 35,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Bougies d'allumage NGK Iridium est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=34",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:44.650Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 36,
+  "fields": {
+    "destinataire_id": 54,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Bougies d'allumage NGK Iridium est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=34",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:44.655Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 37,
+  "fields": {
+    "destinataire_id": 51,
+    "destinataire_type": "client",
+    "type": "ADMIN_ALERT",
+    "importance": "success",
+    "titre": "Nouveau produit disponible",
+    "message": "Le produit Bougies d'allumage NGK Iridium est maintenant disponible sur AutoMecaStore.",
+    "lien": "/produits?id=34",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-05T12:15:44.659Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 38,
+  "fields": {
+    "destinataire_id": 58,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin réactivé",
+    "message": "Votre magasin \"LaBouna & Freres\" a été réactivé.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-08T11:08:43.092Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 39,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Plaquettes de Frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 29,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:35.027Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 40,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Plaquettes de Frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 29,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:35.031Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 41,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Plaquettes de Frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 29,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:35.034Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 42,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a carburant Bosch DIesel",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:38.356Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 43,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a carburant Bosch DIesel",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:38.360Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 44,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a carburant Bosch DIesel",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 33,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:38.362Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 45,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Disque de frein avant Brembo ventiles",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 30,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:41.136Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 46,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Disque de frein avant Brembo ventiles",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 30,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:41.139Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 47,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Disque de frein avant Brembo ventiles",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 30,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:41.141Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 48,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Bougies d'allumage NGK Iridium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:43.616Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 49,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Bougies d'allumage NGK Iridium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:43.619Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 50,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Bougies d'allumage NGK Iridium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 34,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:43.621Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 51,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a huile Bosch",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 31,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:46.087Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 52,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a huile Bosch",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 31,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:46.091Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 53,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a huile Bosch",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 31,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:46.093Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 54,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a air Mann-Filter",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:48.426Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 55,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a air Mann-Filter",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:48.429Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 56,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur LaBouna & Freres a supprimé le produit : Filtre a air Mann-Filter",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 32,
+    "lu": false,
+    "created_at": "2026-09-08T11:49:48.431Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 57,
+  "fields": {
+    "destinataire_id": 42,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin réactivé",
+    "message": "Votre magasin \"Garage Auto Piece\" a été réactivé.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:24.187Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 58,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Amortisseur avant Monroe",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 22,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:49.524Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 59,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Amortisseur avant Monroe",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 22,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:49.528Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 60,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Amortisseur avant Monroe",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 22,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:49.530Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 61,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Phare avant LED Toyota Hilux",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 25,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:52.357Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 62,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Phare avant LED Toyota Hilux",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 25,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:52.362Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 63,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Phare avant LED Toyota Hilux",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 25,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:52.364Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 64,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Batterie Bosch S5 A08",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 23,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:54.950Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 65,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Batterie Bosch S5 A08",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 23,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:54.953Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 66,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Batterie Bosch S5 A08",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 23,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:54.957Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 67,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Bougie NGK Iridium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 21,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:57.132Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 68,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Bougie NGK Iridium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 21,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:57.135Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 69,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Bougie NGK Iridium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 21,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:57.137Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 70,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 19,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:59.505Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 71,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 19,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:59.509Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 72,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 19,
+    "lu": false,
+    "created_at": "2026-09-08T11:50:59.511Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 73,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Alternateur Denso 90A",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 24,
+    "lu": false,
+    "created_at": "2026-09-08T11:51:02.118Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 74,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Alternateur Denso 90A",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 24,
+    "lu": false,
+    "created_at": "2026-09-08T11:51:02.121Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 75,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "warning",
+    "titre": "Produit supprimé",
+    "message": "Le fournisseur Garage Auto Piece a supprimé le produit : Alternateur Denso 90A",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 24,
+    "lu": false,
+    "created_at": "2026-09-08T11:51:02.124Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 76,
+  "fields": {
+    "destinataire_id": 55,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin réactivé",
+    "message": "Votre magasin \"Garage Piece\" a été réactivé.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-08T11:52:09.577Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 77,
+  "fields": {
+    "destinataire_id": 60,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin validé",
+    "message": "Votre magasin \"Mouhamed automobile\" a été validé par l'administrateur.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-08T22:45:03.726Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 78,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Mouhamed automobile a ajouté un nouveau produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 35,
+    "lu": false,
+    "created_at": "2026-09-08T23:55:01.348Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 79,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Mouhamed automobile a ajouté un nouveau produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 35,
+    "lu": false,
+    "created_at": "2026-09-08T23:55:01.352Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 80,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Mouhamed automobile a ajouté un nouveau produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 35,
+    "lu": false,
+    "created_at": "2026-09-08T23:55:01.354Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 81,
+  "fields": {
+    "destinataire_id": 60,
+    "destinataire_type": "fournisseur",
+    "type": "promotion",
+    "importance": "info",
+    "titre": "Nouvelle promotion créée",
+    "message": "La promotion « Soldes d'ete » a été créée.",
+    "lien": "/fournisseur/promotions",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-08T23:59:04.371Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 82,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouvelle promotion créée",
+    "message": "Le fournisseur Mouhamed automobile a créé une promotion : Soldes d'ete",
+    "lien": "/admin/produits",
+    "objet_type": "Promotion",
+    "objet_id": 3,
+    "lu": false,
+    "created_at": "2026-09-08T23:59:04.377Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 83,
+  "fields": {
+    "destinataire_id": 35,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouvelle promotion créée",
+    "message": "Le fournisseur Mouhamed automobile a créé une promotion : Soldes d'ete",
+    "lien": "/admin/produits",
+    "objet_type": "Promotion",
+    "objet_id": 3,
+    "lu": false,
+    "created_at": "2026-09-08T23:59:04.380Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 84,
+  "fields": {
+    "destinataire_id": 2,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouvelle promotion créée",
+    "message": "Le fournisseur Mouhamed automobile a créé une promotion : Soldes d'ete",
+    "lien": "/admin/produits",
+    "objet_type": "Promotion",
+    "objet_id": 3,
+    "lu": false,
+    "created_at": "2026-09-08T23:59:04.382Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 85,
+  "fields": {
+    "destinataire_id": 61,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin validé",
+    "message": "Votre magasin \"Laye Automobile\" a été validé par l'administrateur.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-11T18:11:01.495Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 86,
+  "fields": {
+    "destinataire_id": 62,
+    "destinataire_type": "fournisseur",
+    "type": "systeme",
+    "importance": "info",
+    "titre": "Magasin validé",
+    "message": "Votre magasin \"Laye Automobile & Freres\" a été validé par l'administrateur.",
+    "lien": "/fournisseur/dashboard",
+    "objet_type": "",
+    "objet_id": null,
+    "lu": false,
+    "created_at": "2026-09-12T19:06:10.457Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 87,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Laye Automobile & Freres a ajouté un nouveau produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 35,
+    "lu": false,
+    "created_at": "2026-09-12T19:22:45.188Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 88,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Laye Automobile & Freres a ajouté un nouveau produit : Plaquettes de frein avant Brembo Premium",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 37,
+    "lu": false,
+    "created_at": "2026-09-12T19:23:07.038Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 89,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Laye Automobile & Freres a ajouté un nouveau produit : Disques de frein avant Brembo ventilés",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 38,
+    "lu": false,
+    "created_at": "2026-09-13T20:28:21.720Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 90,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Laye Automobile & Freres a ajouté un nouveau produit : Filtre a huile Bosch",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 39,
+    "lu": false,
+    "created_at": "2026-09-13T20:36:23.260Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 91,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Produit modifié",
+    "message": "Le fournisseur Laye Automobile & Freres a modifié le produit : Filtre a huile Bosch",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 39,
+    "lu": false,
+    "created_at": "2026-09-13T20:36:37.456Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 92,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouveau produit ajouté",
+    "message": "Le fournisseur Laye Automobile & Freres a ajouté un nouveau produit : Filtre a air Mann-Filter",
+    "lien": "/admin/produits",
+    "objet_type": "Produit",
+    "objet_id": 40,
+    "lu": false,
+    "created_at": "2026-09-13T20:46:08.361Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 93,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouvelle commande créée",
+    "message": "Le client MoussaBa12@gmail.com a passé une nouvelle commande (Réf: CMD20260914-FQYLN7)",
+    "lien": "/admin/commandes",
+    "objet_type": "Commande",
+    "objet_id": 11,
+    "lu": false,
+    "created_at": "2026-09-14T16:24:24.236Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 94,
+  "fields": {
+    "destinataire_id": 62,
+    "destinataire_type": "fournisseur",
+    "type": "ORDER_CREATED",
+    "importance": "info",
+    "titre": "Nouvelle commande",
+    "message": "Une nouvelle commande (CMD20260914-FQYLN7) a été passée pour l'un de vos produits.",
+    "lien": "/fournisseur/commandes",
+    "objet_type": "Commande",
+    "objet_id": 11,
+    "lu": false,
+    "created_at": "2026-09-14T16:24:24.266Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 95,
+  "fields": {
+    "destinataire_id": 59,
+    "destinataire_type": "client",
+    "type": "ORDER_CREATED",
+    "importance": "success",
+    "titre": "Commande créée",
+    "message": "Votre commande CMD20260914-FQYLN7 a été créée avec succès.",
+    "lien": "/mes-commandes/11",
+    "objet_type": "Commande",
+    "objet_id": 11,
+    "lu": false,
+    "created_at": "2026-09-14T16:24:24.267Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 96,
+  "fields": {
+    "destinataire_id": 3,
+    "destinataire_type": "admin",
+    "type": "ADMIN_ALERT",
+    "importance": "info",
+    "titre": "Nouvelle commande créée",
+    "message": "Le client MoussaBa12@gmail.com a passé une nouvelle commande (Réf: CMD20260914-8G9NSM)",
+    "lien": "/admin/commandes",
+    "objet_type": "Commande",
+    "objet_id": 12,
+    "lu": false,
+    "created_at": "2026-09-14T16:39:16.333Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 97,
+  "fields": {
+    "destinataire_id": 62,
+    "destinataire_type": "fournisseur",
+    "type": "ORDER_CREATED",
+    "importance": "info",
+    "titre": "Nouvelle commande",
+    "message": "Une nouvelle commande (CMD20260914-8G9NSM) a été passée pour l'un de vos produits.",
+    "lien": "/fournisseur/commandes",
+    "objet_type": "Commande",
+    "objet_id": 12,
+    "lu": false,
+    "created_at": "2026-09-14T16:39:16.355Z"
+  }
+},
+{
+  "model": "fournisseur.notification",
+  "pk": 98,
+  "fields": {
+    "destinataire_id": 59,
+    "destinataire_type": "client",
+    "type": "ORDER_CREATED",
+    "importance": "success",
+    "titre": "Commande créée",
+    "message": "Votre commande CMD20260914-8G9NSM a été créée avec succès.",
+    "lien": "/mes-commandes/12",
+    "objet_type": "Commande",
+    "objet_id": 12,
+    "lu": false,
+    "created_at": "2026-09-14T16:39:16.356Z"
+  }
+},
+{
+  "model": "fournisseur.magasin",
+  "pk": 4,
+  "fields": {
+    "fournisseur": 60,
+    "nom_magasin": "Mouhamed automobile",
+    "logo": "",
+    "photo_couverture": "",
+    "description": "Entreprise spécialisée sur la vente de pièces détachées automobile, livraison intégrée",
+    "telephone": "778257786",
+    "whatsapp": "778257786",
+    "email": "mouhamedToue88@gmail.com",
+    "adresse_complete": "Commune de Rufisque Nord",
+    "ville": "Rufisque",
+    "region": "Région de Dakar",
+    "latitude": "14.7384025",
+    "longitude": "-17.2807803",
+    "horaires_ouverture": {
+      "jeudi": {
+        "fin": "18:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "lundi": {
+        "fin": "18:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "mardi": {
+        "fin": "18:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "samedi": {
+        "fin": "13:00",
+        "debut": "09:00",
+        "ouvert": true
+      },
+      "dimanche": {
+        "fin": "",
+        "debut": "",
+        "ouvert": false
+      },
+      "mercredi": {
+        "fin": "18:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "vendredi": {
+        "fin": "18:00",
+        "debut": "08:00",
+        "ouvert": true
+      }
+    },
+    "jours_ouverture": "Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "rayon_livraison_km": 20,
+    "mode_tarif_livraison": "non_defini",
+    "frais_livraison": "0.00",
+    "tarif_gratuit_desous": "0.00",
+    "delai_livraison_estime": "",
+    "date_creation": "2026-09-08T22:52:10.818Z",
+    "date_modification": "2026-09-08T23:33:06.678Z",
+    "note_moyenne": null,
+    "nombre_avis": 0
+  }
+},
+{
+  "model": "fournisseur.magasin",
+  "pk": 5,
+  "fields": {
+    "fournisseur": 62,
+    "nom_magasin": "Laye Automobile & Freres",
+    "logo": "",
+    "photo_couverture": "",
+    "description": "Entreprise basée  sur la vente de pièce détachée automobile",
+    "telephone": "784492568",
+    "whatsapp": "784492568",
+    "email": "ablayedjiby81@gmail.com",
+    "adresse_complete": "Dakar, Rufisque",
+    "ville": "Rufisque",
+    "region": "Région de Dakar",
+    "latitude": "14.7382592",
+    "longitude": "-17.2810240",
+    "horaires_ouverture": {
+      "jeudi": {
+        "fin": "21:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "lundi": {
+        "fin": "21:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "mardi": {
+        "fin": "21:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "samedi": {
+        "fin": "18:00",
+        "debut": "09:00",
+        "ouvert": true
+      },
+      "dimanche": {
+        "fin": "",
+        "debut": "",
+        "ouvert": false
+      },
+      "mercredi": {
+        "fin": "21:00",
+        "debut": "08:00",
+        "ouvert": true
+      },
+      "vendredi": {
+        "fin": "21:00",
+        "debut": "08:00",
+        "ouvert": true
+      }
+    },
+    "jours_ouverture": "Lundi, Mardi, Mercredi, Jeudi, Vendredi, Samedi",
+    "livraison_disponible": true,
+    "retrait_magasin": true,
+    "rayon_livraison_km": 102,
+    "mode_tarif_livraison": "non_defini",
+    "frais_livraison": "0.00",
+    "tarif_gratuit_desous": "0.00",
+    "delai_livraison_estime": "",
+    "date_creation": "2026-09-12T19:25:58.031Z",
+    "date_modification": "2026-09-14T16:03:55.206Z",
+    "note_moyenne": null,
+    "nombre_avis": 0
+  }
+},
+{
+  "model": "admin_api.financeconfig",
+  "pk": 1,
+  "fields": {
+    "commission_rate": "10.00",
+    "vat_rate": "20.00",
+    "base_shipping_fee": "5.90"
+  }
+},
+{
+  "model": "admin_api.apiconfig",
+  "pk": 1,
+  "fields": {
+    "auth_method": "Token Authentication (HTTP Bearer)",
+    "database_routing": "PostgreSQL"
+  }
+}
+]
