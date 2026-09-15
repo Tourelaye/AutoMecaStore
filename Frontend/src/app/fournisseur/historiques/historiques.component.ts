@@ -37,7 +37,7 @@ export class HistoriquesComponent implements OnInit {
   showConfirmClear = false;
   private toastTimeout: any;
 
-  private apiUrl = 'environment.apiUrl/api/fournisseur/historique';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur/historique`;
 
   activites: Activite[] = [];
 

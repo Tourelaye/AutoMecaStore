@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.http import HttpResponse
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve
 
 def home(request):
     return HttpResponse("Bienvenue sur AutoMecaStore API 🚗🔥")
@@ -38,5 +38,13 @@ urlpatterns = [
     path('api/', include('demandes.urls')),
 ]
 
-# Serve media files in development and production
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files regardless of DEBUG (django.conf.urls.static.static() is a
+# no-op when DEBUG=False). Uploads live on the app filesystem: use a persistent
+# disk or object storage in production.
+urlpatterns += [
+    re_path(
+        r'^%s(?P<path>.*)$' % settings.MEDIA_URL.lstrip('/'),
+        serve,
+        {'document_root': settings.MEDIA_ROOT},
+    ),
+]

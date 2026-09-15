@@ -55,7 +55,7 @@ export interface TwoFactorResponse {
   providedIn: 'root'
 })
 export class SecurityService {
-  private readonly apiUrl = 'environment.apiUrl/account/security';
+  private readonly apiUrl = `${environment.apiUrl}/account/security`;
 
   constructor(private http: HttpClient) {}
 

@@ -54,7 +54,7 @@ export interface CommandeCreateRequest {
   providedIn: 'root'
 })
 export class CommandeClientService {
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient,

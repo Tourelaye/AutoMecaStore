@@ -243,7 +243,7 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
     if (!image) return 'assets/img/placeholder.png';
     if (image.startsWith('http://') || image.startsWith('https://')) return image;
     const separator = image.startsWith('/') ? '' : '/';
-    return `environment.apiUrl${separator}${image}`;
+    return `${environment.apiUrl}${separator}${image}`;
   }
 
   trackByUserId(_: number, u: AdminUtilisateur): number {

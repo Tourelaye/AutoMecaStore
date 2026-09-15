@@ -28,7 +28,7 @@ export interface LoginResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private apiUrl = 'environment.apiUrl/account';
+  private apiUrl = `${environment.apiUrl}/account`;
 
   private utilisateurSubject = new BehaviorSubject<Utilisateur | null>(null);
   public utilisateur$ = this.utilisateurSubject.asObservable();

@@ -224,7 +224,7 @@ export interface ProduitListResponse {
 })
 export class ProduitService {
 
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) {}
 

@@ -102,7 +102,7 @@ export interface Magasin {
   providedIn: 'root'
 })
 export class FournisseurService {
-  private apiUrl = 'environment.apiUrl/api/fournisseur';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur`;
 
   constructor(
     private http: HttpClient,

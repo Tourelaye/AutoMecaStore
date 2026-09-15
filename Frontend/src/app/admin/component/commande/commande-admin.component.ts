@@ -321,7 +321,7 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
   getProduitImageUrl(url?: string | null): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `environment.apiUrl${url.startsWith('/') ? '' : '/'}${url}`;
+    return `${environment.apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
   }
 
   getTotalMontant(): number {

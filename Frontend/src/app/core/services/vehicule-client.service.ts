@@ -9,7 +9,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class VehiculeClientService {
-  private apiUrl = 'environment.apiUrl/api/vehicules';
+  private apiUrl = `${environment.apiUrl}/api/vehicules`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

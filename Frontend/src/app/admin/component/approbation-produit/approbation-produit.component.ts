@@ -240,7 +240,7 @@ export class ApprobationProduitComponent implements OnInit {
   getImageUrl(image?: string | null): string {
     if (!image) return 'assets/images/placeholder-product.png';
     if (image.startsWith('http')) return image;
-    return `environment.apiUrl${image}`;
+    return `${environment.apiUrl}${image}`;
   }
 
   onImageError(event: Event): void {

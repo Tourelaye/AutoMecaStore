@@ -25,7 +25,7 @@ export interface Produit {
   providedIn: 'root'
 })
 export class ApprobationProduitService {
-  private apiUrl = 'environment.apiUrl/api/admin/produits';
+  private apiUrl = `${environment.apiUrl}/api/admin/produits`;
 
   constructor(private http: HttpClient) {}
 

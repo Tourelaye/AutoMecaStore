@@ -83,7 +83,7 @@ export interface Demande {
   providedIn: 'root'
 })
 export class DemandeService {
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient,

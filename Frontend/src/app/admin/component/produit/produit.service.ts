@@ -112,8 +112,8 @@ const LOW_STOCK_THRESHOLD = 5;
 
 @Injectable({ providedIn: 'root' })
 export class ProduitService {
-  private readonly apiUrl = 'environment.apiUrl/api/admin/produits/';
-  private readonly baseUrl = 'environment.apiUrl';
+  private readonly apiUrl = `${environment.apiUrl}/api/admin/produits/`;
+  private readonly baseUrl = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 

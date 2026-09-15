@@ -73,7 +73,7 @@ export class AideComponent {
       v.message
     ].filter(Boolean).join('\n');
 
-    this.http.post('environment.apiUrl/api/message/create/', {
+    this.http.post(`${environment.apiUrl}/api/message/create/`, {
       objet,
       contenu
     }).subscribe({

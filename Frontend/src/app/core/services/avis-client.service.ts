@@ -33,7 +33,7 @@ export interface AvisStats {
   providedIn: 'root'
 })
 export class AvisClientService {
-  private apiUrl = 'environment.apiUrl/api/avis';
+  private apiUrl = `${environment.apiUrl}/api/avis`;
 
   constructor(private http: HttpClient) {}
 

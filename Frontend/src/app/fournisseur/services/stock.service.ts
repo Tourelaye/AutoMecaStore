@@ -30,7 +30,7 @@ export interface MouvementPayload {
   providedIn: 'root'
 })
 export class StockService {
-  private apiUrl = 'environment.apiUrl/api/fournisseur/stock';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur/stock`;
 
   constructor(private http: HttpClient) {}
 

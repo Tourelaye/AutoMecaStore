@@ -15,7 +15,7 @@ import {
   providedIn: 'root'
 })
 export class AdminUtilisateurService {
-  private readonly baseUrl = 'environment.apiUrl/api/admin/utilisateurs';
+  private readonly baseUrl = `${environment.apiUrl}/api/admin/utilisateurs`;
 
   constructor(private http: HttpClient) {}
 

@@ -37,7 +37,7 @@ export interface Livraison {
 
 @Injectable({ providedIn: 'root' })
 export class LivraisonService {
-  private readonly baseUrl = 'environment.apiUrl/api';
+  private readonly baseUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient,

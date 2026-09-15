@@ -37,7 +37,7 @@ export interface ApiConfig {
 
 @Injectable({ providedIn: 'root' })
 export class ParametresService {
-  private apiUrl = 'environment.apiUrl/api/admin';
+  private apiUrl = `${environment.apiUrl}/api/admin`;
 
   constructor(private http: HttpClient) {}
 

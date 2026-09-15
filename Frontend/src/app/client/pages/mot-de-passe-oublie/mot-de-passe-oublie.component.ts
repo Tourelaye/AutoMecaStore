@@ -26,7 +26,7 @@ export class ClientMotDePasseOublieComponent {
 
   readonly currentYear = new Date().getFullYear();
 
-  private apiUrl = 'environment.apiUrl/account';
+  private apiUrl = `${environment.apiUrl}/account`;
 
   constructor(
     private router: Router,

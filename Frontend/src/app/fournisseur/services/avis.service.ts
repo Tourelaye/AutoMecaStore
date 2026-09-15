@@ -59,7 +59,7 @@ export interface AvisFilters {
   providedIn: 'root'
 })
 export class AvisService {
-  private apiUrl = 'environment.apiUrl/api/fournisseur/avis';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur/avis`;
 
   constructor(private http: HttpClient) {}
 

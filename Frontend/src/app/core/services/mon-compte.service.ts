@@ -149,8 +149,8 @@ export interface PanierResponse {
   providedIn: 'root'
 })
 export class MonCompteService {
-  private readonly API_URL = 'environment.apiUrl/account';
-  private readonly DELIVERY_URL = 'environment.apiUrl/api';
+  private readonly API_URL = `${environment.apiUrl}/account`;
+  private readonly DELIVERY_URL = `${environment.apiUrl}/api`;
 
   // BehaviorSubjects pour la mise à jour automatique
   private clientInfoSubject = new BehaviorSubject<ClientInfo | null>(null);

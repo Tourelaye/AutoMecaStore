@@ -9,7 +9,7 @@ import { Categorie } from '../../models/categorie.model';
 })
 export class CategorieService {
 
-  private apiUrl = "environment.apiUrl/api/categories/";
+  private apiUrl = `${environment.apiUrl}/api/categories/`;
 
   constructor(private http: HttpClient) { }
 
@@ -34,6 +34,6 @@ export class CategorieService {
   }
 
   reorderCategories(items: { id: number; ordre: number }[]): Observable<{ updated: number }> {
-    return this.http.post<{ updated: number }>('environment.apiUrl/api/admin/categories/reorder/', { items });
+    return this.http.post<{ updated: number }>(`${environment.apiUrl}/api/admin/categories/reorder/`, { items });
   }
 }

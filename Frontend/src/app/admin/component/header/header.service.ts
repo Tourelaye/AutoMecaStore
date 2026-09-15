@@ -21,7 +21,7 @@ export interface NotificationsResponse {
   providedIn: 'root'
 })
 export class HeaderService {
-  private baseUrl = 'environment.apiUrl/account';
+  private baseUrl = `${environment.apiUrl}/account`;
 
   constructor(private http: HttpClient) {}
 
