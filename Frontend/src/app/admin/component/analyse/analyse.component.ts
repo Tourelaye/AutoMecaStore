@@ -206,7 +206,7 @@ export class AnalyseComponent implements OnInit {
 
   formatMoney(value?: number): string {
     if (value === undefined || value === null) return '—';
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value);
+    return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
   }
 
   formatNumber(value?: number): string {

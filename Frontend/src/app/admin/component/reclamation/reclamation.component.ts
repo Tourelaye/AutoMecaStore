@@ -30,7 +30,7 @@ export class ReclamationComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
 
-  filters: ReclamationFilters = {};
+  filters: ReclamationFilters = this.defaultFilters();
   searchTerm = '';
 
   statutOptions = [
@@ -193,8 +193,12 @@ export class ReclamationComponent implements OnInit, OnDestroy {
     this.loadReclamations();
   }
 
+  private defaultFilters(): ReclamationFilters {
+    return { statut: 'tous', priorite: 'tous', motif: 'tous', periode: 'tous' };
+  }
+
   resetFilters(): void {
-    this.filters = {};
+    this.filters = this.defaultFilters();
     this.searchTerm = '';
     this.loadReclamations();
   }

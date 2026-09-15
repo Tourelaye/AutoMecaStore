@@ -7,6 +7,9 @@ from account.models import Utilisateur, Client, Fournisseur, Administrateur, Sec
 from fournisseur.models import Magasin
 from catalog.models import Produit
 
+RECLAMATION_STATUTS_CLOS = ('resolu', 'rejete', 'ferme')
+COMMANDE_STATUTS_HORS_CA = ('annulee', 'refusee')
+
 
 class FinanceConfigSerializer(serializers.ModelSerializer):
     class Meta:
@@ -167,11 +170,8 @@ def get_commande_alertes(commande, now=None):
     if commande.mode_paiement in statuts_payable and commande.statut not in ('terminee', 'livree', 'annulee'):
         alertes.append({'type': 'paiement', 'label': 'Paiement en attente', 'severity': 'low'})
 
-    if hasattr(commande, 'reclamation_set'):
-        for r in commande.reclamation_set.all():
-            if r.statut == 'EN_ATTENTE':
-                alertes.append({'type': 'litige', 'label': 'Litige ouvert', 'severity': 'high'})
-                break
+    if any(r.statut not in RECLAMATION_STATUTS_CLOS for r in commande.reclamations.all()):
+        alertes.append({'type': 'litige', 'label': 'Litige ouvert', 'severity': 'high'})
 
     return alertes
 

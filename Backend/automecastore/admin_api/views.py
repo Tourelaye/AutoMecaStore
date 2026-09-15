@@ -37,6 +37,8 @@ from .serializers import (
     UtilisateurAdminListSerializer,
     UtilisateurAdminDetailSerializer,
     SecurityActivityAdminSerializer,
+    RECLAMATION_STATUTS_CLOS,
+    COMMANDE_STATUTS_HORS_CA,
 )
 
 
@@ -117,21 +119,20 @@ class AdminDashboardStatsView(APIView):
             commandes_jour_prev = Commande.objects.filter(date_commande__date=yesterday).count()
             commandes_mois = Commande.objects.filter(date_commande__gte=this_month_start).count()
 
-            lignes_mois = LigneCommande.objects.filter(
-                commande__date_commande__gte=this_month_start,
-                commande__date_commande__lt=next_month_start
-            )
-            ca_mois = float(lignes_mois.aggregate(total=Sum('sous_total'))['total'] or 0)
+            commandes_ca = Commande.objects.exclude(statut__in=COMMANDE_STATUTS_HORS_CA)
+            ca_mois = float(commandes_ca.filter(
+                date_commande__gte=this_month_start,
+                date_commande__lt=next_month_start
+            ).aggregate(total=Sum('montant_total'))['total'] or 0)
 
-            lignes_mois_prev = LigneCommande.objects.filter(
-                commande__date_commande__gte=last_month_start,
-                commande__date_commande__lt=this_month_start
-            )
-            ca_mois_prev = float(lignes_mois_prev.aggregate(total=Sum('sous_total'))['total'] or 0)
+            ca_mois_prev = float(commandes_ca.filter(
+                date_commande__gte=last_month_start,
+                date_commande__lt=this_month_start
+            ).aggregate(total=Sum('montant_total'))['total'] or 0)
 
-            ca_total = float(LigneCommande.objects.aggregate(total=Sum('sous_total'))['total'] or 0)
+            ca_total = float(commandes_ca.aggregate(total=Sum('montant_total'))['total'] or 0)
 
-            reclamations_ouvertes = Reclamation.objects.filter(statut='EN_ATTENTE').count()
+            reclamations_ouvertes = Reclamation.objects.exclude(statut__in=RECLAMATION_STATUTS_CLOS).count()
 
             # ---- KPIs ----
             kpis = [
@@ -204,7 +205,10 @@ class AdminDashboardStatsView(APIView):
                     commande__date_commande__gte=start,
                     commande__date_commande__lt=end
                 )
-                ca = float(mois_lignes.aggregate(total=Sum('sous_total'))['total'] or 0)
+                ca = float(commandes_ca.filter(
+                    date_commande__gte=start,
+                    date_commande__lt=end
+                ).aggregate(total=Sum('montant_total'))['total'] or 0)
                 ventes = int(mois_lignes.aggregate(total=Sum('quantite'))['total'] or 0)
                 commandes = Commande.objects.filter(
                     date_commande__gte=start,
@@ -297,7 +301,7 @@ class AdminDashboardStatsView(APIView):
                 nom = f"{c.user.prenom} {c.user.nom}".strip()
                 add_activite(c.date_inscription, 'client', 'bi-person-plus',
                              f'Nouveau client <strong>{nom}</strong> inscrit',
-                             '/admin/clients', c.user_id)
+                             '/admin/utilisateurs', c.user_id)
 
             for avis in Avis.objects.select_related('client__user', 'produit').order_by('-date')[:3]:
                 client = f"{avis.client.user.prenom} {avis.client.user.nom}".strip() if avis.client else 'Client'
@@ -310,7 +314,7 @@ class AdminDashboardStatsView(APIView):
                 client = f"{rec.client.user.prenom} {rec.client.user.nom}".strip() if rec.client else 'Client'
                 add_activite(rec.date_soumission, 'reclamation', 'bi-exclamation-circle',
                              f'Réclamation <strong>{rec.objet}</strong> créée par {client}',
-                             '/admin/avis', rec.id)
+                             '/admin/reclamations', rec.id)
 
             activites.sort(key=lambda x: x['date'], reverse=True)
             activites = activites[:12]
@@ -1075,7 +1079,7 @@ class AdminFournisseurListView(generics.ListAPIView):
         data = []
         for f in fournisseurs:
             magasin = getattr(f, 'magasin', None)
-            nb_commandes = self._count_commandes(f)
+            stats = self._stats(f)
             data.append({
                 'user': {
                     'id': f.user.id,
@@ -1106,21 +1110,25 @@ class AdminFournisseurListView(generics.ListAPIView):
                 'statut_label': f.get_statut_display() if hasattr(f, 'get_statut_display') else f.statut,
                 'note_moyenne': f.note_moyenne,
                 'nombre_avis': f.nombre_avis,
-                'nombre_produits': f.nombre_produits,
-                'nombre_ventes': f.nombre_ventes,
-                'nombre_commandes': nb_commandes,
-                'chiffre_affaires': f.chiffre_affaires,
+                **stats,
                 'nom_complet': f.nom_complet,
                 'raison_refus': f.raison_refus or '',
                 'date_validation': f.date_validation,
             })
         return Response(data)
 
-    def _count_commandes(self, fournisseur):
-        try:
-            return LigneCommande.objects.filter(produit__fournisseur=fournisseur).values('commande_id').distinct().count()
-        except Exception:
-            return 0
+    @staticmethod
+    def _stats(fournisseur):
+        lignes = LigneCommande.objects.filter(produit__fournisseur=fournisseur)
+        ventes = lignes.exclude(
+            commande__statut__in=COMMANDE_STATUTS_HORS_CA
+        ).aggregate(quantite=Sum('quantite'), ca=Sum('sous_total'))
+        return {
+            'nombre_produits': fournisseur.produits.count(),
+            'nombre_ventes': int(ventes['quantite'] or 0),
+            'nombre_commandes': lignes.values('commande_id').distinct().count(),
+            'chiffre_affaires': float(ventes['ca'] or 0),
+        }
 
 
 class AdminFournisseurDetailView(APIView):
@@ -1131,7 +1139,7 @@ class AdminFournisseurDetailView(APIView):
         try:
             f = Fournisseur.objects.select_related('user', 'magasin').get(user_id=user_id)
             magasin = getattr(f, 'magasin', None)
-            nb_commandes = AdminFournisseurListView()._count_commandes(f)
+            stats = AdminFournisseurListView._stats(f)
             return Response({
                 'user': {
                     'id': f.user.id,
@@ -1169,10 +1177,7 @@ class AdminFournisseurDetailView(APIView):
                 'statut_label': f.get_statut_display() if hasattr(f, 'get_statut_display') else f.statut,
                 'note_moyenne': f.note_moyenne,
                 'nombre_avis': f.nombre_avis,
-                'nombre_produits': f.nombre_produits,
-                'nombre_ventes': f.nombre_ventes,
-                'nombre_commandes': nb_commandes,
-                'chiffre_affaires': f.chiffre_affaires,
+                **stats,
                 'nom_complet': f.nom_complet,
                 'raison_refus': f.raison_refus or '',
                 'date_validation': f.date_validation,
@@ -1580,7 +1585,8 @@ class AdminCommandeListView(APIView):
             'lignes__produit__fournisseur__user',
             'client__user',
             'historique__utilisateur',
-            'livraisons__livreur__user'
+            'livraisons__livreur__user',
+            'reclamations'
         ).order_by('-date_commande')
 
         statut = request.query_params.get('statut')
@@ -1651,7 +1657,8 @@ class AdminCommandeDetailView(APIView):
                 'lignes__produit__fournisseur__user',
                 'client__user',
                 'historique__utilisateur',
-                'livraisons__livreur__user'
+                'livraisons__livreur__user',
+                'reclamations'
             ).get(pk=pk)
         except Commande.DoesNotExist:
             return Response({'error': 'Commande non trouvée'}, status=status.HTTP_404_NOT_FOUND)
@@ -1674,7 +1681,7 @@ class AdminCommandeStatsView(APIView):
 
         total = Commande.objects.count()
         aujourdhui = Commande.objects.filter(date_commande__date=today).count()
-        terminees = Commande.objects.filter(statut='terminee').count()
+        terminees = Commande.objects.filter(statut__in=['terminee', 'livree']).count()
         annulees = Commande.objects.filter(statut='annulee').count()
         en_preparation = Commande.objects.filter(statut__in=['en_preparation', 'prete_a_retirer', 'en_cours_livraison']).count()
 
@@ -1769,7 +1776,7 @@ class AdminCommandeAlertsView(APIView):
                     'client': commande.client and f"{commande.client.user.nom} {commande.client.user.prenom}".strip() or 'Client inconnu'
                 })
 
-            for r in commande.reclamation_set.filter(statut='EN_ATTENTE'):
+            for r in commande.reclamations.exclude(statut__in=RECLAMATION_STATUTS_CLOS):
                 alertes.append({
                     'id': f"{commande.id}-litige-{r.id}",
                     'commande_id': commande.id,

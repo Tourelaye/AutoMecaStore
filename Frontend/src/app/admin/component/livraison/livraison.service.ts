@@ -31,6 +31,7 @@ export interface Livraison {
   date_attribution?: string;
   date_livraison?: string;
   instructions?: string;
+  remarque?: string;
 }
 
 @Injectable({ providedIn: 'root' })

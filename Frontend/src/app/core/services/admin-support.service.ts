@@ -18,15 +18,41 @@ export interface AdminAvis {
   produit_image: string | null;
   magasin_nom: string | null;
   commande_reference: string | null;
+  fournisseur_nom: string | null;
   nb_signalements: number;
   signale_en_attente: boolean;
+  note_qualite_produit: number | null;
+  note_delai: number | null;
+  note_communication: number | null;
+  note_livraison: number | null;
+  reponse_fournisseur: string | null;
+  date_reponse: string | null;
 }
 
-export interface AdminAvisDetail extends AdminAvis {
-  client: number | null;
-  produit: number | null;
-  magasin: number | null;
-  commande: number | null;
+export interface AdminAvisSignalement {
+  id: number;
+  client_nom: string | null;
+  fournisseur_nom: string | null;
+  motif: string;
+  motif_label: string;
+  commentaire: string;
+  date: string;
+  statut: string;
+  statut_label: string;
+}
+
+export interface AdminAvisDetail {
+  id: number;
+  note: number;
+  commentaire: string;
+  date: string;
+  approuve: boolean;
+  achat_verifie: boolean;
+  client: { id: number; nom: string; prenom: string; nom_complet: string; email: string; telephone: string | null; photo: string | null } | null;
+  produit: { id: number; nom: string; reference: string | null; image: string | null; prix: number | null } | null;
+  magasin: { id: number; nom_magasin: string } | null;
+  commande: { id: number; reference: string; date_commande: string; statut: string; montant_total: number } | null;
+  ligne_commande: number | null;
   note_qualite_produit: number | null;
   note_delai: number | null;
   note_communication: number | null;
@@ -34,8 +60,8 @@ export interface AdminAvisDetail extends AdminAvis {
   reponse_fournisseur: string | null;
   date_reponse: string | null;
   reponse_fournisseur_nom: string | null;
-  photos: any[];
-  signale: boolean;
+  photos: string[];
+  signalements: AdminAvisSignalement[];
 }
 
 export interface AdminAvisStats {

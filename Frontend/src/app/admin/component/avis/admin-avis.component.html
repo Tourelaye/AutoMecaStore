@@ -1,158 +1,333 @@
-<div class="admin-avis">
-  <!-- Stats -->
-  <div class="stats-row" *ngIf="stats">
-    <div class="stat-box">
-      <span class="stat-num">{{ stats.total }}</span>
-      <span class="stat-label">Total</span>
+<div class="sp-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-title">
+      <span class="page-tag"><i class="bi bi-star-fill"></i> Modération</span>
+      <h2>Avis clients</h2>
+      <p>Modérez les avis produits et magasins, répondez aux clients et traitez les signalements.</p>
     </div>
-    <div class="stat-box green">
-      <span class="stat-num">{{ stats.visibles }}</span>
-      <span class="stat-label">Visibles</span>
-    </div>
-    <div class="stat-box orange">
-      <span class="stat-num">{{ stats.masques }}</span>
-      <span class="stat-label">Masqués</span>
-    </div>
-    <div class="stat-box red">
-      <span class="stat-num">{{ stats.signales }}</span>
-      <span class="stat-label">Signalés</span>
-    </div>
-    <div class="stat-box blue">
-      <span class="stat-num">{{ stats.note_moyenne }}</span>
-      <span class="stat-label">Note moy.</span>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refresh()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i> Actualiser
+      </button>
     </div>
   </div>
 
-  <!-- Filters -->
-  <div class="filters-bar">
-    <input type="text" class="search-input" placeholder="Rechercher..." [(ngModel)]="search" (ngModelChange)="onSearch()">
-    <select class="filter-select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
+  <!-- STATS -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon text-blue"><i class="bi bi-chat-square-quote-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val">{{ stats.total }}</span>
+        <span class="stat-lbl">Avis au total</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-green"><i class="bi bi-eye-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-green">{{ stats.visibles }}</span>
+        <span class="stat-lbl">Visibles ({{ tauxVisibles }} %)</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-amber"><i class="bi bi-eye-slash-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-amber">{{ stats.masques }}</span>
+        <span class="stat-lbl">Masqués</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-red"><i class="bi bi-flag-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-red">{{ stats.signalements_en_attente }}</span>
+        <span class="stat-lbl">Signalements à traiter</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon text-violet"><i class="bi bi-patch-check-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val text-violet">{{ stats.achats_verifies }}</span>
+        <span class="stat-lbl">Achats vérifiés</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card--note">
+      <div class="stat-icon text-amber"><i class="bi bi-star-fill"></i></div>
+      <div class="stat-info">
+        <span class="stat-val">{{ stats.total ? (stats.note_moyenne | number:'1.1-1') : '—' }}<small *ngIf="stats.total"> / 5</small></span>
+        <span class="stat-lbl">Note moyenne</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RÉPARTITION PAR NOTE -->
+  <div class="panel note-dist" *ngIf="stats && stats.total > 0">
+    <div class="note-dist__title">Répartition des notes</div>
+    <div class="note-dist__rows">
+      <div class="note-row" *ngFor="let n of parNoteDesc">
+        <span class="note-row__label"><i class="bi bi-star-fill"></i> {{ n.note }}</span>
+        <div class="note-row__bar"><span [style.width.%]="notePct(n.count)" [class]="'note-row__fill note-row__fill--' + n.note"></span></div>
+        <span class="note-row__count">{{ n.count }} <small>({{ notePct(n.count) }} %)</small></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar__search">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Rechercher un client, un produit, un commentaire…"
+             [(ngModel)]="search" (ngModelChange)="load()">
+      <button class="toolbar__clear" *ngIf="search" (click)="search = ''; load()" title="Effacer"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <select class="toolbar__select" [(ngModel)]="statutFilter" (ngModelChange)="load()">
       <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
     </select>
-    <select class="filter-select" [(ngModel)]="noteFilter" (ngModelChange)="load()">
+    <select class="toolbar__select" [(ngModel)]="noteFilter" (ngModelChange)="load()">
       <option *ngFor="let n of notes" [value]="n.value">{{ n.label }}</option>
     </select>
+    <select class="toolbar__select" [(ngModel)]="periodeFilter" (ngModelChange)="load()">
+      <option *ngFor="let p of periodes" [value]="p.value">{{ p.label }}</option>
+    </select>
+    <button class="btn" *ngIf="hasFilters" (click)="resetFilters()"><i class="bi bi-x-circle"></i> Réinitialiser</button>
+    <span class="toolbar__count" *ngIf="!loading">{{ avis.length }} avis</span>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-state" *ngIf="loading">
-    <i class="bi bi-arrow-repeat spin"></i> Chargement...
+  <!-- TABLE -->
+  <div class="panel">
+    <div class="state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement des avis…</p>
+    </div>
+
+    <div class="state" *ngIf="!loading && avis.length === 0">
+      <i class="bi bi-chat-square-text"></i>
+      <p>{{ hasFilters ? 'Aucun avis ne correspond à ces filtres.' : 'Aucun avis client pour le moment.' }}</p>
+      <small *ngIf="!hasFilters">Les avis apparaîtront ici dès qu'un client notera un produit ou un magasin.</small>
+      <button class="btn" *ngIf="hasFilters" (click)="resetFilters()">Réinitialiser les filtres</button>
+    </div>
+
+    <div class="table-wrap" *ngIf="!loading && avis.length > 0">
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Produit / Magasin</th>
+            <th>Note</th>
+            <th>Commentaire</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th class="th-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of avis" (click)="selectAvis(a)" [class.selected]="selectedAvis?.id === a.id">
+            <td>
+              <div class="person">
+                <img *ngIf="a.client_photo" [src]="a.client_photo" class="avatar" alt="">
+                <div class="avatar" *ngIf="!a.client_photo">{{ getInitials(a.client_prenom, a.client_nom) }}</div>
+                <div>
+                  <div class="cell-main">{{ a.client_prenom }} {{ a.client_nom }}</div>
+                  <div class="cell-sub">{{ a.client_email || '—' }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="cell-main">{{ a.produit_nom || a.magasin_nom || '—' }}</div>
+              <div class="cell-sub">
+                <span *ngIf="a.fournisseur_nom"><i class="bi bi-shop"></i> {{ a.fournisseur_nom }}</span>
+                <span *ngIf="a.produit_nom && a.magasin_nom"> · {{ a.magasin_nom }}</span>
+                <span *ngIf="a.commande_reference"> · <span class="mono">{{ a.commande_reference }}</span></span>
+              </div>
+            </td>
+            <td>
+              <div class="stars">
+                <i class="bi" *ngFor="let filled of getStars(a.note)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
+                <span class="stars__num" [class]="'stars__num ' + getNoteClass(a.note)">{{ a.note }}/5</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-clamp" [title]="a.commentaire">{{ a.commentaire || '—' }}</div>
+              <div class="cell-sub" *ngIf="a.reponse_fournisseur"><i class="bi bi-reply-fill"></i> Réponse publiée</div>
+            </td>
+            <td>
+              <div class="badge-stack">
+                <span class="badge" [class.badge--green]="a.approuve" [class.badge--amber]="!a.approuve">
+                  <i class="bi" [class.bi-eye-fill]="a.approuve" [class.bi-eye-slash-fill]="!a.approuve"></i>
+                  {{ a.approuve ? 'Visible' : 'Masqué' }}
+                </span>
+                <span class="badge badge--red" *ngIf="a.nb_signalements > 0" [title]="a.signale_en_attente ? 'Signalement en attente' : 'Signalements traités'">
+                  <i class="bi bi-flag-fill"></i> {{ a.nb_signalements }}{{ a.signale_en_attente ? ' à traiter' : '' }}
+                </span>
+                <span class="badge badge--violet" *ngIf="a.achat_verifie"><i class="bi bi-patch-check-fill"></i> Vérifié</span>
+              </div>
+            </td>
+            <td><span class="date-chip"><i class="bi bi-calendar3"></i> {{ a.date | date: 'dd/MM/yyyy' }}</span></td>
+            <td class="td-right">
+              <div class="action-btns" (click)="$event.stopPropagation()">
+                <button class="btn-icon" title="Voir le détail" (click)="selectAvis(a)"><i class="bi bi-eye"></i></button>
+                <button class="btn-icon approve" *ngIf="!a.approuve" title="Rendre visible" (click)="approuver(a)" [disabled]="actionEnCours === a.id"><i class="bi bi-check-lg"></i></button>
+                <button class="btn-icon hide" *ngIf="a.approuve" title="Masquer" (click)="masquer(a)" [disabled]="actionEnCours === a.id"><i class="bi bi-eye-slash"></i></button>
+                <button class="btn-icon delete" title="Supprimer" (click)="supprimer(a)" [disabled]="actionEnCours === a.id"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Empty -->
-  <div class="empty-state" *ngIf="!loading && avis.length === 0">
-    <i class="bi bi-inbox"></i>
-    <p>Aucun avis trouvé.</p>
-  </div>
+  <!-- DRAWER -->
+  <div class="drawer-overlay" *ngIf="selectedAvis" (click)="closeDetail()"></div>
+  <aside class="drawer" *ngIf="selectedAvis">
+    <div class="drawer__head">
+      <div>
+        <h3 class="drawer__title">Avis #{{ selectedAvis.id }}</h3>
+        <p class="drawer__sub">Publié le {{ selectedAvis.date | date: 'dd/MM/yyyy à HH:mm' }}</p>
+      </div>
+      <button class="drawer__close" (click)="closeDetail()" title="Fermer">&times;</button>
+    </div>
 
-  <!-- Table -->
-  <table class="avis-table" *ngIf="!loading && avis.length > 0">
-    <thead>
-      <tr>
-        <th>Client</th>
-        <th>Produit</th>
-        <th>Note</th>
-        <th>Commentaire</th>
-        <th>Statut</th>
-        <th>Date</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let a of avis" (click)="selectAvis(a)" [class.selected]="selectedAvis?.id === a.id">
-        <td>
-          <div class="client-cell">
-            <img *ngIf="a.client_photo" [src]="a.client_photo" class="client-avatar" alt="">
-            <div class="client-avatar placeholder" *ngIf="!a.client_photo">{{ ((a.client_prenom && a.client_prenom[0]) || '') + ((a.client_nom && a.client_nom[0]) || '') }}</div>
-            <div>
-              <div class="client-name">{{ a.client_prenom }} {{ a.client_nom }}</div>
-              <div class="client-email">{{ a.client_email }}</div>
+    <div class="drawer__body">
+      <div class="state" *ngIf="detailLoading"><div class="spinner"></div><p>Chargement du détail…</p></div>
+
+      <ng-container *ngIf="!detailLoading">
+        <!-- Note globale -->
+        <div class="note-hero">
+          <div class="note-hero__score" [class]="'note-hero__score ' + getNoteClass(selectedAvis.note)">{{ selectedAvis.note }}<small>/5</small></div>
+          <div>
+            <div class="stars stars--lg">
+              <i class="bi" *ngFor="let filled of getStars(selectedAvis.note)" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
+            </div>
+            <div class="badge-stack" style="margin-top:8px">
+              <span class="badge" [class.badge--green]="selectedAvis.approuve" [class.badge--amber]="!selectedAvis.approuve">{{ selectedAvis.approuve ? 'Visible' : 'Masqué' }}</span>
+              <span class="badge badge--violet" *ngIf="selectedAvis.achat_verifie"><i class="bi bi-patch-check-fill"></i> Achat vérifié</span>
+              <span class="badge badge--red" *ngIf="selectedAvis.nb_signalements > 0"><i class="bi bi-flag-fill"></i> {{ selectedAvis.nb_signalements }} signalement(s)</span>
             </div>
           </div>
-        </td>
-        <td>{{ a.produit_nom || a.magasin_nom || '—' }}</td>
-        <td>
-          <div class="stars">
-            <span *ngFor="let s of getStars(a.note)" [class.filled]="s === '★'">{{ s }}</span>
+        </div>
+
+        <!-- Sous-notes -->
+        <div *ngIf="detail && (detail.note_qualite_produit || detail.note_delai || detail.note_communication || detail.note_livraison)">
+          <p class="section-title">Notes détaillées</p>
+          <div class="sub-notes">
+            <ng-container *ngFor="let s of sousNotes">
+              <div class="sub-note" *ngIf="detail[s.key]">
+                <span class="sub-note__label">{{ s.label }}</span>
+                <div class="stars stars--sm">
+                  <i class="bi" *ngFor="let filled of getStars(detail[s.key])" [class.bi-star-fill]="filled" [class.bi-star]="!filled"></i>
+                </div>
+                <span class="sub-note__val">{{ detail[s.key] }}/5</span>
+              </div>
+            </ng-container>
           </div>
-          <span class="badge-achat" *ngIf="a.achat_verifie"><i class="bi bi-check-circle-fill"></i> Achat vérifié</span>
-        </td>
-        <td class="comment-cell">{{ a.commentaire | slice:0:80 }}{{ a.commentaire.length > 80 ? '...' : '' }}</td>
-        <td>
-          <span class="status-badge" [class.visible]="a.approuve" [class.masque]="!a.approuve">
-            {{ a.approuve ? 'Visible' : 'Masqué' }}
-          </span>
-          <span class="signal-badge" *ngIf="a.nb_signalements > 0">
-            <i class="bi bi-flag-fill"></i> {{ a.nb_signalements }}
-          </span>
-        </td>
-        <td class="date-cell">{{ a.date | date: 'dd/MM/yyyy' }}</td>
-        <td>
-          <div class="action-btns" (click)="$event.stopPropagation()">
-            <button class="btn-icon approve" title="Rendre visible" (click)="approuver(a)" *ngIf="!a.approuve">
-              <i class="bi bi-eye-fill"></i>
-            </button>
-            <button class="btn-icon hide" title="Masquer" (click)="masquer(a)" *ngIf="a.approuve">
-              <i class="bi bi-eye-slash-fill"></i>
-            </button>
-            <button class="btn-icon delete" title="Supprimer" (click)="supprimer(a)">
-              <i class="bi bi-trash-fill"></i>
+        </div>
+
+        <!-- Client -->
+        <div>
+          <p class="section-title">Client</p>
+          <div class="person">
+            <img *ngIf="selectedAvis.client_photo" [src]="selectedAvis.client_photo" class="avatar" alt="">
+            <div class="avatar" *ngIf="!selectedAvis.client_photo">{{ getInitials(selectedAvis.client_prenom, selectedAvis.client_nom) }}</div>
+            <div>
+              <div class="cell-main">{{ selectedAvis.client_prenom }} {{ selectedAvis.client_nom }}</div>
+              <div class="cell-sub">{{ selectedAvis.client_email || '—' }}<span *ngIf="detail?.client?.telephone"> · {{ detail?.client?.telephone }}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Produit / magasin / commande -->
+        <div>
+          <p class="section-title">Objet de l'avis</p>
+          <div class="info-grid">
+            <div class="info-item" *ngIf="selectedAvis.produit_nom">
+              <span class="label">Produit</span>
+              <span class="value">{{ selectedAvis.produit_nom }}</span>
+              <span class="cell-sub" *ngIf="detail?.produit?.reference">Réf. {{ detail?.produit?.reference }}</span>
+            </div>
+            <div class="info-item" *ngIf="detail?.produit?.prix !== null && detail?.produit?.prix !== undefined">
+              <span class="label">Prix produit</span>
+              <span class="value">{{ formatMontant(detail?.produit?.prix) }}</span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.magasin_nom">
+              <span class="label">Magasin</span>
+              <span class="value">{{ selectedAvis.magasin_nom }}</span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.fournisseur_nom">
+              <span class="label">Fournisseur</span>
+              <span class="value">{{ selectedAvis.fournisseur_nom }}</span>
+            </div>
+            <div class="info-item" *ngIf="selectedAvis.commande_reference">
+              <span class="label">Commande</span>
+              <span class="value mono">{{ selectedAvis.commande_reference }}</span>
+            </div>
+            <div class="info-item" *ngIf="detail?.commande">
+              <span class="label">Montant commande</span>
+              <span class="value">{{ formatMontant(detail?.commande?.montant_total) }}</span>
+            </div>
+            <div class="info-item info-item--full" *ngIf="!selectedAvis.produit_nom && !selectedAvis.magasin_nom">
+              <span class="value text-muted">Avis non rattaché à un produit ou un magasin.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Commentaire -->
+        <div>
+          <p class="section-title">Commentaire</p>
+          <p class="text-block">{{ selectedAvis.commentaire || 'Aucun commentaire.' }}</p>
+        </div>
+
+        <!-- Photos -->
+        <div *ngIf="detail?.photos?.length">
+          <p class="section-title">Photos jointes ({{ detail?.photos?.length }})</p>
+          <div class="photo-grid">
+            <a *ngFor="let p of detail?.photos" [href]="p" target="_blank" rel="noopener"><img [src]="p" alt="Photo de l'avis"></a>
+          </div>
+        </div>
+
+        <!-- Signalements -->
+        <div *ngIf="detail?.signalements?.length">
+          <p class="section-title">Signalements ({{ detail?.signalements?.length }})</p>
+          <div class="signal-list">
+            <div class="signal-item" *ngFor="let s of detail?.signalements">
+              <div class="signal-item__head">
+                <span class="badge badge--red">{{ s.motif_label }}</span>
+                <span class="badge" [class.badge--amber]="s.statut === 'en_attente'" [class.badge--green]="s.statut === 'traite'" [class.badge--muted]="s.statut === 'rejete'">{{ s.statut_label }}</span>
+                <span class="cell-sub">{{ s.date | date: 'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="cell-sub">Par {{ s.fournisseur_nom || s.client_nom || 'Anonyme' }}</div>
+              <p class="signal-item__text" *ngIf="s.commentaire">{{ s.commentaire }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Réponse existante -->
+        <div *ngIf="selectedAvis.reponse_fournisseur">
+          <p class="section-title">Réponse publiée</p>
+          <p class="text-block text-block--accent">{{ selectedAvis.reponse_fournisseur }}</p>
+          <div class="cell-sub" style="margin-top:6px">
+            <span *ngIf="detail?.reponse_fournisseur_nom">Par {{ detail?.reponse_fournisseur_nom }} · </span>
+            <span *ngIf="selectedAvis.date_reponse">le {{ selectedAvis.date_reponse | date: 'dd/MM/yyyy à HH:mm' }}</span>
+          </div>
+        </div>
+
+        <!-- Répondre -->
+        <div class="field">
+          <label>{{ selectedAvis.reponse_fournisseur ? 'Modifier la réponse' : 'Répondre au client' }}</label>
+          <textarea [(ngModel)]="reponseAdmin" rows="4" placeholder="Rédiger une réponse publique…"></textarea>
+          <div class="btn-group">
+            <button class="btn btn--primary" (click)="repondre()" [disabled]="!reponseAdmin.trim() || actionEnCours === selectedAvis.id">
+              <i class="bi bi-send-fill"></i> {{ selectedAvis.reponse_fournisseur ? 'Mettre à jour' : 'Publier la réponse' }}
             </button>
           </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Detail panel -->
-  <div class="detail-overlay" *ngIf="selectedAvis" (click)="closeDetail()"></div>
-  <div class="detail-panel" *ngIf="selectedAvis">
-    <button class="detail-close" (click)="closeDetail()">&times;</button>
-    <h3>Détail de l'avis #{{ selectedAvis.id }}</h3>
-
-    <div class="detail-section">
-      <label>Client</label>
-      <p>{{ selectedAvis.client_prenom }} {{ selectedAvis.client_nom }} ({{ selectedAvis.client_email }})</p>
+        </div>
+      </ng-container>
     </div>
 
-    <div class="detail-section">
-      <label>Produit / Magasin</label>
-      <p>{{ selectedAvis.produit_nom || selectedAvis.magasin_nom || '—' }}</p>
+    <div class="drawer__foot">
+      <button class="btn btn--success" *ngIf="!selectedAvis.approuve" (click)="approuver(selectedAvis)" [disabled]="actionEnCours === selectedAvis.id"><i class="bi bi-check-lg"></i> Rendre visible</button>
+      <button class="btn btn--warn" *ngIf="selectedAvis.approuve" (click)="masquer(selectedAvis)" [disabled]="actionEnCours === selectedAvis.id"><i class="bi bi-eye-slash"></i> Masquer</button>
+      <button class="btn btn--danger" (click)="supprimer(selectedAvis)" [disabled]="actionEnCours === selectedAvis.id"><i class="bi bi-trash"></i> Supprimer</button>
     </div>
-
-    <div class="detail-section">
-      <label>Note</label>
-      <div class="stars large">
-        <span *ngFor="let s of getStars(selectedAvis.note)" [class.filled]="s === '★'">{{ s }}</span>
-      </div>
-      <span class="badge-achat" *ngIf="selectedAvis.achat_verifie"><i class="bi bi-check-circle-fill"></i> Achat vérifié</span>
-    </div>
-
-    <div class="detail-section">
-      <label>Commentaire</label>
-      <p class="comment-full">{{ selectedAvis.commentaire }}</p>
-    </div>
-
-    <div class="detail-section">
-      <label>Date</label>
-      <p>{{ selectedAvis.date | date: 'dd/MM/yyyy HH:mm' }}</p>
-    </div>
-
-    <div class="detail-section" *ngIf="selectedAvis.nb_signalements > 0">
-      <label>Signalements</label>
-      <p class="signal-info"><i class="bi bi-flag-fill"></i> {{ selectedAvis.nb_signalements }} signalement(s)</p>
-    </div>
-
-    <div class="detail-actions">
-      <button class="btn-action approve" (click)="approuver(selectedAvis)" *ngIf="!selectedAvis.approuve">
-        <i class="bi bi-eye-fill"></i> Rendre visible
-      </button>
-      <button class="btn-action hide" (click)="masquer(selectedAvis)" *ngIf="selectedAvis.approuve">
-        <i class="bi bi-eye-slash-fill"></i> Masquer
-      </button>
-      <button class="btn-action delete" (click)="supprimer(selectedAvis)">
-        <i class="bi bi-trash-fill"></i> Supprimer
-      </button>
-    </div>
-  </div>
+  </aside>
 </div>

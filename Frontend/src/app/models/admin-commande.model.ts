@@ -115,7 +115,7 @@ export interface ActionCommandePayload {
 export interface FiltresCommande {
   q?: string;
   statut?: string;
-  periode?: 'today' | 'week' | 'month' | 'livrees' | 'preparation' | 'annulees';
+  periode?: '' | 'today' | 'week' | 'month' | 'livrees' | 'preparation' | 'annulees';
   mode_paiement?: string;
   mode_reception?: string;
   magasin?: string;

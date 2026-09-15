@@ -13,6 +13,10 @@
 
     <div class="header-stats">
       <div class="hs-item">
+        <span class="hs-val">{{ livraisons.length }}</span>
+        <span class="hs-lbl">Total</span>
+      </div>
+      <div class="hs-item">
         <span class="hs-val text-green">{{ livreesTerminees }}</span>
         <span class="hs-lbl">Livrées</span>
       </div>
@@ -23,6 +27,14 @@
       <div class="hs-item">
         <span class="hs-val text-orange">{{ enAttente }}</span>
         <span class="hs-lbl">En attente</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-red">{{ echecsAnnulees }}</span>
+        <span class="hs-lbl">Échecs / annulées</span>
+      </div>
+      <div class="hs-item">
+        <span class="hs-val text-blue">{{ formatMontant(totalFrais) }}</span>
+        <span class="hs-lbl">Frais cumulés</span>
       </div>
     </div>
   </div>
@@ -63,7 +75,8 @@
         <span class="liv-icon"><i class="bi bi-truck"></i></span>
         <div class="liv-card__ids">
           <span class="liv-card__transp">LIV #{{ l.id }}</span>
-          <span class="liv-card__order">Commande : {{ l.commande?.reference }}</span>
+          <span class="liv-card__order" [title]="l.commande?.reference || ''">{{ l.commande?.reference || 'Sans commande' }}</span>
+          <span class="liv-card__date" *ngIf="l.date_creation"><i class="bi bi-calendar3"></i> {{ l.date_creation | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
       </div>
 
@@ -82,8 +95,23 @@
         <div class="liv-card__meta">
           <span class="meta-item"><span class="meta-item__label">Adresse:</span> <strong>{{ l.adresse?.adresse }}, {{ l.adresse?.quartier }}, {{ l.adresse?.ville }}</strong></span>
           <span class="meta-item"><span class="meta-item__label">Téléphone:</span> <strong class="mono blue">{{ l.adresse?.telephone || '—' }}</strong></span>
-          <span class="meta-item"><span class="meta-item__label">Frais:</span> <strong>{{ l.frais_livraison | number:'1.2-2' }} FCFA</strong></span>
-          <span class="meta-item"><span class="meta-item__label">Responsable:</span> <strong>{{ l.responsable_nom || 'Non attribué' }}</strong></span>
+          <span class="meta-item"><span class="meta-item__label">Frais:</span> <strong>{{ formatMontant(l.frais_livraison) }}</strong><small class="meta-item__hint" *ngIf="l.mode_tarif && l.mode_tarif !== 'non_defini'"> · {{ getModeTarifLabel(l.mode_tarif) }}</small></span>
+          <span class="meta-item"><span class="meta-item__label">Responsable:</span> <strong>{{ l.responsable_nom || 'Non attribué' }}</strong><small class="meta-item__hint" *ngIf="l.responsable_type && l.responsable_type !== 'non_attribue'"> · {{ getResponsableTypeLabel(l.responsable_type) }}</small></span>
+        </div>
+
+        <div class="liv-dates">
+          <span class="liv-date" [class.liv-date--done]="l.date_attribution">
+            <i class="bi" [class.bi-check-circle-fill]="l.date_attribution" [class.bi-circle]="!l.date_attribution"></i>
+            Attribuée : <strong>{{ l.date_attribution ? (l.date_attribution | date:'dd/MM/yyyy HH:mm') : '—' }}</strong>
+          </span>
+          <span class="liv-date" [class.liv-date--late]="isEnRetard(l)">
+            <i class="bi bi-hourglass-split"></i>
+            Délai estimé : <strong>{{ l.delai_estime ? (l.delai_estime | date:'dd/MM/yyyy HH:mm') : '—' }}</strong>
+          </span>
+          <span class="liv-date" [class.liv-date--done]="l.date_livraison">
+            <i class="bi" [class.bi-check-circle-fill]="l.date_livraison" [class.bi-circle]="!l.date_livraison"></i>
+            Livrée : <strong>{{ l.date_livraison ? (l.date_livraison | date:'dd/MM/yyyy HH:mm') : '—' }}</strong>
+          </span>
         </div>
 
         <div class="position-box">
@@ -95,6 +123,10 @@
             <span><i class="bi bi-flag-fill"></i> Repère :</span>
             <span class="position-box__value">{{ l.adresse?.point_de_repere }}</span>
           </span>
+          <span class="position-box__row" *ngIf="l.remarque">
+            <span><i class="bi bi-chat-left-text-fill"></i> Remarque :</span>
+            <span class="position-box__value">{{ l.remarque }}</span>
+          </span>
         </div>
       </div>
 
@@ -102,12 +134,11 @@
         <span class="badge badge--{{ l.statut }}">{{ livraisonService.getStatutLabel(l.statut) }}</span>
 
         <div class="liv-card__actions">
-          <select class="status-select" [(ngModel)]="nouveauStatut[l.id]" [ngModelOptions]="{ standalone: true }">
-            <option value="">Changer le statut</option>
+          <select class="status-select" [ngModel]="nouveauStatut[l.id] || l.statut" (ngModelChange)="nouveauStatut[l.id] = $event" [ngModelOptions]="{ standalone: true }">
             <option *ngFor="let s of statuts" [value]="s">{{ livraisonService.getStatutLabel(s) }}</option>
           </select>
-          <button class="btn-icon" title="Valider" (click)="updateStatut(l.id)" [disabled]="!nouveauStatut[l.id] || actionEnCours === l.id">
-            <i class="bi bi-check-lg"></i>
+          <button class="btn-icon" title="Appliquer le nouveau statut" (click)="updateStatut(l.id)" [disabled]="!hasStatutChange(l) || actionEnCours === l.id">
+            <i class="bi" [class.bi-check-lg]="actionEnCours !== l.id" [class.bi-arrow-repeat]="actionEnCours === l.id" [class.spin]="actionEnCours === l.id"></i>
           </button>
         </div>
       </div>

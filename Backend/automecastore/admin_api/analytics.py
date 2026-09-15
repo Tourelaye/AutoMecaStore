@@ -19,6 +19,9 @@ from catalog.models import Produit, Categorie
 from fournisseur.models import Magasin
 from orders.models import Commande, LigneCommande
 from support.models import Avis, Reclamation
+from .serializers import COMMANDE_STATUTS_HORS_CA
+
+COMMANDE_STATUTS_TERMINEES = ('terminee', 'livree')
 
 
 class AdminAnalyticsView(APIView):
@@ -88,6 +91,21 @@ class AdminAnalyticsView(APIView):
 
         return start, end, today
 
+    @staticmethod
+    def _has_product_filters(params):
+        return bool(params.get('magasin_id') or params.get('categorie_id') or params.get('ville'))
+
+    def _ca(self, commandes_qs, lignes_qs, params):
+        """CA = total des commandes (hors annulées/refusées), ou somme des lignes
+        quand un filtre produit/magasin/ville est actif."""
+        if self._has_product_filters(params):
+            return float(lignes_qs.exclude(
+                commande__statut__in=COMMANDE_STATUTS_HORS_CA
+            ).aggregate(t=Sum('sous_total'))['t'] or 0)
+        return float(commandes_qs.exclude(
+            statut__in=COMMANDE_STATUTS_HORS_CA
+        ).aggregate(t=Sum('montant_total'))['t'] or 0)
+
     def _apply_filters(self, qs, params, model_path=''):
         if params.get('magasin_id'):
             qs = qs.filter(**{f"{model_path}produit__fournisseur__magasin__id": params['magasin_id']})
@@ -114,11 +132,11 @@ class AdminAnalyticsView(APIView):
         lignes_prev_qs = self._apply_filters(lignes_prev_qs, params)
 
         # --- KPIs ---
-        ca_total = float(lignes_qs.aggregate(t=Coalesce(Sum('sous_total'), 0, output_field=FloatField()))['t'] or 0)
-        ca_prev = float(lignes_prev_qs.aggregate(t=Coalesce(Sum('sous_total'), 0, output_field=FloatField()))['t'] or 0)
+        ca_total = self._ca(commandes_qs, lignes_qs, params)
+        ca_prev = self._ca(commandes_prev_qs, lignes_prev_qs, params)
 
         total_commandes = commandes_qs.count()
-        commandes_terminees = commandes_qs.filter(statut='terminee').count()
+        commandes_terminees = commandes_qs.filter(statut__in=COMMANDE_STATUTS_TERMINEES).count()
         commandes_annulees = commandes_qs.filter(statut='annulee').count()
 
         total_clients = Client.objects.count()
@@ -133,13 +151,19 @@ class AdminAnalyticsView(APIView):
 
         # CA jour / mois / année (filtré)
         day_start = timezone.make_aware(datetime.combine(today, datetime.min.time()))
-        ca_jour = float(lignes_qs.filter(commande__date_commande__gte=day_start).aggregate(t=Sum('sous_total'))['t'] or 0)
+        ca_jour = self._ca(
+            commandes_qs.filter(date_commande__gte=day_start),
+            lignes_qs.filter(commande__date_commande__gte=day_start), params)
 
         month_start = timezone.make_aware(datetime(today.year, today.month, 1, 0, 0, 0))
-        ca_mois = float(lignes_qs.filter(commande__date_commande__gte=month_start).aggregate(t=Sum('sous_total'))['t'] or 0)
+        ca_mois = self._ca(
+            commandes_qs.filter(date_commande__gte=month_start),
+            lignes_qs.filter(commande__date_commande__gte=month_start), params)
 
         year_start = timezone.make_aware(datetime(today.year, 1, 1, 0, 0, 0))
-        ca_annee = float(lignes_qs.filter(commande__date_commande__gte=year_start).aggregate(t=Sum('sous_total'))['t'] or 0)
+        ca_annee = self._ca(
+            commandes_qs.filter(date_commande__gte=year_start),
+            lignes_qs.filter(commande__date_commande__gte=year_start), params)
 
         kpis = {
             'chiffre_affaires_jour': round(ca_jour, 2),
@@ -206,7 +230,7 @@ class AdminAnalyticsView(APIView):
     def _build_evolutions(self, lignes_qs, commandes_qs, start, end, params):
         days = (end - start).days
         if days <= 1:
-            return self._evolution_hourly(lignes_qs, commandes_qs, start, end)
+            return self._evolution_hourly(lignes_qs, commandes_qs, start, end, params)
         if days <= 60:
             return self._evolution_daily(lignes_qs, commandes_qs, start, end, params)
         if (end - start).days <= 730:
@@ -224,11 +248,12 @@ class AdminAnalyticsView(APIView):
         data = []
         for d in labels:
             lqs = lignes_qs.filter(commande__date_commande__date=d)
+            cqs = commandes_qs.filter(date_commande__date=d)
             data.append({
                 'label': d.strftime('%d/%m'),
-                'ca': float(lqs.aggregate(t=Sum('sous_total'))['t'] or 0),
+                'ca': self._ca(cqs, lqs, params),
                 'ventes': int(lqs.aggregate(t=Sum('quantite'))['t'] or 0),
-                'commandes': int(commandes_qs.filter(date_commande__date=d).count()),
+                'commandes': int(cqs.count()),
                 'clients_nouveaux': Client.objects.filter(date_inscription__date=d).count(),
                 'magasins_nouveaux': Fournisseur.objects.filter(date_inscription__date=d).count(),
                 'produits_nouveaux': Produit.objects.filter(date_ajout__date=d).count(),
@@ -251,11 +276,12 @@ class AdminAnalyticsView(APIView):
             d_start = timezone.make_aware(datetime(y, m, 1, 0, 0, 0))
             d_end = timezone.make_aware(datetime(y, m, last, 23, 59, 59))
             lqs = lignes_qs.filter(commande__date_commande__gte=d_start, commande__date_commande__lte=d_end)
+            cqs = commandes_qs.filter(date_commande__gte=d_start, date_commande__lte=d_end)
             data.append({
                 'label': f"{y}-{m:02d}",
-                'ca': float(lqs.aggregate(t=Sum('sous_total'))['t'] or 0),
+                'ca': self._ca(cqs, lqs, params),
                 'ventes': int(lqs.aggregate(t=Sum('quantite'))['t'] or 0),
-                'commandes': int(commandes_qs.filter(date_commande__gte=d_start, date_commande__lte=d_end).count()),
+                'commandes': int(cqs.count()),
                 'clients_nouveaux': Client.objects.filter(date_inscription__year=y, date_inscription__month=m).count(),
                 'magasins_nouveaux': Fournisseur.objects.filter(date_inscription__year=y, date_inscription__month=m).count(),
                 'produits_nouveaux': Produit.objects.filter(date_ajout__year=y, date_ajout__month=m).count(),
@@ -266,18 +292,19 @@ class AdminAnalyticsView(APIView):
         data = []
         for y in range(start.year, end.year + 1):
             lqs = lignes_qs.filter(commande__date_commande__year=y)
+            cqs = commandes_qs.filter(date_commande__year=y)
             data.append({
                 'label': str(y),
-                'ca': float(lqs.aggregate(t=Sum('sous_total'))['t'] or 0),
+                'ca': self._ca(cqs, lqs, params),
                 'ventes': int(lqs.aggregate(t=Sum('quantite'))['t'] or 0),
-                'commandes': int(commandes_qs.filter(date_commande__year=y).count()),
+                'commandes': int(cqs.count()),
                 'clients_nouveaux': Client.objects.filter(date_inscription__year=y).count(),
                 'magasins_nouveaux': Fournisseur.objects.filter(date_inscription__year=y).count(),
                 'produits_nouveaux': Produit.objects.filter(date_ajout__year=y).count(),
             })
         return data
 
-    def _evolution_hourly(self, lignes_qs, commandes_qs, start, end):
+    def _evolution_hourly(self, lignes_qs, commandes_qs, start, end, params):
         data = []
         for h in range(24):
             h_start = start + timedelta(hours=h)
@@ -285,11 +312,12 @@ class AdminAnalyticsView(APIView):
             if h_start > end:
                 break
             lqs = lignes_qs.filter(commande__date_commande__gte=h_start, commande__date_commande__lt=h_end)
+            cqs = commandes_qs.filter(date_commande__gte=h_start, date_commande__lt=h_end)
             data.append({
                 'label': f"{h:02d}h",
-                'ca': float(lqs.aggregate(t=Sum('sous_total'))['t'] or 0),
+                'ca': self._ca(cqs, lqs, params),
                 'ventes': int(lqs.aggregate(t=Sum('quantite'))['t'] or 0),
-                'commandes': int(commandes_qs.filter(date_commande__gte=h_start, date_commande__lt=h_end).count()),
+                'commandes': int(cqs.count()),
                 'clients_nouveaux': 0,
                 'magasins_nouveaux': 0,
                 'produits_nouveaux': 0,
