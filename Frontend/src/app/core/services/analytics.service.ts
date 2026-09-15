@@ -8,7 +8,7 @@ import { AnalyticsData, AnalyticsFilters, FilterOptions } from '../../models/ana
   providedIn: 'root'
 })
 export class AnalyticsService {
-  private readonly baseUrl = 'environment.apiUrl/api/admin/analytics';
+  private readonly baseUrl = `${environment.apiUrl}/api/admin/analytics`;
 
   constructor(private http: HttpClient) {}
 

@@ -54,7 +54,7 @@ export interface ClientFilters {
   providedIn: 'root'
 })
 export class ClientService {
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) {}
 

@@ -21,7 +21,7 @@ export interface LogEntry {
 
 @Injectable({ providedIn: 'root' })
 export class JournalService {
-  private apiUrl = 'environment.apiUrl/api/admin/journal/';
+  private apiUrl = `${environment.apiUrl}/api/admin/journal/`;
 
   constructor(private http: HttpClient) {}
 

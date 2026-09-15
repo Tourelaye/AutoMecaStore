@@ -15,7 +15,7 @@ import { PanierItem } from '../../models/panier.model';
 })
 export class PanierService {
 
-  private apiUrl = 'environment.apiUrl/account';
+  private apiUrl = `${environment.apiUrl}/account`;
 
   private itemsSubject = new BehaviorSubject<PanierItem[]>([]);
   public items$ = this.itemsSubject.asObservable();

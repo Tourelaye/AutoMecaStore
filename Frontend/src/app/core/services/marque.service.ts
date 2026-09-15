@@ -9,7 +9,7 @@ import { Marque } from '../../models/marque.model';
 })
 export class MarqueService {
 
-  private apiUrl = 'environment.apiUrl/api/marques/';
+  private apiUrl = `${environment.apiUrl}/api/marques/`;
 
   constructor(private http: HttpClient) { }
 
@@ -34,6 +34,6 @@ export class MarqueService {
   }
 
   reorderMarques(items: { id: number; ordre: number }[]): Observable<{ updated: number }> {
-    return this.http.post<{ updated: number }>('environment.apiUrl/api/admin/marques/reorder/', { items });
+    return this.http.post<{ updated: number }>(`${environment.apiUrl}/api/admin/marques/reorder/`, { items });
   }
 }

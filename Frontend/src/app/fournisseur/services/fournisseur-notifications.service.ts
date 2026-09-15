@@ -22,7 +22,7 @@ export interface UnreadCountResponse {
 })
 export class FournisseurNotificationsService {
   private http = inject(HttpClient);
-  private apiUrl = 'environment.apiUrl/api/fournisseur';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur`;
 
   getNotifications(type?: string, lu?: boolean): Observable<FournisseurNotification[]> {
     let url = `${this.apiUrl}/notifications/`;

@@ -7,7 +7,7 @@ import { UiCatalogProduct, UiOffreProduct, UiPromoProduct } from '../../models/v
   providedIn: 'root'
 })
 export class CatalogUiAdapterService {
-  private readonly apiBase = 'environment.apiUrl';
+  private readonly apiBase = `${environment.apiUrl}`;
 
   toCatalogProduct(p: DjangoProduitDto): UiCatalogProduct {
     const prixNouveau = this.asNumber(p.prix_promo ?? p.prix);

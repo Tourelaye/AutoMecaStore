@@ -54,7 +54,7 @@ export interface PaiementActionPayload {
 
 @Injectable({ providedIn: 'root' })
 export class PaiementService {
-  private readonly apiUrl = 'environment.apiUrl/api/admin/paiements/';
+  private readonly apiUrl = `${environment.apiUrl}/api/admin/paiements/`;
 
   constructor(private http: HttpClient) {}
 

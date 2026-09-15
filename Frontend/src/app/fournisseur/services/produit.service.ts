@@ -100,7 +100,7 @@ export interface ProduitCompatibilite {
   providedIn: 'root'
 })
 export class ProduitService {
-  private apiUrl = 'environment.apiUrl/api/fournisseur/produits';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur/produits`;
 
   constructor(
     private http: HttpClient,

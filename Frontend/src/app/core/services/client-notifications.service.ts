@@ -27,7 +27,7 @@ export interface ClientNotificationsResponse {
   providedIn: 'root'
 })
 export class ClientNotificationsService {
-  private readonly API_URL = 'environment.apiUrl/account';
+  private readonly API_URL = `${environment.apiUrl}/account`;
 
   private unreadCount = new BehaviorSubject<number>(0);
   unreadCount$ = this.unreadCount.asObservable();

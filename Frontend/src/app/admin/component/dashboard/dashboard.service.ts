@@ -118,7 +118,7 @@ export interface AdminDashboardData {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly apiUrl = 'environment.apiUrl/api/admin/dashboard-stats/';
+  private readonly apiUrl = `${environment.apiUrl}/api/admin/dashboard-stats/`;
 
   constructor(private http: HttpClient) {}
 

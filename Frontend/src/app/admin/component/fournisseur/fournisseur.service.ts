@@ -67,7 +67,7 @@ export interface FournisseurPayload {
 
 @Injectable({ providedIn: 'root' })
 export class FournisseurService {
-  private apiUrl = 'environment.apiUrl/api/admin/fournisseurs';
+  private apiUrl = `${environment.apiUrl}/api/admin/fournisseurs`;
 
   constructor(private http: HttpClient) {}
 

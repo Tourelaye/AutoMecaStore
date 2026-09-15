@@ -125,7 +125,7 @@ export interface MessageSupportStats {
   providedIn: 'root'
 })
 export class AdminSupportService {
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient,

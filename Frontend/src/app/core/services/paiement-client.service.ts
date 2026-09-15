@@ -36,7 +36,7 @@ export interface PaiementInitRequest {
   providedIn: 'root'
 })
 export class PaiementClientService {
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient,

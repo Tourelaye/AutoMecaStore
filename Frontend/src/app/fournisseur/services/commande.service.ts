@@ -64,7 +64,7 @@ export interface Commande {
   providedIn: 'root'
 })
 export class CommandeService {
-  private apiUrl = 'environment.apiUrl/api/fournisseur/commandes';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur/commandes`;
 
   constructor(
     private http: HttpClient,

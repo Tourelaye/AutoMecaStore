@@ -99,7 +99,7 @@ export class PartenaireComponent implements AfterViewInit {
 
     const v = this.partenaireForm.value;
 
-    this.http.post('environment.apiUrl/api/partenariat/create/', {
+    this.http.post(`${environment.apiUrl}/api/partenariat/create/`, {
       nom_entreprise: v.nom_entreprise,
       marque: v.marque || '',
       email_contact: v.email_contact,

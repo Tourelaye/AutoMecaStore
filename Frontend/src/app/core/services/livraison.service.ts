@@ -43,7 +43,7 @@ export interface UpdateLivraisonRequest {
 })
 export class LivraisonService {
 
-  private apiUrl = 'environment.apiUrl/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient,

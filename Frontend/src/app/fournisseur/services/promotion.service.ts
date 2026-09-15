@@ -73,7 +73,7 @@ export interface PromotionStats {
   providedIn: 'root'
 })
 export class PromotionService {
-  private apiUrl = 'environment.apiUrl/api/fournisseur/promotions';
+  private apiUrl = `${environment.apiUrl}/api/fournisseur/promotions`;
 
   constructor(private http: HttpClient) {}
 
