@@ -49,6 +49,7 @@ export interface ActiviteRecente {
   texte: string;
   lien: string;
   id: number;
+  timeAgoLabel?: string;
 }
 
 export interface Alerte {

@@ -74,9 +74,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
     
     const sub5 = this.authService.isLoggedIn$.subscribe(v => {
       this.isLoggedIn = v;
-      // Refresh data when login state changes
+      // Refresh data when login state changes (only for clients)
       if (v) {
-        this.monCompteService.refreshAllData();
+        const role = this.authService.getCurrentUserRole();
+        if (role === 'client') {
+          this.monCompteService.refreshAllData();
+        }
       }
     });
     

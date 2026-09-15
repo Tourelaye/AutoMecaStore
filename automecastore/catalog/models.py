@@ -2,6 +2,25 @@ from django.db import models
 from account.models import Utilisateur, Client, Administrateur, Invite
 
 
+# -----------------------------
+# Marque
+# -----------------------------
+class Marque(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    logo = models.ImageField(upload_to='marques/', blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    est_visible = models.BooleanField(default=True)
+    ordre = models.PositiveIntegerField(default=0)
+    datecreation = models.DateTimeField(auto_now_add=True)
+    datemodification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['ordre', 'nom']
+
+    def __str__(self):
+        return self.nom
+
+
 # Manager personnalisé pour filtrer les produits actifs
 class ProduitActifManager(models.Manager):
     def get_queryset(self):
@@ -66,11 +85,12 @@ class GestionnaireStock(models.Model):
 # Fournisseur
 # -----------------------------
 class Fournisseur(models.Model):
+    user = models.OneToOneField(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True, related_name='catalog_fournisseur')
     nom_entreprise = models.CharField(max_length=100)
     delai_livraison = models.DateTimeField(blank=True, null=True)
     contrat_actif = models.BooleanField(default=True)
     note_fournisseur = models.FloatField(blank=True, null=True)
-    administrateur = models.ForeignKey(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True)
+    administrateur = models.ForeignKey(Utilisateur, on_delete=models.SET_NULL, null=True, blank=True, related_name='catalog_fournisseurs_admin')
 
     def __str__(self):
         return self.nom_entreprise

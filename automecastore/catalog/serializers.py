@@ -1,8 +1,31 @@
 from rest_framework import serializers
 from django.conf import settings
 
-from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison
+from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison, Marque
 
+
+# -----------------------------
+# Marque Serializer
+# -----------------------------
+class MarqueSerializer(serializers.ModelSerializer):
+    nombre_produits = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Marque
+        fields = ['id', 'nom', 'description', 'logo', 'logo_url', 'est_visible', 'ordre', 'datecreation', 'datemodification', 'nombre_produits']
+
+    def get_nombre_produits(self, obj):
+        from django.db.models import Q
+        return Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True), marque=obj.nom).count()
+
+    def get_logo_url(self, obj):
+        if obj.logo:
+            try:
+                return obj.logo.url
+            except (ValueError, AttributeError):
+                return None
+        return None
 
 
 # -----------------------------

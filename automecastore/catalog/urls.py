@@ -19,10 +19,21 @@ from .views import (
     HomeFeaturedView,
     HomeRecommendedView,
     HomePopularSearchesView,
-    IncrementProductViewsView
+    IncrementProductViewsView,
+    AdminProduitListView,
+    AdminProduitDetailView,
+    AdminProduitSectionsView,
+    MarqueListCreateView,
+    MarqueDetailView,
+    MagasinListView,
+    MagasinDetailView,
 )
 
 urlpatterns = [
+    path('marques/', MarqueListCreateView.as_view(), name='marque_list_create'),
+    path('marques/<int:pk>/', MarqueDetailView.as_view(), name='marque_detail'),
+    path('magasins/', MagasinListView.as_view(), name='magasin_list'),
+    path('magasins/<int:pk>/', MagasinDetailView.as_view(), name='magasin_detail'),
     path('categories/', CategorieListCreateView.as_view(), name='categorie_list_create'),
     path('categories/<int:pk>/', CategorieDetailView.as_view(), name='categorie_detail'),
     path('types-pieces/', TypePieceListCreateView.as_view(), name='type_piece_list_create'),
@@ -44,4 +55,9 @@ urlpatterns = [
     path('home/featured/', HomeFeaturedView.as_view(), name='home_featured'),
     path('home/recommended/', HomeRecommendedView.as_view(), name='home_recommended'),
     path('home/popular-searches/', HomePopularSearchesView.as_view(), name='home_popular_searches'),
+
+    # Admin - Gestion des produits
+    path('admin/produits/', AdminProduitListView.as_view(), name='admin_produit_list'),
+    path('admin/produits/<int:pk>/', AdminProduitDetailView.as_view(), name='admin_produit_detail'),
+    path('admin/produits/<int:pk>/sections/', AdminProduitSectionsView.as_view(), name='admin_produit_sections'),
 ]

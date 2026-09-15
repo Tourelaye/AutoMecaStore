@@ -73,11 +73,12 @@ class UtilisateurSerializer(serializers.ModelSerializer):
             'id',
             'nom',
             'prenom',
-            'email', 
-            'role', 
-            'adresse', 
+            'email',
+            'role',
+            'adresse',
             'telephone',
             'is_active',
+            'is_staff',
             'date_joined'
             ]
 
@@ -141,6 +142,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['nom'] = user.nom
         token['prenom'] = user.prenom
         token['user_id'] = user.id
+        token['is_active'] = user.is_active
+        token['is_staff'] = user.is_staff
         return token
 
 
@@ -212,14 +215,19 @@ class FournisseurProfileSerializer(serializers.ModelSerializer):
     """Serializer pour le profil fournisseur"""
     user = UtilisateurSerializer(read_only=True)
     nom_complet = serializers.SerializerMethodField()
+    statut_label = serializers.SerializerMethodField()
+    magasin = serializers.SerializerMethodField()
+    nombre_commandes = serializers.SerializerMethodField()
+    raison_refus = serializers.SerializerMethodField()
     
     class Meta:
         model = FournisseurProfile
         fields = [
             'user', 'nom_entreprise', 'description', 'siret', 'logo',
-            'date_inscription', 'statut', 'date_validation',
+            'date_inscription', 'statut', 'statut_label', 'date_validation',
             'note_moyenne', 'nombre_avis', 'nombre_produits',
-            'nombre_ventes', 'chiffre_affaires', 'nom_complet'
+            'nombre_ventes', 'chiffre_affaires', 'nom_complet',
+            'magasin', 'nombre_commandes', 'raison_refus'
         ]
         read_only_fields = [
             'date_inscription', 'statut', 'date_validation',
@@ -229,6 +237,47 @@ class FournisseurProfileSerializer(serializers.ModelSerializer):
     
     def get_nom_complet(self, obj):
         return f"{obj.user.nom} {obj.user.prenom}"
+    
+    def get_statut_label(self, obj):
+        labels = {
+            'en_attente': 'En attente de validation',
+            'actif': 'Actif',
+            'suspendu': 'Suspendu',
+        }
+        return labels.get(obj.statut, obj.statut)
+    
+    def get_magasin(self, obj):
+        return {
+            'nom_magasin': obj.nom_entreprise or '',
+            'logo': obj.logo.url if obj.logo else None,
+            'photo_couverture': None,
+            'telephone': getattr(obj.user, 'telephone', '') or '',
+            'whatsapp': '',
+            'email': obj.user.email or '',
+            'ville': '',
+            'region': '',
+            'adresse_complete': getattr(obj.user, 'adresse', '') or '',
+            'horaires_ouverture': {},
+            'jours_ouverture': '',
+            'livraison_disponible': False,
+            'retrait_magasin': False,
+            'rayon_livraison_km': None,
+            'latitude': None,
+            'longitude': None,
+        }
+    
+    def get_nombre_commandes(self, obj):
+        from catalog.models import FournisseurProduit
+        from orders.models import LigneCommande
+        produit_ids = FournisseurProduit.objects.filter(
+            fournisseur__user_id=obj.user_id
+        ).values_list('produit_id', flat=True)
+        return LigneCommande.objects.filter(
+            produit_id__in=produit_ids
+        ).values('commande_id').distinct().count()
+    
+    def get_raison_refus(self, obj):
+        return ''
 
 
 class FournisseurListSerializer(serializers.ModelSerializer):
@@ -236,6 +285,9 @@ class FournisseurListSerializer(serializers.ModelSerializer):
     user = UtilisateurSerializer(read_only=True)
     nom_complet = serializers.SerializerMethodField()
     statut_label = serializers.SerializerMethodField()
+    magasin = serializers.SerializerMethodField()
+    nombre_commandes = serializers.SerializerMethodField()
+    raison_refus = serializers.SerializerMethodField()
     
     class Meta:
         model = FournisseurProfile
@@ -243,7 +295,8 @@ class FournisseurListSerializer(serializers.ModelSerializer):
             'user', 'nom_entreprise', 'description', 'siret', 'logo',
             'date_inscription', 'statut', 'statut_label',
             'note_moyenne', 'nombre_avis', 'nombre_produits',
-            'nombre_ventes', 'chiffre_affaires', 'nom_complet'
+            'nombre_ventes', 'chiffre_affaires', 'nom_complet',
+            'magasin', 'nombre_commandes', 'raison_refus'
         ]
     
     def get_nom_complet(self, obj):
@@ -256,6 +309,39 @@ class FournisseurListSerializer(serializers.ModelSerializer):
             'suspendu': 'Suspendu'
         }
         return labels.get(obj.statut, obj.statut)
+    
+    def get_magasin(self, obj):
+        return {
+            'nom_magasin': obj.nom_entreprise or '',
+            'logo': obj.logo.url if obj.logo else None,
+            'photo_couverture': None,
+            'telephone': getattr(obj.user, 'telephone', '') or '',
+            'whatsapp': '',
+            'email': obj.user.email or '',
+            'ville': '',
+            'region': '',
+            'adresse_complete': getattr(obj.user, 'adresse', '') or '',
+            'horaires_ouverture': {},
+            'jours_ouverture': '',
+            'livraison_disponible': False,
+            'retrait_magasin': False,
+            'rayon_livraison_km': None,
+            'latitude': None,
+            'longitude': None,
+        }
+    
+    def get_nombre_commandes(self, obj):
+        from catalog.models import FournisseurProduit
+        from orders.models import LigneCommande
+        produit_ids = FournisseurProduit.objects.filter(
+            fournisseur__user_id=obj.user_id
+        ).values_list('produit_id', flat=True)
+        return LigneCommande.objects.filter(
+            produit_id__in=produit_ids
+        ).values('commande_id').distinct().count()
+    
+    def get_raison_refus(self, obj):
+        return ''
 
 
 class FournisseurUpdateSerializer(serializers.ModelSerializer):

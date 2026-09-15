@@ -179,7 +179,7 @@
                   <div class="activity__icon"><i class="bi" [class]="act.icon"></i></div>
                   <div class="activity__body">
                     <p class="activity__text" [innerHTML]="act.texte"></p>
-                    <span class="activity__time">{{ timeAgo(act.date) }}</span>
+                    <span class="activity__time">{{ act.timeAgoLabel }}</span>
                   </div>
                 </li>
               </ul>

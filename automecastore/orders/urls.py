@@ -10,7 +10,12 @@ from .views import (
     DashboardStatsView,
     WeeklySalesView,
     RecentOrdersView,
-    KPIView
+    KPIView,
+    AdminCommandeListView,
+    AdminCommandeDetailView,
+    AdminCommandeStatsView,
+    AdminCommandeAlertsView,
+    AdminCommandeActionView,
 )
 
 urlpatterns = [
@@ -25,4 +30,11 @@ urlpatterns = [
     path('dashboard/weekly-sales/', WeeklySalesView.as_view(), name='weekly_sales'),
     path('dashboard/recent-orders/', RecentOrdersView.as_view(), name='recent_orders'),
     path('dashboard/kpi/', KPIView.as_view(), name='kpi'),
+
+    # Admin - Gestion des commandes
+    path('admin/commandes/', AdminCommandeListView.as_view(), name='admin_commandes'),
+    path('admin/commandes/stats/', AdminCommandeStatsView.as_view(), name='admin_commandes_stats'),
+    path('admin/commandes/alerts/', AdminCommandeAlertsView.as_view(), name='admin_commandes_alerts'),
+    path('admin/commandes/<int:pk>/', AdminCommandeDetailView.as_view(), name='admin_commande_detail'),
+    path('admin/commandes/<int:pk>/action/', AdminCommandeActionView.as_view(), name='admin_commande_action'),
 ]

@@ -6,13 +6,61 @@ from django.db.models import Q
 from django.utils import timezone
 import logging
 
-from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison
-from .serializers import CategorieSerializer, ProduitSerializer, ProduitFavorisSerializer, TypePieceSerializer, LivraisonSerializer
+from .models import Categorie, Produit, ProduitFavoris, TypePiece, Livraison, Marque, FournisseurProduit, Fournisseur
+from .serializers import CategorieSerializer, ProduitSerializer, ProduitFavorisSerializer, TypePieceSerializer, LivraisonSerializer, MarqueSerializer
 from account.permissions import IsAdmin
 from orders.models import LigneCommande, PanierItem
 from rest_framework import parsers
 # Configuration du logger
 logger = logging.getLogger(__name__)
+
+
+# -----------------------------
+# Marque
+# -----------------------------
+class MarqueListCreateView(generics.ListCreateAPIView):
+    queryset = Marque.objects.all()
+    serializer_class = MarqueSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdmin()]
+        return [permissions.AllowAny()]
+
+
+class MarqueDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Marque.objects.all()
+    serializer_class = MarqueSerializer
+    permission_classes = [IsAdmin]
+
+
+# -----------------------------
+# Magasin (minimal — returns empty for now)
+# -----------------------------
+class MagasinListView(APIView):
+    def get(self, request):
+        return Response([])
+
+    def options(self, request, *args, **kwargs):
+        from django.http import HttpResponse
+        resp = HttpResponse()
+        resp['Access-Control-Allow-Origin'] = '*'
+        resp['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        resp['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return resp
+
+
+class MagasinDetailView(APIView):
+    def get(self, request, pk):
+        return Response({'error': 'Magasin non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+    def options(self, request, *args, **kwargs):
+        from django.http import HttpResponse
+        resp = HttpResponse()
+        resp['Access-Control-Allow-Origin'] = '*'
+        resp['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        resp['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return resp
 
 
 # -----------------------------
@@ -885,3 +933,213 @@ class HomePopularSearchesView(APIView):
                 'success': False,
                 'message': 'Erreur lors de la récupération des recherches populaires'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# -----------------------------
+# Admin - Gestion des produits
+# -----------------------------
+def _build_admin_product_data(p):
+    images = []
+    for img in [p.image, p.image_2, p.image_3, p.image_4]:
+        if img:
+            try:
+                images.append(img.url)
+            except (ValueError, AttributeError):
+                images.append(str(img))
+
+    is_active = p.is_active if p.is_active is not None else True
+    if not is_active:
+        admin_status = 'masque'
+        statut_approbation = 'en_attente'
+        statut = 'inactif'
+    else:
+        admin_status = 'publie'
+        statut_approbation = 'approuve'
+        statut = 'actif'
+
+    # Lookup fournisseur info
+    vendor = ''
+    vendor_id = None
+    vendor_store = ''
+    try:
+        fp = FournisseurProduit.objects.select_related('fournisseur').filter(produit=p).first()
+        if fp and fp.fournisseur:
+            vendor = fp.fournisseur.nom_entreprise or ''
+            vendor_id = fp.fournisseur_id
+            if fp.fournisseur.user_id:
+                try:
+                    from account.models import FournisseurProfile
+                    profile = FournisseurProfile.objects.filter(user_id=fp.fournisseur.user_id).first()
+                    if profile:
+                        vendor_store = profile.nom_entreprise or vendor
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # Build alerts based on stock and data quality
+    alerts = []
+    if p.stock == 0:
+        alerts.append({'type': 'stock', 'label': 'Rupture de stock', 'severity': 'high'})
+    elif p.stock <= 5:
+        alerts.append({'type': 'stock', 'label': 'Stock faible', 'severity': 'medium'})
+    if not p.description or len(p.description) < 20:
+        alerts.append({'type': 'description', 'label': 'Description incomplète', 'severity': 'low'})
+    if not images:
+        alerts.append({'type': 'image', 'label': 'Aucune image', 'severity': 'medium'})
+
+    return {
+        'id': p.id,
+        'ref': p.reference or '',
+        'reference_oem': '',
+        'name': p.nom,
+        'category': p.categorie.nom if p.categorie else '',
+        'category_id': p.categorie.id if p.categorie else None,
+        'brand': p.marque or '',
+        'vendor': vendor,
+        'vendor_id': vendor_id,
+        'vendor_store': vendor_store,
+        'image': images[0] if images else None,
+        'images': images,
+        'price': float(p.prix),
+        'stock': p.stock,
+        'sales': p.nombre_ventes,
+        'created_at': p.datecreation.isoformat() if hasattr(p, 'datecreation') and p.datecreation else None,
+        'updated_at': p.datemodification.isoformat() if hasattr(p, 'datemodification') and p.datemodification else None,
+        'admin_status': admin_status,
+        'admin_status_label': admin_status,
+        'admin_status_color': '',
+        'admin_status_icon': '',
+        'admin_status_description': '',
+        'signale': False,
+        'motif_rejet': '',
+        'statut_approbation': statut_approbation,
+        'statut': statut,
+        'is_active': is_active,
+        'sections': {
+            'bestOffer': False,
+            'flashSale': bool(p.est_en_promo),
+            'bestSeller': bool(p.est_bestseller),
+            'trending': bool(p.est_tendance),
+            'lightningSale': bool(p.vente_eclair),
+            'featured': bool(p.est_vedette),
+            'recommended': bool(p.est_recommande),
+        },
+        'alerts': alerts,
+        'compatibility': {
+            'modeles_compatibles': [],
+            'annee_debut': None,
+            'annee_fin': None,
+            'compatibilites': [],
+        },
+        'technical': {
+            'etat': '',
+            'garantie_mois': 0,
+            'garantie_disponible': False,
+            'pays_origine': '',
+            'fabricant': p.marque or '',
+            'matiere': '',
+            'couleur': '',
+            'poids': None,
+            'longueur': None,
+            'largeur': None,
+            'hauteur': None,
+        },
+        'description_courte': '',
+        'description_detaillee': p.description or '',
+        'precautions': '',
+        'mots_cles': [],
+        'delai_livraison': '',
+        'livraison_disponible': True,
+        'retrait_magasin': False,
+        'quantite_min': None,
+        'seuil_alerte': None,
+    }
+
+
+class AdminProduitListView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        produits = Produit.all_objects.select_related('categorie').order_by('-id')
+
+        q = request.query_params.get('q')
+        if q:
+            produits = produits.filter(
+                Q(nom__icontains=q) |
+                Q(reference__icontains=q) |
+                Q(marque__icontains=q)
+            )
+
+        categorie = request.query_params.get('categorie')
+        if categorie:
+            produits = produits.filter(categorie__nom__iexact=categorie)
+
+        marque = request.query_params.get('marque')
+        if marque:
+            produits = produits.filter(marque__iexact=marque)
+
+        fournisseur = request.query_params.get('fournisseur')
+        if fournisseur:
+            from catalog.models import FournisseurProduit
+            produit_ids = FournisseurProduit.objects.filter(
+                fournisseur__nom_entreprise__icontains=fournisseur
+            ).values_list('produit_id', flat=True)
+            produits = produits.filter(id__in=produit_ids)
+
+        statut = request.query_params.get('statut')
+        if statut:
+            if statut == 'publie':
+                produits = produits.filter(is_active=True)
+            elif statut == 'en_attente_validation':
+                produits = produits.filter(is_active=False)
+            elif statut == 'masque':
+                produits = produits.filter(is_active=False)
+
+        data = [_build_admin_product_data(p) for p in produits]
+        return Response(data)
+
+
+class AdminProduitDetailView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        try:
+            produit = Produit.all_objects.get(pk=pk)
+            return Response(_build_admin_product_data(produit))
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        try:
+            produit = Produit.all_objects.get(pk=pk)
+            produit.soft_delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AdminProduitSectionsView(APIView):
+    permission_classes = [IsAdmin]
+
+    def patch(self, request, pk):
+        try:
+            produit = Produit.all_objects.get(pk=pk)
+            sections = request.data
+            if hasattr(sections, 'get'):
+                if 'flashSale' in sections:
+                    produit.est_en_promo = bool(sections['flashSale'])
+                if 'bestSeller' in sections:
+                    produit.est_bestseller = bool(sections['bestSeller'])
+                if 'trending' in sections:
+                    produit.est_tendance = bool(sections['trending'])
+                if 'lightningSale' in sections:
+                    produit.vente_eclair = bool(sections['lightningSale'])
+                if 'featured' in sections:
+                    produit.est_vedette = bool(sections['featured'])
+                if 'recommended' in sections:
+                    produit.est_recommande = bool(sections['recommended'])
+            produit.save()
+            return Response(_build_admin_product_data(produit))
+        except Produit.DoesNotExist:
+            return Response({'error': 'Produit non trouvé'}, status=status.HTTP_404_NOT_FOUND)

@@ -177,9 +177,12 @@ class ProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-class UtilisateurDetailView(generics.RetrieveAPIView):
-    queryset = Utilisateur.objects.all()
-    serializer_class = UtilisateurSerializer
+class UtilisateurDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = UtilisateurSerializer(request.user)
+        return Response(serializer.data)
 
 # ==============================
 # VIEWS POUR LA GESTION DES CLIENTS

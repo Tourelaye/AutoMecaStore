@@ -244,7 +244,7 @@ DATABASES = {
 
         'USER': 'postgres',
 
-        'PASSWORD': '2004',
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
 
         'HOST': 'localhost',
 

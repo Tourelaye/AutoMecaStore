@@ -130,6 +130,10 @@ export class AdminDashboardComponent implements OnInit {
     this.dashboardService.getDashboard().subscribe({
       next: data => {
         this.data = data;
+        this.data.activites_recentes = (data.activites_recentes || []).map(a => ({
+          ...a,
+          timeAgoLabel: this.timeAgo(a.date)
+        }));
         this.buildKpis(data.kpis);
         this.selectGraph(this.selectedGraph);
         this.lastUpdated = `Mis à jour à ${new Date().toLocaleTimeString('fr-FR', {

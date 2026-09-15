@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
 
@@ -21,12 +22,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-esu+s699q0i^)^-wv42=_r*sf0$yp-kjq#=ker&6xs2(_u*=c='
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-dev-only-fallback-key-change-me'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS',
+        '127.0.0.1,localhost,0.0.0.0'
+    ).split(',') if h.strip()
+]
 
 
 # Application definition
@@ -49,6 +58,7 @@ INSTALLED_APPS = [
     'orders',
     'payments',
     'support',
+    'admin_api',
 ]
 
 REST_FRAMEWORK = {
@@ -63,6 +73,7 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -94,16 +105,37 @@ WSGI_APPLICATION = 'automecastore.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'automecastore_dev',
-        'USER': 'postgres',
-        'PASSWORD': '2004',
-        'HOST': 'localhost',
-        'PORT': '5432',
+# Database — use DATABASE_URL if provided (production), else local config
+_database_url = os.environ.get('DATABASE_URL')
+if _database_url:
+    import urllib.parse as _urllib_parse
+    _parsed = _urllib_parse.urlparse(_database_url)
+    _db_opts = {}
+    if _parsed.query:
+        for _k, _v in _urllib_parse.parse_qs(_parsed.query).items():
+            _db_opts[_k] = _v[0]
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _urllib_parse.unquote(_parsed.path.lstrip('/')),
+            'USER': _urllib_parse.unquote(_parsed.username or ''),
+            'PASSWORD': _urllib_parse.unquote(_parsed.password or ''),
+            'HOST': _parsed.hostname or '',
+            'PORT': str(_parsed.port or 5432),
+            'OPTIONS': _db_opts if _db_opts else {},
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'automecastore_dev',
+            'USER': 'postgres',
+            'PASSWORD': '2004',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 AUTH_USER_MODEL = 'account.Utilisateur'
 
@@ -143,6 +175,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
 # Media files (User uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -154,10 +197,20 @@ SIMPLE_JWT = {
 
 # Configuration CORS pour permettre les requêtes du frontend
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
+    origin.strip() for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:4200,http://127.0.0.1:4200'
+    ).split(',') if origin.strip()
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_ALL_ORIGINS = True  # Pour le développement
+CORS_ALLOW_ALL_ORIGINS = False
+
+# CSRF trusted origins (comma-separated)
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost:4200,http://127.0.0.1:4200'
+    ).split(',') if origin.strip()
+]

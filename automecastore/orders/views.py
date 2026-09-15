@@ -346,3 +346,210 @@ class RecentOrdersView(views.APIView):
             })
         
         return Response(orders_data)
+
+
+# -----------------------------
+# Admin - Gestion des commandes
+# -----------------------------
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from account.permissions import IsAdmin
+from django.db.models import Sum, Avg, Q
+from datetime import timedelta
+from django.utils import timezone
+
+
+def _build_admin_commande_data(cmd):
+    lignes = list(cmd.lignes.all())
+    nombre_produits = sum(l.quantite for l in lignes)
+    client = cmd.client
+    client_user = client.user if client else None
+
+    return {
+        'id': cmd.id,
+        'reference': cmd.reference or f"CMD{cmd.id}",
+        'date_commande': cmd.date_commande.isoformat() if cmd.date_commande else None,
+        'statut': cmd.statut,
+        'montant_total': float(cmd.montant_total),
+        'frais_livraison': 0,
+        'mode_paiement': '',
+        'mode_reception': '',
+        'client': {
+            'id': client_user.id if client_user else 0,
+            'nom': client_user.nom if client_user else '',
+            'prenom': client_user.prenom if client_user else '',
+            'email': client_user.email if client_user else '',
+            'telephone': getattr(client_user, 'telephone', '') or '',
+            'adresse': getattr(client_user, 'adresse', '') or '',
+        } if client_user else None,
+        'magasins': [],
+        'nombre_produits': nombre_produits,
+        'alertes': [],
+    }
+
+
+class AdminCommandeListView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        qs = Commande.objects.select_related('client__user').prefetch_related('lignes').order_by('-date_commande')
+
+        statut = request.query_params.get('statut')
+        if statut:
+            qs = qs.filter(statut=statut)
+
+        periode = request.query_params.get('periode')
+        today = timezone.now().date()
+        if periode == 'today':
+            qs = qs.filter(date_commande__date=today)
+        elif periode == 'week':
+            start = today - timedelta(days=today.weekday())
+            qs = qs.filter(date_commande__date__gte=start)
+        elif periode == 'month':
+            qs = qs.filter(date_commande__year=today.year, date_commande__month=today.month)
+        elif periode == 'livrees':
+            qs = qs.filter(statut='livree')
+        elif periode == 'annulees':
+            qs = qs.filter(statut='annulee')
+
+        q = request.query_params.get('q', '').strip()
+        if q:
+            qs = qs.filter(
+                Q(reference__icontains=q) |
+                Q(client__user__nom__icontains=q) |
+                Q(client__user__prenom__icontains=q)
+            ).distinct()
+
+        data = [_build_admin_commande_data(cmd) for cmd in qs]
+        return Response(data)
+
+
+class AdminCommandeDetailView(generics.RetrieveAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk):
+        try:
+            cmd = Commande.objects.select_related('client__user').prefetch_related('lignes__produit').get(pk=pk)
+        except Commande.DoesNotExist:
+            return Response({'error': 'Commande non trouvée'}, status=status.HTTP_404_NOT_FOUND)
+
+        base = _build_admin_commande_data(cmd)
+        base['lignes'] = [{
+            'id': l.id,
+            'produit': {
+                'id': l.produit.id if l.produit else 0,
+                'nom': l.produit.nom if l.produit else '',
+                'image': None,
+            },
+            'quantite': l.quantite,
+            'prix_unitaire': float(l.prix_unitaire),
+            'sous_total': float(l.sous_total) if l.sous_total else float(l.prix_unitaire) * l.quantite,
+            'magasin': None,
+        } for l in cmd.lignes.all()]
+        base['historique'] = []
+        base['livraison'] = None
+        base['reclamations'] = []
+        return Response(base)
+
+
+class AdminCommandeStatsView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        month_start = today.replace(day=1)
+
+        total = Commande.objects.count()
+        aujourdhui = Commande.objects.filter(date_commande__date=today).count()
+        terminees = Commande.objects.filter(statut='livree').count()
+        annulees = Commande.objects.filter(statut='annulee').count()
+        en_preparation = Commande.objects.filter(statut__in=['en_attente', 'validee', 'expediee']).count()
+
+        montant_total = float(Commande.objects.aggregate(total=Sum('montant_total'))['total'] or 0)
+        panier_moyen = float(Commande.objects.aggregate(avg=Avg('montant_total'))['avg'] or 0)
+
+        montant_jour = float(Commande.objects.filter(date_commande__date=today).aggregate(total=Sum('montant_total'))['total'] or 0)
+        montant_semaine = float(Commande.objects.filter(date_commande__date__gte=week_start).aggregate(total=Sum('montant_total'))['total'] or 0)
+        montant_mois = float(Commande.objects.filter(date_commande__date__gte=month_start).aggregate(total=Sum('montant_total'))['total'] or 0)
+
+        return Response({
+            'total': total,
+            'aujourdhui': aujourdhui,
+            'terminees': terminees,
+            'annulees': annulees,
+            'en_preparation': en_preparation,
+            'montant_total': montant_total,
+            'panier_moyen': panier_moyen,
+            'temps_moyen_heures': 0,
+            'montant_jour': montant_jour,
+            'montant_semaine': montant_semaine,
+            'montant_mois': montant_mois,
+        })
+
+
+class AdminCommandeAlertsView(generics.ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        now = timezone.now()
+        alertes = []
+        qs = Commande.objects.select_related('client__user').all()
+
+        for cmd in qs:
+            delta = now - cmd.date_commande
+            if cmd.statut == 'en_attente' and delta > timedelta(hours=2):
+                alertes.append({
+                    'id': f"{cmd.id}-bloquee",
+                    'commande_id': cmd.id,
+                    'reference': cmd.reference or f"CMD{cmd.id}",
+                    'type': 'bloquee',
+                    'label': 'Commande bloquée',
+                    'severity': 'high',
+                    'client': f"{cmd.client.user.nom} {cmd.client.user.prenom}".strip() if cmd.client else 'Client inconnu',
+                })
+            if cmd.statut == 'annulee':
+                alertes.append({
+                    'id': f"{cmd.id}-annulee",
+                    'commande_id': cmd.id,
+                    'reference': cmd.reference or f"CMD{cmd.id}",
+                    'type': 'annulee',
+                    'label': 'Commande annulée',
+                    'severity': 'high',
+                    'client': f"{cmd.client.user.nom} {cmd.client.user.prenom}".strip() if cmd.client else 'Client inconnu',
+                })
+
+        return Response(alertes)
+
+
+class AdminCommandeActionView(generics.GenericAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def post(self, request, pk):
+        try:
+            cmd = Commande.objects.get(pk=pk)
+        except Commande.DoesNotExist:
+            return Response({'error': 'Commande non trouvée'}, status=status.HTTP_404_NOT_FOUND)
+
+        action = request.data.get('action')
+        statut_map = {
+            'accepter': 'validee',
+            'refuser': 'annulee',
+            'preparer': 'validee',
+            'prete': 'validee',
+            'expedier': 'expediee',
+            'livrer': 'livree',
+            'terminer': 'livree',
+            'annuler': 'annulee',
+        }
+
+        if action in statut_map:
+            cmd.statut = statut_map[action]
+            cmd.save()
+            return Response({'message': f'Statut mis à jour: {cmd.statut}'})
+
+        return Response({'error': 'Action non reconnue'}, status=status.HTTP_400_BAD_REQUEST)
