@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "dist/automecastore-frontend",
   "rewrites": [
     {"source": "/(.*)", "destination": "/index.html"}
   ]
