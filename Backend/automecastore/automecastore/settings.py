@@ -376,6 +376,14 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_HEADERS = list(default_cors_headers) + ['x-session-key']
 
+# CSRF — origines de confiance pour les requêtes POST cross-origin (session/cookies)
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost:4200,http://127.0.0.1:4200'
+    ).split(',') if origin.strip()
+]
+
 
 # Configuration email
 # - En développement (par défaut) : les emails s'affichent dans la console.

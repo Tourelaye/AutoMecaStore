@@ -1,0 +1,31 @@
+# Secrets et environnement local
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+
+# Fichiers générés / données
+staticfiles/
+media/
+data_dump.json
+*.log
+
+# Git et IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Divers
+*.md
+Procfile
+runtime.txt
+node_modules/

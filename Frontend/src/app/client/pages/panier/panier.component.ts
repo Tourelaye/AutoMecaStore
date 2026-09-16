@@ -493,6 +493,18 @@ export class PanierComponent implements OnInit, OnDestroy {
       this.commandeErreur = 'Votre panier est vide';
       return;
     }
+    // Réinitialiser l'état d'une éventuelle commande précédente
+    this.commandeConfirmee = false;
+    this.commandeDetails = null;
+    this.commandeSucces = false;
+    this.showOrderSuccess = false;
+    this.paymentDetails = null;
+    this.paymentError = '';
+    this.moyenPaiement = '';
+    if (this.successTimer) {
+      clearInterval(this.successTimer);
+      this.successTimer = null;
+    }
     this.etapeCommande = 2;
     this.showRecap = true;
     this.commandeErreur = '';
@@ -503,13 +515,30 @@ export class PanierComponent implements OnInit, OnDestroy {
   }
 
   retourEtape(): void {
-    if (this.etapeCommande > 1) this.etapeCommande--;
+    if (this.etapeCommande > 1) {
+      this.etapeCommande--;
+      // Sauter l'étape adresse (3) si aucun article n'est en livraison
+      if (this.etapeCommande === 3 && !this.aLivraison) {
+        this.etapeCommande = 2;
+      }
+    }
   }
 
   annulerCommande(): void {
     this.etapeCommande = 1;
     this.showRecap = false;
     this.commandeErreur = '';
+    this.commandeConfirmee = false;
+    this.commandeDetails = null;
+    this.commandeSucces = false;
+    this.showOrderSuccess = false;
+    this.paymentDetails = null;
+    this.paymentError = '';
+    this.moyenPaiement = '';
+    if (this.successTimer) {
+      clearInterval(this.successTimer);
+      this.successTimer = null;
+    }
   }
 
   continuerModeVersAdresse(): void {
