@@ -41,5 +41,6 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-# Migrations puis démarrage gunicorn (Render injecte $PORT)
-CMD python manage.py migrate --noinput && gunicorn automecastore.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+# Migrations + chargement initial des données puis démarrage gunicorn (Render injecte $PORT)
+# loaddata est idempotent (mêmes PKs = mise à jour) — à retirer après le 1er chargement réussi
+CMD python manage.py migrate --noinput && python manage.py loaddata data_dump.json && gunicorn automecastore.wsgi:application --bind 0.0.0.0:${PORT:-8000}

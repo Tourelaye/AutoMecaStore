@@ -15,7 +15,6 @@ venv/
 # Fichiers générés / données
 staticfiles/
 media/
-data_dump.json
 *.log
 
 # Git et IDE
