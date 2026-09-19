@@ -48,3 +48,6 @@ diag_*.py
 fix_db.py
 build.log
 temp/
+
+# Copie parasite du backend à la racine (artefact local)
+/automecastore/
