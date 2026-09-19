@@ -123,7 +123,7 @@
         </div>
 
         <!-- ===== FORMULAIRE ===== -->
-        <form (ngSubmit)="onSubmit()" #loginForm="ngForm" autocomplete="off">
+        <form *ngIf="loginStep <= 2" (ngSubmit)="onSubmit()" #loginForm="ngForm" autocomplete="off">
 
           <div class="field-group">
             <label>Adresse email</label>
@@ -191,6 +191,99 @@
           </button>
 
         </form>
+
+        <!-- ===== 2FA : SAISIE DU CODE ===== -->
+        <form *ngIf="loginStep === 3" (ngSubmit)="submitOtp()" autocomplete="off">
+          <div class="form-title">
+            <h3>Vérification en deux étapes</h3>
+            <p>Entrez le code à 6 chiffres de votre application d'authentification, ou un code de secours.</p>
+          </div>
+
+          <div class="field-group">
+            <label>Code de vérification</label>
+            <div class="field-wrap" [class.field-filled]="otpCode">
+              <i class="bi bi-shield-lock-fill field-icon"></i>
+              <input
+                type="text"
+                [(ngModel)]="otpCode"
+                name="otpCode"
+                placeholder="000000"
+                maxlength="8"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                [disabled]="isLoading"
+              >
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login" [disabled]="isLoading">
+            <span *ngIf="!isLoading"><i class="bi bi-check2-circle"></i> Vérifier</span>
+            <span *ngIf="isLoading" class="loading-row"><span class="spinner"></span> Vérification...</span>
+          </button>
+
+          <a class="forgot-link back-2fa" (click)="backToCredentials()">
+            <i class="bi bi-arrow-left"></i> Retour à la connexion
+          </a>
+        </form>
+
+        <!-- ===== 2FA : PREMIER ENRÔLEMENT ===== -->
+        <form *ngIf="loginStep === 4" (ngSubmit)="submitOtp()" autocomplete="off">
+          <div class="form-title">
+            <h3>Activation du 2FA obligatoire</h3>
+            <p>
+              1. Ouvrez votre application d'authentification (Google Authenticator, Authy…)<br>
+              2. Ajoutez un compte en saisissant la clé ci-dessous<br>
+              3. Entrez le code à 6 chiffres généré
+            </p>
+          </div>
+
+          <div class="totp-secret">
+            <span>Clé secrète AutoMecaStore</span>
+            <code>{{ totpSecret }}</code>
+          </div>
+
+          <div class="field-group">
+            <label>Code de vérification</label>
+            <div class="field-wrap" [class.field-filled]="otpCode">
+              <i class="bi bi-shield-lock-fill field-icon"></i>
+              <input
+                type="text"
+                [(ngModel)]="otpCode"
+                name="otpCodeSetup"
+                placeholder="000000"
+                maxlength="8"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                [disabled]="isLoading"
+              >
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login" [disabled]="isLoading">
+            <span *ngIf="!isLoading"><i class="bi bi-shield-fill-check"></i> Activer et se connecter</span>
+            <span *ngIf="isLoading" class="loading-row"><span class="spinner"></span> Vérification...</span>
+          </button>
+
+          <a class="forgot-link back-2fa" (click)="backToCredentials()">
+            <i class="bi bi-arrow-left"></i> Retour à la connexion
+          </a>
+        </form>
+
+        <!-- ===== 2FA : CODES DE SECOURS ===== -->
+        <div *ngIf="loginStep === 5">
+          <div class="form-title">
+            <h3>Codes de secours</h3>
+            <p>Conservez ces codes en lieu sûr. Chacun ne peut être utilisé qu'une seule fois si vous perdez l'accès à votre application.</p>
+          </div>
+
+          <ul class="backup-codes">
+            <li *ngFor="let c of backupCodes"><code>{{ c }}</code></li>
+          </ul>
+
+          <button type="button" class="btn-login" (click)="finishLogin()">
+            <i class="bi bi-check-circle-fill"></i> J'ai sauvegardé mes codes
+          </button>
+        </div>
 
         <!-- Sécurité -->
         <div class="security-row">

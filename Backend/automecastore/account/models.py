@@ -53,6 +53,8 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
     # Paramètres de sécurité
     two_factor_enabled = models.BooleanField(default=False)
     two_factor_secret = models.CharField(max_length=64, blank=True, null=True)
+    # Codes de secours 2FA stockés hashés (SHA-256), consommés à l'usage
+    two_factor_backup_codes = models.JSONField(default=list, blank=True)
     email_alerts_enabled = models.BooleanField(default=True)
     password_changed_at = models.DateTimeField(null=True, blank=True)
 

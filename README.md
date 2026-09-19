@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-# 🚗 AutoMecaStore
+# AutoMecaStore
 
 Plateforme e-commerce de vente de pièces détachées automobiles au Sénégal.
 
@@ -8,7 +8,7 @@ Plateforme e-commerce de vente de pièces détachées automobiles au Sénégal.
 
 ---
 
-## 📋 Table des matières
+##  Table des matières
 
 - [Présentation](#présentation)
 - [Architecture](#architecture)

@@ -8,12 +8,19 @@ from .serializers import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics, permissions, filters
-from .models import Utilisateur, Client, Fournisseur
+from .models import Utilisateur, Client, Fournisseur, SecurityActivity
 from catalog.models import Categorie, Produit
 from orders.models import Commande, LigneCommande
 from account.permissions import IsAdmin, IsClient
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
+from .security_views import _get_client_ip
+from .twofactor import (
+    resolve_challenge, new_secret, provisioning_uri, verify_totp,
+    consume_backup_code, hash_backup_code, generate_backup_codes,
+    attempts_exceeded,
+)
 
 # Create your views here.
 class CreateAdminView(APIView):
@@ -233,6 +240,102 @@ class ProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
     throttle_scope = 'login'
+
+class TwoFactorSetupView(APIView):
+    """
+    Enrôlement 2FA obligatoire au premier login admin.
+    Reçoit le challenge émis par /login/ et retourne le secret TOTP
+    à enregistrer dans l'application d'authentification.
+    """
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'login'
+
+    def post(self, request):
+        user = resolve_challenge(request.data.get('challenge'))
+        if user is None:
+            return Response(
+                {'detail': "Session de vérification expirée. Recommencez la connexion."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        secret = new_secret()
+        user.two_factor_secret = secret
+        user.save(update_fields=['two_factor_secret'])
+        return Response({
+            'secret': secret,
+            'otpauth_url': provisioning_uri(secret, user.email),
+        })
+
+class TwoFactorVerifyView(APIView):
+    """
+    Vérification du code TOTP (ou d'un code de secours) après validation du
+    mot de passe. Émet le couple de JWT en cas de succès.
+    """
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'login'
+
+    def post(self, request):
+        challenge = request.data.get('challenge') or ''
+        user = resolve_challenge(challenge)
+        if user is None:
+            return Response(
+                {'detail': "Session de vérification expirée. Recommencez la connexion."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if attempts_exceeded(challenge):
+            return Response(
+                {'detail': "Trop de tentatives. Recommencez la connexion."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
+        code = str(request.data.get('code', '')).strip().replace(' ', '')
+        if not code:
+            return Response({'detail': 'Code requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        used_backup = False
+        verified = verify_totp(user.two_factor_secret, code)
+        if not verified:
+            used_backup = consume_backup_code(user, code)
+            verified = used_backup
+
+        if not verified:
+            return Response({'detail': 'Code invalide.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Premier enrôlement : activation du 2FA + codes de secours
+        backup_codes = None
+        if not user.two_factor_enabled:
+            user.two_factor_enabled = True
+            backup_codes = generate_backup_codes()
+            user.two_factor_backup_codes = [hash_backup_code(c) for c in backup_codes]
+
+        user.last_login = timezone.now()
+        user.save()
+
+        refresh = MyTokenObtainPairSerializer.get_token(user)
+        ip = _get_client_ip(request)
+        try:
+            SecurityActivity.objects.create(
+                user=user,
+                action='login',
+                ip_address=ip,
+                status='success',
+                metadata={'portal': 'admin', 'via': 'backup_code' if used_backup else 'totp'}
+            )
+            if backup_codes is not None:
+                SecurityActivity.objects.create(
+                    user=user,
+                    action='two_factor_enabled',
+                    ip_address=ip,
+                    status='success',
+                )
+        except Exception:
+            pass
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'backup_codes': backup_codes,
+        })
 
 class UtilisateurDetailView(generics.RetrieveAPIView):
     queryset = Utilisateur.objects.all()

@@ -8,6 +8,7 @@ from .models import Utilisateur, Client, Fournisseur, VehiculeClient, SecurityAc
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from orders.models import Commande
+from .twofactor import make_challenge, has_usable_2fa
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -205,27 +206,10 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             self._log_security(attrs.get('email'), 'login', status='failure')
             raise
 
-        # ── Mettre à jour last_login (SimpleJWT ne le fait pas automatiquement)
         user = self.user
-        if user is not None:
-            user.last_login = timezone.now()
-            user.save(update_fields=['last_login'])
-
-            # Journaliser la connexion réussie
-            request = self.context.get('request')
-            ip = self._get_client_ip(request) if request else None
-            try:
-                SecurityActivity.objects.create(
-                    user=user,
-                    action='login',
-                    ip_address=ip,
-                    status='success',
-                    metadata={'portal': request.data.get('portal') if request else None}
-                )
-            except Exception:
-                pass
 
         # Portail demandé (client, fournisseur, admin)
+        request = self.context.get('request')
         portal = request.data.get('portal') if request else None
 
         if portal:
@@ -254,6 +238,35 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     raise PermissionDenied(
                         "Accès refusé. Vous ne disposez pas des autorisations nécessaires pour accéder à cet espace."
                     )
+                # 2FA obligatoire pour les admins : on ne retourne pas de JWT
+                # tant que le second facteur n'est pas validé.
+                if has_usable_2fa(user):
+                    return {
+                        'requires_2fa': True,
+                        'challenge': make_challenge(user),
+                    }
+                return {
+                    'requires_2fa_setup': True,
+                    'challenge': make_challenge(user),
+                }
+
+        # ── Mettre à jour last_login (SimpleJWT ne le fait pas automatiquement)
+        # et journaliser la connexion — uniquement quand des tokens sont émis.
+        if user is not None:
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+
+            ip = self._get_client_ip(request) if request else None
+            try:
+                SecurityActivity.objects.create(
+                    user=user,
+                    action='login',
+                    ip_address=ip,
+                    status='success',
+                    metadata={'portal': portal}
+                )
+            except Exception:
+                pass
 
         return result
 

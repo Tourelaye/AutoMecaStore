@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     RegisterView, RegisterFournisseurView, MyTokenObtainPairView,
+    TwoFactorSetupView, TwoFactorVerifyView,
     CategorieListCreateView, CategorieDetailView, ProduitListCreateView, ProduitDetailView,
     ClientListView, ClientDetailView, ClientToggleActiveView, ClientDeleteView, ClientStatsView,
     AdminNotificationsView, CreateAdminView
@@ -25,6 +26,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('register-fournisseur/', RegisterFournisseurView.as_view(), name='register_fournisseur'),
     path('login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/2fa/setup/', TwoFactorSetupView.as_view(), name='login_2fa_setup'),
+    path('login/2fa/verify/', TwoFactorVerifyView.as_view(), name='login_2fa_verify'),
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('categories/', CategorieListCreateView.as_view(), name='categorie_list_create'),
     path('categories/<int:pk>/', CategorieDetailView.as_view(), name='categorie_detail'),

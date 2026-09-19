@@ -21,8 +21,13 @@ export interface Utilisateur {
 }
 
 export interface LoginResponse {
-  access: string;
-  refresh: string;
+  access?: string;
+  refresh?: string;
+  // Réponses du flux 2FA admin (pas de tokens tant que le code n'est pas validé)
+  requires_2fa?: boolean;
+  requires_2fa_setup?: boolean;
+  challenge?: string;
+  backup_codes?: string[] | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -61,33 +66,59 @@ export class AuthService {
   login(email: string, password: string, portal?: 'client' | 'fournisseur' | 'admin'): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login/`, { email, password, portal }).pipe(
       tap((response) => {
-        localStorage.setItem('access_token', response.access);
-        localStorage.setItem('refresh_token', response.refresh);
-
-        const payload = this.decodeToken(response.access);
-        const userFromToken: Utilisateur = {
-          id: payload.user_id ?? 0,
-          nom: payload.nom ?? '',
-          prenom: payload.prenom ?? '',
-          email: email,
-          adresse: '',
-          role: payload.role ?? 'client',
-          statut: payload.fournisseur_status ?? '',
-          raisonRefus: payload.fournisseur_raison_refus ?? '',
-          is_active: payload.is_active ?? true,
-          is_staff: payload.is_staff ?? false
-        };
-        this.utilisateurSubject.next(userFromToken);
-        this.isLoggedInSubject.next(true);
-        localStorage.setItem('user', JSON.stringify(userFromToken));
-
-        // Charge le profil complet depuis /me/
-        this.fetchProfil().subscribe(() => {
-          // Sync localStorage cart to backend after login
-          this.panierService.syncLocalStorageToBackend();
-        });
+        // Flux 2FA admin : la réponse ne contient pas de tokens
+        if (!response.access || !response.refresh) return;
+        this.completeAuth(response.access, response.refresh, email);
       })
     );
+  }
+
+  // Prépare l'enrôlement 2FA admin (secret TOTP à saisir dans l'app d'auth)
+  setup2fa(challenge: string): Observable<{ secret: string; otpauth_url: string }> {
+    return this.http.post<{ secret: string; otpauth_url: string }>(
+      `${this.apiUrl}/login/2fa/setup/`, { challenge }
+    );
+  }
+
+  // Valide le code TOTP / code de secours et émet les tokens
+  verify2fa(challenge: string, code: string, email: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(
+      `${this.apiUrl}/login/2fa/verify/`, { challenge, code }
+    ).pipe(
+      tap((response) => {
+        if (response.access && response.refresh) {
+          this.completeAuth(response.access, response.refresh, email);
+        }
+      })
+    );
+  }
+
+  private completeAuth(accessToken: string, refreshToken: string, email: string): void {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+
+    const payload = this.decodeToken(accessToken);
+    const userFromToken: Utilisateur = {
+      id: payload.user_id ?? 0,
+      nom: payload.nom ?? '',
+      prenom: payload.prenom ?? '',
+      email: email,
+      adresse: '',
+      role: payload.role ?? 'client',
+      statut: payload.fournisseur_status ?? '',
+      raisonRefus: payload.fournisseur_raison_refus ?? '',
+      is_active: payload.is_active ?? true,
+      is_staff: payload.is_staff ?? false
+    };
+    this.utilisateurSubject.next(userFromToken);
+    this.isLoggedInSubject.next(true);
+    localStorage.setItem('user', JSON.stringify(userFromToken));
+
+    // Charge le profil complet depuis /me/
+    this.fetchProfil().subscribe(() => {
+      // Sync localStorage cart to backend after login
+      this.panierService.syncLocalStorageToBackend();
+    });
   }
 
   fetchProfil(): Observable<Utilisateur> {

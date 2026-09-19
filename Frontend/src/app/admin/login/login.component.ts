@@ -31,6 +31,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   blockCountdown = 0;
   private blockTimer: any;
 
+  // ── 2FA ──────────────────────────────────────────
+  otpCode      = '';
+  challenge    = '';
+  totpSecret   = '';
+  otpauthUrl   = '';
+  backupCodes: string[] = [];
+
   particles: { x: number; y: number; size: number; speed: number; opacity: number }[] = [];
 
   constructor(
@@ -104,27 +111,32 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.login(this.email.trim().toLowerCase(), this.password, 'admin')
       .subscribe({
-        next: () => {
+        next: (res: any) => {
           this.attempts  = 0;
           this.isLoading = false;
-          const role = this.authService.getCurrentUserRole();
-          const user = this.authService.getCurrentUser();
 
-          if (role !== 'admin' || !user?.is_staff) {
-            this.authService.logout();
-            this.errorMessage = 'Accès réservé aux administrateurs.';
+          // ── 2FA admin : le backend renvoie un challenge au lieu des tokens
+          if (res?.requires_2fa || res?.requires_2fa_setup) {
+            this.challenge = res.challenge || '';
+            this.otpCode   = '';
+            if (res.requires_2fa_setup) {
+              this.authService.setup2fa(this.challenge).subscribe({
+                next: (s) => {
+                  this.totpSecret = s.secret;
+                  this.otpauthUrl = s.otpauth_url;
+                  this.loginStep  = 4;
+                },
+                error: () => {
+                  this.errorMessage = "Impossible de générer la configuration 2FA. Réessayez.";
+                }
+              });
+            } else {
+              this.loginStep = 3;
+            }
             return;
           }
 
-          this.successMsg = 'Bienvenue ! Redirection vers l\'espace admin...';
-
-          if (this.remember) {
-            localStorage.setItem('automeca_remember', JSON.stringify({ email: this.email }));
-          } else {
-            localStorage.removeItem('automeca_remember');
-          }
-
-          this.router.navigateByUrl('/admin/dashboard', { replaceUrl: true });
+          this.finishLogin();
         },
 
         error: (err: any) => {
@@ -141,6 +153,66 @@ export class LoginComponent implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  submitOtp(): void {
+    if (this.isLoading) return;
+    const code = this.otpCode.trim().replace(/\s/g, '');
+    if (!code) {
+      this.errorMessage = 'Veuillez saisir le code de vérification.';
+      return;
+    }
+    this.errorMessage = '';
+    this.isLoading = true;
+
+    this.authService.verify2fa(this.challenge, code, this.email.trim().toLowerCase())
+      .subscribe({
+        next: (res: any) => {
+          this.isLoading = false;
+          // Premier enrôlement : afficher les codes de secours avant d'entrer
+          if (res?.backup_codes?.length) {
+            this.backupCodes = res.backup_codes;
+            this.loginStep   = 5;
+            return;
+          }
+          this.finishLogin();
+        },
+        error: (err: any) => {
+          this.isLoading = false;
+          this.errorMessage = err?.error?.detail || 'Code invalide ou expiré.';
+        }
+      });
+  }
+
+  finishLogin(): void {
+    const role = this.authService.getCurrentUserRole();
+    const user = this.authService.getCurrentUser();
+
+    if (role !== 'admin' || !user?.is_staff) {
+      this.authService.logout();
+      this.errorMessage = 'Accès réservé aux administrateurs.';
+      return;
+    }
+
+    this.successMsg = 'Bienvenue ! Redirection vers l\'espace admin...';
+
+    if (this.remember) {
+      localStorage.setItem('automeca_remember', JSON.stringify({ email: this.email }));
+    } else {
+      localStorage.removeItem('automeca_remember');
+    }
+
+    this.router.navigateByUrl('/admin/dashboard', { replaceUrl: true });
+  }
+
+  backToCredentials(): void {
+    this.loginStep   = 1;
+    this.otpCode     = '';
+    this.challenge   = '';
+    this.totpSecret  = '';
+    this.otpauthUrl  = '';
+    this.backupCodes = [];
+    this.errorMessage = '';
   }
 
   blockAccount(): void {

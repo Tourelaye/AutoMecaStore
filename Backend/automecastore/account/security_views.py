@@ -12,6 +12,10 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 
 from .models import Utilisateur, SecurityActivity, UserSession, APIToken
+from .twofactor import (
+    is_valid_base32, new_secret, provisioning_uri,
+    generate_backup_codes, hash_backup_code,
+)
 
 
 def _get_client_ip(request):
@@ -208,12 +212,14 @@ class TwoFactorView(APIView):
 
         backup_codes = []
         if user.two_factor_enabled:
-            if not user.two_factor_secret:
-                user.two_factor_secret = secrets.token_hex(20).upper()
-            backup_codes = _generate_backup_codes()
+            if not is_valid_base32(user.two_factor_secret):
+                user.two_factor_secret = new_secret()
+            backup_codes = generate_backup_codes()
+            user.two_factor_backup_codes = [hash_backup_code(c) for c in backup_codes]
             user.email_alerts_enabled = request.data.get('email_alerts_enabled', user.email_alerts_enabled)
         else:
             user.two_factor_secret = None
+            user.two_factor_backup_codes = []
 
         user.save()
 
@@ -224,7 +230,7 @@ class TwoFactorView(APIView):
             'enabled': user.two_factor_enabled,
             'secret': user.two_factor_secret if user.two_factor_enabled else None,
             'otpauth_url': (
-                f"otpauth://totp/AutoMecaStore:{user.email}?secret={user.two_factor_secret}&issuer=AutoMecaStore"
+                provisioning_uri(user.two_factor_secret, user.email)
                 if user.two_factor_enabled else None
             ),
             'backup_codes': backup_codes,
