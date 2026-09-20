@@ -461,28 +461,11 @@
   margin-top: 14px; cursor: pointer;
 }
 
-.totp-secret {
-  background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 10px;
-  padding: 14px 16px; margin-bottom: 20px; text-align: center;
+.totp-qr {
+  display: flex; justify-content: center; margin-bottom: 20px;
 }
-.totp-secret span {
-  display: block; font-size: 11px; font-weight: 600; color: #9ca3af;
-  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
-}
-.totp-secret code {
-  font-size: 16px; font-weight: 700; letter-spacing: 2px;
-  color: #111827; word-break: break-all; user-select: all;
-}
-
-.backup-codes {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
-  list-style: none; padding: 0; margin: 0 0 20px;
-}
-.backup-codes li {
-  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
-  padding: 8px 10px; text-align: center;
-}
-.backup-codes code {
-  font-size: 13px; font-weight: 700; letter-spacing: 1px;
-  color: #111827; user-select: all;
+.totp-qr img {
+  width: 200px; height: 200px;
+  border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 10px; background: #fff;
 }

@@ -17,9 +17,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from .security_views import _get_client_ip
 from .twofactor import (
-    resolve_challenge, new_secret, provisioning_uri, verify_totp,
-    consume_backup_code, hash_backup_code, generate_backup_codes,
-    attempts_exceeded,
+    resolve_challenge, new_secret, qr_code_data_url,
+    verify_totp, consume_backup_code, hash_backup_code,
+    generate_backup_codes, attempts_exceeded,
 )
 
 # Create your views here.
@@ -261,8 +261,7 @@ class TwoFactorSetupView(APIView):
         user.two_factor_secret = secret
         user.save(update_fields=['two_factor_secret'])
         return Response({
-            'secret': secret,
-            'otpauth_url': provisioning_uri(secret, user.email),
+            'qr_code': qr_code_data_url(secret, user.email),
         })
 
 class TwoFactorVerifyView(APIView):

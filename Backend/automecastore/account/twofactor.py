@@ -7,9 +7,12 @@ secondes. Il permet de chaîner setup/verify sans session ni JWT.
 """
 import base64
 import hashlib
+import io
 import secrets
 
 import pyotp
+import qrcode
+import qrcode.image.svg
 from django.core import signing
 from django.core.cache import cache
 
@@ -58,6 +61,18 @@ def new_secret():
 
 def provisioning_uri(secret, email):
     return pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name=ISSUER)
+
+
+def qr_code_data_url(secret, email):
+    """QR code SVG (data URL) de l'URI otpauth — scannable par l'app d'auth."""
+    img = qrcode.make(
+        provisioning_uri(secret, email),
+        image_factory=qrcode.image.svg.SvgPathImage,
+        box_size=8,
+    )
+    buf = io.BytesIO()
+    img.save(buf)
+    return 'data:image/svg+xml;base64,' + base64.b64encode(buf.getvalue()).decode()
 
 
 def verify_totp(secret, code):

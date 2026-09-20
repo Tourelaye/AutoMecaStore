@@ -73,9 +73,9 @@ export class AuthService {
     );
   }
 
-  // Prépare l'enrôlement 2FA admin (secret TOTP à saisir dans l'app d'auth)
-  setup2fa(challenge: string): Observable<{ secret: string; otpauth_url: string }> {
-    return this.http.post<{ secret: string; otpauth_url: string }>(
+  // Prépare l'enrôlement 2FA admin (QR code à scanner dans l'app d'auth)
+  setup2fa(challenge: string): Observable<{ qr_code: string }> {
+    return this.http.post<{ qr_code: string }>(
       `${this.apiUrl}/login/2fa/setup/`, { challenge }
     );
   }

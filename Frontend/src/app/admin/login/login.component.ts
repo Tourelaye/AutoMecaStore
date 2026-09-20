@@ -32,11 +32,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   private blockTimer: any;
 
   // ── 2FA ──────────────────────────────────────────
-  otpCode      = '';
-  challenge    = '';
-  totpSecret   = '';
-  otpauthUrl   = '';
-  backupCodes: string[] = [];
+  otpCode   = '';
+  challenge = '';
+  qrCode    = '';
 
   particles: { x: number; y: number; size: number; speed: number; opacity: number }[] = [];
 
@@ -122,9 +120,8 @@ export class LoginComponent implements OnInit, OnDestroy {
             if (res.requires_2fa_setup) {
               this.authService.setup2fa(this.challenge).subscribe({
                 next: (s) => {
-                  this.totpSecret = s.secret;
-                  this.otpauthUrl = s.otpauth_url;
-                  this.loginStep  = 4;
+                  this.qrCode    = s.qr_code;
+                  this.loginStep = 4;
                 },
                 error: () => {
                   this.errorMessage = "Impossible de générer la configuration 2FA. Réessayez.";
@@ -167,14 +164,8 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.verify2fa(this.challenge, code, this.email.trim().toLowerCase())
       .subscribe({
-        next: (res: any) => {
+        next: () => {
           this.isLoading = false;
-          // Premier enrôlement : afficher les codes de secours avant d'entrer
-          if (res?.backup_codes?.length) {
-            this.backupCodes = res.backup_codes;
-            this.loginStep   = 5;
-            return;
-          }
           this.finishLogin();
         },
         error: (err: any) => {
@@ -209,9 +200,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginStep   = 1;
     this.otpCode     = '';
     this.challenge   = '';
-    this.totpSecret  = '';
-    this.otpauthUrl  = '';
-    this.backupCodes = [];
+    this.qrCode      = '';
     this.errorMessage = '';
   }
 
