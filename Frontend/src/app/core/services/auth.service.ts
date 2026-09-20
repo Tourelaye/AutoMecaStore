@@ -21,13 +21,8 @@ export interface Utilisateur {
 }
 
 export interface LoginResponse {
-  access?: string;
-  refresh?: string;
-  // Réponses du flux 2FA admin (pas de tokens tant que le code n'est pas validé)
-  requires_2fa?: boolean;
-  requires_2fa_setup?: boolean;
-  challenge?: string;
-  backup_codes?: string[] | null;
+  access: string;
+  refresh: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -66,29 +61,7 @@ export class AuthService {
   login(email: string, password: string, portal?: 'client' | 'fournisseur' | 'admin'): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login/`, { email, password, portal }).pipe(
       tap((response) => {
-        // Flux 2FA admin : la réponse ne contient pas de tokens
-        if (!response.access || !response.refresh) return;
         this.completeAuth(response.access, response.refresh, email);
-      })
-    );
-  }
-
-  // Prépare l'enrôlement 2FA admin (QR code à scanner dans l'app d'auth)
-  setup2fa(challenge: string): Observable<{ qr_code: string }> {
-    return this.http.post<{ qr_code: string }>(
-      `${this.apiUrl}/login/2fa/setup/`, { challenge }
-    );
-  }
-
-  // Valide le code TOTP / code de secours et émet les tokens
-  verify2fa(challenge: string, code: string, email: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(
-      `${this.apiUrl}/login/2fa/verify/`, { challenge, code }
-    ).pipe(
-      tap((response) => {
-        if (response.access && response.refresh) {
-          this.completeAuth(response.access, response.refresh, email);
-        }
       })
     );
   }

@@ -8,7 +8,6 @@ from .models import Utilisateur, Client, Fournisseur, VehiculeClient, SecurityAc
 from catalog.models import Categorie, Produit
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from orders.models import Commande
-from .twofactor import make_challenge, has_usable_2fa
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -238,17 +237,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     raise PermissionDenied(
                         "Accès refusé. Vous ne disposez pas des autorisations nécessaires pour accéder à cet espace."
                     )
-                # 2FA obligatoire pour les admins : on ne retourne pas de JWT
-                # tant que le second facteur n'est pas validé.
-                if has_usable_2fa(user):
-                    return {
-                        'requires_2fa': True,
-                        'challenge': make_challenge(user),
-                    }
-                return {
-                    'requires_2fa_setup': True,
-                    'challenge': make_challenge(user),
-                }
 
         # ── Mettre à jour last_login (SimpleJWT ne le fait pas automatiquement)
         # et journaliser la connexion — uniquement quand des tokens sont émis.
