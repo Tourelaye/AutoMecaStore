@@ -402,6 +402,7 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'AutoMecaStore <noreply@automecastore.sn>')
 SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://auto-meca-store-4dxt.vercel.app')
 
 # -----------------------------
 # Production security settings

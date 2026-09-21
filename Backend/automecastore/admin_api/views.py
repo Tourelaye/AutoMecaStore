@@ -2153,6 +2153,8 @@ class AdminUtilisateurCreateView(APIView):
                     commentaire='Compte créé et validé par un administrateur.'
                 )
 
+            self._notify_fournisseur_created(fournisseur, password)
+            self._notifier_fournisseur_cree_in_app(fournisseur)
             self._log_action(request, user, 'Compte fournisseur créé par un administrateur')
             return Response(
                 {
@@ -2214,6 +2216,54 @@ class AdminUtilisateurCreateView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+
+    def _notify_fournisseur_created(self, fournisseur, password):
+        """Email au fournisseur dont le compte vient d'être créé par un admin."""
+        try:
+            user = fournisseur.user
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://automecastore.sn')
+            login_url = f"{frontend_url.rstrip('/')}/fournisseur/login"
+            html = render_to_string('emails/fournisseur_created.html', {
+                'prenom': user.prenom or '',
+                'nom': f"{user.prenom or ''} {user.nom or ''}".strip() or user.email,
+                'entreprise': fournisseur.nom_entreprise,
+                'email': user.email,
+                'password': password,
+                'login_url': login_url,
+                'site_name': 'AutoMecaStore'
+            })
+            plain = (
+                f"Bonjour {user.prenom or ''},\n\n"
+                f"Un administrateur AutoMecaStore a créé un compte fournisseur pour {fournisseur.nom_entreprise}.\n\n"
+                f"Identifiants de connexion :\n"
+                f"Email : {user.email}\n"
+                f"Mot de passe : {password}\n\n"
+                f"Connectez-vous ici : {login_url}\n"
+                f"Nous vous recommandons de changer votre mot de passe dès votre première connexion.\n\n"
+                f"L'équipe AutoMecaStore"
+            )
+            send_mail(
+                'Votre compte fournisseur AutoMecaStore a été créé',
+                plain,
+                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@automecastore.sn'),
+                [user.email],
+                html_message=html,
+                fail_silently=False
+            )
+        except Exception as e:
+            logger.exception(f"Erreur envoi email création fournisseur: {e}")
+
+    def _notifier_fournisseur_cree_in_app(self, fournisseur):
+        try:
+            creer_notification_fournisseur(
+                fournisseur_id=fournisseur.user.id,
+                type_notif='systeme',
+                titre='Bienvenue sur AutoMecaStore',
+                message=f'Votre compte fournisseur "{fournisseur.nom_entreprise}" a été créé par un administrateur.',
+                lien='/fournisseur/dashboard'
+            )
+        except Exception:
+            logger.exception("Erreur création notification fournisseur")
 
     def _user_payload(self, user):
         return {
