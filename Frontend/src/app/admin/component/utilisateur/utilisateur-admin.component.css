@@ -779,3 +779,42 @@ body.modal-open .admin-header {
     animation: none !important;
   }
 } 
+/* ── CRÉATION UTILISATEUR ── */
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.role-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+.role-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.role-option i { font-size: 1.3rem; }
+.role-option__label { font-weight: 700; font-size: 0.85rem; color: inherit; }
+.role-option__desc { font-size: 0.7rem; opacity: 0.75; line-height: 1.3; }
+
+.role-option:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+
+.role-option.active {
+  border-color: var(--accent-blue);
+  background: linear-gradient(135deg, rgba(56,189,248,0.14), rgba(37,99,235,0.10));
+  color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.10);
+}
+
+.field__error { margin: 4px 0 0; color: #f87171; font-size: 0.78rem; font-weight: 600; }
+
+@media (max-width: 560px) {
+  .role-picker { grid-template-columns: 1fr; }
+  .header-actions { flex-direction: column; align-items: stretch; }
+}

@@ -72,6 +72,10 @@
         <i class="bi bi-grid-3x3-gap-fill"></i>
       </button>
     </div>
+
+    <button class="btn-primary toolbar__create" (click)="openCreateModal()">
+      <i class="bi bi-plus-lg"></i> Créer un fournisseur
+    </button>
   </div>
 
   <!-- État de chargement -->
@@ -686,6 +690,93 @@
       <button class="btn-primary" (click)="saveMagasin()" [disabled]="editMagasinLoading">
         <span *ngIf="!editMagasinLoading"><i class="bi bi-check-lg"></i> Enregistrer</span>
         <span *ngIf="editMagasinLoading"><i class="bi bi-arrow-repeat spin"></i> Enregistrement...</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- ===================== MODALE : CRÉATION FOURNISSEUR ===================== -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3><i class="bi bi-shop"></i> Créer un fournisseur</h3>
+      <button class="btn-icon" (click)="closeCreateModal()" title="Fermer"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <p class="fr-modal-subtitle"><i class="bi bi-building"></i> Informations de l'entreprise</p>
+      <div class="modal-form-grid">
+        <div class="field field-with-icon field-full">
+          <label><i class="bi bi-building"></i> Nom de l'entreprise *</label>
+          <input [(ngModel)]="createData.nom_entreprise" placeholder="Raison sociale / nom commercial" />
+          <p class="field__error" *ngIf="createFieldErrors['nom_entreprise']">{{ createFieldErrors['nom_entreprise'] }}</p>
+        </div>
+        <div class="field field-with-icon field-full">
+          <label><i class="bi bi-file-earmark-text"></i> SIRET / NINEA</label>
+          <input [(ngModel)]="createData.siret" placeholder="Numéro d'identification (optionnel)" />
+          <p class="field__error" *ngIf="createFieldErrors['siret']">{{ createFieldErrors['siret'] }}</p>
+        </div>
+        <div class="field field-full">
+          <label><i class="bi bi-card-text"></i> Description de l'activité</label>
+          <textarea [(ngModel)]="createData.description" rows="3" placeholder="Présentation de l'entreprise, spécialités..."></textarea>
+          <p class="field__error" *ngIf="createFieldErrors['description']">{{ createFieldErrors['description'] }}</p>
+        </div>
+      </div>
+
+      <p class="fr-modal-subtitle"><i class="bi bi-person"></i> Compte du responsable</p>
+      <div class="modal-form-grid">
+        <div class="field field-with-icon">
+          <label><i class="bi bi-person"></i> Nom *</label>
+          <input [(ngModel)]="createData.nom" placeholder="Nom" />
+          <p class="field__error" *ngIf="createFieldErrors['nom']">{{ createFieldErrors['nom'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-person-badge"></i> Prénom *</label>
+          <input [(ngModel)]="createData.prenom" placeholder="Prénom" />
+          <p class="field__error" *ngIf="createFieldErrors['prenom']">{{ createFieldErrors['prenom'] }}</p>
+        </div>
+        <div class="field field-with-icon field-full">
+          <label><i class="bi bi-envelope"></i> Email *</label>
+          <input [(ngModel)]="createData.email" type="email" placeholder="adresse@email.com" />
+          <p class="field__error" *ngIf="createFieldErrors['email']">{{ createFieldErrors['email'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-telephone"></i> Téléphone *</label>
+          <input [(ngModel)]="createData.telephone" placeholder="77 000 00 00 ou +221..." />
+          <p class="field__error" *ngIf="createFieldErrors['telephone']">{{ createFieldErrors['telephone'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-geo-alt"></i> Adresse</label>
+          <input [(ngModel)]="createData.adresse" placeholder="Adresse complète" />
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-key"></i> Mot de passe *</label>
+          <input [(ngModel)]="createData.password" type="password" placeholder="Minimum 8 caractères" />
+          <p class="field__error" *ngIf="createFieldErrors['password']">{{ createFieldErrors['password'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-key-fill"></i> Confirmer *</label>
+          <input [(ngModel)]="createData.passwordConfirm" type="password" placeholder="Répéter le mot de passe" />
+          <p class="field__error" *ngIf="createFieldErrors['passwordConfirm']">{{ createFieldErrors['passwordConfirm'] }}</p>
+        </div>
+      </div>
+
+      <p class="fr-modal-note">
+        <i class="bi bi-info-circle"></i>
+        Le compte est créé <strong>validé et actif</strong> : le fournisseur pourra se connecter immédiatement.
+      </p>
+
+      <p class="field__error" *ngIf="createError">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ createError }}
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeCreateModal()" [disabled]="createLoading">Annuler</button>
+      <button class="btn-primary" (click)="submitCreate()" [disabled]="createLoading">
+        <span *ngIf="!createLoading"><i class="bi bi-check-lg"></i> Créer le fournisseur</span>
+        <span *ngIf="createLoading"><i class="bi bi-arrow-repeat spin"></i> Création...</span>
       </button>
     </div>
 

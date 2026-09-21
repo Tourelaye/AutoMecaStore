@@ -10,11 +10,16 @@ import {
   UtilisateurStats,
   UtilisateurFilters,
   ActionPayload,
-  NotificationGroupePayload
+  NotificationGroupePayload,
+  CreateUtilisateurPayload
 } from '../../../models/admin-utilisateur.model';
 
 interface RoleConfig { label: string; icon: string; color: string; description: string; }
 interface StatusConfig { label: string; icon: string; color: string; }
+
+interface CreateUtilisateurForm extends CreateUtilisateurPayload {
+  passwordConfirm: string;
+}
 
 @Component({
   selector: 'app-utilisateur-admin',
@@ -83,6 +88,19 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
     message: ''
   };
   notificationLoading = false;
+
+  // ───────────── CRÉATION UTILISATEUR
+  showCreateModal = false;
+  createLoading = false;
+  createError: string | null = null;
+  createFieldErrors: Record<string, string> = {};
+  createData: CreateUtilisateurForm = this.emptyCreateForm();
+
+  createRoleOptions: { value: CreateUtilisateurPayload['role']; label: string; icon: string; description: string }[] = [
+    { value: 'client', label: 'Client', icon: 'bi-person', description: 'Acheteur sur la marketplace' },
+    { value: 'fournisseur', label: 'Fournisseur', icon: 'bi-shop', description: 'Vendeur / magasin partenaire' },
+    { value: 'admin', label: 'Administrateur', icon: 'bi-shield-lock', description: 'Gestionnaire de la plateforme' }
+  ];
 
   // ───────────── NOTIFICATIONS
   notifications: { id: number; message: string; type: 'success' | 'error' | 'info' }[] = [];
@@ -511,6 +529,104 @@ export class UtilisateurAdminComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.notificationLoading = false;
         this.showNotification(err?.error?.error || 'Erreur lors de l\'envoi.', 'error');
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────
+  // CRÉATION UTILISATEUR
+  // ─────────────────────────────────────────
+
+  private emptyCreateForm(): CreateUtilisateurForm {
+    return {
+      role: 'client',
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: '',
+      adresse: '',
+      password: '',
+      passwordConfirm: '',
+      nom_entreprise: '',
+      siret: '',
+      description: ''
+    };
+  }
+
+  openCreateModal(): void {
+    this.createData = this.emptyCreateForm();
+    this.createError = null;
+    this.createFieldErrors = {};
+    this.showCreateModal = true;
+    this.renderer.addClass(document.body, 'modal-open');
+    const sidebar = document.querySelector('.sidebar');
+    const header = document.querySelector('.admin-header');
+    if (sidebar) this.renderer.addClass(sidebar, 'modal-hidden');
+    if (header) this.renderer.addClass(header, 'modal-hidden');
+  }
+
+  closeCreateModal(): void {
+    if (this.createLoading) return;
+    this.showCreateModal = false;
+    this.createError = null;
+    this.createFieldErrors = {};
+    this.renderer.removeClass(document.body, 'modal-open');
+    const sidebar = document.querySelector('.sidebar');
+    const header = document.querySelector('.admin-header');
+    if (sidebar) this.renderer.removeClass(sidebar, 'modal-hidden');
+    if (header) this.renderer.removeClass(header, 'modal-hidden');
+  }
+
+  selectCreateRole(role: CreateUtilisateurPayload['role']): void {
+    this.createData.role = role;
+    this.createFieldErrors = {};
+    this.createError = null;
+  }
+
+  submitCreate(): void {
+    if (this.createLoading) return;
+    this.createError = null;
+    this.createFieldErrors = {};
+
+    const d = this.createData;
+    const errors: Record<string, string> = {};
+    if (!d.nom.trim()) errors['nom'] = 'Le nom est obligatoire.';
+    if (!d.prenom.trim()) errors['prenom'] = 'Le prénom est obligatoire.';
+    if (!d.email.trim()) errors['email'] = "L'email est obligatoire.";
+    if (!d.password || d.password.length < 8) errors['password'] = 'Minimum 8 caractères.';
+    if (d.password !== d.passwordConfirm) errors['passwordConfirm'] = 'Les mots de passe ne correspondent pas.';
+    if (d.role === 'fournisseur') {
+      if (!d.nom_entreprise?.trim()) errors['nom_entreprise'] = "Le nom de l'entreprise est obligatoire.";
+      if (!d.telephone?.trim()) errors['telephone'] = 'Le téléphone est obligatoire pour un fournisseur.';
+    }
+    if (Object.keys(errors).length) {
+      this.createFieldErrors = errors;
+      return;
+    }
+
+    const { passwordConfirm, ...payload } = d;
+    this.createLoading = true;
+    this.adminUtilisateurService.createUtilisateur(payload).subscribe({
+      next: (res) => {
+        this.createLoading = false;
+        this.closeCreateModal();
+        this.showNotification(res.message || 'Compte créé avec succès.', 'success');
+        this.loadUtilisateurs();
+        this.loadStats();
+      },
+      error: (err) => {
+        this.createLoading = false;
+        const body = err?.error;
+        if (body && typeof body === 'object' && !body.error && !body.detail) {
+          const fieldErrors: Record<string, string> = {};
+          for (const [key, val] of Object.entries(body)) {
+            fieldErrors[key] = Array.isArray(val) ? val.join(' ') : String(val);
+          }
+          this.createFieldErrors = fieldErrors;
+          this.createError = 'Veuillez corriger les champs indiqués.';
+        } else {
+          this.createError = body?.error || body?.detail || 'Erreur lors de la création du compte.';
+        }
       }
     });
   }

@@ -1600,3 +1600,32 @@
 
 /* ── BOUTONS D'ACTION TABLEAU ── */
 /* (styles gérés plus haut dans la section .btn-icon) */
+/* ── CRÉATION FOURNISSEUR ── */
+.toolbar__create { margin-left: auto; white-space: nowrap; }
+
+.fr-modal-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary, rgba(255,255,255,0.55));
+}
+.fr-modal-subtitle:first-child { margin-top: 0; }
+.fr-modal-subtitle i { color: var(--accent-blue, #38bdf8); }
+
+.fr-modal-note {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(56,189,248,0.07);
+  border: 1px solid rgba(56,189,248,0.18);
+  color: var(--text-secondary, rgba(255,255,255,0.6));
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.fr-modal-note i { color: var(--accent-blue, #38bdf8); margin-right: 4px; }
+.fr-modal-note strong { color: var(--accent-blue, #38bdf8); }

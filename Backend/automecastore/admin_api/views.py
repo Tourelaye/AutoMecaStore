@@ -2104,6 +2104,142 @@ class AdminUtilisateurListView(APIView):
         return Response(serializer.data)
 
 
+class AdminUtilisateurCreateView(APIView):
+    """Création d'un compte (client, administrateur ou fournisseur) par un administrateur."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def post(self, request):
+        from django.utils import timezone
+        from django.db import transaction
+        from django.core.validators import validate_email as validate_email_format
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from account.serializers import RegisterFournisseurSerializer
+
+        role = (request.data.get('role') or '').strip()
+        if role not in ('client', 'admin', 'fournisseur'):
+            return Response(
+                {'error': "Rôle invalide. Valeurs acceptées : client, admin, fournisseur."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        password = request.data.get('password') or ''
+        if len(password) < 8:
+            return Response(
+                {'password': ['Le mot de passe doit contenir au moins 8 caractères.']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if role == 'fournisseur':
+            # Réutilise le serializer d'inscription : même validation stricte
+            # (téléphone sénégalais/international, unicité email, champs entreprise).
+            serializer = RegisterFournisseurSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            with transaction.atomic():
+                user = serializer.save()
+                admin = getattr(request.user, 'administrateur', None)
+                fournisseur = user.fournisseur
+                # Compte créé par un admin : directement validé et actif.
+                fournisseur.statut = 'actif'
+                fournisseur.date_validation = timezone.now()
+                fournisseur.validated_by = admin
+                fournisseur.save(update_fields=['statut', 'date_validation', 'validated_by'])
+                FournisseurStatusHistory.objects.create(
+                    fournisseur=fournisseur,
+                    statut='actif',
+                    changed_by=admin,
+                    commentaire='Compte créé et validé par un administrateur.'
+                )
+
+            self._log_action(request, user, 'Compte fournisseur créé par un administrateur')
+            return Response(
+                {
+                    'message': f"Compte fournisseur créé et activé pour {fournisseur.nom_entreprise}.",
+                    'user': self._user_payload(user)
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        email = (request.data.get('email') or '').strip().lower()
+        nom = (request.data.get('nom') or '').strip()
+        prenom = (request.data.get('prenom') or '').strip()
+        telephone = (request.data.get('telephone') or '').strip()
+        adresse = (request.data.get('adresse') or '').strip()
+
+        errors = {}
+        if not email:
+            errors['email'] = ["L'email est obligatoire."]
+        else:
+            try:
+                validate_email_format(email)
+            except DjangoValidationError:
+                errors['email'] = ["Format d'email invalide."]
+            if 'email' not in errors and Utilisateur.objects.filter(email__iexact=email).exists():
+                errors['email'] = ['Un compte existe déjà avec cet email.']
+        if not nom:
+            errors['nom'] = ['Le nom est obligatoire.']
+        if not prenom:
+            errors['prenom'] = ['Le prénom est obligatoire.']
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            user = Utilisateur.objects.create_user(
+                email=email,
+                password=password,
+                nom=nom,
+                prenom=prenom,
+                telephone=telephone or None,
+                adresse=adresse or None,
+                role=role,
+                is_active=True,
+                is_staff=(role == 'admin')
+            )
+            if role == 'admin':
+                Administrateur.objects.get_or_create(
+                    user=user,
+                    defaults={'date_embauche': timezone.now().date()}
+                )
+            else:
+                Client.objects.get_or_create(user=user)
+
+        role_label = 'administrateur' if role == 'admin' else 'client'
+        self._log_action(request, user, f'Compte {role_label} créé par un administrateur')
+        return Response(
+            {
+                'message': f'Compte {role_label} créé avec succès.',
+                'user': self._user_payload(user)
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    def _user_payload(self, user):
+        return {
+            'id': user.id,
+            'email': user.email,
+            'nom': user.nom,
+            'prenom': user.prenom,
+            'role': user.role
+        }
+
+    def _log_action(self, request, user, message):
+        try:
+            from django.contrib.admin.models import LogEntry
+            from django.contrib.contenttypes.models import ContentType
+            LogEntry.objects.log_action(
+                user_id=request.user.id,
+                content_type_id=ContentType.objects.get_for_model(Utilisateur).pk,
+                object_id=user.pk,
+                object_repr=str(user),
+                action_flag=1,
+                change_message=message
+            )
+        except Exception:
+            pass
+
+
 class AdminUtilisateurDetailView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdmin]

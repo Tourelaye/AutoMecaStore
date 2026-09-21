@@ -7,6 +7,21 @@ import {
   FournisseurStatus,
   MagasinData
 } from './fournisseur.service';
+import { AdminUtilisateurService } from '../../../core/services/admin-utilisateur.service';
+import { CreateUtilisateurPayload } from '../../../models/admin-utilisateur.model';
+
+interface CreateFournisseurForm {
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  adresse: string;
+  password: string;
+  passwordConfirm: string;
+  nom_entreprise: string;
+  siret: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-fournisseur',
@@ -64,7 +79,17 @@ export class FournisseurComponent implements OnInit {
   editMagasinError: string | null = null;
   showMagasinEditModal = false;
 
-  constructor(private fournisseurService: FournisseurService) {}
+  // --- Création fournisseur ---
+  showCreateModal = false;
+  createLoading = false;
+  createError: string | null = null;
+  createFieldErrors: Record<string, string> = {};
+  createData: CreateFournisseurForm = this.emptyCreateForm();
+
+  constructor(
+    private fournisseurService: FournisseurService,
+    private adminUtilisateurService: AdminUtilisateurService
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -359,6 +384,84 @@ export class FournisseurComponent implements OnInit {
       error: (err) => {
         this.editMagasinLoading = false;
         this.editMagasinError = err?.error?.detail || err?.error?.telephone?.[0] || err?.error?.email?.[0] || 'Erreur lors de la mise à jour.';
+      }
+    });
+  }
+
+  // --- Création fournisseur ---
+  private emptyCreateForm(): CreateFournisseurForm {
+    return {
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: '',
+      adresse: '',
+      password: '',
+      passwordConfirm: '',
+      nom_entreprise: '',
+      siret: '',
+      description: ''
+    };
+  }
+
+  openCreateModal(): void {
+    this.createData = this.emptyCreateForm();
+    this.createError = null;
+    this.createFieldErrors = {};
+    this.showCreateModal = true;
+  }
+
+  closeCreateModal(): void {
+    if (this.createLoading) return;
+    this.showCreateModal = false;
+    this.createError = null;
+    this.createFieldErrors = {};
+  }
+
+  submitCreate(): void {
+    if (this.createLoading) return;
+    this.createError = null;
+    this.createFieldErrors = {};
+
+    const d = this.createData;
+    const errors: Record<string, string> = {};
+    if (!d.nom_entreprise.trim()) errors['nom_entreprise'] = "Le nom de l'entreprise est obligatoire.";
+    if (!d.nom.trim()) errors['nom'] = 'Le nom est obligatoire.';
+    if (!d.prenom.trim()) errors['prenom'] = 'Le prénom est obligatoire.';
+    if (!d.email.trim()) errors['email'] = "L'email est obligatoire.";
+    if (!d.telephone.trim()) errors['telephone'] = 'Le téléphone est obligatoire.';
+    if (!d.password || d.password.length < 8) errors['password'] = 'Minimum 8 caractères.';
+    if (d.password !== d.passwordConfirm) errors['passwordConfirm'] = 'Les mots de passe ne correspondent pas.';
+    if (Object.keys(errors).length) {
+      this.createFieldErrors = errors;
+      return;
+    }
+
+    const { passwordConfirm, ...rest } = d;
+    const payload: CreateUtilisateurPayload = { ...rest, role: 'fournisseur' };
+    this.createLoading = true;
+
+    this.adminUtilisateurService.createUtilisateur(payload).subscribe({
+      next: () => {
+        this.createLoading = false;
+        this.showCreateModal = false;
+        this.createError = null;
+        this.createFieldErrors = {};
+        this.load();
+      },
+      error: (err) => {
+        this.createLoading = false;
+        const body = err?.error;
+        if (body && typeof body === 'object' && !body.error && !body.detail) {
+          const fieldErrors: Record<string, string> = {};
+          for (const [key, val] of Object.entries(body)) {
+            fieldErrors[key] = Array.isArray(val) ? val.join(' ') : String(val);
+          }
+          this.createFieldErrors = fieldErrors;
+          this.createError = 'Veuillez corriger les champs indiqués.';
+        } else {
+          this.createError = this.extractError(err, 'Erreur lors de la création du fournisseur.');
+        }
       }
     });
   }

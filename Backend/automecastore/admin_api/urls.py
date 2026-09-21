@@ -37,6 +37,7 @@ from .views import (
     AdminFournisseurProduitsView,
     AdminFournisseurStatsView,
     AdminUtilisateurListView,
+    AdminUtilisateurCreateView,
     AdminUtilisateurDetailView,
     AdminUtilisateurStatsView,
     AdminUtilisateurActionView,
@@ -103,6 +104,7 @@ urlpatterns = [
 
     # Utilisateurs admin
     path('utilisateurs/', AdminUtilisateurListView.as_view(), name='admin-utilisateurs'),
+    path('utilisateurs/create/', AdminUtilisateurCreateView.as_view(), name='admin-utilisateurs-create'),
     path('utilisateurs/stats/', AdminUtilisateurStatsView.as_view(), name='admin-utilisateurs-stats'),
     path('utilisateurs/notifications/', AdminUtilisateurNotificationView.as_view(), name='admin-utilisateurs-notifications'),
     path('utilisateurs/<int:pk>/', AdminUtilisateurDetailView.as_view(), name='admin-utilisateur-detail'),

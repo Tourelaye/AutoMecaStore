@@ -147,3 +147,16 @@ export interface NotificationGroupePayload {
   sujet: string;
   message: string;
 }
+
+export interface CreateUtilisateurPayload {
+  email: string;
+  password: string;
+  nom: string;
+  prenom: string;
+  telephone?: string;
+  adresse?: string;
+  role: 'client' | 'admin' | 'fournisseur';
+  nom_entreprise?: string;
+  siret?: string;
+  description?: string;
+}

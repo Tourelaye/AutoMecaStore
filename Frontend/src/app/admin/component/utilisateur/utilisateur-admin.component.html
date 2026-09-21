@@ -10,10 +10,16 @@
       <h2>Gestion des utilisateurs</h2>
       <p>Clients, fournisseurs et administrateurs sur AutoMecaStore</p>
     </div>
-    <button class="btn-primary" (click)="openNotificationModal()">
-      <i class="bi bi-broadcast-pin"></i>
-      Envoyer une notification
-    </button>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="openCreateModal()">
+        <i class="bi bi-person-plus"></i>
+        Ajouter un utilisateur
+      </button>
+      <button class="btn-primary" (click)="openNotificationModal()">
+        <i class="bi bi-broadcast-pin"></i>
+        Envoyer une notification
+      </button>
+    </div>
   </div>
 
   <!-- STATS GRID -->
@@ -500,6 +506,104 @@
               (click)="confirmAction()" [disabled]="modalLoading">
         <span *ngIf="!modalLoading">{{ modalAction === 'supprimer' ? 'Supprimer' : modalAction === 'modifier' ? 'Enregistrer' : 'Confirmer' }}</span>
         <span *ngIf="modalLoading"><i class="bi bi-arrow-repeat spin"></i> Traitement...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE USER MODAL -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="bi bi-person-plus"></i> Ajouter un utilisateur</h3>
+      <button class="btn-icon" (click)="closeCreateModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Choix du rôle -->
+      <div class="field">
+        <label>Type de compte</label>
+        <div class="role-picker">
+          <button type="button" *ngFor="let opt of createRoleOptions"
+                  class="role-option" [class.active]="createData.role === opt.value"
+                  (click)="selectCreateRole(opt.value)">
+            <i class="bi" [ngClass]="opt.icon"></i>
+            <span class="role-option__label">{{ opt.label }}</span>
+            <span class="role-option__desc">{{ opt.description }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-form-grid">
+        <div class="field field-with-icon">
+          <label><i class="bi bi-person"></i> Nom *</label>
+          <input [(ngModel)]="createData.nom" placeholder="Nom" />
+          <p class="field__error" *ngIf="createFieldErrors['nom']">{{ createFieldErrors['nom'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-person-badge"></i> Prénom *</label>
+          <input [(ngModel)]="createData.prenom" placeholder="Prénom" />
+          <p class="field__error" *ngIf="createFieldErrors['prenom']">{{ createFieldErrors['prenom'] }}</p>
+        </div>
+        <div class="field field-with-icon field-full">
+          <label><i class="bi bi-envelope"></i> Email *</label>
+          <input [(ngModel)]="createData.email" type="email" placeholder="adresse@email.com" />
+          <p class="field__error" *ngIf="createFieldErrors['email']">{{ createFieldErrors['email'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-telephone"></i> Téléphone <span *ngIf="createData.role === 'fournisseur'">*</span></label>
+          <input [(ngModel)]="createData.telephone" placeholder="77 000 00 00 ou +221..." />
+          <p class="field__error" *ngIf="createFieldErrors['telephone']">{{ createFieldErrors['telephone'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-geo-alt"></i> Adresse</label>
+          <input [(ngModel)]="createData.adresse" placeholder="Adresse complète" />
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-key"></i> Mot de passe *</label>
+          <input [(ngModel)]="createData.password" type="password" placeholder="Minimum 8 caractères" />
+          <p class="field__error" *ngIf="createFieldErrors['password']">{{ createFieldErrors['password'] }}</p>
+        </div>
+        <div class="field field-with-icon">
+          <label><i class="bi bi-key-fill"></i> Confirmer *</label>
+          <input [(ngModel)]="createData.passwordConfirm" type="password" placeholder="Répéter le mot de passe" />
+          <p class="field__error" *ngIf="createFieldErrors['passwordConfirm']">{{ createFieldErrors['passwordConfirm'] }}</p>
+        </div>
+
+        <!-- Champs spécifiques fournisseur -->
+        <ng-container *ngIf="createData.role === 'fournisseur'">
+          <div class="field field-with-icon field-full">
+            <label><i class="bi bi-building"></i> Nom de l'entreprise *</label>
+            <input [(ngModel)]="createData.nom_entreprise" placeholder="Raison sociale / nom commercial" />
+            <p class="field__error" *ngIf="createFieldErrors['nom_entreprise']">{{ createFieldErrors['nom_entreprise'] }}</p>
+          </div>
+          <div class="field field-with-icon field-full">
+            <label><i class="bi bi-file-earmark-text"></i> SIRET / NINEA</label>
+            <input [(ngModel)]="createData.siret" placeholder="Numéro d'identification de l'entreprise (optionnel)" />
+            <p class="field__error" *ngIf="createFieldErrors['siret']">{{ createFieldErrors['siret'] }}</p>
+          </div>
+          <div class="field field-full">
+            <label><i class="bi bi-card-text"></i> Description de l'activité</label>
+            <textarea [(ngModel)]="createData.description" rows="3" placeholder="Présentation de l'entreprise, spécialités..."></textarea>
+            <p class="field__error" *ngIf="createFieldErrors['description']">{{ createFieldErrors['description'] }}</p>
+          </div>
+          <p class="modal-help">
+            <i class="bi bi-info-circle"></i>
+            Le compte fournisseur créé par un administrateur est directement <strong>validé et actif</strong>.
+          </p>
+        </ng-container>
+      </div>
+
+      <p class="field__error" *ngIf="createError">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ createError }}
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeCreateModal()" [disabled]="createLoading">Annuler</button>
+      <button class="btn-primary" (click)="submitCreate()" [disabled]="createLoading">
+        <span *ngIf="!createLoading"><i class="bi bi-check-lg"></i> Créer le compte</span>
+        <span *ngIf="createLoading"><i class="bi bi-arrow-repeat spin"></i> Création...</span>
       </button>
     </div>
   </div>

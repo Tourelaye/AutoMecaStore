@@ -8,7 +8,8 @@ import {
   UtilisateurStats,
   UtilisateurFilters,
   ActionPayload,
-  NotificationGroupePayload
+  NotificationGroupePayload,
+  CreateUtilisateurPayload
 } from '../../models/admin-utilisateur.model';
 
 @Injectable({
@@ -51,5 +52,9 @@ export class AdminUtilisateurService {
 
   sendNotification(payload: NotificationGroupePayload): Observable<{ message: string; nombre: number }> {
     return this.http.post<{ message: string; nombre: number }>(`${this.baseUrl}/notifications/`, payload);
+  }
+
+  createUtilisateur(payload: CreateUtilisateurPayload): Observable<{ message: string; user: any }> {
+    return this.http.post<{ message: string; user: any }>(`${this.baseUrl}/create/`, payload);
   }
 }
