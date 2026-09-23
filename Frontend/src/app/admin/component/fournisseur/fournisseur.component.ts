@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -88,7 +88,8 @@ export class FournisseurComponent implements OnInit {
 
   constructor(
     private fournisseurService: FournisseurService,
-    private adminUtilisateurService: AdminUtilisateurService
+    private adminUtilisateurService: AdminUtilisateurService,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit(): void {
@@ -409,6 +410,7 @@ export class FournisseurComponent implements OnInit {
     this.createError = null;
     this.createFieldErrors = {};
     this.showCreateModal = true;
+    this.renderer.addClass(document.body, 'modal-open');
   }
 
   closeCreateModal(): void {
@@ -416,6 +418,7 @@ export class FournisseurComponent implements OnInit {
     this.showCreateModal = false;
     this.createError = null;
     this.createFieldErrors = {};
+    this.renderer.removeClass(document.body, 'modal-open');
   }
 
   submitCreate(): void {
@@ -444,9 +447,7 @@ export class FournisseurComponent implements OnInit {
     this.adminUtilisateurService.createUtilisateur(payload).subscribe({
       next: () => {
         this.createLoading = false;
-        this.showCreateModal = false;
-        this.createError = null;
-        this.createFieldErrors = {};
+        this.closeCreateModal();
         this.load();
       },
       error: (err) => {

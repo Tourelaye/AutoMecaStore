@@ -1629,3 +1629,6 @@
 }
 .fr-modal-note i { color: var(--accent-blue, #38bdf8); margin-right: 4px; }
 .fr-modal-note strong { color: var(--accent-blue, #38bdf8); }
+
+/* Modale de création : plus large, pas de fermeture au clic sur le fond */
+.modal-card--lg { width: 760px; }

@@ -696,8 +696,8 @@
   </div>
 </div>
 <!-- ===================== MODALE : CRÉATION FOURNISSEUR ===================== -->
-<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
+<div class="modal-overlay" *ngIf="showCreateModal">
+  <div class="modal-card modal-card--lg">
 
     <div class="modal-header">
       <h3><i class="bi bi-shop"></i> Créer un fournisseur</h3>
@@ -738,26 +738,26 @@
         </div>
         <div class="field field-with-icon field-full">
           <label><i class="bi bi-envelope"></i> Email *</label>
-          <input [(ngModel)]="createData.email" type="email" placeholder="adresse@email.com" />
+          <input [(ngModel)]="createData.email" type="email" autocomplete="off" placeholder="adresse@email.com" />
           <p class="field__error" *ngIf="createFieldErrors['email']">{{ createFieldErrors['email'] }}</p>
         </div>
         <div class="field field-with-icon">
           <label><i class="bi bi-telephone"></i> Téléphone *</label>
-          <input [(ngModel)]="createData.telephone" placeholder="77 000 00 00 ou +221..." />
+          <input [(ngModel)]="createData.telephone" autocomplete="off" placeholder="77 000 00 00 ou +221..." />
           <p class="field__error" *ngIf="createFieldErrors['telephone']">{{ createFieldErrors['telephone'] }}</p>
         </div>
         <div class="field field-with-icon">
           <label><i class="bi bi-geo-alt"></i> Adresse</label>
-          <input [(ngModel)]="createData.adresse" placeholder="Adresse complète" />
+          <input [(ngModel)]="createData.adresse" autocomplete="off" placeholder="Adresse complète" />
         </div>
         <div class="field field-with-icon">
           <label><i class="bi bi-key"></i> Mot de passe *</label>
-          <input [(ngModel)]="createData.password" type="password" placeholder="Minimum 8 caractères" />
+          <input [(ngModel)]="createData.password" type="password" autocomplete="new-password" placeholder="Minimum 8 caractères" />
           <p class="field__error" *ngIf="createFieldErrors['password']">{{ createFieldErrors['password'] }}</p>
         </div>
         <div class="field field-with-icon">
           <label><i class="bi bi-key-fill"></i> Confirmer *</label>
-          <input [(ngModel)]="createData.passwordConfirm" type="password" placeholder="Répéter le mot de passe" />
+          <input [(ngModel)]="createData.passwordConfirm" type="password" autocomplete="new-password" placeholder="Répéter le mot de passe" />
           <p class="field__error" *ngIf="createFieldErrors['passwordConfirm']">{{ createFieldErrors['passwordConfirm'] }}</p>
         </div>
       </div>

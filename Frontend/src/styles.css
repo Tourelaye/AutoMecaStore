@@ -163,3 +163,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   .scroll-reveal.stagger-item:nth-child(11) { --reveal-delay: 500ms; }
   .scroll-reveal.stagger-item:nth-child(12) { --reveal-delay: 550ms; }
 }
+
+/* Verrouille le scroll de la page quand une modale admin est ouverte */
+body.modal-open { overflow: hidden; }
