@@ -1,6 +1,12 @@
+import logging
 from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
 from django.db import transaction, models
+from django.core.validators import EmailValidator
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 from .models import Commande, LigneCommande, Panier, PanierItem, HistoriqueCommande, MODE_RECEPTION
 from .serializers import CommandeSerializer, LigneCommandeSerializer, PanierSerializer, PanierItemSerializer
 from catalog.models import Produit, FournisseurProduit, Fournisseur as CatalogFournisseur
@@ -8,6 +14,8 @@ from fournisseur.models import creer_notification_fournisseur, creer_notificatio
 from account.models import Fournisseur
 from account.permissions import IsClient, IsAdmin
 from delivery.models import Adresse, Livraison
+
+logger = logging.getLogger(__name__)
 
 
 def _offre_et_stock(produit, account_fournisseur=None, magasin=None):
@@ -23,6 +31,97 @@ def _offre_et_stock(produit, account_fournisseur=None, magasin=None):
     offre = FournisseurProduit.objects.filter(produit=produit, fournisseur=catalog_f).first()
     stock = int(offre.stock_disponible if offre and offre.stock_disponible is not None else produit.stock or 0)
     return offre, stock
+
+
+def _valider_ligne_commande(produit, quantite, mode_reception, fournisseur=None, magasin=None):
+    """
+    Valide une ligne de commande : magasin déduit, mode de réception autorisé,
+    stock et prix issus de l'offre fournisseur (jamais du frontend).
+    Retourne (ligne_dict, None) en cas de succès, (None, Response) sinon.
+    """
+    if not produit:
+        return None, Response(
+            {"error": "Un article du panier n'a pas de produit associé."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if mode_reception not in dict(MODE_RECEPTION):
+        mode_reception = 'livraison'
+
+    # Si aucun magasin n'est associé, on tente de le déduire du fournisseur principal du produit
+    if not magasin and not fournisseur and produit.fournisseur:
+        fournisseur = produit.fournisseur
+        try:
+            magasin = fournisseur.magasin
+        except Magasin.DoesNotExist:
+            magasin = None
+
+    if not magasin:
+        return None, Response(
+            {"error": f"Le produit {produit.nom} n'a pas de magasin associé."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not fournisseur:
+        fournisseur = magasin.fournisseur
+
+    # Cohérence fournisseur / magasin
+    if magasin.fournisseur and fournisseur and magasin.fournisseur.user_id != fournisseur.user_id:
+        return None, Response(
+            {"error": f"Le magasin ne correspond pas au fournisseur pour {produit.nom}."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Le magasin accepte-t-il ce mode de réception ?
+    if mode_reception == 'livraison' and not magasin.livraison_disponible:
+        return None, Response(
+            {"error": f"Le magasin {magasin.nom_magasin} ne propose pas la livraison pour {produit.nom}."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if mode_reception == 'retrait_magasin' and not magasin.retrait_magasin:
+        return None, Response(
+            {"error": f"Le magasin {magasin.nom_magasin} ne propose pas le retrait pour {produit.nom}."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Prix et stock issus de l'offre FournisseurProduit, non du frontend
+    offre, stock = _offre_et_stock(produit, fournisseur, magasin)
+    if offre and offre.produit_id != produit.id:
+        return None, Response(
+            {"error": f"L'offre sélectionnée pour {produit.nom} est invalide."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    prix = offre.prix_vente if offre and offre.prix_vente is not None else produit.prix
+
+    if quantite > stock:
+        return None, Response(
+            {"error": f"Stock insuffisant pour {produit.nom}. Il reste {stock} unité(s)."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    return {
+        'produit': produit,
+        'fournisseur': fournisseur,
+        'magasin': magasin,
+        'quantite': quantite,
+        'prix_unitaire': prix,
+        'mode_reception': mode_reception,
+    }, None
+
+
+def _frais_par_magasin(lignes):
+    """Frais de livraison calculés par magasin pour les lignes en livraison."""
+    frais_par_magasin = {}
+    for l in lignes:
+        if l['mode_reception'] == 'livraison' and l['magasin'].livraison_disponible:
+            magasin = l['magasin']
+            if magasin.id not in frais_par_magasin:
+                frais_par_magasin[magasin.id] = {
+                    'magasin': magasin,
+                    'frais': magasin.frais_livraison or 0,
+                    'mode_tarif': magasin.mode_tarif_livraison or 'non_defini'
+                }
+    return frais_par_magasin
 
 
 # -----------------------------
@@ -243,104 +342,29 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
         fournisseurs_notifies = set()
 
         for item in panier.items.all():
-            produit = item.produit
-            if not produit:
-                return Response(
-                    {"error": "Un article du panier n'a pas de produit associé."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
             # Mode de réception final : par item, sinon celui du panier, sinon livraison
             req = item_lookup.get(item.id, {})
             mode_reception = req.get('mode_reception', item.mode_reception or 'livraison')
-            if mode_reception not in dict(MODE_RECEPTION):
-                mode_reception = 'livraison'
 
-            magasin = item.magasin
-            fournisseur = item.fournisseur
+            ligne, error = _valider_ligne_commande(
+                produit=item.produit,
+                quantite=item.quantite,
+                mode_reception=mode_reception,
+                fournisseur=item.fournisseur,
+                magasin=item.magasin,
+            )
+            if error:
+                return error
 
-            # Si aucun magasin n'est associé, on tente de le déduire du fournisseur principal du produit
-            if not magasin and not fournisseur and produit.fournisseur:
-                fournisseur = produit.fournisseur
-                try:
-                    magasin = fournisseur.magasin
-                except Magasin.DoesNotExist:
-                    magasin = None
+            lignes.append(ligne)
 
-            if not magasin:
-                return Response(
-                    {"error": f"Le produit {produit.nom} n'a pas de magasin associé."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            if not fournisseur:
-                fournisseur = magasin.fournisseur
-
-            # Cohérence fournisseur / magasin
-            if magasin.fournisseur and fournisseur and magasin.fournisseur.user_id != fournisseur.user_id:
-                return Response(
-                    {"error": f"Le magasin ne correspond pas au fournisseur pour {produit.nom}."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Le magasin accepte-t-il ce mode de réception ?
-            if mode_reception == 'livraison' and not magasin.livraison_disponible:
-                return Response(
-                    {"error": f"Le magasin {magasin.nom_magasin} ne propose pas la livraison pour {produit.nom}."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            if mode_reception == 'retrait_magasin' and not magasin.retrait_magasin:
-                return Response(
-                    {"error": f"Le magasin {magasin.nom_magasin} ne propose pas le retrait pour {produit.nom}."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Prix et stock issus de l'offre FournisseurProduit, non du frontend
-            offre, stock = _offre_et_stock(produit, fournisseur, magasin)
-            if offre and offre.produit_id != produit.id:
-                return Response(
-                    {"error": f"L'offre sélectionnée pour {produit.nom} est invalide."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            prix = offre.prix_vente if offre and offre.prix_vente is not None else produit.prix
-
-            # print(f"🔍 Produit: {produit.nom}, Magasin: {magasin.nom_magasin}, Quantité: {item.quantite}, Stock: {stock}, Prix: {prix}")
-
-            if item.quantite > stock:
-                # print(f"❌ Stock insuffisant pour {produit.nom}")
-                return Response(
-                    {"error": f"Stock insuffisant pour {produit.nom}. Il reste {stock} unité(s)."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            lignes.append({
-                'panier_item': item,
-                'produit': produit,
-                'fournisseur': fournisseur,
-                'magasin': magasin,
-                'quantite': item.quantite,
-                'prix_unitaire': prix,
-                'mode_reception': mode_reception,
-            })
-
-            fid = fournisseur.user_id if fournisseur else None
+            fid = ligne['fournisseur'].user_id if ligne['fournisseur'] else None
             if fid:
                 fournisseurs_notifies.add(fid)
 
         # ---------- CALCUL DES FRAIS CÔTÉ BACKEND ----------
         # Frais de livraison calculés par magasin pour les articles en livraison
-        a_livraison = any(l['mode_reception'] == 'livraison' for l in lignes)
-        frais_par_magasin = {}
-        for l in lignes:
-            if l['mode_reception'] == 'livraison' and l['magasin'].livraison_disponible:
-                magasin = l['magasin']
-                if magasin.id not in frais_par_magasin:
-                    frais_par_magasin[magasin.id] = {
-                        'magasin': magasin,
-                        'frais': magasin.frais_livraison or 0,
-                        'mode_tarif': magasin.mode_tarif_livraison or 'non_defini'
-                    }
-
+        frais_par_magasin = _frais_par_magasin(lignes)
         frais_livraison = sum(f['frais'] for f in frais_par_magasin.values())
 
         # Mode global de la commande : retrait si tout est retrait, sinon livraison
@@ -473,6 +497,303 @@ class CreerCommandeDepuisPanierView(generics.CreateAPIView):
 
         return Response(
             CommandeSerializer(commande).data,
+            status=status.HTTP_201_CREATED
+        )
+
+
+# -----------------------------
+# Commande invité (sans compte)
+# -----------------------------
+class CreerCommandeInviteView(views.APIView):
+    """
+    Guest checkout : crée une commande sans compte ni authentification.
+    Le panier invité vit côté client (localStorage) ; les articles sont donc
+    envoyés explicitement et tout est revérifié côté serveur (produit, magasin,
+    mode de réception, stock, prix).
+    """
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = 'order'
+
+    # Moyens de paiement autorisés sans compte : paiement différé uniquement
+    # (les paiements en ligne passent par le flux authentifié / prestataire).
+    MOYENS_PAIEMENT_INVITE = {'a_la_livraison', 'a_la_retrait'}
+
+    @transaction.atomic
+    def post(self, request):
+        data = request.data
+
+        # ---------- COORDONNÉES DE L'INVITÉ ----------
+        invite = data.get('invite') or {}
+        prenom = (invite.get('prenom') or '').strip()[:100]
+        nom = (invite.get('nom') or '').strip()[:100]
+        email = (invite.get('email') or '').strip().lower()
+        telephone = (invite.get('telephone') or '').strip()[:20]
+
+        erreurs = {}
+        if not prenom:
+            erreurs['prenom'] = 'Le prénom est obligatoire.'
+        if not nom:
+            erreurs['nom'] = 'Le nom est obligatoire.'
+        if not email:
+            erreurs['email'] = "L'adresse e-mail est obligatoire."
+        else:
+            try:
+                EmailValidator()(email)
+            except DjangoValidationError:
+                erreurs['email'] = 'Adresse e-mail invalide.'
+        if not telephone:
+            erreurs['telephone'] = 'Le numéro de téléphone est obligatoire.'
+        elif len(''.join(c for c in telephone if c.isdigit())) < 8:
+            erreurs['telephone'] = 'Numéro de téléphone invalide.'
+        if erreurs:
+            return Response({'errors': erreurs}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ---------- ARTICLES ----------
+        items_data = data.get('items') or []
+        if not isinstance(items_data, list) or not items_data:
+            return Response(
+                {"error": "Votre panier est vide."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        lignes = []
+        fournisseurs_notifies = set()
+        for it in items_data[:50]:
+            try:
+                quantite = int(it.get('quantite', 1))
+            except (TypeError, ValueError):
+                quantite = 0
+            if quantite <= 0 or quantite > 99:
+                return Response(
+                    {"error": "Quantité invalide pour un article."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            produit = Produit.objects.filter(id=it.get('produit_id')).first()
+            if not produit:
+                return Response(
+                    {"error": "Un article de votre panier n'existe plus."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            fournisseur = None
+            magasin = None
+            if it.get('fournisseur_id'):
+                fournisseur = Fournisseur.objects.filter(pk=it.get('fournisseur_id')).first()
+            if it.get('magasin_id'):
+                magasin = Magasin.objects.filter(id=it.get('magasin_id')).first()
+
+            ligne, error = _valider_ligne_commande(
+                produit=produit,
+                quantite=quantite,
+                mode_reception=it.get('mode_reception') or 'livraison',
+                fournisseur=fournisseur,
+                magasin=magasin,
+            )
+            if error:
+                return error
+            lignes.append(ligne)
+
+            fid = ligne['fournisseur'].user_id if ligne['fournisseur'] else None
+            if fid:
+                fournisseurs_notifies.add(fid)
+
+        # ---------- FRAIS ET MODE GLOBAL ----------
+        frais_par_magasin = _frais_par_magasin(lignes)
+        frais_livraison = sum(f['frais'] for f in frais_par_magasin.values())
+        a_livraison = any(l['mode_reception'] == 'livraison' for l in lignes)
+        modes = {l['mode_reception'] for l in lignes}
+        mode_reception_commande = 'retrait_magasin' if modes == {'retrait_magasin'} else 'livraison'
+
+        # ---------- ADRESSE DE LIVRAISON ----------
+        adresse_data = data.get('adresse', {}) or {}
+        adresse_livraison = adresse_data.get('adresse', '') or data.get('adresse_livraison', '')
+        nom_destinataire = (adresse_data.get('nom_destinataire') or f"{prenom} {nom}").strip()
+
+        if a_livraison:
+            erreurs_adresse = {}
+            if not adresse_livraison.strip():
+                erreurs_adresse['adresse'] = "L'adresse de livraison est obligatoire."
+            if not (adresse_data.get('ville') or '').strip():
+                erreurs_adresse['ville'] = 'La ville est obligatoire.'
+            if not (adresse_data.get('quartier') or '').strip():
+                erreurs_adresse['quartier'] = 'Le quartier est obligatoire.'
+            if erreurs_adresse:
+                return Response({'errors': erreurs_adresse}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ---------- MODE DE PAIEMENT (différé uniquement) ----------
+        mode_paiement = data.get('mode_paiement') or (
+            'a_la_retrait' if mode_reception_commande == 'retrait_magasin' else 'a_la_livraison'
+        )
+        if mode_paiement not in self.MOYENS_PAIEMENT_INVITE:
+            return Response(
+                {"error": "En tant qu'invité, seul le paiement à la livraison ou au retrait est disponible."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if mode_paiement == 'a_la_retrait' and mode_reception_commande != 'retrait_magasin':
+            return Response(
+                {"error": "Le paiement au retrait n'est possible que si tous les articles sont retirés en magasin."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ---------- CRÉATION DE LA COMMANDE ----------
+        commande = Commande.objects.create(
+            client=None,
+            statut='nouvelle_commande',
+            mode_reception=mode_reception_commande,
+            mode_paiement=mode_paiement,
+            adresse_livraison=adresse_livraison,
+            telephone_client=telephone,
+            frais_livraison=frais_livraison,
+            invite_prenom=prenom,
+            invite_nom=nom,
+            invite_email=email
+        )
+
+        nom_complet = f"{prenom} {nom}".strip()
+
+        # Notifier les admins de la nouvelle commande invitée
+        try:
+            from account.models import Utilisateur
+            admins = Utilisateur.objects.filter(role='admin', is_active=True)
+            for admin in admins:
+                creer_notification_admin(
+                    admin_id=admin.id,
+                    type_notif='ADMIN_ALERT',
+                    titre="Nouvelle commande invité",
+                    message=f"{nom_complet} ({email}) a passé une commande invité (Réf: {commande.reference})",
+                    lien='/admin/commandes',
+                    importance='info',
+                    objet_type='Commande',
+                    objet_id=commande.id
+                )
+        except Exception:
+            pass
+
+        HistoriqueCommande.objects.create(
+            commande=commande,
+            statut=commande.statut,
+            commentaire='Commande créée (invité)',
+            motif='',
+            utilisateur=None,
+            utilisateur_nom=f"{nom_complet} (invité)"
+        )
+
+        # ---------- CRÉATION DES LIGNES ET DÉDUCTION STOCK ----------
+        for l in lignes:
+            LigneCommande.objects.create(
+                commande=commande,
+                produit=l['produit'],
+                fournisseur=l['fournisseur'],
+                magasin=l['magasin'],
+                quantite=l['quantite'],
+                prix_unitaire=l['prix_unitaire'],
+                mode_reception=l['mode_reception']
+            )
+
+            offre, _ = _offre_et_stock(l['produit'], l['fournisseur'], l['magasin'])
+            if offre and offre.stock_disponible is not None:
+                offre.stock_disponible = max(0, offre.stock_disponible - l['quantite'])
+                offre.save()
+            else:
+                l['produit'].stock = max(0, l['produit'].stock - l['quantite'])
+                l['produit'].save()
+
+        # Notifier les fournisseurs concernés
+        for fid in fournisseurs_notifies:
+            creer_notification_fournisseur(
+                fournisseur_id=fid,
+                type_notif='ORDER_CREATED',
+                titre='Nouvelle commande',
+                message=f"Une nouvelle commande ({commande.reference}) a été passée pour l'un de vos produits.",
+                lien='/fournisseur/commandes',
+                importance='info',
+                objet_type='Commande',
+                objet_id=commande.id
+            )
+
+        # ---------- ADRESSE ET LIVRAISONS ----------
+        if mode_reception_commande == 'livraison':
+            adresse_obj = Adresse.objects.create(
+                client=None,
+                nom_destinataire=nom_destinataire,
+                telephone=telephone,
+                ville=adresse_data.get('ville', ''),
+                quartier=adresse_data.get('quartier', ''),
+                adresse=adresse_data.get('adresse', adresse_livraison),
+                point_de_repere=adresse_data.get('point_de_repere', ''),
+                instructions=adresse_data.get('instructions', ''),
+                latitude=adresse_data.get('latitude'),
+                longitude=adresse_data.get('longitude'),
+                est_principale=False
+            )
+
+            for info in frais_par_magasin.values():
+                mag = info['magasin']
+                Livraison.objects.create(
+                    commande=commande,
+                    client=None,
+                    adresse=adresse_obj,
+                    magasin=mag,
+                    fournisseur=mag.fournisseur,
+                    frais_livraison=info['frais'],
+                    mode_tarif=info['mode_tarif'],
+                    instructions=adresse_data.get('instructions', ''),
+                    statut='en_attente_attribution',
+                    responsable_type='non_attribue'
+                )
+
+        # Recalculer le montant total : sous-total + frais (backend fait foi)
+        total = sum((l.sous_total or 0) for l in commande.lignes.all())
+        commande.montant_total = total + commande.frais_livraison
+
+        # ---------- PAIEMENT DIFFÉRÉ ----------
+        # Même mécanisme que le flux authentifié : un Paiement 'en_attente' est
+        # créé et la commande passe en attente de confirmation.
+        from payments.models import Paiement
+        Paiement.objects.create(
+            commande=commande,
+            client=None,
+            moyen=mode_paiement,
+            montant=commande.montant_total,
+            statut='en_attente'
+        )
+        commande.statut = 'en_attente_confirmation'
+        commande.save()
+
+        # ---------- EMAIL DE CONFIRMATION À L'INVITÉ ----------
+        try:
+            mode_reception_label = 'Livraison à domicile' if mode_reception_commande == 'livraison' else 'Retrait en magasin'
+            mode_paiement_label = 'Paiement à la livraison' if mode_paiement == 'a_la_livraison' else 'Paiement au retrait'
+            context = {
+                'prenom': prenom,
+                'reference': commande.reference,
+                'date_commande': commande.date_commande.strftime('%d/%m/%Y à %H:%M'),
+                'montant_total': f"{commande.montant_total:,.2f}".replace(',', ' '),
+                'mode_reception': mode_reception_label,
+                'mode_paiement': mode_paiement_label,
+                'adresse_livraison': adresse_livraison,
+                'telephone': telephone,
+            }
+            html = render_to_string('emails/commande_invitee.html', context)
+            texte = (
+                f"Commande {commande.reference} confirmée sur AutoMecaStore.\n"
+                f"Total : {commande.montant_total} FCFA — {mode_reception_label} — {mode_paiement_label}.\n"
+                f"Conservez votre référence de commande."
+            )
+            send_mail(
+                subject=f"AutoMecaStore — Confirmation de votre commande {commande.reference}",
+                message=texte,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+                recipient_list=[email],
+                html_message=html,
+                fail_silently=True
+            )
+        except Exception:
+            logger.exception("Erreur envoi email commande invité %s", commande.reference)
+
+        return Response(
+            CommandeSerializer(commande, context={'request': request}).data,
             status=status.HTTP_201_CREATED
         )
 

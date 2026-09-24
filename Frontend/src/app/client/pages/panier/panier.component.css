@@ -3341,3 +3341,78 @@
     background: #f0fdf4;
     color: #059669;
   }
+  /* ---- COMMANDE INVITÉ ---- */
+  .guest-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    color: #1e40af;
+  }
+  .guest-note i { font-size: 1.1rem; flex-shrink: 0; }
+  .guest-note a { color: #f97316; font-weight: 600; text-decoration: none; }
+  .guest-note a:hover { text-decoration: underline; }
+
+  .recap-client {
+    background: linear-gradient(135deg, #fff7ed, #ffffff);
+    border: 1px solid #fed7aa;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .recap-client-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .recap-client-icon i { color: #fff; font-size: 1.2rem; }
+  .recap-client-info { flex: 1; min-width: 0; }
+  .recap-client-info p {
+    font-size: 13.5px;
+    color: #4b5563;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .recap-client-info p i { color: #f97316; }
+  .recap-client-name {
+    font-size: 15px !important;
+    font-weight: 700;
+    color: #111827 !important;
+  }
+
+  .guest-cta {
+    text-align: center;
+    background: linear-gradient(135deg, #fff7ed, #ffffff);
+    border: 1px solid #fed7aa;
+    border-radius: 16px;
+    padding: 22px 20px;
+    margin-top: 18px;
+  }
+  .guest-cta-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .guest-cta-icon i { color: #fff; font-size: 1.4rem; }
+  .guest-cta h4 { margin: 0 0 8px; font-size: 16px; color: #111827; }
+  .guest-cta p { margin: 0; font-size: 13.5px; color: #4b5563; line-height: 1.6; }

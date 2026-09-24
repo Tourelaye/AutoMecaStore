@@ -30,7 +30,7 @@ export const routes: Routes = [
   { path: 'register',            component: RegisterComponent },
   { path: 'aide',                component: AideComponent },
   { path: 'faq',                 component: FaqComponent },
-  { path: 'panier',              component: PanierComponent, canActivate: [clientGuard] },
+  { path: 'panier',              component: PanierComponent },
   { path: 'produits',            component: ProduitsComponent },
   { path: 'recherche',           component: RechercheComponent },
   { path: 'notifications', redirectTo: 'mon-compte/notifications', pathMatch: 'full' },

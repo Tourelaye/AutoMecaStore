@@ -1,8 +1,8 @@
 import { environment } from '../../../../environments/environment';
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, FormGroup } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 export interface Country {
@@ -23,7 +23,7 @@ export interface Country {
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
 
   step = 1;
   stepError: string | null = null;
@@ -156,7 +156,8 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     // Default to International option - user can select specific country
     this.selectedCountry = this.countries[0];
@@ -175,6 +176,32 @@ export class RegisterComponent {
       },
       { validators: this.passwordsMatchValidator }
     );
+  }
+
+  // Pré-remplissage après une commande invité (query params depuis le panier)
+  ngOnInit(): void {
+    const q = this.route.snapshot.queryParams;
+    const patch: Record<string, string> = {};
+    if (q['prenom']) patch['prenom'] = q['prenom'];
+    if (q['nom']) patch['nom'] = q['nom'];
+    if (q['email']) patch['email'] = q['email'];
+
+    const tel = (q['telephone'] || '').trim();
+    if (tel) {
+      if (tel.startsWith('+221')) {
+        const sn = this.countries.find(c => c.code === 'sn');
+        if (sn) this.selectedCountry = sn;
+        patch['telephone'] = tel.slice(4).replace(/\D/g, '');
+      } else if (tel.startsWith('+')) {
+        patch['telephone'] = tel.replace(/\D/g, '');
+      } else {
+        patch['telephone'] = tel;
+      }
+    }
+
+    if (Object.keys(patch).length) {
+      this.registerForm.patchValue(patch);
+    }
   }
 
   private get f() {

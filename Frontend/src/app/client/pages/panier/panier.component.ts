@@ -66,6 +66,15 @@ export class PanierComponent implements OnInit, OnDestroy {
   // Étapes du parcours : 1=panier, 2=choix magasin/mode, 3=adresse, 4=récap, 5=paiement, 6=attente/confirmation
   etapeCommande = 1;
 
+  // Coordonnées de l'invité (commande sans compte)
+  inviteForm = {
+    prenom: '',
+    nom: '',
+    email: '',
+    telephone: ''
+  };
+  inviteMoyenPaiement = '';
+
   // Livraison (conservé pour compatibilité visuelle)
   modeLivraison: ModeLivraison = 'standard';
   optionsLivraison: { key: ModeLivraison; label: string; prix: number; delai: string }[] = [
@@ -265,6 +274,16 @@ export class PanierComponent implements OnInit, OnDestroy {
   // -------------------------------------------------------
   // Calculs
   // -------------------------------------------------------
+  get isInvite(): boolean {
+    return !this.authService.isLoggedIn();
+  }
+
+  // L'étape 3 (informations/adresse) est visible si une livraison est prévue
+  // ou pour tout invité (ses coordonnées sont toujours requises).
+  get etape3Visible(): boolean {
+    return this.aLivraison || this.isInvite;
+  }
+
   get sousTotal(): number {
     return this.items.reduce((sum, item) => sum + item.prix * item.quantite, 0);
   }
@@ -287,6 +306,25 @@ export class PanierComponent implements OnInit, OnDestroy {
       if (opt.retraitOnly && !this.aRetrait) return false;
       return true;
     });
+  }
+
+  // Invité : paiement différé uniquement (à la livraison ou au retrait),
+  // cohérent avec le mode de réception choisi.
+  get paiementOptionsInvite() {
+    return this.moyenPaiementOptions.filter(opt => {
+      if (opt.key === 'a_la_livraison') return this.aLivraison;
+      if (opt.key === 'a_la_retrait') return !this.aLivraison;
+      return false;
+    });
+  }
+
+  // Moyen de paiement invité effectif : la sélection est recalée sur les
+  // options réellement disponibles si le mode de réception a changé.
+  get inviteMoyenPaiementEffectif(): 'a_la_livraison' | 'a_la_retrait' {
+    const keys = this.paiementOptionsInvite.map(o => o.key);
+    return (keys.includes(this.inviteMoyenPaiement)
+      ? this.inviteMoyenPaiement
+      : keys[0]) as 'a_la_livraison' | 'a_la_retrait';
   }
 
   get selectedOptionRequiresRedirect(): boolean {
@@ -347,9 +385,12 @@ export class PanierComponent implements OnInit, OnDestroy {
 
   adresseValide(): boolean {
     const f = this.adresseForm;
+    // Invité : le nom et le téléphone peuvent être repris du bloc coordonnées
+    const nom = f.nom_destinataire?.trim() || `${this.inviteForm.prenom} ${this.inviteForm.nom}`.trim();
+    const tel = f.telephone?.trim() || (this.isInvite ? this.inviteForm.telephone?.trim() : '');
     return !!(
-      f.nom_destinataire?.trim() &&
-      f.telephone?.trim() &&
+      nom &&
+      tel &&
       f.ville?.trim() &&
       f.quartier?.trim() &&
       f.adresse?.trim()
@@ -501,6 +542,10 @@ export class PanierComponent implements OnInit, OnDestroy {
     this.paymentDetails = null;
     this.paymentError = '';
     this.moyenPaiement = '';
+    // Invité : pré-sélectionner le seul moyen de paiement différé applicable
+    this.inviteMoyenPaiement = this.isInvite
+      ? (this.aLivraison ? 'a_la_livraison' : 'a_la_retrait')
+      : '';
     if (this.successTimer) {
       clearInterval(this.successTimer);
       this.successTimer = null;
@@ -517,8 +562,8 @@ export class PanierComponent implements OnInit, OnDestroy {
   retourEtape(): void {
     if (this.etapeCommande > 1) {
       this.etapeCommande--;
-      // Sauter l'étape adresse (3) si aucun article n'est en livraison
-      if (this.etapeCommande === 3 && !this.aLivraison) {
+      // Sauter l'étape adresse (3) si elle n'est pas affichée
+      if (this.etapeCommande === 3 && !this.etape3Visible) {
         this.etapeCommande = 2;
       }
     }
@@ -542,16 +587,28 @@ export class PanierComponent implements OnInit, OnDestroy {
   }
 
   continuerModeVersAdresse(): void {
-    this.etapeCommande = this.aLivraison ? 3 : 4;
+    this.etapeCommande = this.etape3Visible ? 3 : 4;
+  }
+
+  inviteValide(): boolean {
+    const f = this.inviteForm;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((f.email || '').trim());
+    const telOk = (f.telephone || '').replace(/\D/g, '').length >= 8;
+    return !!(
+      f.prenom?.trim() &&
+      f.nom?.trim() &&
+      emailOk &&
+      telOk
+    );
   }
 
   continuerAdresseVersRecap(): void {
-    if (!this.aLivraison) {
-      this.etapeCommande = 4;
-      this.commandeErreur = '';
+    // Invité : coordonnées obligatoires (même sans livraison)
+    if (this.isInvite && !this.inviteValide()) {
+      this.commandeErreur = 'Veuillez renseigner votre prénom, nom, e-mail et numéro de téléphone.';
       return;
     }
-    if (!this.adresseValide()) {
+    if (this.aLivraison && !this.adresseValide()) {
       this.commandeErreur = 'Veuillez renseigner votre adresse de livraison (nom, téléphone, ville, quartier et adresse).';
       return;
     }
@@ -592,6 +649,58 @@ export class PanierComponent implements OnInit, OnDestroy {
     if (this.aLivraison && !this.adresseValide()) {
       this.commandeErreur = 'Veuillez renseigner votre adresse de livraison.';
       this.isCommandeEnCours = false;
+      return;
+    }
+
+    // ---------- PARCOURS INVITÉ ----------
+    if (this.isInvite) {
+      if (!this.inviteValide()) {
+        this.commandeErreur = 'Veuillez renseigner vos informations (prénom, nom, e-mail, téléphone).';
+        this.isCommandeEnCours = false;
+        return;
+      }
+
+      const payload = {
+        invite: {
+          prenom: this.inviteForm.prenom.trim(),
+          nom: this.inviteForm.nom.trim(),
+          email: this.inviteForm.email.trim(),
+          telephone: this.inviteForm.telephone.trim()
+        },
+        items: this.items.map(i => ({
+          produit_id: i.produit.id,
+          quantite: i.quantite,
+          fournisseur_id: i.fournisseur_id,
+          magasin_id: i.magasin_id,
+          mode_reception: (i.mode_reception === 'retrait_magasin' ? 'retrait_magasin' : 'livraison') as 'livraison' | 'retrait_magasin'
+        })),
+        adresse: this.aLivraison ? {
+          ...this.adresseForm,
+          nom_destinataire: this.adresseForm.nom_destinataire || `${this.inviteForm.prenom} ${this.inviteForm.nom}`.trim(),
+          telephone: this.adresseForm.telephone || this.inviteForm.telephone
+        } : undefined,
+        mode_paiement: this.inviteMoyenPaiementEffectif
+      };
+
+      this.commandeService.creerCommandeInvitee(payload).subscribe({
+        next: (commande) => {
+          this.commandeSucces = true;
+          this.isCommandeEnCours = false;
+          this.commandeDetails = commande;
+          this.panierService.viderPanier();
+          // Pas d'étape paiement en ligne pour les invités : confirmation directe
+          this.commandeConfirmee = true;
+          this.etapeCommande = 1;
+          this.showRecap = false;
+        },
+        error: (err) => {
+          console.error('❌ Erreur commande invité:', err);
+          const errors = err?.error?.errors;
+          this.commandeErreur = err?.error?.error
+            || (errors ? Object.values(errors).join(' ') : 'Erreur lors de la création de la commande. Veuillez réessayer.');
+          this.isCommandeEnCours = false;
+        }
+      });
       return;
     }
 
@@ -660,6 +769,26 @@ export class PanierComponent implements OnInit, OnDestroy {
     this.etapeCommande = 1;
     this.showRecap = false;
     this.router.navigate(['/mon-compte'], { fragment: 'commandes' });
+  }
+
+  // Invité : proposition facultative de création de compte pré-remplie
+  creerCompteDepuisInvite(): void {
+    this.router.navigate(['/register'], {
+      queryParams: {
+        prenom: this.inviteForm.prenom,
+        nom: this.inviteForm.nom,
+        email: this.inviteForm.email,
+        telephone: this.inviteForm.telephone
+      }
+    });
+  }
+
+  continuerSansCompte(): void {
+    this.commandeConfirmee = false;
+    this.commandeDetails = null;
+    this.etapeCommande = 1;
+    this.showRecap = false;
+    this.router.navigate(['/']);
   }
 
   retourPanier(): void {

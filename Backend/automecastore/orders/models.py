@@ -56,6 +56,11 @@ class Commande(models.Model):
     telephone_client = models.CharField(max_length=20, blank=True, help_text="Téléphone de contact pour cette commande")
     commentaire_fournisseur = models.TextField(blank=True)
 
+    # Coordonnées du client invité (commande sans compte, client=NULL)
+    invite_prenom = models.CharField(max_length=100, blank=True, default='')
+    invite_nom = models.CharField(max_length=100, blank=True, default='')
+    invite_email = models.EmailField(blank=True, default='')
+
     def save(self, *args, **kwargs):
         if not self.reference:
             # Générer référence automatique unique
@@ -102,8 +107,13 @@ class Commande(models.Model):
                     )
 
     def __str__(self):
-        client_email = self.client.user.email if self.client else 'Client supprimé'
-        return f"{self.reference} - {client_email}"
+        if self.client:
+            client_label = self.client.user.email
+        elif self.invite_email:
+            client_label = f"{self.invite_email} (invité)"
+        else:
+            client_label = 'Client supprimé'
+        return f"{self.reference} - {client_label}"
 
 
 # -----------------------------

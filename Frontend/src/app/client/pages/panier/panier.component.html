@@ -87,6 +87,14 @@
             <span class="detail-label">Frais de livraison :</span>
             <span class="detail-value">{{ commandeDetails.frais_livraison | number:'1.2-2' }} FCFA</span>
           </div>
+          <div class="detail-row" *ngIf="commandeDetails.mode_reception">
+            <span class="detail-label">Mode de réception :</span>
+            <span class="detail-value">{{ commandeDetails.mode_reception === 'retrait_magasin' ? 'Retrait en magasin' : 'Livraison à domicile' }}</span>
+          </div>
+          <div class="detail-row" *ngIf="commandeDetails.invite_email">
+            <span class="detail-label">E-mail :</span>
+            <span class="detail-value">{{ commandeDetails.invite_email }}</span>
+          </div>
         </div>
 
         <div class="confirmation-section" *ngIf="commandeDetails.lignes?.length">
@@ -116,11 +124,25 @@
           <p *ngIf="commandeDetails.telephone_client"><strong>Tél :</strong> {{ commandeDetails.telephone_client }}</p>
         </div>
 
+        <!-- PROPOSITION CRÉATION DE COMPTE (invité uniquement) -->
+        <div class="confirmation-section guest-cta" *ngIf="isInvite">
+          <div class="guest-cta-icon"><i class="bi bi-person-plus"></i></div>
+          <h4>Créez votre compte AutoMecaStore</h4>
+          <p>
+            Vous avez passé commande en tant qu'invité. Créez votre compte pour retrouver
+            facilement vos commandes, suivre leur évolution et faciliter vos prochains achats.
+          </p>
+        </div>
+
         <div class="confirmation-actions">
-          <button class="btn-secondary" (click)="continuerAchats()">
-            <i class="bi bi-arrow-left"></i> Continuer mes achats
+          <button class="btn-secondary" (click)="isInvite ? continuerSansCompte() : continuerAchats()">
+            <i class="bi bi-arrow-left"></i>
+            {{ isInvite ? 'Continuer sans créer de compte' : 'Continuer mes achats' }}
           </button>
-          <button class="btn-primary" (click)="voirMesCommandes()">
+          <button class="btn-primary" *ngIf="isInvite" (click)="creerCompteDepuisInvite()">
+            <i class="bi bi-person-plus"></i> Créer mon compte
+          </button>
+          <button class="btn-primary" *ngIf="!isInvite" (click)="voirMesCommandes()">
             Voir ma commande <i class="bi bi-arrow-right"></i>
           </button>
         </div>
@@ -380,9 +402,9 @@
             <div class="spi-circle"><i class="bi bi-shop"></i></div>
             <span class="spi-label">Magasin</span>
           </div>
-          <div class="spi-step" [class.active]="etapeCommande === 3" [class.done]="etapeCommande > 3" [class.skip]="!aLivraison">
-            <div class="spi-circle"><i class="bi bi-geo-alt"></i></div>
-            <span class="spi-label">Adresse</span>
+          <div class="spi-step" [class.active]="etapeCommande === 3" [class.done]="etapeCommande > 3" [class.skip]="!etape3Visible">
+            <div class="spi-circle"><i class="bi" [class.bi-person]="isInvite && !aLivraison" [class.bi-geo-alt]="!isInvite || aLivraison"></i></div>
+            <span class="spi-label">{{ isInvite && !aLivraison ? 'Coordonnées' : 'Adresse' }}</span>
           </div>
           <div class="spi-step" [class.active]="etapeCommande === 4" [class.done]="etapeCommande > 4">
             <div class="spi-circle"><i class="bi bi-receipt"></i></div>
@@ -401,6 +423,15 @@
     <div class="recap-card" *ngIf="etapeCommande === 2">
       <h2><i class="bi bi-shop"></i> Mode de réception par magasin</h2>
       <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
+
+      <!-- NOTE INVITÉ -->
+      <div class="guest-note" *ngIf="isInvite">
+        <i class="bi bi-person"></i>
+        <span>
+          Vous commandez en tant qu'invité — aucun compte n'est nécessaire.
+          <a routerLink="/login">Déjà client ? Connectez-vous</a>
+        </span>
+      </div>
 
       <div class="magasin-groups">
         <div class="magasin-group" *ngFor="let g of groupesMagasins">
@@ -552,15 +583,44 @@
       </div>
     </div>
 
-    <!-- STEP 3 : ADRESSE DE LIVRAISON -->
-    <div class="recap-card" *ngIf="etapeCommande === 3 && aLivraison">
-      <h2><i class="bi bi-geo-alt"></i> Adresse de livraison</h2>
+    <!-- STEP 3 : INFORMATIONS / ADRESSE DE LIVRAISON -->
+    <div class="recap-card" *ngIf="etapeCommande === 3 && etape3Visible">
+      <h2><i class="bi" [class.bi-person]="isInvite" [class.bi-geo-alt]="!isInvite"></i>
+        {{ isInvite ? 'Vos informations' : 'Adresse de livraison' }}
+      </h2>
       <ng-container *ngTemplateOutlet="stepProgress"></ng-container>
-      <p class="adresse-intro">
+      <p class="adresse-intro" *ngIf="aLivraison">
         Une livraison est sélectionnée pour au moins un magasin. Veuillez renseigner l'adresse où vous souhaitez recevoir votre commande.
       </p>
+      <p class="adresse-intro" *ngIf="!aLivraison && isInvite">
+        Vous récupérerez votre commande en magasin. Renseignez vos coordonnées pour que le vendeur puisse vous contacter.
+      </p>
 
-      <div class="adresse-form">
+      <!-- COORDONNÉES INVITÉ -->
+      <div class="adresse-form" *ngIf="isInvite">
+        <div class="form-row">
+          <label>
+            <span>Prénom <span class="req">*</span></span>
+            <input type="text" [(ngModel)]="inviteForm.prenom" placeholder="Aminata" autocomplete="given-name" [class.invalid]="!inviteForm.prenom && commandeErreur">
+          </label>
+          <label>
+            <span>Nom <span class="req">*</span></span>
+            <input type="text" [(ngModel)]="inviteForm.nom" placeholder="Diallo" autocomplete="family-name" [class.invalid]="!inviteForm.nom && commandeErreur">
+          </label>
+        </div>
+        <label>
+          <span>Adresse e-mail <span class="req">*</span></span>
+          <input type="email" [(ngModel)]="inviteForm.email" placeholder="vous@exemple.sn" autocomplete="email" [class.invalid]="!inviteForm.email && commandeErreur">
+          <small class="help"><i class="bi bi-envelope"></i> La confirmation de commande sera envoyée à cette adresse.</small>
+        </label>
+        <label>
+          <span>Téléphone <span class="req">*</span></span>
+          <input type="tel" [(ngModel)]="inviteForm.telephone" placeholder="+221 77 123 45 67" autocomplete="tel" [class.invalid]="!inviteForm.telephone && commandeErreur">
+          <small class="help"><i class="bi bi-info-circle"></i> Format sénégalais accepté (ex. 77 123 45 67 ou +221...).</small>
+        </label>
+      </div>
+
+      <div class="adresse-form" *ngIf="aLivraison">
 
         <!-- BOUTON GÉOLOCALISATION (en évidence) -->
         <div class="geo-block" [class.geo-success]="geoSuccess" [class.geo-error]="geoError">
@@ -727,6 +787,24 @@
         </div>
       </div>
 
+      <!-- INFOS CLIENT INVITÉ -->
+      <ng-container *ngIf="isInvite">
+        <div class="recap-section-label">
+          <i class="bi bi-person"></i> Vos informations
+        </div>
+        <div class="recap-client">
+          <div class="recap-client-icon"><i class="bi bi-person-circle"></i></div>
+          <div class="recap-client-info">
+            <p class="recap-client-name">{{ inviteForm.prenom }} {{ inviteForm.nom }}</p>
+            <p><i class="bi bi-envelope"></i> {{ inviteForm.email }}</p>
+            <p><i class="bi bi-telephone"></i> {{ inviteForm.telephone }}</p>
+          </div>
+          <button class="btn-modifier-adresse" (click)="etapeCommande = 3">
+            <i class="bi bi-pencil"></i> Modifier
+          </button>
+        </div>
+      </ng-container>
+
       <!-- PRODUITS PAR MAGASIN -->
       <div class="recap-section-label">
         <i class="bi bi-box-seam"></i> Produits par magasin
@@ -860,10 +938,50 @@
         </div>
       </div>
 
+      <!-- MODE DE PAIEMENT INVITÉ -->
+      <ng-container *ngIf="isInvite">
+        <div class="recap-section-label">
+          <i class="bi bi-credit-card"></i> Mode de paiement
+        </div>
+        <div class="payment-methods-grid">
+          <button
+            *ngFor="let option of paiementOptionsInvite"
+            class="pm-card"
+            [class.active]="inviteMoyenPaiementEffectif === option.key"
+            (click)="inviteMoyenPaiement = option.key"
+            type="button"
+          >
+            <div class="pm-card-header">
+              <div class="pm-icon-wrap">
+                <i class="bi" [class]="option.icon"></i>
+              </div>
+              <span class="pm-badge">{{ option.badge }}</span>
+            </div>
+            <div class="pm-card-body">
+              <span class="pm-label">{{ option.label }}</span>
+              <span class="pm-desc">{{ option.desc }}</span>
+            </div>
+            <div class="pm-check" *ngIf="inviteMoyenPaiementEffectif === option.key">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+          </button>
+        </div>
+        <div class="pm-info-banner soft">
+          <div class="pmib-icon"><i class="bi" [class.bi-truck]="inviteMoyenPaiementEffectif === 'a_la_livraison'" [class.bi-shop]="inviteMoyenPaiementEffectif === 'a_la_retrait'"></i></div>
+          <div class="pmib-content">
+            <strong>{{ inviteMoyenPaiementEffectif === 'a_la_retrait' ? 'Paiement au retrait' : 'Paiement à la livraison' }}</strong>
+            <p>{{ inviteMoyenPaiementEffectif === 'a_la_retrait'
+              ? 'Réglez en espèces lors du retrait de votre commande en magasin.'
+              : 'Préparez le montant exact. Le paiement se fait en espèces lors de la réception de votre commande.' }}</p>
+          </div>
+        </div>
+      </ng-container>
+
       <!-- AVERTISSEMENT -->
       <div class="recap-confirm-warning" *ngIf="!isCommandeEnCours">
         <i class="bi bi-info-circle"></i>
-        <span>En confirmant, vous acceptez les conditions de vente. Le paiement sera effectué à l'étape suivante.</span>
+        <span *ngIf="!isInvite">En confirmant, vous acceptez les conditions de vente. Le paiement sera effectué à l'étape suivante.</span>
+        <span *ngIf="isInvite">En confirmant, vous acceptez les conditions de vente. Vous réglerez {{ inviteMoyenPaiementEffectif === 'a_la_retrait' ? 'au retrait en magasin' : 'à la livraison' }}.</span>
       </div>
 
       <!-- AVERTISSEMENT/ERREUR COMMANDE -->

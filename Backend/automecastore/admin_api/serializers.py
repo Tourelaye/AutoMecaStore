@@ -189,6 +189,7 @@ class CommandeAdminListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'reference', 'date_commande', 'statut', 'montant_total',
             'frais_livraison', 'mode_paiement', 'mode_reception', 'client',
+            'invite_prenom', 'invite_nom', 'invite_email', 'telephone_client',
             'magasins', 'nombre_produits', 'alertes'
         ]
 
@@ -228,7 +229,8 @@ class CommandeAdminDetailSerializer(serializers.ModelSerializer):
             'id', 'reference', 'date_commande', 'statut', 'montant_total',
             'frais_livraison', 'mode_paiement', 'mode_reception',
             'commentaire_fournisseur', 'client', 'magasins', 'lignes',
-            'historique', 'livraison', 'alertes', 'reclamations'
+            'invite_prenom', 'invite_nom', 'invite_email', 'telephone_client',
+            'adresse_livraison', 'historique', 'livraison', 'alertes', 'reclamations'
         ]
 
     def get_magasins(self, obj):

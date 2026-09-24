@@ -95,6 +95,27 @@ export class CommandeClientService {
     );
   }
 
+  // Créer une commande en tant qu'invité (sans authentification).
+  // Le panier invité est en localStorage : les articles sont envoyés
+  // explicitement et tout est revérifié côté serveur.
+  creerCommandeInvitee(payload: {
+    invite: { prenom: string; nom: string; email: string; telephone: string };
+    items: {
+      produit_id: number;
+      quantite: number;
+      fournisseur_id?: number;
+      magasin_id?: number;
+      mode_reception: 'livraison' | 'retrait_magasin';
+    }[];
+    adresse?: AdresseLivraison;
+    mode_paiement?: 'a_la_livraison' | 'a_la_retrait';
+  }): Observable<CommandeClient> {
+    return this.http.post<CommandeClient>(
+      `${this.apiUrl}/commande/invite/`,
+      payload
+    );
+  }
+
   // Créer une commande manuellement
   creerCommande(commande: CommandeCreateRequest): Observable<CommandeClient> {
     return this.http.post<CommandeClient>(
