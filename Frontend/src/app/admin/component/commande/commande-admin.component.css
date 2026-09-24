@@ -260,6 +260,22 @@ app-header { position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
 .client-name { display: flex; flex-direction: column; }
 .client-name small { color: #64748b; font-size: 11px; }
 
+.invite-badge {
+  display: inline-block;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 .magasins-list { display: flex; gap: 6px; flex-wrap: wrap; }
 .magasin-chip, .more-chip {
   font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px;

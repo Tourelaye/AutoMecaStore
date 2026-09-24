@@ -226,6 +226,10 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
         c.client?.prenom?.toLowerCase().includes(term) ||
         c.client?.nom?.toLowerCase().includes(term) ||
         c.client?.telephone?.toLowerCase().includes(term) ||
+        c.invite_prenom?.toLowerCase().includes(term) ||
+        c.invite_nom?.toLowerCase().includes(term) ||
+        c.invite_email?.toLowerCase().includes(term) ||
+        c.telephone_client?.toLowerCase().includes(term) ||
         c.magasins?.some(m => m.toLowerCase().includes(term))
       );
     }
@@ -291,6 +295,31 @@ export class CommandeAdminComponent implements OnInit, OnDestroy {
   getClientFullName(client?: { nom?: string; prenom?: string }): string {
     if (!client) return 'Client inconnu';
     return `${client.prenom || ''} ${client.nom || ''}`.trim() || 'Client inconnu';
+  }
+
+  // Coordonnées du client d'une commande : compte inscrit ou invité
+  getCommandeClient(c: AdminCommande): { prenom: string; nom: string; email: string; telephone: string; invite: boolean } {
+    if (c.client) {
+      return {
+        prenom: c.client.prenom || '',
+        nom: c.client.nom || '',
+        email: c.client.email || '',
+        telephone: c.client.telephone || c.telephone_client || '',
+        invite: false
+      };
+    }
+    return {
+      prenom: c.invite_prenom || '',
+      nom: c.invite_nom || '',
+      email: c.invite_email || '',
+      telephone: c.telephone_client || '',
+      invite: true
+    };
+  }
+
+  getCommandeClientName(c: AdminCommande): string {
+    const cl = this.getCommandeClient(c);
+    return `${cl.prenom} ${cl.nom}`.trim() || 'Client inconnu';
   }
 
   getClientInitials(client?: { nom?: string; prenom?: string }): string {

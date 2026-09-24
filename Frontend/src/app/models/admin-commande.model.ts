@@ -77,6 +77,10 @@ export interface AdminCommande {
   mode_paiement: string;
   mode_reception: string;
   client?: ClientCommande;
+  invite_prenom?: string;
+  invite_nom?: string;
+  invite_email?: string;
+  telephone_client?: string;
   magasins: string[];
   nombre_produits: number;
   alertes: AlerteCommande[];
@@ -84,6 +88,7 @@ export interface AdminCommande {
 
 export interface AdminCommandeDetail extends AdminCommande {
   commentaire_fournisseur?: string;
+  adresse_livraison?: string;
   lignes: LigneCommande[];
   historique: HistoriqueCommande[];
   livraison?: LivraisonCommande;

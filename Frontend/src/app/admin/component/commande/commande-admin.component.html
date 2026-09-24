@@ -195,14 +195,16 @@
 
           <!-- Client -->
           <div class="td">
-            <div class="client-cell" *ngIf="c.client">
-              <div class="client-av">{{ getClientInitials(c.client) }}</div>
+            <div class="client-cell" *ngIf="getCommandeClient(c).nom || getCommandeClient(c).prenom; else noClient">
+              <div class="client-av">{{ getClientInitials(getCommandeClient(c)) }}</div>
               <div class="client-name">
-                <span>{{ getClientFullName(c.client) }}</span>
-                <small *ngIf="c.client.telephone">{{ c.client.telephone }}</small>
+                <span>{{ getCommandeClientName(c) }}
+                  <em class="invite-badge" *ngIf="getCommandeClient(c).invite">Invité</em>
+                </span>
+                <small *ngIf="getCommandeClient(c).telephone">{{ getCommandeClient(c).telephone }}</small>
               </div>
             </div>
-            <span *ngIf="!c.client">-</span>
+            <ng-template #noClient><span>-</span></ng-template>
           </div>
 
           <!-- Détails : Magasins + Nb produits -->
@@ -343,13 +345,13 @@
             </div>
           </div>
 
-          <div class="info-section" *ngIf="selectedCommande.client">
-            <h4><i class="bi bi-person"></i> Client</h4>
+          <div class="info-section" *ngIf="selectedCommande.client || selectedCommande.invite_email">
+            <h4><i class="bi bi-person"></i> Client <em class="invite-badge" *ngIf="getCommandeClient(selectedCommande).invite">Invité</em></h4>
             <div class="info-grid">
-              <div class="info-row"><span class="label">Nom</span><span class="value">{{ getClientFullName(selectedCommande.client) }}</span></div>
-              <div class="info-row"><span class="label">Email</span><span class="value">{{ selectedCommande.client.email || '-' }}</span></div>
-              <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ selectedCommande.client.telephone || '-' }}</span></div>
-              <div class="info-row"><span class="label">Adresse</span><span class="value">{{ selectedCommande.client.adresse || '-' }}</span></div>
+              <div class="info-row"><span class="label">Nom</span><span class="value">{{ getCommandeClientName(selectedCommande) }}</span></div>
+              <div class="info-row"><span class="label">Email</span><span class="value">{{ getCommandeClient(selectedCommande).email || '-' }}</span></div>
+              <div class="info-row"><span class="label">Téléphone</span><span class="value">{{ getCommandeClient(selectedCommande).telephone || '-' }}</span></div>
+              <div class="info-row"><span class="label">Adresse</span><span class="value">{{ selectedCommande.client?.adresse || selectedCommande.adresse_livraison || '-' }}</span></div>
             </div>
           </div>
 

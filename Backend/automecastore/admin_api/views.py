@@ -1857,17 +1857,24 @@ class AdminCommandeActionView(APIView):
             return Response({'message': f'Contact fournisseur enregistré ({len(fournisseurs)} fournisseur(s)).'})
 
         elif action == 'contact_client':
-            if not commande.client or not commande.client.user or not commande.client.user.email:
+            # Client inscrit ou invité : résoudre l'adresse de contact
+            if commande.client and commande.client.user and commande.client.user.email:
+                destinataire = commande.client.user.email
+                destinataire_prenom = commande.client.user.prenom or ''
+            elif commande.invite_email:
+                destinataire = commande.invite_email
+                destinataire_prenom = commande.invite_prenom or ''
+            else:
                 return Response({'error': 'Le client ne possède pas d\'adresse e-mail.'}, status=status.HTTP_400_BAD_REQUEST)
 
             subject = f"AutoMeca — Contact administrateur | Commande {commande.reference}"
             body = (
-                f"Bonjour {commande.client.user.prenom or ''},\n\n"
+                f"Bonjour {destinataire_prenom},\n\n"
                 f"L'administrateur vous contacte au sujet de votre commande {commande.reference}.\n\n"
                 f"Message :\n{message or 'Aucun message supplémentaire.'}\n\n"
                 f"Cordialement,\nL'équipe AutoMeca"
             )
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [commande.client.user.email], fail_silently=True)
+            send_mail_async(subject, body, settings.DEFAULT_FROM_EMAIL, [destinataire])
 
             HistoriqueCommande.objects.create(
                 commande=commande,
