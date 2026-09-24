@@ -347,10 +347,27 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Stockage média persistant : Cloudinary si CLOUDINARY_URL est défini.
-# Le filesystem de Render est éphémère — sans stockage externe, les images
-# uploadées en production sont perdues à chaque redéploiement/redémarrage.
-if os.environ.get('CLOUDINARY_URL'):
+# Stockage média persistant en production — le filesystem de Render est
+# éphémère : sans stockage externe, les images uploadées sont perdues à
+# chaque redéploiement. Deux backends supportés, activés par variable d'env :
+# 1) S3-compatible (Cloudflare R2, Backblaze B2, Supabase…) si AWS_STORAGE_BUCKET_NAME
+# 2) Cloudinary si CLOUDINARY_URL
+if os.environ.get('AWS_STORAGE_BUCKET_NAME'):
+    INSTALLED_APPS += ['storages']
+    STORAGES['default'] = {'BACKEND': 'storages.backends.s3.S3Storage'}
+    AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+    AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+    AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
+    AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL') or None
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'auto')
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
+    # Domaine public du bucket (ex: pub-xxxx.r2.dev pour Cloudflare R2).
+    # Sans domaine public, les URLs sont signées (querystring auth).
+    if os.environ.get('AWS_S3_CUSTOM_DOMAIN'):
+        AWS_S3_CUSTOM_DOMAIN = os.environ['AWS_S3_CUSTOM_DOMAIN']
+        AWS_QUERYSTRING_AUTH = False
+elif os.environ.get('CLOUDINARY_URL'):
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
     STORAGES['default'] = {
         'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
