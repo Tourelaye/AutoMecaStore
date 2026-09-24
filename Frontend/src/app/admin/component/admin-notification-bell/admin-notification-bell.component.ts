@@ -30,7 +30,9 @@ export class AdminNotificationBellComponent implements OnInit, OnDestroy {
   toggle(): void {
     this.open = !this.open;
     if (this.open) {
-      this.loadNotifications();
+      // L'admin ouvre la liste → tout est considéré lu : badge à 0.
+      // Les items gardent leur style "non lu" dans cette vue.
+      this.loadNotifications(true);
     }
   }
 
@@ -38,11 +40,14 @@ export class AdminNotificationBellComponent implements OnInit, OnDestroy {
     this.open = false;
   }
 
-  loadNotifications(): void {
+  loadNotifications(markRead = false): void {
     this.loading = true;
     this.adminNotifications.getNotifications().subscribe({
       next: (data) => {
         this.notifications = data;
+        if (markRead) {
+          this.adminNotifications.markAllRead();
+        }
         this.unreadCount = this.adminNotifications.getUnreadCount();
         this.loading = false;
       },

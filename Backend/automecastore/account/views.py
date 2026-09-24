@@ -405,7 +405,9 @@ class AdminNotificationsView(APIView):
             
             if recent_orders > 0:
                 notifications.append({
-                    'id': 'orders_count',
+                    # ID dépendant du compteur : si une nouvelle commande arrive,
+                    # l'ID change et la notification redevient non lue.
+                    'id': f'orders_count_{recent_orders}',
                     'message': f'{recent_orders} nouvelle(s) commande(s) en attente',
                     'time': 'Il y a quelques minutes',
                     'type': 'order',
@@ -420,7 +422,7 @@ class AdminNotificationsView(APIView):
             
             if low_stock_products > 0:
                 notifications.append({
-                    'id': 'stock_count',
+                    'id': f'stock_count_{low_stock_products}',
                     'message': f'{low_stock_products} produit(s) en stock critique',
                     'time': 'Il y a quelques minutes',
                     'type': 'stock',
@@ -434,7 +436,7 @@ class AdminNotificationsView(APIView):
             
             if new_clients > 0:
                 notifications.append({
-                    'id': 'clients_count',
+                    'id': f'clients_count_{new_clients}',
                     'message': f'{new_clients} nouveau(x) client(s) inscrit(s)',
                     'time': 'Il y a quelques minutes',
                     'type': 'client',
@@ -445,7 +447,7 @@ class AdminNotificationsView(APIView):
             produits_attente = Produit.objects.filter(statut_approbation='en_attente').count()
             if produits_attente > 0:
                 notifications.append({
-                    'id': 'produits_attente',
+                    'id': f'produits_attente_{produits_attente}',
                     'message': f'{produits_attente} produit(s) en attente d\'approbation',
                     'time': 'À l\'instant',
                     'type': 'produit',

@@ -94,6 +94,7 @@ export class AdminNotificationsService {
   private mapRaw(n: RawNotification): AdminNotification {
     return {
       ...n,
+      read: n.read || this.readIds.has(n.id),
       lien: n.data?.lien ?? undefined
     };
   }

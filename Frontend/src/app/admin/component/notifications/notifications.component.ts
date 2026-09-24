@@ -25,6 +25,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   filterType = 'all';
   filterRead: FilterRead = 'all';
   showClearConfirm = false;
+  private firstLoad = true;
 
   readonly types = [
     { value: 'all', label: 'Tous les types' },
@@ -58,6 +59,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.notifications = data;
         this.applyFilters();
+        // Premier affichage de la page : l'admin a vu la liste → badge à 0.
+        // Les items gardent leur état "non lu" affiché dans cette vue.
+        if (this.firstLoad) {
+          this.firstLoad = false;
+          this.notificationsService.markAllRead();
+        }
       }
     });
   }
