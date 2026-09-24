@@ -13,6 +13,7 @@ from catalog.models import Produit, FournisseurProduit, Fournisseur as CatalogFo
 from fournisseur.models import creer_notification_fournisseur, creer_notification_client, creer_notification_admin, Magasin
 from account.models import Fournisseur
 from account.permissions import IsClient, IsAdmin
+from account.email_utils import send_mail_async
 from delivery.models import Adresse, Livraison
 
 logger = logging.getLogger(__name__)
@@ -781,6 +782,8 @@ class CreerCommandeInviteView(views.APIView):
         commande.save()
 
         # ---------- EMAIL DE CONFIRMATION À L'INVITÉ ----------
+        # Envoyé en arrière-plan après commit : le handshake SMTP (1-3 s+)
+        # ne doit pas bloquer la réponse ni garder la transaction ouverte.
         try:
             mode_reception_label = 'Livraison à domicile' if mode_reception_commande == 'livraison' else 'Retrait en magasin'
             mode_paiement_label = 'Paiement à la livraison' if mode_paiement == 'a_la_livraison' else 'Paiement au retrait'
@@ -800,13 +803,12 @@ class CreerCommandeInviteView(views.APIView):
                 f"Total : {commande.montant_total} FCFA — {mode_reception_label} — {mode_paiement_label}.\n"
                 f"Conservez votre référence de commande."
             )
-            send_mail(
+            send_mail_async(
                 subject=f"AutoMecaStore — Confirmation de votre commande {commande.reference}",
                 message=texte,
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', None),
                 recipient_list=[email],
                 html_message=html,
-                fail_silently=True
             )
         except Exception:
             logger.exception("Erreur envoi email commande invité %s", commande.reference)

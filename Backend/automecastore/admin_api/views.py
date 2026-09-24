@@ -17,6 +17,7 @@ from support.models import Avis, Reclamation, SignalementAvis
 from fournisseur.models import Magasin, creer_notification_fournisseur, creer_notification_client
 from fournisseur.serializers import MagasinSerializer
 from django.core.mail import send_mail
+from account.email_utils import send_mail_async
 from django.template.loader import render_to_string
 from django.conf import settings
 from orders.models import Commande, LigneCommande, HistoriqueCommande
@@ -2242,13 +2243,14 @@ class AdminUtilisateurCreateView(APIView):
                 f"Nous vous recommandons de changer votre mot de passe dès votre première connexion.\n\n"
                 f"L'équipe AutoMecaStore"
             )
-            send_mail(
+            # Envoi en arrière-plan après commit : le handshake SMTP
+            # ne bloque pas la réponse de création.
+            send_mail_async(
                 'Votre compte fournisseur AutoMecaStore a été créé',
                 plain,
                 getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@automecastore.sn'),
                 [user.email],
                 html_message=html,
-                fail_silently=False
             )
         except Exception as e:
             logger.exception(f"Erreur envoi email création fournisseur: {e}")
