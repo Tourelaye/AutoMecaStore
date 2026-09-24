@@ -218,7 +218,7 @@ export class PanierComponent implements OnInit, OnDestroy {
         this.geoSuccess = false;
         this.geoError = true;
         if (err.code === err.PERMISSION_DENIED) {
-          this.geolocalisationMessage = 'Géolocalisation refusée. Vous pouvez saisir l\'adresse manuellement.';
+          this.geolocalisationMessage = 'Géolocalisation refusée par le navigateur. Pour l\'autoriser : icône cadenas à gauche de la barre d\'adresse → Paramètres du site → Localisation : Autoriser, puis rechargez. Sinon saisissez l\'adresse manuellement.';
         } else if (err.code === err.POSITION_UNAVAILABLE) {
           this.geolocalisationMessage = 'Position indisponible. Vérifiez votre GPS ou saisissez l\'adresse manuellement.';
         } else if (err.code === err.TIMEOUT) {

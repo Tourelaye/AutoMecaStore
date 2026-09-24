@@ -454,7 +454,7 @@ export class MonMagasinComponent implements OnInit, OnDestroy {
         this.geoSuccess = false;
         this.geoError = true;
         if (err.code === err.PERMISSION_DENIED) {
-          this.geoMessage = 'Géolocalisation refusée. Vous pouvez saisir les coordonnées manuellement.';
+          this.geoMessage = 'Géolocalisation refusée par le navigateur. Cliquez sur l\'icône cadenas à gauche de la barre d\'adresse → Paramètres du site → Localisation : Autoriser, puis rechargez. Vous pouvez aussi saisir les coordonnées manuellement.';
         } else if (err.code === err.POSITION_UNAVAILABLE) {
           this.geoMessage = 'Position indisponible. Vérifiez votre GPS ou saisissez manuellement.';
         } else if (err.code === err.TIMEOUT) {
