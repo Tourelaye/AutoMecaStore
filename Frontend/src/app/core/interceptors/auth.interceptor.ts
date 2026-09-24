@@ -35,7 +35,16 @@ export class AuthInterceptor implements HttpInterceptor {
             this.router.navigate(['/admin/login']);
           } else if (!url.includes('/login') && !url.includes('/admin/login')) {
             this.authService.logout();
-            this.router.navigate(['/login']);
+            // Ne rediriger vers /login que depuis une page protégée.
+            // Sur une page publique (panier, accueil, catalogue), l'utilisateur
+            // est simplement déconnecté et poursuit en tant qu'invité.
+            const pagesProtegees = [
+              '/mon-compte', '/mes-commandes', '/mes-favoris', '/mes-demandes',
+              '/mes-adresses', '/mes-vehicules', '/fournisseur'
+            ];
+            if (pagesProtegees.some(p => url.startsWith(p))) {
+              this.router.navigate(['/login']);
+            }
           }
         }
 

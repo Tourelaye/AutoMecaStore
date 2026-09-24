@@ -48,6 +48,11 @@ export class AuthService {
     const token = localStorage.getItem('access_token');
     const userStr = localStorage.getItem('user');
     if (token && userStr) {
+      // Token expiré : nettoyer la session et traiter l'utilisateur en invité
+      if (this.isTokenExpired(token)) {
+        this.logout();
+        return;
+      }
       try {
         const user = JSON.parse(userStr) as Utilisateur;
         this.utilisateurSubject.next(user);
@@ -56,6 +61,11 @@ export class AuthService {
         this.logout();
       }
     }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    const exp = this.decodeToken(token)?.exp;
+    return typeof exp === 'number' && exp * 1000 <= Date.now();
   }
 
   login(email: string, password: string, portal?: 'client' | 'fournisseur' | 'admin'): Observable<LoginResponse> {
