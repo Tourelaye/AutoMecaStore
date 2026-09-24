@@ -74,6 +74,8 @@ export class PanierComponent implements OnInit, OnDestroy {
     telephone: ''
   };
   inviteMoyenPaiement = '';
+  inviteTelTouche = false;
+  adresseTelTouche = false;
 
   // Livraison (conservé pour compatibilité visuelle)
   modeLivraison: ModeLivraison = 'standard';
@@ -390,11 +392,39 @@ export class PanierComponent implements OnInit, OnDestroy {
     const tel = f.telephone?.trim() || (this.isInvite ? this.inviteForm.telephone?.trim() : '');
     return !!(
       nom &&
-      tel &&
+      this.telephoneValide(tel) &&
       f.ville?.trim() &&
       f.quartier?.trim() &&
       f.adresse?.trim()
     );
+  }
+
+  // Numéro sénégalais (9 chiffres, mobile 70/75/76/77/78 ou fixe 33)
+  // ou international (+ / 00, 8 à 15 chiffres).
+  telephoneValide(value?: string): boolean {
+    const tel = (value || '').trim();
+    if (!tel) return false;
+    let digits = tel.replace(/\D/g, '');
+    if (digits.startsWith('00221')) digits = digits.slice(5);
+    else if (digits.startsWith('221') && digits.length === 12) digits = digits.slice(3);
+    if (digits.length === 9) {
+      return ['70', '75', '76', '77', '78', '33'].includes(digits.slice(0, 2));
+    }
+    return (tel.startsWith('+') || tel.startsWith('00')) && digits.length >= 8 && digits.length <= 15;
+  }
+
+  telephoneErreur(value?: string): string {
+    const tel = (value || '').trim();
+    if (!tel || this.telephoneValide(tel)) return '';
+    return 'Numéro invalide. Format attendu : 77 123 45 67, 33 8xx xx xx ou +221…';
+  }
+
+  get inviteTelephoneErreur(): string {
+    return this.telephoneErreur(this.inviteForm.telephone);
+  }
+
+  get adresseTelephoneErreur(): string {
+    return this.telephoneErreur(this.adresseForm.telephone);
   }
 
   get groupesMagasins(): { key: string; magasin_id?: number; magasin_nom?: string; magasin?: any; fournisseur_id?: number; fournisseur_nom?: string; items: PanierItem[] }[] {
@@ -593,7 +623,7 @@ export class PanierComponent implements OnInit, OnDestroy {
   inviteValide(): boolean {
     const f = this.inviteForm;
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((f.email || '').trim());
-    const telOk = (f.telephone || '').replace(/\D/g, '').length >= 8;
+    const telOk = this.telephoneValide(f.telephone);
     return !!(
       f.prenom?.trim() &&
       f.nom?.trim() &&
@@ -605,11 +635,15 @@ export class PanierComponent implements OnInit, OnDestroy {
   continuerAdresseVersRecap(): void {
     // Invité : coordonnées obligatoires (même sans livraison)
     if (this.isInvite && !this.inviteValide()) {
-      this.commandeErreur = 'Veuillez renseigner votre prénom, nom, e-mail et numéro de téléphone.';
+      this.inviteTelTouche = true;
+      this.commandeErreur = this.inviteTelephoneErreur
+        || 'Veuillez renseigner votre prénom, nom, e-mail et numéro de téléphone.';
       return;
     }
     if (this.aLivraison && !this.adresseValide()) {
-      this.commandeErreur = 'Veuillez renseigner votre adresse de livraison (nom, téléphone, ville, quartier et adresse).';
+      this.adresseTelTouche = true;
+      this.commandeErreur = this.adresseTelephoneErreur
+        || 'Veuillez renseigner votre adresse de livraison (nom, téléphone, ville, quartier et adresse).';
       return;
     }
     this.commandeErreur = '';

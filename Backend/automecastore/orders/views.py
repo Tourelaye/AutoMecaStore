@@ -18,6 +18,25 @@ from delivery.models import Adresse, Livraison
 logger = logging.getLogger(__name__)
 
 
+def _telephone_valide(telephone):
+    """
+    Valide un numéro : sénégalais (9 chiffres, mobile 70/75/76/77/78 ou
+    fixe 33) ou international (commence par + ou 00, 8 à 15 chiffres).
+    """
+    tel = (telephone or '').strip()
+    if not tel:
+        return False
+    digits = ''.join(c for c in tel if c.isdigit())
+    # Normaliser l'indicatif Sénégal (+221 / 00221)
+    if digits.startswith('00221'):
+        digits = digits[5:]
+    elif digits.startswith('221') and len(digits) == 12:
+        digits = digits[3:]
+    if len(digits) == 9:
+        return digits[:2] in ('70', '75', '76', '77', '78', '33')
+    return (tel.startswith('+') or tel.startswith('00')) and 8 <= len(digits) <= 15
+
+
 def _offre_et_stock(produit, account_fournisseur=None, magasin=None):
     """Récupère l'offre FournisseurProduit et le stock/prix effectifs."""
     account_f = account_fournisseur
@@ -543,8 +562,8 @@ class CreerCommandeInviteView(views.APIView):
                 erreurs['email'] = 'Adresse e-mail invalide.'
         if not telephone:
             erreurs['telephone'] = 'Le numéro de téléphone est obligatoire.'
-        elif len(''.join(c for c in telephone if c.isdigit())) < 8:
-            erreurs['telephone'] = 'Numéro de téléphone invalide.'
+        elif not _telephone_valide(telephone):
+            erreurs['telephone'] = 'Numéro de téléphone invalide (format attendu : 77 123 45 67, 33 8xx xx xx ou +221…).'
         if erreurs:
             return Response({'errors': erreurs}, status=status.HTTP_400_BAD_REQUEST)
 

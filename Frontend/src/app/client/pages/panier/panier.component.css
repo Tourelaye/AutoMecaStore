@@ -2239,6 +2239,12 @@
   }
   .help i { color: #9ca3af; }
 
+  .help--error {
+    color: #dc2626;
+    font-weight: 600;
+  }
+  .help--error i { color: #dc2626; }
+
   /* =========================================
      BLOC GÉOLOCALISATION
      ========================================= */

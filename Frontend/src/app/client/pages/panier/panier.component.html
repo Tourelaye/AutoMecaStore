@@ -615,8 +615,15 @@
         </label>
         <label>
           <span>Téléphone <span class="req">*</span></span>
-          <input type="tel" [(ngModel)]="inviteForm.telephone" placeholder="+221 77 123 45 67" autocomplete="tel" [class.invalid]="!inviteForm.telephone && commandeErreur">
-          <small class="help"><i class="bi bi-info-circle"></i> Format sénégalais accepté (ex. 77 123 45 67 ou +221...).</small>
+          <input type="tel" [(ngModel)]="inviteForm.telephone" placeholder="77 123 45 67" autocomplete="tel"
+                 (blur)="inviteTelTouche = true"
+                 [class.invalid]="(inviteTelTouche && inviteTelephoneErreur) || (!inviteForm.telephone && commandeErreur)">
+          <small class="help help--error" *ngIf="inviteTelTouche && inviteTelephoneErreur">
+            <i class="bi bi-exclamation-circle"></i> {{ inviteTelephoneErreur }}
+          </small>
+          <small class="help" *ngIf="!(inviteTelTouche && inviteTelephoneErreur)">
+            <i class="bi bi-info-circle"></i> Sénégal : 77 123 45 67 ou 33 8xx xx xx — international : +221…
+          </small>
         </label>
       </div>
 
@@ -699,7 +706,12 @@
         </label>
         <label>
           <span>Téléphone <span class="req">*</span></span>
-          <input type="tel" [(ngModel)]="adresseForm.telephone" placeholder="77 123 45 67" [class.invalid]="!adresseForm.telephone && commandeErreur">
+          <input type="tel" [(ngModel)]="adresseForm.telephone" placeholder="77 123 45 67"
+                 (blur)="adresseTelTouche = true"
+                 [class.invalid]="(adresseTelTouche && adresseTelephoneErreur) || (!adresseForm.telephone && !isInvite && commandeErreur)">
+          <small class="help help--error" *ngIf="adresseTelTouche && adresseTelephoneErreur">
+            <i class="bi bi-exclamation-circle"></i> {{ adresseTelephoneErreur }}
+          </small>
         </label>
         <label>
           <span>Adresse <span class="req">*</span></span>
