@@ -294,11 +294,9 @@ class CategorieSerializer(serializers.ModelSerializer):
 
     def get_nombre_produits(self, obj):
 
-        """Retourne le nombre de produits actifs dans cette catégorie"""
+        """Retourne le nombre de produits publiés dans cette catégorie"""
 
-        from django.db.models import Q
-
-        return obj.produits.filter(Q(is_active=True) | Q(is_active__isnull=True)).count()
+        return obj.produits.filter(statut='actif', statut_approbation='approuve').count()
 
 
 
@@ -322,9 +320,7 @@ class MarqueSerializer(serializers.ModelSerializer):
 
     def get_nombre_produits(self, obj):
 
-        from django.db.models import Q
-
-        return Produit.objects.filter(Q(is_active=True) | Q(is_active__isnull=True), marque=obj.nom).count()
+        return Produit.objects.publies().filter(marque=obj.nom).count()
 
 
 

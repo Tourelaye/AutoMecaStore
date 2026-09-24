@@ -876,8 +876,7 @@ class HomeFlashSalesView(APIView):
             from django.db.models import Q
 
             # Produits en promo avec date de fin dans le futur ou null
-            queryset = Produit.objects.filter(
-                Q(is_active=True) | Q(is_active__isnull=True),
+            queryset = Produit.objects.publies().filter(
                 est_en_promo=True
             ).filter(
                 Q(date_fin_promo__isnull=True) | Q(date_fin_promo__gt=now)
@@ -911,9 +910,7 @@ class HomeBestSellersView(APIView):
             from django.db.models import Q
             limit = int(request.query_params.get('limit', 10))
 
-            queryset = Produit.objects.filter(
-                Q(is_active=True) | Q(is_active__isnull=True)
-            ).order_by('-nombre_ventes')[:limit]
+            queryset = Produit.objects.publies().order_by('-nombre_ventes')[:limit]
 
             serializer = ProduitSerializer(queryset, many=True, context={'request': request})
             return Response({
@@ -942,9 +939,7 @@ class HomeTrendingView(APIView):
             limit = int(request.query_params.get('limit', 10))
 
             # Priorité aux produits marqués tendance, sinon triés par vues
-            queryset = Produit.objects.filter(
-                Q(is_active=True) | Q(is_active__isnull=True)
-            ).order_by('-est_tendance', '-nombre_vues')[:limit]
+            queryset = Produit.objects.publies().order_by('-est_tendance', '-nombre_vues')[:limit]
 
             serializer = ProduitSerializer(queryset, many=True, context={'request': request})
             return Response({
@@ -974,8 +969,7 @@ class HomeFlashDealsView(APIView):
             current_time = now.time()
 
             # Produits en vente éclair avec heure actuelle dans la plage
-            queryset = Produit.objects.filter(
-                Q(is_active=True) | Q(is_active__isnull=True),
+            queryset = Produit.objects.publies().filter(
                 vente_eclair=True
             ).filter(
                 Q(heure_debut_eclair__isnull=True) | Q(heure_debut_eclair__lte=current_time)
@@ -1010,8 +1004,7 @@ class HomeFeaturedView(APIView):
             from django.db.models import Q
             limit = int(request.query_params.get('limit', 10))
 
-            queryset = Produit.objects.filter(
-                Q(is_active=True) | Q(is_active__isnull=True),
+            queryset = Produit.objects.publies().filter(
                 est_vedette=True
             )[:limit]
 
@@ -1041,8 +1034,7 @@ class HomeRecommendedView(APIView):
             from django.db.models import Q
             limit = int(request.query_params.get('limit', 10))
 
-            queryset = Produit.objects.filter(
-                Q(is_active=True) | Q(is_active__isnull=True),
+            queryset = Produit.objects.publies().filter(
                 est_recommande=True
             )[:limit]
 
@@ -1137,9 +1129,7 @@ class HomePopularSearchesView(APIView):
         """Retourne les termes de recherche populaires"""
         try:
             # Récupérer les produits les plus vus pour générer des recherches populaires
-            top_products = Produit.objects.filter(
-                is_active=True
-            ).order_by('-nombre_vues')[:8]
+            top_products = Produit.objects.publies().order_by('-nombre_vues')[:8]
 
             # Générer des recherches basées sur les noms et catégories des produits populaires
             searches = []

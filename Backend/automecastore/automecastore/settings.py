@@ -347,6 +347,15 @@ MEDIA_URL = '/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Stockage média persistant : Cloudinary si CLOUDINARY_URL est défini.
+# Le filesystem de Render est éphémère — sans stockage externe, les images
+# uploadées en production sont perdues à chaque redéploiement/redémarrage.
+if os.environ.get('CLOUDINARY_URL'):
+    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+    STORAGES['default'] = {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+    }
+
 
 
 SIMPLE_JWT = {

@@ -9,6 +9,10 @@ class ProduitActifManager(models.Manager):
         from django.db.models import Q
         return super().get_queryset().filter(Q(is_active=True) | Q(is_active__isnull=True))
 
+    def publies(self):
+        """Produits visibles publiquement : actifs ET approuvés par l'admin."""
+        return self.get_queryset().filter(statut='actif', statut_approbation='approuve')
+
 
 # Manager pour tous les produits (même inactifs)
 class ProduitTousManager(models.Manager):
