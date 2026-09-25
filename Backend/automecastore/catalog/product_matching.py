@@ -639,3 +639,65 @@ def detect_all_duplicates(min_score: int = SCORE_POSSIBLE, active_only: bool = F
 
     duplicates.sort(key=lambda x: x['score'], reverse=True)
     return duplicates
+
+
+def link_product_to_group(produit) -> bool:
+    """Lie un produit à un ProduitGroup si un produit identique existe.
+
+    Le matching à la création ne voit que les produits actifs — un produit
+    en attente d'approbation (is_active=False) est invisible. Ce helper
+    recherche dans TOUS les produits non supprimés (soft-delete exclu),
+    pour être appelé lors de l'approbation admin et dans la commande
+    de regroupement rétroactif.
+
+    Retourne True si le produit a été lié à un groupe.
+    """
+    from catalog.models import ProduitGroup
+
+    if produit.produit_group_id:
+        return False
+
+    match = find_matching_product(
+        nom=produit.nom or '',
+        marque=produit.marque or '',
+        reference_oem=produit.reference_oem or '',
+        fabricant=produit.fabricant or '',
+        reference=produit.reference or '',
+        type_piece_id=produit.type_piece_id,
+        modeles_compatibles=getattr(produit, 'modeles_compatibles', None),
+        annee_debut=produit.annee_debut,
+        annee_fin=produit.annee_fin,
+        poids=produit.poids,
+        longueur=produit.longueur,
+        largeur=produit.largeur,
+        hauteur=produit.hauteur,
+        matiere=produit.matiere or '',
+        couleur=produit.couleur or '',
+        etat=produit.etat or '',
+        exclude_ids=[produit.id],
+        include_inactive=True,
+    )
+
+    # Même règle qu'à la création : lien si match non ambigu, ou premier
+    # candidat MATCH_CONFIRMED en cas d'ambiguïté. Les produits
+    # soft-deleted sont exclus.
+    matched = None
+    if match.get('found') and not match.get('ambiguous'):
+        matched = match.get('product')
+    elif match.get('ambiguous'):
+        for r in match.get('results', []):
+            if r['classification'] == MATCH_CONFIRMED:
+                matched = r['product']
+                break
+
+    if not matched or getattr(matched, 'date_suppression', None):
+        return False
+    if matched.produit_group_id:
+        produit.produit_group_id = matched.produit_group_id
+    else:
+        group = ProduitGroup.objects.create(nom=matched.nom or produit.nom)
+        matched.produit_group = group
+        matched.save(update_fields=['produit_group'])
+        produit.produit_group = group
+    produit.save(update_fields=['produit_group'])
+    return True

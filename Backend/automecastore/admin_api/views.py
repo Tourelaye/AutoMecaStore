@@ -981,6 +981,14 @@ class AdminProduitApprobationView(APIView):
             else:
                 return Response({'error': 'Statut invalide. Utilisez approuve ou rejete.'}, status=400)
             produit.save()
+            if statut == 'approuve':
+                # Le produit devient visible : le lier à un éventuel jumeau
+                # (le matching à la création ignorait les produits en attente).
+                try:
+                    from catalog.product_matching import link_product_to_group
+                    link_product_to_group(produit)
+                except Exception:
+                    pass
             return Response(build_produit_admin_data(produit))
         except Produit.DoesNotExist:
             return Response({'error': 'Produit non trouvé'}, status=404)
@@ -1064,6 +1072,12 @@ class AdminProduitValidationView(APIView):
                 return Response({'error': 'Action invalide. Utilisez publier, demander_correction, masquer, refuser ou supprimer.'}, status=400)
 
             produit.save()
+            if action == 'publier':
+                try:
+                    from catalog.product_matching import link_product_to_group
+                    link_product_to_group(produit)
+                except Exception:
+                    pass
             return Response(build_produit_admin_data(produit))
 
         except Produit.DoesNotExist:

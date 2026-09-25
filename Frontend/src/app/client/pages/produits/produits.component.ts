@@ -626,9 +626,9 @@ export class ProduitsComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
-  /** Retourne le nombre total de magasins (offre principale + magasins liés) */
+  /** Retourne le nombre total de magasins (offres multiples OU magasins liés) */
   get totalMagasins(): number {
-    return 1 + this.magasinsLies.length;
+    return Math.max(this.offres.length, 1 + this.magasinsLies.length);
   }
 
 
