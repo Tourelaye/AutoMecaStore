@@ -352,7 +352,7 @@ export class AjouterProduitComponent implements OnInit {
         this.typePiecesMap = {};
         this.idToTypePieceName = {};
         types.forEach((tp: any) => {
-          const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
+          const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           this.typePiecesMap[normalized] = tp.id;
           this.typePiecesMap[tp.nom] = tp.id;
           this.idToTypePieceName[tp.id] = tp.nom;
@@ -667,17 +667,62 @@ export class AjouterProduitComponent implements OnInit {
     }
 
     const categorieId = this.getCategorieIdForVehicule(this.produitForm.get('categorieVehicule')?.value);
-    const typePieceName: string | null = this.produitForm.get('typePiece')?.value;
-    let typePieceId: number | null = null;
-    if (typePieceName) {
-      const normalized = typePieceName.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
-      typePieceId = this.typePiecesMap[typePieceName] || this.typePiecesMap[normalized] || null;
-    }
+    const typePieceId = this.resolveTypePieceId(this.produitForm.get('typePiece')?.value);
     if (!categorieId || !typePieceId) {
-      this.showToast('Impossible de déterminer la catégorie ou le type de pièce.', 'error');
+      // Les référentiels (catégories / types de pièces) peuvent ne pas être
+      // chargés — cold start Render ou appel en échec silencieux.
+      // On les recharge puis on réessaie avant de bloquer l'utilisateur.
+      this.matchLoading = true;
+      this.chargerReferencesPuis(() => {
+        this.matchLoading = false;
+        const cat2 = this.getCategorieIdForVehicule(this.produitForm.get('categorieVehicule')?.value);
+        const tp2 = this.resolveTypePieceId(this.produitForm.get('typePiece')?.value);
+        if (!cat2 || !tp2) {
+          this.showToast('Impossible de déterminer la catégorie ou le type de pièce. Rechargez la page puis réessayez.', 'error');
+          return;
+        }
+        this.continuerEnregistrement(cat2, tp2);
+      });
       return;
     }
+    this.continuerEnregistrement(categorieId, typePieceId);
+  }
 
+  private resolveTypePieceId(typePieceName: string | null): number | null {
+    if (!typePieceName) { return null; }
+    const normalized = typePieceName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return this.typePiecesMap[typePieceName] || this.typePiecesMap[normalized] || null;
+  }
+
+  /** Recharge les catégories puis les types de pièces si nécessaire, puis appelle done(). */
+  private chargerReferencesPuis(done: () => void): void {
+    const chargerTypes = () => {
+      const catId = this.getCategorieIdForVehicule(this.produitForm.get('categorieVehicule')?.value);
+      if (!catId) { done(); return; }
+      this.coreProduitService.getTypesPieces(catId).subscribe({
+        next: (types) => {
+          this.availableTypePieces = types;
+          this.typePiecesMap = {};
+          this.idToTypePieceName = {};
+          types.forEach((tp: any) => {
+            const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            this.typePiecesMap[normalized] = tp.id;
+            this.typePiecesMap[tp.nom] = tp.id;
+            this.idToTypePieceName[tp.id] = tp.nom;
+          });
+          done();
+        },
+        error: () => done()
+      });
+    };
+    if (!this.availableCategories.length) {
+      this.loadCategories(chargerTypes);
+    } else {
+      chargerTypes();
+    }
+  }
+
+  private continuerEnregistrement(categorieId: number, typePieceId: number): void {
     // En mode édition, pas de matching
     if (this.mode === 'edit') {
       this.proceedToSave(categorieId, typePieceId);
@@ -860,7 +905,7 @@ export class AjouterProduitComponent implements OnInit {
             this.typePiecesMap = {};
             this.idToTypePieceName = {};
             types.forEach((tp: any) => {
-              const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[-\u036f]/g, '');
+              const normalized = tp.nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
               this.typePiecesMap[normalized] = tp.id;
               this.typePiecesMap[tp.nom] = tp.id;
               this.idToTypePieceName[tp.id] = tp.nom;
