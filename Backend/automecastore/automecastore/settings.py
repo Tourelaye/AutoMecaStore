@@ -354,7 +354,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # 2) Cloudinary si CLOUDINARY_URL
 if os.environ.get('AWS_STORAGE_BUCKET_NAME'):
     INSTALLED_APPS += ['storages']
-    STORAGES['default'] = {'BACKEND': 'storages.backends.s3.S3Storage'}
+    STORAGES['default'] = {'BACKEND': 'automecastore.storage_backends.SafeS3Storage'}
     AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
     AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
