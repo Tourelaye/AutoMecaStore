@@ -70,8 +70,9 @@ export class VeloListComponent implements OnInit {
     { key: 'tous',        label: 'Toutes',         icon: 'bi-grid' },
     { key: 'freinage',    label: 'Freinage',       icon: 'bi-disc' },
     { key: 'transmission',label: 'Transmission',   icon: 'bi-link-45deg' },
-    { key: 'roues',      label: 'Roues',          icon: 'bi-circle' },
-    { key: 'eclairage',   label: 'Éclairage',      icon: 'bi-lightbulb-fill' },
+    { key: 'roues',       label: 'Roues',          icon: 'bi-circle' },
+    { key: 'batterie',    label: 'Batterie (e-bike)', icon: 'bi-battery-charging' },
+    { key: 'accessoires', label: 'Accessoires',    icon: 'bi-bag' },
   ];
 
   // Tous les produits (source)
@@ -93,8 +94,8 @@ export class VeloListComponent implements OnInit {
     // CHARGEMENT DYNAMIQUE DES PRODUITS DEPUIS L'API
     // -------------------------------------------------------
     this.isLoading = true;
-    // Filtrer par catégorie Vélo (ID: 3)
-    this.produitService.getProduits({ categorie: 3 }).subscribe({
+    // Filtrer par catégorie Vélo & E-bike (ID: 4)
+    this.produitService.getProduits({ categorie: 4 }).subscribe({
       next: (data: any) => {
         console.log('Produits chargés depuis API:', data);
         const list = Array.isArray(data) ? data : data.results || data;
@@ -144,18 +145,13 @@ export class VeloListComponent implements OnInit {
 
   // Mapper la catégorie de l'API vers les sous-catégories velo
   private mapCategorieToVelo(typePieceNom: string): string {
-    const mapping: { [key: string]: string } = {
-      'Freinage': 'freinage',
-      'Transmission': 'transmission',
-      'Roues': 'roues',
-      'Éclairage': 'eclairage',
-      'Eclairage': 'eclairage',
-      'freinage': 'freinage',
-      'transmission': 'transmission',
-      'roues': 'roues',
-      'eclairage': 'eclairage'
-    };
-    return mapping[typePieceNom] || 'tous';
+    const nom = (typePieceNom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (nom.includes('frein'))    return 'freinage';
+    if (nom.includes('transmission')) return 'transmission';
+    if (nom.includes('roue'))     return 'roues';
+    if (nom.includes('batterie')) return 'batterie';
+    if (nom.includes('accessoire')) return 'accessoires';
+    return 'tous';
   }
 
   // Détermine si un produit est une nouveauté (moins de 30 jours)

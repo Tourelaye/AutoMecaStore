@@ -67,11 +67,12 @@ export class PoidLourdsListComponent implements OnInit {
   categorieActive = 'tous';
 
   sousCategoriesPoidLourds = [
-    { key: 'tous',        label: 'Toutes',         icon: 'bi-grid' },
-    { key: 'freinage',    label: 'Freinage',       icon: 'bi-disc' },
-    { key: 'transmission',label: 'Transmission',   icon: 'bi-link-45deg' },
-    { key: 'pneumatiques',label: 'Pneumatiques',   icon: 'bi-circle' },
-    { key: 'eclairage',   label: 'Éclairage',      icon: 'bi-lightbulb-fill' },
+    { key: 'tous',        label: 'Toutes',              icon: 'bi-grid' },
+    { key: 'freinage',    label: 'Freinage pneumatique', icon: 'bi-disc' },
+    { key: 'suspension',  label: 'Suspension',          icon: 'bi-arrows-expand' },
+    { key: 'moteur',      label: 'Moteur',              icon: 'bi-gear-fill' },
+    { key: 'eclairage',   label: 'Éclairage',           icon: 'bi-lightbulb-fill' },
+    { key: 'remorquage',  label: 'Remorquage',          icon: 'bi-truck-flatbed' },
   ];
 
   // Tous les produits (source)
@@ -93,8 +94,8 @@ export class PoidLourdsListComponent implements OnInit {
     // CHARGEMENT DYNAMIQUE DES PRODUITS DEPUIS L'API
     // -------------------------------------------------------
     this.isLoading = true;
-    // Filtrer par catégorie Poids Lourds (ID: 4)
-    this.produitService.getProduits({ categorie: 4 }).subscribe({
+    // Filtrer par catégorie Poids Lourds (ID: 3)
+    this.produitService.getProduits({ categorie: 3 }).subscribe({
       next: (data: any) => {
         console.log('Produits chargés depuis API:', data);
         const list = Array.isArray(data) ? data : data.results || data;
@@ -144,18 +145,13 @@ export class PoidLourdsListComponent implements OnInit {
 
   // Mapper la catégorie de l'API vers les sous-catégories poids lourds
   private mapCategorieToPoidLourds(typePieceNom: string): string {
-    const mapping: { [key: string]: string } = {
-      'Freinage': 'freinage',
-      'Transmission': 'transmission',
-      'Pneumatiques': 'pneumatiques',
-      'Éclairage': 'eclairage',
-      'Eclairage': 'eclairage',
-      'freinage': 'freinage',
-      'transmission': 'transmission',
-      'pneumatiques': 'pneumatiques',
-      'eclairage': 'eclairage'
-    };
-    return mapping[typePieceNom] || 'tous';
+    const nom = (typePieceNom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (nom.includes('frein'))      return 'freinage';
+    if (nom.includes('suspension')) return 'suspension';
+    if (nom.includes('moteur'))     return 'moteur';
+    if (nom.includes('eclairage'))  return 'eclairage';
+    if (nom.includes('remorquage')) return 'remorquage';
+    return 'tous';
   }
 
   // Détermine si un produit est une nouveauté (moins de 30 jours)
