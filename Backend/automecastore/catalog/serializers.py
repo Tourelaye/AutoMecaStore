@@ -1822,7 +1822,9 @@ class ProduitDetailSerializer(ProduitSerializer):
 
 
 
-        # Prix et stock du produit, éventuellement surchargés par FournisseurProduit
+        # Prix et stock du produit. L'offre du propriétaire suit toujours
+        # le produit (fp.prix_vente/stock_disponible ne s'appliquent qu'aux
+        # offres partenaires — sinon un prix modifié n'apparaît jamais).
 
         prix = produit.prix
 
@@ -1830,7 +1832,7 @@ class ProduitDetailSerializer(ProduitSerializer):
 
             prix = produit.prix_promo
 
-        if fp and fp.prix_vente is not None:
+        if fp and fp.prix_vente is not None and badge != 'principal':
 
             prix = fp.prix_vente
 
@@ -1838,7 +1840,7 @@ class ProduitDetailSerializer(ProduitSerializer):
 
         stock = produit.stock or 0
 
-        if fp and fp.stock_disponible is not None:
+        if fp and fp.stock_disponible is not None and badge != 'principal':
 
             stock = fp.stock_disponible
 

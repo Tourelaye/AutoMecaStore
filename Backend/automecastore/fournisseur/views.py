@@ -477,7 +477,19 @@ class FournisseurProduitDetailView(generics.RetrieveUpdateDestroyAPIView):
         # Sécurité : un fournisseur ne peut pas modifier certains champs administrateur
         for champ in ('fournisseur', 'statut_approbation', 'signale', 'motif_rejet', 'date_suppression', 'nombre_vues', 'nombre_favoris', 'nombre_ventes', 'note_moyenne', 'nombre_avis'):
             serializer.validated_data.pop(champ, None)
-        serializer.save(fournisseur=self.request.user.fournisseur)
+        produit = serializer.save(fournisseur=self.request.user.fournisseur)
+
+        # Garder l'offre FournisseurProduit du propriétaire synchronisée avec
+        # le produit — sinon l'onglet offres affiche l'ancien prix/stock.
+        try:
+            from catalog.models import Fournisseur as CatalogFournisseur
+            catalog_f = CatalogFournisseur.objects.filter(administrateur=self.request.user).first()
+            if catalog_f:
+                FournisseurProduit.objects.filter(
+                    fournisseur=catalog_f, produit=produit
+                ).update(prix_vente=produit.prix, stock_disponible=produit.stock)
+        except Exception:
+            pass
 
         # Notifier les admins de la modification du produit
         try:
