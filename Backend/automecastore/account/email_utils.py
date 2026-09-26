@@ -24,10 +24,11 @@ def send_mail_async(subject, message, from_email, recipient_list, html_message=N
                 fail_silently=False,
             )
             if not sent:
-                logger.error("Email non envoyé à %s (send_mail a retourné 0)", recipient_list)
+                print(f"EMAIL_ECHEC: send_mail a retourné 0 pour {recipient_list} — '{subject}'")
             else:
-                logger.info("Email envoyé à %s : %s", recipient_list, subject)
-        except Exception:
+                print(f"EMAIL_OK: envoyé à {recipient_list} — '{subject}'")
+        except Exception as e:
+            print(f"EMAIL_ECHEC: {type(e).__name__}: {e} — destinataire {recipient_list}")
             logger.exception("Erreur envoi email asynchrone à %s", recipient_list)
 
     transaction.on_commit(
