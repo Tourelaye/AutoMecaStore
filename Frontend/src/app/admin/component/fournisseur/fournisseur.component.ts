@@ -265,7 +265,7 @@ export class FournisseurComponent implements OnInit {
     this.deleteError = null;
   }
 
-  confirmDelete(): void {
+  confirmDelete(definitive = false): void {
     // Garde-fou : id null/undefined ET anti double-clic
     if (this.pendingDeleteId === null || this.pendingDeleteId === undefined || this.deleting) return;
 
@@ -273,13 +273,25 @@ export class FournisseurComponent implements OnInit {
     this.deleteError = null;
     const idToDelete = this.pendingDeleteId;
 
-    this.fournisseurService.delete(idToDelete).subscribe({
+    const req = definitive
+      ? this.fournisseurService.deleteDefinitivement(idToDelete)
+      : this.fournisseurService.delete(idToDelete);
+
+    req.subscribe({
       next: () => {
-        const idx = this.fournisseurs.findIndex(f => f.user.id === idToDelete);
-        if (idx >= 0) {
-          this.fournisseurs[idx].statut = 'desactive';
-          if (this.fournisseurs[idx].user) {
-            this.fournisseurs[idx].user.is_active = false;
+        if (definitive) {
+          this.fournisseurs = this.fournisseurs.filter(f => f.user.id !== idToDelete);
+          if (this.selectedFournisseur?.user.id === idToDelete) {
+            this.showDetailModal = false;
+            this.selectedFournisseur = null;
+          }
+        } else {
+          const idx = this.fournisseurs.findIndex(f => f.user.id === idToDelete);
+          if (idx >= 0) {
+            this.fournisseurs[idx].statut = 'desactive';
+            if (this.fournisseurs[idx].user) {
+              this.fournisseurs[idx].user.is_active = false;
+            }
           }
         }
         this.applyFilters();

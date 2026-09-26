@@ -98,6 +98,10 @@ export class FournisseurService {
     return this.http.delete(`${this.apiUrl}/${userId}/delete/`);
   }
 
+  deleteDefinitivement(userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}/hard-delete/`);
+  }
+
   getCommandes(fournisseurId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${fournisseurId}/commandes/`);
   }

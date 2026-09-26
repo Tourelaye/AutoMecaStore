@@ -1412,6 +1412,36 @@ class AdminFournisseurDeleteView(APIView):
             return Response({'error': 'Fournisseur non trouvé'}, status=404)
 
 
+class AdminFournisseurHardDeleteView(APIView):
+    """Suppression définitive d'un fournisseur : compte, magasin, produits.
+    Les lignes de commande sont détachées (produit=NULL) pour préserver l'historique."""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdmin]
+
+    def delete(self, request, user_id):
+        try:
+            f = Fournisseur.objects.select_related('user').get(user_id=user_id)
+            if f.user == request.user:
+                return Response({'error': 'Vous ne pouvez pas supprimer votre propre compte.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            from orders.models import LigneCommande, PanierItem
+            from django.db import transaction
+            email = f.user.email
+            with transaction.atomic():
+                # Détacher les lignes de commande des produits du fournisseur
+                # (produit est CASCADE → sans cela les lignes seraient supprimées)
+                LigneCommande.objects.filter(produit__fournisseur=f).update(produit=None)
+                LigneCommande.objects.filter(fournisseur=f).update(fournisseur=None, magasin=None)
+                # Items de panier clients pointant vers ses produits
+                PanierItem.objects.filter(produit__fournisseur=f).delete()
+                # Suppression en cascade : Fournisseur, Magasin, Produits, promotions, historiques
+                f.user.delete()
+
+            return Response({'message': f'Fournisseur {email} supprimé définitivement.'})
+        except Fournisseur.DoesNotExist:
+            return Response({'error': 'Fournisseur non trouvé'}, status=404)
+
+
 class AdminFournisseurCommandesView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdmin]

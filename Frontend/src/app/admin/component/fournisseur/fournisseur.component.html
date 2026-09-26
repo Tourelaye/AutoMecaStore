@@ -331,14 +331,18 @@
   <div class="modal-backdrop" *ngIf="pendingDeleteId !== null" (click)="cancelDelete()">
     <div class="modal modal--sm" (click)="$event.stopPropagation()">
       <h3 class="modal__title">Supprimer ce magasin ?</h3>
-      <p class="modal__text">Cette action est irréversible. Le magasin, son compte et ses données associées seront supprimés.</p>
+      <p class="modal__text"><strong>Désactiver</strong> : le compte est bloqué mais les données sont conservées.</p>
+      <p class="modal__text"><strong>Supprimer définitivement</strong> : le compte, le magasin et tous ses produits seront effacés de la base. <span style="color: #dc2626;">Cette action est irréversible.</span></p>
       <p class="field__error" *ngIf="deleteError">
         <i class="bi bi-exclamation-triangle-fill"></i> {{ deleteError }}
       </p>
       <div class="modal__footer">
         <button type="button" class="btn-text" (click)="cancelDelete()" [disabled]="deleting"><i class="bi bi-x"></i> Annuler</button>
-        <button type="button" class="btn-text btn-text--danger" (click)="confirmDelete()" [disabled]="deleting">
-          <span *ngIf="!deleting"><i class="bi bi-trash-fill"></i> Supprimer</span>
+        <button type="button" class="btn-text" (click)="confirmDelete(false)" [disabled]="deleting">
+          <i class="bi bi-slash-circle"></i> Désactiver
+        </button>
+        <button type="button" class="btn-text btn-text--danger" (click)="confirmDelete(true)" [disabled]="deleting">
+          <span *ngIf="!deleting"><i class="bi bi-trash-fill"></i> Supprimer définitivement</span>
           <span *ngIf="deleting" class="btn-loading"><span class="spinner-small"></span> Suppression...</span>
         </button>
       </div>
