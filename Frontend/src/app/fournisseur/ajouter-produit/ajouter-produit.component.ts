@@ -53,7 +53,7 @@ export class AjouterProduitComponent implements OnInit {
   ];
 
   private typesPieceParCategorie: Record<CategorieVehicule, string[]> = {
-    automobile: ['Freinage', 'Filtration', 'Suspension', 'Moteur', 'Électrique', 'Carrosserie'],
+    automobile: ['Freinage', 'Filtration', 'Suspension', 'Moteur', 'Transmission', 'Électrique', 'Carrosserie'],
     moto: ['Chaîne & Transmission', 'Freinage', 'Pneus', 'Éclairage', 'Moteur'],
     'poids-lourd': ['Freinage pneumatique', 'Suspension', 'Moteur', 'Éclairage', 'Remorquage'],
     velo: ['Transmission', 'Freinage', 'Roues', 'Batterie (e-bike)', 'Accessoires']
