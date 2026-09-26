@@ -15,14 +15,18 @@ def send_mail_async(subject, message, from_email, recipient_list, html_message=N
     """
     def _send():
         try:
-            send_mail(
+            sent = send_mail(
                 subject=subject,
                 message=message,
                 from_email=from_email,
                 recipient_list=recipient_list,
                 html_message=html_message,
-                fail_silently=True,
+                fail_silently=False,
             )
+            if not sent:
+                logger.error("Email non envoyé à %s (send_mail a retourné 0)", recipient_list)
+            else:
+                logger.info("Email envoyé à %s : %s", recipient_list, subject)
         except Exception:
             logger.exception("Erreur envoi email asynchrone à %s", recipient_list)
 
